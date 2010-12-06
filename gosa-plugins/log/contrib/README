@@ -1,0 +1,27 @@
+GOsa supports two completely different logging services/plugins.
+
+GOsa Log View
+=============
+This service logs GOsa related actions, like viewing, editing or removing of ldap objects.
+In other words, nearly every mouse click in the GOsa ui, will be logged and can then be viewed.
+
+-The database schema is in file 'logging.sql'
+-The service plugin is named 'GOsa mysql logging service'.
+ (Can be configured in: Administration->Server->Services)
+
+
+Syslog view
+===========
+This plugin displays logged system messages, which are stored in a mysql database.
+For example, you can configure syslog-ng to log into a database and use GOsa to display 
+those messages. This plugin has to be used toghether with the 'Syslog Server' service.
+
+-The database schema is in file 'golog.sql'
+-The service plugin is named 'Syslog service database'.
+ (Can be configured in: Administration->Server->Services)
+
+
+For more information visit gosa-project.org 
+
+
+

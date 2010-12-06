@@ -1,0 +1,2225 @@
+# translation of messages.po to Chinese Simplified
+# Copyright (C) 2003 GONICUS GmbH, Germany
+# This file is distributed under the same license as the GOsa2 package.
+#
+# Jiang Xin <worldhello.net@gmail.com>, 2007.
+msgid ""
+msgstr ""
+"Project-Id-Version: messages\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-11-04 15:23+0100\n"
+"PO-Revision-Date: 2007-06-03 12:27+0800\n"
+"Last-Translator: Jiang Xin <worldhello.net@gmail.com>\n"
+"Language-Team: Chinese Simplified <zh@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+
+#: admin/ogroups/gofon/phonequeue.tpl:3
+msgid ""
+"Only users with the same asterisk home server will be included to this queue."
+msgstr "只有有着相同 asterisk 主服务器的用户才会被包含在这个队列中。"
+
+#: admin/ogroups/gofon/phonequeue.tpl:6
+msgid "Queue Settings"
+msgstr "队列设置"
+
+#: admin/ogroups/gofon/phonequeue.tpl:10 admin/ogroups/gofon/phonequeue.tpl:11
+#: gofon/phoneaccount/generic.tpl:1 gofon/phoneaccount/generic.tpl:4
+#: gofon/phoneaccount/paste_generic.tpl:2
+#: gofon/phoneaccount/paste_generic.tpl:5
+msgid "Phone numbers"
+msgstr "电话号码"
+
+#: admin/ogroups/gofon/phonequeue.tpl:14
+#: admin/ogroups/gofon/phonequeue.tpl:144
+msgid "Generic queue Settings"
+msgstr "通用队列设置"
+
+#: admin/ogroups/gofon/phonequeue.tpl:27
+msgid "Up"
+msgstr "上"
+
+#: admin/ogroups/gofon/phonequeue.tpl:31
+msgid "Down"
+msgstr "关闭"
+
+#: admin/ogroups/gofon/phonequeue.tpl:54 gofon/conference/generic.tpl:129
+#: gofon/conference/generic.tpl:135
+msgid "Options"
+msgstr "选项"
+
+#: admin/ogroups/gofon/phonequeue.tpl:57
+#: admin/ogroups/gofon/class_phonequeue.inc:305
+#: admin/ogroups/gofon/class_phonequeue.inc:934
+#: gofon/phoneaccount/generic.tpl:55
+#: gofon/phoneaccount/class_phoneAccount.inc:1459
+#: gofon/phoneaccount/class_phoneAccount.inc:1867
+#: gofon/conference/generic.tpl:57
+#: gofon/conference/class_phoneConferenceGeneric.inc:849
+msgid "Home server"
+msgstr "主服务器"
+
+#: admin/ogroups/gofon/phonequeue.tpl:69
+#: admin/ogroups/gofon/class_phonequeue.inc:953
+#: gofon/conference/generic.tpl:67
+#: gofon/conference/class_phoneConferenceGeneric.inc:847
+msgid "Language"
+msgstr "语言"
+
+#: admin/ogroups/gofon/phonequeue.tpl:82
+#: admin/ogroups/gofon/class_phonequeue.inc:311
+#: admin/ogroups/gofon/class_phonequeue.inc:932
+msgid "Timeout"
+msgstr "过期"
+
+#: admin/ogroups/gofon/phonequeue.tpl:92
+#: admin/ogroups/gofon/class_phonequeue.inc:314
+#: admin/ogroups/gofon/class_phonequeue.inc:957
+msgid "Retry"
+msgstr "重试"
+
+#: admin/ogroups/gofon/phonequeue.tpl:102
+msgid "Strategy"
+msgstr "策略"
+
+#: admin/ogroups/gofon/phonequeue.tpl:116
+#: admin/ogroups/gofon/class_phonequeue.inc:933
+msgid "Max queue length"
+msgstr "最大队列长度"
+
+#: admin/ogroups/gofon/phonequeue.tpl:126
+#: admin/ogroups/gofon/class_phonequeue.inc:320
+#: admin/ogroups/gofon/class_phonequeue.inc:935
+msgid "Announce frequency"
+msgstr "公告频率"
+
+#: admin/ogroups/gofon/phonequeue.tpl:132
+msgid "(in seconds)"
+msgstr "(秒)"
+
+#: admin/ogroups/gofon/phonequeue.tpl:142
+msgid "Queue sound setup"
+msgstr "队列声音设置"
+
+#: admin/ogroups/gofon/phonequeue.tpl:147
+msgid "Use music on hold instead of ringing"
+msgstr "播放音乐保持锁定而非播放"
+
+#: admin/ogroups/gofon/phonequeue.tpl:158
+#: admin/ogroups/gofon/class_phonequeue.inc:942
+msgid "Music on hold"
+msgstr "暂停的音乐"
+
+#: admin/ogroups/gofon/phonequeue.tpl:168
+msgid "Welcome sound file"
+msgstr "欢迎声音文件"
+
+#: admin/ogroups/gofon/phonequeue.tpl:178
+msgid "Announce message"
+msgstr "公告信息"
+
+#: admin/ogroups/gofon/phonequeue.tpl:188
+msgid "Sound file for 'You are next ...'"
+msgstr "声音文件“您是下一个...”"
+
+#: admin/ogroups/gofon/phonequeue.tpl:198
+msgid "'There are ...'"
+msgstr "'这里有 ...'"
+
+#: admin/ogroups/gofon/phonequeue.tpl:208
+msgid "'... calls waiting'"
+msgstr "'... 电话在等待'"
+
+#: admin/ogroups/gofon/phonequeue.tpl:218
+msgid "'Thank you' message"
+msgstr "'谢谢您' 消息"
+
+#: admin/ogroups/gofon/phonequeue.tpl:228
+msgid "'minutes' sound file"
+msgstr "'分钟' 声音文件"
+
+#: admin/ogroups/gofon/phonequeue.tpl:238
+msgid "'seconds' sound file"
+msgstr "'秒' 声音文件"
+
+#: admin/ogroups/gofon/phonequeue.tpl:248
+msgid "Hold sound file"
+msgstr "暂停声音文件"
+
+#: admin/ogroups/gofon/phonequeue.tpl:258
+msgid "Less Than sound file"
+msgstr "声音文件“小于...”"
+
+#: admin/ogroups/gofon/phonequeue.tpl:276
+msgid "Phone attributes "
+msgstr "电话属性"
+
+#: admin/ogroups/gofon/phonequeue.tpl:281
+#, fuzzy
+msgid "Additional queue settings"
+msgstr "应用程序设置"
+
+#: admin/ogroups/gofon/phonequeue.tpl:288
+#: admin/ogroups/gofon/class_phonequeue.inc:955
+#, fuzzy
+msgid "Announce hold time"
+msgstr "公告期限"
+
+#: admin/ogroups/gofon/phonequeue.tpl:296
+#: admin/ogroups/gofon/class_phonequeue.inc:936
+msgid "Allow the called user to transfer his call"
+msgstr "允许被叫用户转移呼叫"
+
+#: admin/ogroups/gofon/phonequeue.tpl:304
+#: admin/ogroups/gofon/class_phonequeue.inc:937
+msgid "Allows calling user to transfer call"
+msgstr "允许拨叫用户转移呼叫"
+
+#: admin/ogroups/gofon/phonequeue.tpl:311
+#, fuzzy
+msgid "Dial options"
+msgstr "邮件选项"
+
+#: admin/ogroups/gofon/phonequeue.tpl:318
+#: admin/ogroups/gofon/class_phonequeue.inc:938
+msgid "Allow the called to hangup by pressing *"
+msgstr "允许被叫用户按 * 键挂起"
+
+#: admin/ogroups/gofon/phonequeue.tpl:326
+#: admin/ogroups/gofon/class_phonequeue.inc:940
+msgid "Allows calling to hangup by pressing *"
+msgstr "允许拨叫用户按 * 键挂起"
+
+#: admin/ogroups/gofon/phonequeue.tpl:334
+#: admin/ogroups/gofon/class_phonequeue.inc:939
+msgid "Ring instead of playing background music"
+msgstr "振铃而非播放背景音乐"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:91
+#: gofon/phoneaccount/class_phoneAccount.inc:140
+#: gofon/conference/class_phoneConferenceGeneric.inc:102
+#, fuzzy
+msgid "Obsolete entry"
+msgstr "删除这个条目"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:91
+#: gofon/phoneaccount/class_phoneAccount.inc:140
+#: gofon/conference/class_phoneConferenceGeneric.inc:102
+#, php-format
+msgid ""
+"The current home server is not available anymore. It will be moved to '%s' "
+"if you save this entry!"
+msgstr ""
+
+#: admin/ogroups/gofon/class_phonequeue.inc:121
+msgid "ring all"
+msgstr "全部响铃"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:122
+msgid "round robin"
+msgstr "round robin"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:123
+#, fuzzy
+msgid "least recently called"
+msgstr "最近最少的电话"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:124
+#, fuzzy
+msgid "fewest completed calls"
+msgstr "最少完成的电话"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:125
+msgid "random"
+msgstr "随机"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:126
+msgid "round robin with memory"
+msgstr "内存 round robin"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:210
+msgid "Remove the phone queue from this Account"
+msgstr "删除来自该账号的电话队列"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:211
+#: admin/ogroups/gofon/class_phonequeue.inc:214
+#, fuzzy
+msgid "phone queue"
+msgstr "创建电话队列"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:213
+msgid "Create phone queue"
+msgstr "创建电话队列"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:302
+msgid ""
+"There must be at least one server with an asterisk database to create a "
+"phone queue."
+msgstr "必须有至少一个带有 asterisk 数据库的服务器来创建一个电话队列。"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:317
+#, fuzzy
+msgid "Queue length"
+msgstr "最大队列长度"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:323
+#: gofon/conference/class_phoneConferenceGeneric.inc:371
+#, fuzzy
+msgid "Number"
+msgstr "名称 - 数字"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:346
+#: admin/ogroups/gofon/class_phonequeue.inc:394
+#, fuzzy
+msgid "asterisk"
+msgstr "粘贴"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:378
+#: admin/ogroups/gofon/class_phonequeue.inc:732
+#: gofon/macro/class_gofonMacro.inc:397 gofon/macro/class_gofonMacro.inc:481
+#: gofon/phoneaccount/class_phoneAccount.inc:468
+#: gofon/phoneaccount/class_phoneAccount.inc:1149
+#: gofon/phoneaccount/class_phoneAccount.inc:1627
+#: gofon/conference/class_phoneConferenceGeneric.inc:409
+#: gofon/fonreports/class_fonreport.inc:181
+#: gofon/fonreports/class_fonreport.inc:202
+#: gofon/fonreports/class_fonreport.inc:207
+#: gofon/fonreports/class_fonreport.inc:224
+#, fuzzy
+msgid "GOfon"
+msgstr "没有宏"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:437
+#, fuzzy
+msgid "Cannot find old queue entry!"
+msgstr "无法创建文件 '%s'。"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:523
+#, fuzzy, php-format
+msgid ""
+"Found more than one entry named '%s' in queue table. Please inform your "
+"system administrator!"
+msgstr "账户锁定。请联系管理员。"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:764
+#: admin/ogroups/gofon/class_phonequeue.inc:766
+#, fuzzy
+msgid "telephone number"
+msgstr "电话号码"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:823
+#: admin/ogroups/gofon/class_phonequeue.inc:865
+#: admin/systems/gofon/class_phoneGeneric.inc:245
+#: admin/systems/gofon/class_phoneGeneric.inc:290
+#: gofon/macro/class_gofonMacro.inc:359 gofon/macro/class_gofonMacro.inc:468
+#: gofon/macro/class_gofonMacro.inc:477 gofon/macro/class_gofonMacro.inc:515
+#: gofon/phoneaccount/class_phoneAccount.inc:689
+#: gofon/phoneaccount/class_phoneAccount.inc:1011
+#: gofon/phoneaccount/class_phoneAccount.inc:1134
+#: gofon/phoneaccount/class_phoneAccount.inc:1257
+#: gofon/phoneaccount/class_phoneAccount.inc:1263
+#: gofon/phoneaccount/class_phoneAccount.inc:1477
+#: gofon/phoneaccount/class_phoneAccount.inc:1559
+#: gofon/phoneaccount/class_phoneAccount.inc:1653
+#: gofon/phoneaccount/class_phoneAccount.inc:1663
+#: gofon/phoneaccount/class_phoneAccount.inc:1710
+#: gofon/conference/class_phoneConferenceGeneric.inc:227
+#: gofon/conference/class_phoneConferenceGeneric.inc:231
+#: gofon/conference/class_phoneConferenceGeneric.inc:267
+#: gofon/conference/class_phoneConferenceGeneric.inc:596
+#: gofon/fonreports/class_fonreport.inc:201
+#: gofon/fonreports/class_fonreport.inc:206
+#: gofon/fonreports/class_fonreport.inc:223
+msgid "Error"
+msgstr "错误"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:838
+#: admin/ogroups/gofon/class_phonequeue.inc:893
+#: admin/systems/services/gofon/class_goFonServer.inc:146
+#: admin/systems/gofon/class_phoneGeneric.inc:255
+#: admin/systems/gofon/class_phoneGeneric.inc:414
+#: admin/systems/gofon/class_phoneGeneric.inc:428
+#: admin/systems/gofon/class_phoneGeneric.inc:445
+#: gofon/macro/class_gofonMacroParameters.inc:405
+#: gofon/macro/class_gofonMacro.inc:489 gofon/macro/class_gofonMacro.inc:500
+#: gofon/macro/class_gofonMacro.inc:537
+#: gofon/phoneaccount/class_phoneAccount.inc:1585
+#: gofon/phoneaccount/class_phoneAccount.inc:1764
+#: gofon/conference/class_phoneConferenceGeneric.inc:767
+#, fuzzy
+msgid "LDAP error"
+msgstr "LDAP 错误:"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:901
+#: gofon/phoneaccount/class_phoneAccount.inc:1503
+#: gofon/conference/conf-filter.xml:32 gofon/conference/generic.tpl:109
+#: gofon/conference/paste_generic.tpl:15
+msgid "Phone number"
+msgstr "电话号码"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:918
+#: admin/systems/gofon/phone.tpl:1 gofon/phoneaccount/class_phoneAccount.inc:6
+#: gofon/phoneaccount/class_phoneAccount.inc:1087
+#: gofon/phoneaccount/class_phoneAccount.inc:1100
+#: gofon/phoneaccount/class_phoneAccount.inc:1112
+#: gofon/phoneaccount/class_phoneAccount.inc:1116
+#: gofon/phoneaccount/class_phoneAccount.inc:1119
+#: gofon/phoneaccount/class_phoneAccount.inc:1848
+msgid "Phone"
+msgstr "电话"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:919
+#, fuzzy
+msgid "Phone group"
+msgstr "电话宏"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:943
+#, fuzzy
+msgid "Welcome music"
+msgstr "欢迎 %s!"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:944
+#, fuzzy
+msgid "Report hold time"
+msgstr "公告期限"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:945
+msgid "'You are next' sound"
+msgstr ""
+
+#: admin/ogroups/gofon/class_phonequeue.inc:946
+#, fuzzy
+msgid "'There are' sound"
+msgstr "'这里有 ...'"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:947
+#, fuzzy
+msgid "'Call waiting' sound"
+msgstr "'... 电话在等待'"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:948
+#, fuzzy
+msgid "'Thank you' sound"
+msgstr "'谢谢您' 消息"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:949
+#, fuzzy
+msgid "'Minutes' sound"
+msgstr "'分钟' 声音文件"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:950
+#, fuzzy
+msgid "'Seconds' sound"
+msgstr "'秒' 声音文件"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:951
+#, fuzzy
+msgid "'Less than' sound"
+msgstr "声音文件“小于...”"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:952
+#, fuzzy
+msgid "Queue phone number"
+msgstr "电话号码"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:954
+#, fuzzy
+msgid "Method"
+msgstr "方法"
+
+#: admin/ogroups/gofon/class_phonequeue.inc:956
+#, fuzzy
+msgid "Announce"
+msgstr "公告信息"
+
+#: admin/systems/services/gofon/goFonServer.tpl:1
+#: admin/systems/services/gofon/goFonServer.tpl:2
+#, fuzzy
+msgid "VoIP database information"
+msgstr "切换信息"
+
+#: admin/systems/services/gofon/goFonServer.tpl:4
+msgid "Asterisk DB user"
+msgstr "Asterisk DB 用户"
+
+#: admin/systems/services/gofon/goFonServer.tpl:12
+#: admin/systems/services/gofon/class_goFonServer.inc:77
+#: admin/systems/services/gofon/class_goFonServer.inc:184
+msgid "Password"
+msgstr "口令"
+
+#: admin/systems/services/gofon/goFonServer.tpl:20
+msgid "Country dial prefix"
+msgstr "国内拨号前缀"
+
+#: admin/systems/services/gofon/goFonServer.tpl:28
+#: admin/systems/services/gofon/class_goFonServer.inc:80
+msgid "Local dial prefix"
+msgstr "内部拨号前缀"
+
+#: admin/systems/services/gofon/class_goFonServer.inc:34
+#: admin/systems/services/gofon/class_goFonServer.inc:65
+#: admin/systems/services/gofon/class_goFonServer.inc:165
+#, fuzzy
+msgid "VoIP service"
+msgstr "IMAP 服务"
+
+#: admin/systems/services/gofon/class_goFonServer.inc:65
+#, fuzzy
+msgid "Asterisk management"
+msgstr "Asterisk 管理"
+
+#: admin/systems/services/gofon/class_goFonServer.inc:74
+msgid "User"
+msgstr "用户"
+
+#: admin/systems/services/gofon/class_goFonServer.inc:83
+#, fuzzy
+msgid "Country prefix"
+msgstr "国内拨号前缀"
+
+#: admin/systems/services/gofon/class_goFonServer.inc:120
+#, php-format
+msgid ""
+"You can't remove the asterisk database extension, it is still in use by "
+"these objects '%s'."
+msgstr "您不能删除 asterisk 数据库扩展，它仍被这些对象 '%s' 使用。"
+
+#: admin/systems/services/gofon/class_goFonServer.inc:166
+#, fuzzy
+msgid "VoIP - asterisk management"
+msgstr "Asterisk 管理"
+
+#: admin/systems/services/gofon/class_goFonServer.inc:166
+msgid "Services"
+msgstr "服务"
+
+#: admin/systems/services/gofon/class_goFonServer.inc:179
+#, fuzzy
+msgid "Start"
+msgstr "启动"
+
+#: admin/systems/services/gofon/class_goFonServer.inc:180
+msgid "Stop"
+msgstr "停止"
+
+#: admin/systems/services/gofon/class_goFonServer.inc:181
+#, fuzzy
+msgid "Restart"
+msgstr "重试"
+
+#: admin/systems/services/gofon/class_goFonServer.inc:183
+#, fuzzy
+msgid "Administrator"
+msgstr "系统管理"
+
+#: admin/systems/services/gofon/class_goFonServer.inc:185
+#, fuzzy
+msgid "Area code"
+msgstr "SOA 记录"
+
+#: admin/systems/services/gofon/class_goFonServer.inc:186
+#, fuzzy
+msgid "Country code"
+msgstr "账号号码"
+
+#: admin/systems/gofon/phonesettings.tpl:1
+#: admin/systems/gofon/phonesettings.tpl:3
+#: admin/systems/gofon/phonesettings.tpl:87
+#: admin/systems/gofon/phonesettings.tpl:254
+msgid "Advanced phone settings"
+msgstr "高级电话设置"
+
+#: admin/systems/gofon/phonesettings.tpl:6
+msgid "Phone type"
+msgstr "电话类型"
+
+#: admin/systems/gofon/phonesettings.tpl:8
+#: admin/systems/gofon/phonesettings.tpl:32
+#: admin/systems/gofon/phonesettings.tpl:44
+#: admin/systems/gofon/phonesettings.tpl:60
+#: admin/systems/gofon/phonesettings.tpl:94
+#: admin/systems/gofon/phonesettings.tpl:131
+#: admin/systems/gofon/phonesettings.tpl:184
+msgid "Choose a phone type"
+msgstr "选择一个电话类型"
+
+#: admin/systems/gofon/phonesettings.tpl:13
+msgid "refresh"
+msgstr "刷新"
+
+#: admin/systems/gofon/phonesettings.tpl:24 admin/systems/gofon/phone.tpl:5
+#: gofon/conference/generic.tpl:6
+#, fuzzy
+msgid "Generic settings"
+msgstr "通用队列设置"
+
+#: admin/systems/gofon/phonesettings.tpl:27
+msgid "Mode"
+msgstr "模式"
+
+#: admin/systems/gofon/phonesettings.tpl:40
+msgid "DTMF mode"
+msgstr "DTMF 模式"
+
+#: admin/systems/gofon/phonesettings.tpl:53 gofon/conference/generic.tpl:83
+#, fuzzy
+msgid "Additional settings"
+msgstr "应用程序设置"
+
+#: admin/systems/gofon/phonesettings.tpl:56
+#: admin/systems/gofon/phonesettings.tpl:102
+msgid "Default IP"
+msgstr "缺省 IP"
+
+#: admin/systems/gofon/phonesettings.tpl:68
+#: admin/systems/gofon/phonesettings.tpl:112
+msgid "Response timeout"
+msgstr "响应超时"
+
+#: admin/systems/gofon/phonesettings.tpl:90
+msgid "Modus"
+msgstr "模块"
+
+#: admin/systems/gofon/phonesettings.tpl:127
+#, fuzzy
+msgid "Authentication type"
+msgstr "Nagios 鉴权"
+
+#: admin/systems/gofon/phonesettings.tpl:139
+msgid "Secret"
+msgstr "秘密"
+
+#: admin/systems/gofon/phonesettings.tpl:170
+msgid "Account code"
+msgstr "账号号码"
+
+#: admin/systems/gofon/phonesettings.tpl:180
+msgid "Trunk lines"
+msgstr ""
+
+#: admin/systems/gofon/phonesettings.tpl:195
+#, fuzzy
+msgid "Permissions"
+msgstr "允许"
+
+#: admin/systems/gofon/phonesettings.tpl:199
+msgid "Hosts that are allowed to connect"
+msgstr "允许连接的主机"
+
+#: admin/systems/gofon/phonesettings.tpl:202
+#: admin/systems/gofon/phonesettings.tpl:228
+msgid "List of alternative mail addresses"
+msgstr "替代邮件地址列表"
+
+#: admin/systems/gofon/phonesettings.tpl:225
+msgid "Hosts that are not allowed to connect"
+msgstr "不允许连接的主机"
+
+#: admin/systems/gofon/phonesettings.tpl:257
+msgid "MSN"
+msgstr "MSN"
+
+#: admin/systems/gofon/paste_generic.tpl:1
+#, fuzzy
+msgid "Paste phone"
+msgstr "私人电话"
+
+#: admin/systems/gofon/paste_generic.tpl:3 admin/systems/gofon/phone.tpl:7
+msgid "Phone name"
+msgstr "电话名称"
+
+#: admin/systems/gofon/phone.tpl:18
+#: admin/systems/gofon/class_phoneGeneric.inc:521
+#: gofon/macro/class_gofonMacro.inc:603 gofon/macro/generic.tpl:27
+#: gofon/macro/macro-list.tpl:12 gofon/conference/generic.tpl:44
+#: gofon/conference/class_phoneConferenceGeneric.inc:843
+#: gofon/conference/conf-list.tpl:12
+msgid "Base"
+msgstr "位置"
+
+#: admin/systems/gofon/phone.tpl:29
+#: admin/systems/gofon/class_phoneGeneric.inc:522
+#: gofon/macro/class_gofonMacro.inc:604 gofon/macro/generic.tpl:42
+#: gofon/macro/macro-list.xml:49 gofon/conference/generic.tpl:87
+#: gofon/conference/conf-list.xml:49
+#: gofon/conference/class_phoneConferenceGeneric.inc:844
+msgid "Description"
+msgstr "描述"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:131
+#, fuzzy
+msgid "phone"
+msgstr "电话"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:208
+msgid "yes"
+msgstr "是"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:208
+msgid "no"
+msgstr "否"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:225
+msgid "dynamic"
+msgstr "动态"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:225
+#, fuzzy
+msgid "Network settings"
+msgstr "网络设置"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:245
+#: gofon/macro/class_gofonMacro.inc:468
+#, php-format
+msgid "Cannot delete entry because it is still in use by '%s'!"
+msgstr ""
+
+#: admin/systems/gofon/class_phoneGeneric.inc:312
+#: admin/systems/gofon/class_phoneGeneric.inc:315
+#, fuzzy
+msgid "IP address"
+msgstr "地址"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:326
+#: admin/systems/gofon/class_phoneGeneric.inc:330
+#: admin/systems/gofon/class_phoneGeneric.inc:333
+#: admin/systems/gofon/class_phoneGeneric.inc:348
+#: admin/systems/gofon/class_phoneGeneric.inc:520
+#: gofon/macro/class_gofonMacro.inc:411 gofon/macro/class_gofonMacro.inc:422
+#: gofon/macro/macro-list.xml:41 gofon/macro/parameter.tpl:6
+#: gofon/conference/conf-list.xml:41
+#: gofon/conference/class_phoneConferenceGeneric.inc:367
+#: gofon/conference/class_phoneConferenceGeneric.inc:389
+#: gofon/conference/class_phoneConferenceGeneric.inc:842
+msgid "Name"
+msgstr "名称"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:493
+#: gofon/macro/class_gofonMacro.inc:572
+msgid "Generic"
+msgstr "通用配置"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:494
+#, fuzzy
+msgid "Phone generic"
+msgstr "电话号码"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:503
+#: gofon/phoneaccount/class_phoneAccount.inc:1866
+#, fuzzy
+msgid "Phone hardware"
+msgstr "电话硬件"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:511
+#, fuzzy
+msgid "RDN for phone storage."
+msgstr "口令存储"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:523
+#, fuzzy
+msgid "SIP Mode"
+msgstr "模式"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:524
+#, fuzzy
+msgid "SIP DTMF mode"
+msgstr "DTMF 模式"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:525
+#, fuzzy
+msgid "SIP Default IP"
+msgstr "缺省 IP"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:526
+msgid "SIP Qualify"
+msgstr ""
+
+#: admin/systems/gofon/class_phoneGeneric.inc:527
+#, fuzzy
+msgid "IAX authentication type"
+msgstr "Nagios 鉴权"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:528
+#, fuzzy
+msgid "IAX secret"
+msgstr "IMAP 服务"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:529
+#, fuzzy
+msgid "IAX account code"
+msgstr "账号号码"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:530
+msgid "IAX trunk lines"
+msgstr ""
+
+#: admin/systems/gofon/class_phoneGeneric.inc:531
+#, fuzzy
+msgid "IAX permit settings"
+msgstr "传真设置"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:532
+#, fuzzy
+msgid "IAX deny settings"
+msgstr "传真设置"
+
+#: admin/systems/gofon/class_phoneGeneric.inc:533
+msgid "CAPI MSN"
+msgstr ""
+
+#: admin/systems/gofon/class_phoneGeneric.inc:534
+msgid "Hardware type"
+msgstr ""
+
+#: gofon/macro/remove.tpl:2 gofon/phoneaccount/class_phoneAccount.inc:354
+#: gofon/phoneaccount/class_phoneAccount.inc:368
+#: gofon/phoneaccount/class_phoneAccount.inc:651
+#: gofon/phoneaccount/class_phoneAccount.inc:717
+#: gofon/phoneaccount/class_phoneAccount.inc:1643
+#: gofon/phoneaccount/class_phoneAccount.inc:2017
+#: gofon/conference/class_phoneConferenceGeneric.inc:442
+msgid "Warning"
+msgstr "警告"
+
+#: gofon/macro/remove.tpl:7
+msgid ""
+"Please double check if you really want to do this since there is no way for "
+"GOsa to get your data back."
+msgstr "请再次检查您是否要这么做，因为 GOsa 没有办法将您的数据找回。"
+
+#: gofon/macro/remove.tpl:11
+msgid "So - if you're sure - press 'Delete' to continue or 'Cancel' to abort."
+msgstr "所以，如果您确定，请按“删除”继续，否则按“取消”退出。"
+
+#: gofon/macro/class_gofonMacroParameters.inc:199
+#: gofon/phoneaccount/generic.tpl:120 gofon/phoneaccount/generic.tpl:121
+msgid "Phone macro"
+msgstr "电话宏"
+
+#: gofon/macro/class_gofonMacroParameters.inc:255
+msgid "String"
+msgstr "字符串"
+
+#: gofon/macro/class_gofonMacroParameters.inc:256
+#, fuzzy
+msgid "Select box"
+msgstr "选择"
+
+#: gofon/macro/class_gofonMacroParameters.inc:257
+#, fuzzy
+msgid "Boolean"
+msgstr "布尔值"
+
+#: gofon/macro/class_gofonMacroParameters.inc:263
+msgid "Delete unused"
+msgstr "删除未使用的"
+
+#: gofon/macro/class_gofonMacroParameters.inc:343
+#, fuzzy, php-format
+msgid "Parameter %s contains invalid character!"
+msgstr "“姓名”字段包含无效字符。"
+
+#: gofon/macro/class_gofonMacroParameters.inc:349
+#, fuzzy, php-format
+msgid "Parameter %s is invalid!"
+msgstr "指定的 branch 名称无效。"
+
+#: gofon/macro/class_gofonMacroParameters.inc:378
+#: gofon/phoneaccount/class_phoneAccount.inc:1755
+msgid "Information"
+msgstr "提示信息"
+
+#: gofon/macro/class_gofonMacroParameters.inc:378
+msgid ""
+"Number of parameters for this macro has changed. Please update all users "
+"using it!"
+msgstr ""
+
+#: gofon/macro/class_gofonMacro.inc:214
+#, php-format
+msgid ""
+"Macro could not be removed from server '%s', please check database "
+"consistency!"
+msgstr ""
+
+#: gofon/macro/class_gofonMacro.inc:287
+#, fuzzy, php-format
+msgid "Application missing in line %s!"
+msgstr "没有给出应用程序，在行: '%s'。"
+
+#: gofon/macro/class_gofonMacro.inc:290
+#, fuzzy, php-format
+msgid "Priority missing in line %s!"
+msgstr "没有给出应用程序，在行: '%s'。"
+
+#: gofon/macro/class_gofonMacro.inc:294
+#, php-format
+msgid "Extension missing in line %s!"
+msgstr ""
+
+#: gofon/macro/class_gofonMacro.inc:304
+#, php-format
+msgid "Duplicate combination of 'extension' and 'priority' in line %s!"
+msgstr ""
+
+#: gofon/macro/class_gofonMacro.inc:333
+#, php-format
+msgid ""
+"Macro could not be added to server '%s', please check database consistency!"
+msgstr ""
+
+#: gofon/macro/class_gofonMacro.inc:426
+msgid "Name can be 20 characters at maximum!"
+msgstr ""
+
+#: gofon/macro/class_gofonMacro.inc:435
+#, fuzzy
+msgid "Macro is still in use!"
+msgstr "邮件选项"
+
+#: gofon/macro/class_gofonMacro.inc:442
+#, fuzzy
+msgid "Macro is empty!"
+msgstr "宏文本"
+
+#: gofon/macro/class_gofonMacro.inc:481
+#: gofon/phoneaccount/class_phoneAccount.inc:468
+#: gofon/phoneaccount/class_phoneAccount.inc:476
+#: gofon/phoneaccount/class_phoneAccount.inc:1149
+#: gofon/phoneaccount/class_phoneAccount.inc:1621
+#: gofon/phoneaccount/class_phoneAccount.inc:1627
+#: gofon/fonreports/class_fonreport.inc:180
+#: gofon/fonreports/class_fonreport.inc:184
+#, fuzzy
+msgid "Configuration error"
+msgstr "配置文件"
+
+#: gofon/macro/class_gofonMacro.inc:573
+#, fuzzy
+msgid "Asterisk macro management"
+msgstr "Asterisk 管理"
+
+#: gofon/macro/class_gofonMacro.inc:582
+#, fuzzy
+msgid "GOfon macro"
+msgstr "没有宏"
+
+#: gofon/macro/class_gofonMacro.inc:591
+#, fuzzy
+msgid "RDN for macro storage."
+msgstr "口令存储"
+
+#: gofon/macro/class_gofonMacro.inc:602 gofon/macro/generic.tpl:6
+#: gofon/macro/generic.tpl:9 gofon/macro/paste_generic.tpl:4
+#: gofon/macro/paste_generic.tpl:6
+msgid "Macro name"
+msgstr "宏名称"
+
+#: gofon/macro/class_gofonMacro.inc:605 gofon/macro/generic.tpl:14
+msgid "Display name"
+msgstr "显示名称"
+
+#: gofon/macro/class_gofonMacro.inc:606
+#, fuzzy
+msgid "Macro content and parameter"
+msgstr "启动参数"
+
+#: gofon/macro/class_gofonMacro.inc:607
+msgid "Visibility flag"
+msgstr ""
+
+#: gofon/macro/generic.tpl:1 gofon/macro/macro-list.xml:15
+#: gofon/macro/macro-list.xml:74
+msgid "Macro"
+msgstr "宏"
+
+#: gofon/macro/generic.tpl:4
+#, fuzzy
+msgid "Macro generic"
+msgstr "宏名称"
+
+#: gofon/macro/generic.tpl:18
+msgid "Macro name to be displayed"
+msgstr "要显示的宏名称"
+
+#: gofon/macro/generic.tpl:40
+#, fuzzy
+msgid "Visibility"
+msgstr "可见"
+
+#: gofon/macro/generic.tpl:53
+msgid "Visible for user"
+msgstr "用户可见"
+
+#: gofon/macro/generic.tpl:63
+msgid "Macro text"
+msgstr "宏文本"
+
+#: gofon/macro/macro-list.xml:11
+msgid "List of macros"
+msgstr "宏列表"
+
+#: gofon/macro/macro-list.xml:57 gofon/conference/conf-list.xml:57
+msgid "Actions"
+msgstr "动作"
+
+#: gofon/macro/macro-list.xml:68 gofon/conference/conf-list.xml:68
+msgid "Create"
+msgstr "创建"
+
+#: gofon/macro/macro-list.xml:86 gofon/macro/macro-list.xml:125
+#: gofon/conference/conf-list.xml:86 gofon/conference/conf-list.xml:125
+msgid "Edit"
+msgstr "编辑"
+
+#: gofon/macro/macro-list.xml:93 gofon/macro/macro-list.xml:138
+#: gofon/conference/conf-list.xml:93 gofon/conference/conf-list.xml:138
+msgid "Remove"
+msgstr "删除"
+
+#: gofon/macro/paste_generic.tpl:1
+#, fuzzy
+msgid "Paste macro"
+msgstr "删除宏"
+
+#: gofon/macro/class_gofonMacroManagement.inc:25
+#, fuzzy
+msgid "Phone Macros"
+msgstr "电话宏"
+
+#: gofon/macro/class_gofonMacroManagement.inc:26
+msgid "Manage phone macros for setups using the Asterisk VoIP service"
+msgstr ""
+
+#: gofon/macro/macro-filter.xml:17
+#, fuzzy
+msgid "Default filter"
+msgstr "参数"
+
+#: gofon/macro/macro-filter.xml:31
+#, fuzzy
+msgid "Enabled"
+msgstr "禁用"
+
+#: gofon/macro/parameter.tpl:2
+#, fuzzy
+msgid "Macro parameter"
+msgstr "启动参数"
+
+#: gofon/macro/parameter.tpl:4
+msgid "Argument"
+msgstr "参数"
+
+#: gofon/macro/parameter.tpl:8
+msgid "type"
+msgstr "类型"
+
+#: gofon/macro/parameter.tpl:10
+msgid "Default value"
+msgstr "缺省值"
+
+#: gofon/macro/parameter.tpl:19
+#, fuzzy
+msgid "You are not allowed to view the macro parameter settings"
+msgstr "您无权删除这个宏！"
+
+#: gofon/phoneaccount/generic.tpl:39 gofon/phoneaccount/paste_generic.tpl:23
+msgid "Telephone hardware"
+msgstr "电话硬件"
+
+#: gofon/phoneaccount/generic.tpl:41 gofon/phoneaccount/generic.tpl:45
+#: gofon/phoneaccount/paste_generic.tpl:24
+msgid "Telephone"
+msgstr "电话"
+
+#: gofon/phoneaccount/generic.tpl:59
+msgid "Select the accounts home server"
+msgstr "选择账号的主服务器"
+
+#: gofon/phoneaccount/generic.tpl:66
+#, fuzzy
+msgid "Context"
+msgstr "内容"
+
+#: gofon/phoneaccount/generic.tpl:70 gofon/phoneaccount/generic.tpl:81
+#, fuzzy
+msgid "Select the accounts context"
+msgstr "选择账号的主服务器"
+
+#: gofon/phoneaccount/generic.tpl:77
+#: gofon/phoneaccount/class_phoneAccount.inc:1869
+#, fuzzy
+msgid "Voice mail context"
+msgstr "语音邮件 PIN"
+
+#: gofon/phoneaccount/generic.tpl:90 gofon/phoneaccount/paste_generic.tpl:27
+#: gofon/phoneaccount/class_phoneAccount.inc:1463
+#: gofon/phoneaccount/class_phoneAccount.inc:1466
+#: gofon/phoneaccount/class_phoneAccount.inc:1871
+#, fuzzy
+msgid "Voice mail PIN"
+msgstr "语音邮件 PIN"
+
+#: gofon/phoneaccount/generic.tpl:100 gofon/phoneaccount/paste_generic.tpl:35
+#: gofon/phoneaccount/class_phoneAccount.inc:1471
+msgid "Phone PIN"
+msgstr "电话 PIN"
+
+#: gofon/phoneaccount/generic.tpl:132
+msgid "Refresh"
+msgstr "刷新"
+
+#: gofon/phoneaccount/paste_generic.tpl:1
+msgid "Phone settings"
+msgstr "电话设置"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:7
+#, fuzzy
+msgid "This does something"
+msgstr "******"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:178
+msgid "automatic"
+msgstr "自动"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:214
+msgid "no macro"
+msgstr "没有宏"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:242
+msgid "undefined"
+msgstr "未定义"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:368
+#, php-format
+msgid ""
+"Cannot identify telephone extension in database, please try to save again."
+msgstr ""
+
+#: gofon/phoneaccount/class_phoneAccount.inc:597
+#: gofon/phoneaccount/class_phoneAccount.inc:604
+#: gofon/phoneaccount/class_phoneAccount.inc:622
+#: gofon/phoneaccount/class_phoneAccount.inc:629
+#, fuzzy
+msgid "Abort saving entries to keep the database consistent."
+msgstr ""
+"无法查询数据库 '%s' 于 '%s'。取消保存将保持数据库的完整性，通过 GOsa 日志来查"
+"看 mysql 错误。"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:652
+#: gofon/phoneaccount/class_phoneAccount.inc:718
+#: gofon/phoneaccount/class_phoneAccount.inc:1644
+#, php-format
+msgid "GOsa identified problems with your MySQL table definition!"
+msgstr ""
+
+#: gofon/phoneaccount/class_phoneAccount.inc:691
+#: gofon/phoneaccount/class_phoneAccount.inc:1013
+#: gofon/phoneaccount/class_phoneAccount.inc:1712
+#: gofon/conference/class_phoneConferenceGeneric.inc:598
+msgid "Please activate debugging for details!"
+msgstr ""
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1111
+msgid "Remove phone account"
+msgstr "删除电话账号"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1115
+#: gofon/phoneaccount/class_phoneAccount.inc:1118
+msgid "Create phone account"
+msgstr "创建电话账号"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1116
+#, fuzzy
+msgid "User UID"
+msgstr "用户 ID"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1134
+msgid "Selected macro is not available anymore!"
+msgstr ""
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1159
+msgid "Parameter"
+msgstr "参数"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1312
+msgid "Choose your private phone"
+msgstr "选择您私人电话"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1455
+msgid ""
+"There must be at least one server with an asterisk database to create a "
+"phone account."
+msgstr "必须有至少一个带有 asterisk 数据库的服务器来创建一个电话账号。"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1463
+#, fuzzy
+msgid "Between 1-4 characters"
+msgstr "语音邮件 PIN 必须包含 1-4 个字符。"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1511
+#, fuzzy, php-format
+msgid "macro parameter %s"
+msgstr "启动参数"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1559
+msgid "An error occurred while updating the database entries!"
+msgstr ""
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1755
+#, fuzzy, php-format
+msgid "User '%s' has been removed from phone queue '%s'."
+msgstr "删除用户 '%s'，从电话队列 '%s'。"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1792
+#: gofon/phoneaccount/class_phoneAccount.inc:1794
+#, fuzzy, php-format
+msgid "The specified telephone number '%s' is already assigned to '%s'."
+msgstr "指定的电话号码 '%s' 已经分配给了 '%s'。"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1840
+#, php-format
+msgid ""
+"The previously selected asterisk home server (%s) is no longer available. "
+"Remove aborted."
+msgstr "之前选择的 asterisk 主服务器 (%s) 不存在了。删除终止。"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1849
+#, fuzzy
+msgid "Phone account settings"
+msgstr "电话设置"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1853
+msgid "My account"
+msgstr "我的账号"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1864
+#: gofon/conference/class_phoneConferenceGeneric.inc:860
+#, fuzzy
+msgid "Telephone number"
+msgstr "电话号码"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1865
+#, fuzzy
+msgid "Macro settings"
+msgstr "邮件选项"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1868
+#, fuzzy
+msgid "Phone context"
+msgstr "电话名称"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1870
+#, fuzzy
+msgid "Telephone PIN"
+msgstr "电话"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1953
+msgid "There is currently no asterisk server defined!"
+msgstr ""
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1957
+msgid "Asterisk server is invalid!"
+msgstr ""
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1963
+#, fuzzy
+msgid "Voice mail PIN must be 4 characters long!"
+msgstr "语音邮件 PIN 必须包含 1-4 个字符。"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1966
+#, fuzzy
+msgid "Voice mail PIN contains invalid characters!"
+msgstr "语音邮件 PIN 必须包含 1-4 个字符。"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1971
+#, fuzzy
+msgid "Phone PIN contains invalid characters!"
+msgstr "属性 '%s' 为空或者包含无效字符。"
+
+#: gofon/phoneaccount/class_phoneAccount.inc:1978
+#, php-format
+msgid "The parameter %s contains invalid char. '!,#' is used as delimiter"
+msgstr "参数 %s 包含无效字符。'!,#' 用做分隔符"
+
+#: gofon/conference/conf-filter.xml:18
+#, fuzzy
+msgid "Default"
+msgstr "缺省 IP"
+
+#: gofon/conference/class_phoneConferenceManagment.inc:25
+#, fuzzy
+msgid "Phone Conferences"
+msgstr "电话会议"
+
+#: gofon/conference/class_phoneConferenceManagment.inc:26
+msgid "Manage phone conference rooms in setups using the Asterisk VoIP service"
+msgstr ""
+
+#: gofon/conference/generic.tpl:1
+msgid "Properties"
+msgstr "属性"
+
+#: gofon/conference/generic.tpl:3 gofon/conference/conf-list.xml:15
+#: gofon/conference/conf-list.xml:74
+#: gofon/conference/class_phoneConferenceGeneric.inc:813
+msgid "Conference"
+msgstr "会议"
+
+#: gofon/conference/generic.tpl:10 gofon/conference/paste_generic.tpl:5
+msgid "Conference name"
+msgstr "会议名称"
+
+#: gofon/conference/generic.tpl:16 gofon/conference/paste_generic.tpl:10
+msgid "Name of conference to create"
+msgstr "要创建会议的名称"
+
+#: gofon/conference/generic.tpl:23
+msgid "Type"
+msgstr "类型"
+
+#: gofon/conference/generic.tpl:30
+msgid "Choose subtree to place conference in"
+msgstr "选择放置会议的子树"
+
+#: gofon/conference/generic.tpl:71
+#, fuzzy
+msgid "Select language"
+msgstr "服务器名称"
+
+#: gofon/conference/generic.tpl:93
+msgid "Descriptive text for department"
+msgstr "部门描述文件"
+
+#: gofon/conference/generic.tpl:99
+msgid "Lifetime (in days)"
+msgstr "生存期（天）"
+
+#: gofon/conference/generic.tpl:144
+#: gofon/conference/class_phoneConferenceGeneric.inc:850
+msgid "Preset PIN"
+msgstr "预置 PIN"
+
+#: gofon/conference/generic.tpl:152
+#: gofon/conference/class_phoneConferenceGeneric.inc:358
+msgid "PIN"
+msgstr "PIN"
+
+#: gofon/conference/generic.tpl:164
+#: gofon/conference/class_phoneConferenceGeneric.inc:851
+msgid "Record conference"
+msgstr "会议记录"
+
+#: gofon/conference/generic.tpl:172
+msgid "Sound file format"
+msgstr "声音文件类型"
+
+#: gofon/conference/generic.tpl:175
+msgid "Choose subtree to place department in"
+msgstr "选择放置部门的子树"
+
+#: gofon/conference/generic.tpl:189
+#, fuzzy
+msgid "Flags"
+msgstr "类"
+
+#: gofon/conference/generic.tpl:195
+#: gofon/conference/class_phoneConferenceGeneric.inc:852
+msgid "Play music on hold"
+msgstr "播放暂停音乐"
+
+#: gofon/conference/generic.tpl:203
+msgid "Activate session menu"
+msgstr "激活会话菜单"
+
+#: gofon/conference/generic.tpl:211
+msgid "Announce users joining or leaving the conference"
+msgstr "通知用户加入或者离开会议"
+
+#: gofon/conference/generic.tpl:219
+#, fuzzy
+msgid "Count users"
+msgstr "计算机"
+
+#: gofon/conference/paste_generic.tpl:1
+#, fuzzy
+msgid "Paste confernece"
+msgstr "电话会议"
+
+#: gofon/conference/conf-list.xml:11
+msgid "List of conference rooms"
+msgstr "会议室列表"
+
+#: gofon/conference/class_phoneConferenceGeneric.inc:231
+#, php-format
+msgid "Cannot delete entry from server '%s' because it seems to be removed!"
+msgstr ""
+
+#: gofon/conference/class_phoneConferenceGeneric.inc:353
+#, fuzzy, php-format
+msgid ""
+"The previously selected asterisk home server '%s' is no longer available!"
+msgstr "之前选择的 asterisk 主服务器 (%s) 不存在了。"
+
+#: gofon/conference/class_phoneConferenceGeneric.inc:375
+#: gofon/conference/class_phoneConferenceGeneric.inc:859
+#, fuzzy
+msgid "Lifetime"
+msgstr "生存期（天）"
+
+#: gofon/conference/class_phoneConferenceGeneric.inc:443
+#, php-format
+msgid ""
+"GOsa identified problems with your MySQL table definition, please activate "
+"debugging for details."
+msgstr ""
+
+#: gofon/conference/class_phoneConferenceGeneric.inc:690
+#: gofon/conference/class_phoneConferenceGeneric.inc:692
+#, fuzzy, php-format
+msgid "'%s' is already assigned to '%s'!"
+msgstr "指定的电话号码 '%s' 已经分配给了 '%s'。"
+
+#: gofon/conference/class_phoneConferenceGeneric.inc:814
+#, fuzzy
+msgid "Phone conference management"
+msgstr "会议管理"
+
+#: gofon/conference/class_phoneConferenceGeneric.inc:823
+#, fuzzy
+msgid "GOfon conference"
+msgstr "电话会议"
+
+#: gofon/conference/class_phoneConferenceGeneric.inc:832
+#, fuzzy
+msgid "RDN for phone conference storage."
+msgstr "要创建会议的名称"
+
+#: gofon/conference/class_phoneConferenceGeneric.inc:845
+#, fuzzy
+msgid "Conference PIN"
+msgstr "会议"
+
+#: gofon/conference/class_phoneConferenceGeneric.inc:853
+#, fuzzy
+msgid "Activate menu"
+msgstr "激活会话菜单"
+
+#: gofon/conference/class_phoneConferenceGeneric.inc:854
+#, fuzzy
+msgid "Announce user activity"
+msgstr "公告频率"
+
+#: gofon/conference/class_phoneConferenceGeneric.inc:855
+#, fuzzy
+msgid "Count user"
+msgstr "国家"
+
+#: gofon/conference/class_phoneConferenceGeneric.inc:856
+#, fuzzy
+msgid "Conference type"
+msgstr "会议名称"
+
+#: gofon/conference/class_phoneConferenceGeneric.inc:858
+#, fuzzy
+msgid "Format"
+msgstr "格式"
+
+#: gofon/conference/class_phoneConferenceGeneric.inc:861
+msgid "Owner"
+msgstr "所有者"
+
+#: gofon/fonreports/class_fonreport.inc:6
+msgid "Phone Reports"
+msgstr "电话记录"
+
+#: gofon/fonreports/class_fonreport.inc:7
+msgid "View the phone report for incoming and outgoing calls"
+msgstr ""
+
+#: gofon/fonreports/class_fonreport.inc:237
+#, fuzzy
+msgid "Insufficient permissions"
+msgstr "缺省权限"
+
+#: gofon/fonreports/class_fonreport.inc:269
+msgid "Y-M-D"
+msgstr "Y-M-D"
+
+#: gofon/fonreports/class_fonreport.inc:429
+#: gofon/fonreports/class_fonreport.inc:430
+#, fuzzy
+msgid "View phone reports"
+msgstr "电话记录"
+
+#: gofon/fonreports/class_fonreport.inc:430
+#, fuzzy
+msgid "All entries are read-only"
+msgstr "所有字段均可写"
+
+#: gofon/fonreports/class_fonreport.inc:438 gofon/fonreports/contents.tpl:14
+#: gofon/fonreports/contents.tpl:43
+msgid "Date"
+msgstr "日期"
+
+#: gofon/fonreports/class_fonreport.inc:439 gofon/fonreports/contents.tpl:44
+msgid "Source"
+msgstr "源"
+
+#: gofon/fonreports/class_fonreport.inc:440 gofon/fonreports/contents.tpl:45
+msgid "Destination"
+msgstr "目标"
+
+#: gofon/fonreports/class_fonreport.inc:441 gofon/fonreports/contents.tpl:46
+msgid "Channel"
+msgstr "频道"
+
+#: gofon/fonreports/class_fonreport.inc:442
+#, fuzzy
+msgid "Application called"
+msgstr "应用程序名称"
+
+#: gofon/fonreports/class_fonreport.inc:443
+#, fuzzy
+msgid "Disposition"
+msgstr "断开"
+
+#: gofon/fonreports/class_fonreport.inc:444 gofon/fonreports/contents.tpl:49
+msgid "Duration"
+msgstr "持续时间"
+
+#: gofon/fonreports/contents.tpl:3 gofon/fonreports/contents.tpl:40
+msgid "Phone reports"
+msgstr "电话记录"
+
+#: gofon/fonreports/contents.tpl:6
+msgid "Filter"
+msgstr "过滤器"
+
+#: gofon/fonreports/contents.tpl:9
+msgid "Server"
+msgstr "服务器"
+
+#: gofon/fonreports/contents.tpl:10
+#, fuzzy
+msgid "Select server to search on"
+msgstr "选择查询基于的子树"
+
+#: gofon/fonreports/contents.tpl:22
+msgid "Search for"
+msgstr "查询"
+
+#: gofon/fonreports/contents.tpl:24
+msgid "Enter user name to search for"
+msgstr "输入要查询的用户名"
+
+#: gofon/fonreports/contents.tpl:28
+msgid "Search"
+msgstr "查找"
+
+#: gofon/fonreports/contents.tpl:47
+msgid "Application"
+msgstr "应用程序"
+
+#: gofon/fonreports/contents.tpl:48
+msgid "Status"
+msgstr "状态"
+
+#: gofon/fonreports/contents.tpl:74
+msgid "Search returned no results..."
+msgstr "查无结果..."
+
+#~ msgid "Click the 'Edit' button below to change informations in this dialog"
+#~ msgstr "点击下面的“编辑”按钮修改该对话框内的信息"
+
+#, fuzzy
+#~ msgid "Admin"
+#~ msgstr "管理员"
+
+#~ msgid "Authtype"
+#~ msgstr "认证类型"
+
+#~ msgid "Combobox"
+#~ msgstr "单选框"
+
+#, fuzzy
+#~ msgid "Voicemail context"
+#~ msgstr "语音邮件 PIN"
+
+#, fuzzy
+#~ msgid "User uid"
+#~ msgstr "用户 ID"
+
+#, fuzzy
+#~ msgid "Telephone pin"
+#~ msgstr "电话"
+
+#, fuzzy
+#~ msgid "Voicemail pin"
+#~ msgstr "语音邮件 PIN"
+
+#~ msgid "Choose subtree to place group in"
+#~ msgstr "选择来放置组的子树"
+
+#~ msgid "Select a base"
+#~ msgstr "选择一个位置"
+
+#, fuzzy
+#~ msgid "Parameter %s contains invalid character. '!,#' is used as delimiter!"
+#~ msgstr "参数 %s 包含无效字符。'!,#' 用做分隔符"
+
+#, fuzzy
+#~ msgid "Macros"
+#~ msgstr "宏"
+
+#~ msgid "Phone macro management"
+#~ msgstr "电话宏管理"
+
+#, fuzzy
+#~ msgid "conferences"
+#~ msgstr "会议"
+
+#~ msgid "Conference management"
+#~ msgstr "会议管理"
+
+#~ msgid "in"
+#~ msgstr "于"
+
+#~ msgid "Select subtree to base search on"
+#~ msgstr "选择查询基于的子树"
+
+#, fuzzy
+#~ msgid "on"
+#~ msgstr "关闭"
+
+#~ msgid "during"
+#~ msgstr "在"
+
+#~ msgid "Submit"
+#~ msgstr "提交"
+
+#~ msgid ""
+#~ "This menu allows you to add, edit and remove selected macros. You may "
+#~ "want to use the range selector on top of the macro listbox, when working "
+#~ "with a large number of macros."
+#~ msgstr ""
+#~ "这个菜单允许您添加，编辑和删除所选的宏。对于一个长列表，您可以通过选择框上"
+#~ "面的范围选择来调整。"
+
+#~ msgid "Filters"
+#~ msgstr "过滤器"
+
+#~ msgid "Display macros matching"
+#~ msgstr "显示匹配的宏"
+
+#~ msgid "Display macros  matching"
+#~ msgstr "显示匹配的宏"
+
+#~ msgid "Regular expression for matching macro names"
+#~ msgstr "匹配宏名的正则表达式"
+
+#~ msgid ""
+#~ "This may be used by several groups. Please double check if your really "
+#~ "want to do this since there is no way for GOsa to get your data back."
+#~ msgstr ""
+#~ "这可能被好几个组使用。请再次检查您是否要这么做，因为 GOsa 没有办法将您的数"
+#~ "据找回。"
+
+#~ msgid "Department"
+#~ msgstr "部门"
+
+#~ msgid "Submit department"
+#~ msgstr "提交部门"
+
+#~ msgid "visible"
+#~ msgstr "可见"
+
+#~ msgid "invisible"
+#~ msgstr "不可见"
+
+#~ msgid "edit"
+#~ msgstr "编辑"
+
+#~ msgid "Edit macro"
+#~ msgstr "编辑宏"
+
+#~ msgid "delete"
+#~ msgstr "删除"
+
+#~ msgid "Delete macro"
+#~ msgstr "删除宏"
+
+#, fuzzy
+#~ msgid "Number of listed %s"
+#~ msgstr "部门名称"
+
+#, fuzzy
+#~ msgid "macros"
+#~ msgstr "宏"
+
+#, fuzzy
+#~ msgid "departments"
+#~ msgstr "部门"
+
+#, fuzzy
+#~ msgid "Permission"
+#~ msgstr "允许"
+
+#, fuzzy
+#~ msgid "Permission error"
+#~ msgstr "允许"
+
+#, fuzzy
+#~ msgid "macro"
+#~ msgstr "宏"
+
+#~ msgid ""
+#~ "This menu allows you to create, delete and edit selected phone "
+#~ "conferences. Having a large number of phone conferences, you might prefer "
+#~ "the range selectors on top of the conferences list."
+#~ msgstr ""
+#~ "这个菜单允许您创建，删除和修改所选的电话会议。对于一个长列表，您可以通过列"
+#~ "表上面的范围选择来调整。"
+
+#~ msgid "Display users matching"
+#~ msgstr "显示匹配的用户"
+
+#~ msgid "Regular expression for        matching user names"
+#~ msgstr "用于匹配用户名的正则表达式"
+
+#~ msgid ""
+#~ "This includes 'all' accounts, systems, etc. in this subtree. Please "
+#~ "double check if your really want to do this since there is no way for "
+#~ "GOsa to get your data back."
+#~ msgstr ""
+#~ "在这个子树中包含了所有账号，系统等等。请再次检查您是否要这么做，因为 GOsa "
+#~ "没有办法将您的数据找回。"
+
+#~ msgid ""
+#~ "Best thing to do before performing this action would be to save the "
+#~ "current contents of your LDAP tree in a file. So - if you've done so - "
+#~ "press 'Delete' to continue or 'Cancel' to abort."
+#~ msgstr ""
+#~ "最好在执行这个操作之前，保存当前 LDAP 树中的内容到一个文件。所以，如果您已"
+#~ "经这么做了，按“删除”继续或者按“取消”退出。"
+
+#~ msgid "Management"
+#~ msgstr "管理"
+
+#, fuzzy
+#~ msgid "conference"
+#~ msgstr "会议"
+
+#, fuzzy
+#~ msgid "You have not permission to delete this entry!"
+#~ msgstr "您无权删除这个部门。"
+
+#~ msgid "Regular expression for matching conference names"
+#~ msgstr "匹配会议名称的正则表达式"
+
+#~ msgid "Edit this entry"
+#~ msgstr "编辑这条记录"
+
+#~ msgid "Delete this entry"
+#~ msgstr "删除这个条目"
+
+#~ msgid "Unknown"
+#~ msgstr "未知"
+
+#, fuzzy
+#~ msgid "Number of listed '%s'"
+#~ msgstr "部门名称"
+
+#~ msgid "Addons"
+#~ msgstr "插件"
+
+#, fuzzy
+#~ msgid "GOfon reports"
+#~ msgstr "电话记录"
+
+#, fuzzy
+#~ msgid "Copy"
+#~ msgstr "复制"
+
+#, fuzzy
+#~ msgid "Cut"
+#~ msgstr "剪切"
+
+#~ msgid "Paste"
+#~ msgstr "粘贴"
+
+#~ msgid "cut"
+#~ msgstr "剪切"
+
+#~ msgid "Cut this entry"
+#~ msgstr "剪切条目"
+
+#~ msgid "copy"
+#~ msgstr "复制"
+
+#~ msgid "Copy this entry"
+#~ msgstr "拷贝条目"
+
+#, fuzzy
+#~ msgid "Cannot select %s database!"
+#~ msgstr "无法选择数据库 %s 在 %s 上。"
+
+#, fuzzy
+#~ msgid "Insufficient permissions to view this attribute"
+#~ msgstr "权限不足，无法在 goFonMacro 中修改属性 '%s'。"
+
+#~ msgid "This account has no phone extensions."
+#~ msgstr "这个账号没有电话扩展。"
+
+#~ msgid ""
+#~ "This account has phone features enabled. You can disable them by clicking "
+#~ "below."
+#~ msgstr "这个账户电话功能已启用。您可以点击下面的按钮禁用。"
+
+#~ msgid ""
+#~ "This account has phone features disabled. You can't enable them while no "
+#~ "uid is set."
+#~ msgstr "这个账户电话功能已禁用。您可以点击下面的按钮来启用。"
+
+#~ msgid ""
+#~ "This account has phone features disabled. You can enable them by clicking "
+#~ "below."
+#~ msgstr "这个账户的电话功能被禁用。您可以点击下面按钮来启用。"
+
+#, fuzzy
+#~ msgid "Cannot connect to %s database on server '%s'!"
+#~ msgstr "无法在主服务器 '%s' 上选择数据库 '%s'。"
+
+#, fuzzy
+#~ msgid "Cannot select %s database on server '%s'!"
+#~ msgstr "无法在主服务器 '%s' 上选择数据库 '%s'。"
+
+#, fuzzy
+#~ msgid "Lifetime is not valid!"
+#~ msgstr "生存期（天）"
+
+#, fuzzy
+#~ msgid "Cannot query %s database on server '%s'!"
+#~ msgstr "无法在主服务器 '%s' 上选择数据库 '%s'。"
+
+#~ msgid "Name - Number"
+#~ msgstr "名称 - 数字"
+
+#~ msgid "Select to search within subtrees"
+#~ msgstr "选择在子树中查询"
+
+#, fuzzy
+#~ msgid "Search in subtrees"
+#~ msgstr "在子树中查找"
+
+#, fuzzy
+#~ msgid "Number of listed conferences"
+#~ msgstr "会议记录"
+
+#, fuzzy
+#~ msgid "Number of listed departments"
+#~ msgstr "部门名称"
+
+#, fuzzy
+#~ msgid "Cannot insert new macro on server '%s'!"
+#~ msgstr "为服务器 '%s' 插入新宏失败。"
+
+#, fuzzy
+#~ msgid "Display name is not set!"
+#~ msgstr "显示名称"
+
+#~ msgid "This 'dn' is no phone macro."
+#~ msgstr "这个 'dn' 不是电话宏。"
+
+#, fuzzy
+#~ msgid "You're about to delete the following user(s) %s"
+#~ msgstr "您将删除用户 %s。"
+
+#~ msgid "You're about to delete the whole LDAP subtree placed under '%s'."
+#~ msgstr "您将要删除 '%s' 下的整个 LDAP 子树。"
+
+#~ msgid "Ok"
+#~ msgstr "好"
+
+#~ msgid "Apply"
+#~ msgstr "应用"
+
+#~ msgid "Cancel"
+#~ msgstr "取消"
+
+#~ msgid "Delete"
+#~ msgstr "删除"
+
+#~ msgid "Add"
+#~ msgstr "添加"
+
+#, fuzzy
+#~ msgid "You're about to delete the following macro(s) %s"
+#~ msgstr "您将删除用户 %s。"
+
+#~ msgid "You're about to delete the macro '%s'."
+#~ msgstr "您将要删除宏 '%s'。"
+
+#~ msgid "This 'dn' has no phone features."
+#~ msgstr "这个 'dn' 没有电话功能。"
+
+#, fuzzy
+#~ msgid "'0' is a reserved name and cannot be used!"
+#~ msgstr "'0' 作为保留 '电话名' 不能使用。"
+
+#~ msgid "Save"
+#~ msgstr "保存"
+
+#, fuzzy
+#~ msgid "VoIP service - Asterisk management"
+#~ msgstr "Asterisk 管理"
+
+#, fuzzy
+#~ msgid "The attribute DB user is empty or contains invalid characters."
+#~ msgstr "属性 '%s' 为空或者包含无效字符。"
+
+#, fuzzy
+#~ msgid "The attribute password is empty or contains invalid characters."
+#~ msgstr "属性 '%s' 为空或者包含无效字符。"
+
+#, fuzzy
+#~ msgid ""
+#~ "The attribute local dial prefix is empty or contains invalid characters."
+#~ msgstr "属性 '%s' 为空或者包含无效字符。"
+
+#, fuzzy
+#~ msgid ""
+#~ "The attribute country dial prefix is empty or contains invalid characters."
+#~ msgstr "属性 '%s' 为空或者包含无效字符。"
+
+#~ msgid ""
+#~ "Phone queue is enabled for this group. You can disable it by clicking "
+#~ "below."
+#~ msgstr "电话队列已经为这个组启用。您可以点击下面按钮禁用。"
+
+#~ msgid ""
+#~ "For this group the phone queues are disabled. You can enable them by "
+#~ "clicking below."
+#~ msgstr "对于这个组电话队列被禁用。您可以点击下面按钮启用。"
+
+#~ msgid "Please select a valid goFonHomeServer."
+#~ msgstr "请选择一个有效的 goFonHomeServer。"
+
+#~ msgid "Timeout must be numeric"
+#~ msgstr "超时必须填数字"
+
+#~ msgid "Retry must be numeric"
+#~ msgstr "重试必须填数字"
+
+#~ msgid "Max queue length must be numeric"
+#~ msgstr "最大队列长度必须是数字"
+
+#~ msgid "Announce frequency must be numeric"
+#~ msgstr "公告频率必须是一个数字"
+
+#~ msgid "There must be least one queue number defined."
+#~ msgstr "必须至少定义一个队列数字"
+
+#, fuzzy
+#~ msgid "Cannot remove queue entries from database!"
+#~ msgstr "从数据库删除旧的队列条目失败"
+
+#~ msgid "Mysql query failed."
+#~ msgstr "Mysql 查询失败。"
+
+#~ msgid "Please have a look a the gosa logfiles."
+#~ msgstr "请看一下 GOsa 日志文件。"
+
+#~ msgid "Saving phone queue failed"
+#~ msgstr "保存电话队列失败"
+
+#~ msgid "Removing phone queue failed"
+#~ msgstr "删除电话队列失败"
+
+#, fuzzy
+#~ msgid "Updating gofon home server failed for '%s'."
+#~ msgstr "更新 DNS 服务失败"
+
+#, fuzzy
+#~ msgid "Removing of system phone/generic with dn '%s' failed!"
+#~ msgstr "删除 dn 为 '%s' 的 user/kolab 账号失败。"
+
+#, fuzzy
+#~ msgid "Saving of phone/generic with dn '%s' failed!"
+#~ msgstr "保存 dn 为 '%s' 的 user/kolab 账号为空。"
+
+#~ msgid ""
+#~ "The MySQL Server '%s' isn't reachable as user '%s'. Abort saving entries "
+#~ "to keep the database consistent, check GOsa log for mysql error."
+#~ msgstr ""
+#~ "MySQL 服务器 '%s' 无法被用户 '%s' 访问。取消保存将保持数据库的完整性，通"
+#~ "过 GOsa 日志来查看 mysql 错误。"
+
+#~ msgid ""
+#~ "The old MySQL home server '%s' isn't reachable as user '%s'. Abort saving "
+#~ "entries to keep the database consistent, check GOsa log for mysql error."
+#~ msgstr ""
+#~ "老的 MySQL 主服务器 '%s' 无法被用户 '%s' 访问。取消保存将保持数据库的完整"
+#~ "性，通过 GOsa 日志来查看 mysql 错误。"
+
+#, fuzzy
+#~ msgid "Phone number is invalid!"
+#~ msgstr "电话号码"
+
+#~ msgid ""
+#~ "The specified Voicemail PIN contains invalid characters, only numeric "
+#~ "values are allowed here."
+#~ msgstr "输入的语音邮件 PIN 包含无效字符，只允许数字。"
+
+#~ msgid ""
+#~ "The specified phone PIN contains invalid characters, only aphanumeric "
+#~ "values are allowed here."
+#~ msgstr "输入的电话 PIN 包含无效字符，只允许字母数字。"
+
+#~ msgid "You need to specify at least one phone number!"
+#~ msgstr "您需要提供至少一个电话号码！"
+
+#, fuzzy
+#~ msgid "Saving of user/phone account with dn '%s' failed."
+#~ msgstr "保存 dn 为 '%s' 的 user/kolab 账号为空。"
+
+#, fuzzy
+#~ msgid "Removing of user/phone account with dn '%s' failed."
+#~ msgstr "删除 dn 为 '%s' 的 user/kolab 账号失败。"
+
+#, fuzzy
+#~ msgid "Saving of goFonConference/generic with dn '%s' failed!"
+#~ msgstr "保存 dn 为 '%s' 服务器服务/反病毒失败。"
+
+#, fuzzy
+#~ msgid "Removing of goFonMacro/generic account with dn '%s' failed!"
+#~ msgstr "删除 dn 为 '%s' 的 user/kolab 账号失败。"
+
+#, fuzzy
+#~ msgid "Saving of goFonMacro/generic account with dn '%s' failed."
+#~ msgstr "保存 dn 为 '%s' 的 user/kolab 账号为空。"
+
+#, fuzzy
+#~ msgid "Removing of goFonMacro/generic account with dn '%s' failed."
+#~ msgstr "删除 dn 为 '%s' 的 user/kolab 账号失败。"
+
+#~ msgid ""
+#~ "The specified home server '%s' is not available in GOsa server "
+#~ "configuration. Saving this account will create a new entry on the server "
+#~ "'%s'. Use cancel if you do not want to create a new entry while ignoring "
+#~ "old accounts."
+#~ msgstr ""
+#~ "提供的主服务器 '%s' 不在 GOsa 服务器配置中。保存这个账号将在服务器 '%s' 上"
+#~ "创建一个新条目。选择“取消”如果您不想创建一个新条目并忽略旧账号。"
+
+#~ msgid ""
+#~ "Can't save any changes to asterisk database, there is currently no mysql "
+#~ "extension available in your php setup."
+#~ msgstr "无法保存修改到 asterisk 数据库，当前 php 没有安装 mysql 扩展。"
+
+#~ msgid ""
+#~ "The MySQL home server '%s' isn't reachable as user '%s', check GOsa log "
+#~ "for mysql error."
+#~ msgstr ""
+#~ "MySQL 主服务器 '%s' 无法被用户 '%s' 访问到，通过 GOsa 日志来查看 mysql 错"
+#~ "误。"
+
+#~ msgid ""
+#~ "The MySQL initial home server '%s' isn't reachable as user '%s', check "
+#~ "GOsa log for mysql error."
+#~ msgstr ""
+#~ "MySQL 主服务器 '%s' 无法被用户 '%s' 访问到，通过 GOsa 日志来查看 mysql 错"
+#~ "误。"
+
+#~ msgid "Can't select database '%s' on initial home server '%s'."
+#~ msgstr "无法在初始的主服务器 '%s' 上选择数据库 '%s'。"
+
+#~ msgid ""
+#~ "There is currently no asterisk server defined. Possibly you are missing a "
+#~ "server that handles the asterisk management (goFonServer). Your settings "
+#~ "can't be saved to asterisk database."
+#~ msgstr ""
+#~ "当前没有定义 asterisk 服务器。可能您漏掉了个服务器处理 asterisk 管理"
+#~ "(goFonServer)。您的设置不能保存到 asterisk 数据库。"
+
+#~ msgid "Could not detect old queue entry, query failed."
+#~ msgstr "无法检测旧的队列条目，查询失败。"
+
+#~ msgid ""
+#~ "More than one entry in queue table found, that uses the name ('%s'). "
+#~ "Please fix this issue manually first."
+#~ msgstr "在队列中发现至少一个条目，名为（%s）。请先手工解决这个问题。"
+
+#, fuzzy
+#~ msgid ""
+#~ "Can't delete because there are users which are depending on this phone. "
+#~ "One of them is user '%s'."
+#~ msgstr "无法删除，因为仍然有用户在依赖这个电话。其中一个用户是 '%s'。"
+
+#~ msgid "The required field IP address is empty."
+#~ msgstr "需要的 IP 地址字段为空。"
+
+#~ msgid "The field IP address contains an invalid address."
+#~ msgstr "IP 地址字段包含无效地址。"
+
+#, fuzzy
+#~ msgid "Please specify a valid name for this object."
+#~ msgstr "请为这个附件指定一个有效名称。"
+
+#~ msgid "The required field 'Phone name' is not set."
+#~ msgstr "需要的字段“电话名称”没有设置。"
+
+#~ msgid "There is already an entry '%s' in the base choosen by you"
+#~ msgstr "在您选择的部门中已经存在条目 '%s'"
+
+#~ msgid "Can't connect to phone database, no reports can be shown!"
+#~ msgstr "不能连接电话数据库，无法显示报告！"
+
+#~ msgid "There is no mysql extension available, please check your php setup."
+#~ msgstr "没有可用的 mysql 扩展，请检查您的 php 设置。"
+
+#~ msgid "Can't select phone database for report generation!"
+#~ msgstr "无法为生成报告查询电话数据库！"
+
+#~ msgid "Query for phone database failed!"
+#~ msgstr "查询电话数据库失败！"
+
+#~ msgid ""
+#~ "The specified goFonHomeServer '%s' is not available in GOsa server "
+#~ "configuration. Saving this account will create a new entry on the server "
+#~ "'%s'. Use cancel if you do not want to create a new entry ignoring old "
+#~ "accounts."
+#~ msgstr ""
+#~ "指定的 goFonHomeServer '%s' 在 GOsa 服务器配置中不存在。保存这个账号将在服"
+#~ "务器 '%s' 上创建一个新条目。选择“取消”如果您不想创建一个新条目并忽略旧账"
+#~ "号。"
+
+#~ msgid ""
+#~ "Can't save any changes to asterisk database, there is no mysql extension "
+#~ "available."
+#~ msgstr "因为当前没有 mysql 扩展，无法保存修改到 asterisk 数据库。"
+
+#~ msgid "Error while performing query:"
+#~ msgstr "执行查询时错误:"
+
+#~ msgid ""
+#~ "The macro you selected, is no longer available for you, please choose "
+#~ "another one."
+#~ msgstr "您选择的宏不能继续使用，请选择另外一个。"
+
+#~ msgid "Please enter a valid phone number!"
+#~ msgstr "无法输入一个有效的电话号码！"
+
+#~ msgid ""
+#~ "The MySQL Server '%s' isn't reachable as user '%s', check GOsa log for "
+#~ "mysql error."
+#~ msgstr ""
+#~ "MySQL 服务器'%s' 无法被用户 '%s' 访问，通过 GOsa 日志来查看 mysql 错误。"
+
+#~ msgid ""
+#~ "Can't remove phone account, the mysql extension is not present in php "
+#~ "configuration."
+#~ msgstr "无法删除电话账号，PHP 配置中没有 mysql 扩展。"
+
+#~ msgid ""
+#~ "Could not remove the conference entry from database on home server (%s). "
+#~ "Please check your asterisk database configuration."
+#~ msgstr ""
+#~ "无法从主服务器(%s)中数据库中删除会议条目。请检查您 asterisk 数据库的配置。"
+
+#~ msgid "Please enter a PIN."
+#~ msgstr "请输入一个 PIN。"
+
+#~ msgid "Please enter a name for the conference."
+#~ msgstr "请为这个会议输入一个名称。"
+
+#~ msgid "Only numeric chars are allowed in Number field."
+#~ msgstr "数字字段只允许填数字。"
+
+#~ msgid "Only numbers are allowed in Lifetime."
+#~ msgstr "在 Lifetime 中只允许数字。"
+
+#, fuzzy
+#~ msgid "There is already a conference with this name in the current tree."
+#~ msgstr "已经有一个 profile 使用了这个类名。"
+
+#~ msgid ""
+#~ "Can not check if there are already some entries with given telephone "
+#~ "number and/or cn in the destination home server."
+#~ msgstr ""
+#~ "无法检查是否已经有一些条目包含给出的电话号码 和/或 cn 在目标主服务器中。"
+
+#~ msgid ""
+#~ "Can not remove entries with some telephone number and/or cn from "
+#~ "destination home server."
+#~ msgstr "无法删除包含一些电话号码并且/或者 cn 来自目标主服务器的条目。"
+
+#~ msgid ""
+#~ "Can not check if entry exists in old database. Please have a look a the "
+#~ "gosa logfiles."
+#~ msgstr "无法检查条目是否存在于旧的数据库中。请查看 gosa 日志文件。"
+
+#~ msgid ""
+#~ "Can not remove old entries from initial home server. Please have a look a "
+#~ "the gosa logfiles."
+#~ msgstr "无法在原来的主服务器中删除旧条目。请查看 gosa 日志文件。"
+
+#~ msgid "Removing macro from '%s' failed. Check GOsa log for mysql error."
+#~ msgstr "从 '%s' 删除宏失败。通过 GOsa 日志来查看 mysql 错误。"
+
+#~ msgid "More than one '(' is currently not supported. Line : '%s'."
+#~ msgstr "当前不支持一个以上的 '('。行: '%s'。"
+
+#~ msgid "More than one ')' is currently not supported. Line : '%s'."
+#~ msgstr "当前不支持一个以上的 ')'。行: '%s'。"
+
+#~ msgid "There is no extension type given in line : '%s'."
+#~ msgstr "没有给出扩展类型，在行: '%s'。"
+
+#~ msgid ""
+#~ "There must be at least one server with an asterisk database to save this "
+#~ "phone macro."
+#~ msgstr "必须有至少一个带有 asterisk 数据库的服务器来保存电话宏。"
+
+#~ msgid "The given cn '%s' already exists."
+#~ msgstr "给出的 cn '%s' 已经存在。"
+
+#~ msgid "You must specify the 'Display Name' in order to save this macro"
+#~ msgstr "为保存这个宏，您必须提供“显示名称”"
+
+#~ msgid "The given cn is too long, to create a Makro entry, maximum 20 chars."
+#~ msgstr "提供的 cn 可能太长，为创建一个 Makro 条目，最多 20 个字符。"
+
+#~ msgid ""
+#~ "This macro is still in use. It is necessary to mark this macro as visible "
+#~ "for users."
+#~ msgstr "该宏仍在使用。有必要将这个宏标记为用户可见。"
+
+#~ msgid "Makro length must be lower than 100 lines"
+#~ msgstr "Macro 长度必须少于 100 行"
+
+#~ msgid ""
+#~ "This macro is still in use. To delete this Macro ensure that nobody has "
+#~ "selected it."
+#~ msgstr "该宏仍在使用。要删除这个宏先确认没有人使用它。"
+
+#~ msgid ""
+#~ "Could not remove the macro entry from asterisk databases. Please check "
+#~ "your asterisk database configurations."
+#~ msgstr ""
+#~ "无法从 asterisk 数据库中删除该宏记录。请检查您的 asterisk 数据库配置。"
+
+#~ msgid "The parameter %s has incorrect value for type bool."
+#~ msgstr "参数 %s 含有不正确的布尔值。"
+
+#~ msgid ""
+#~ "Parameter count of the macro changed, you must update each user which are "
+#~ "using this macro '%s'."
+#~ msgstr "宏的参数数目修改了，您必须更新每一个使用宏 '%s' 的用户。"
+
+#~ msgid "You are not allowed to delete this macro!"
+#~ msgstr "您无权删除这个宏！"

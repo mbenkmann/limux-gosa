@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<list>
+  <definition>
+    <departmentBrowser>false</departmentBrowser>
+    <departmentRootVisible>false</departmentRootVisible>
+    <baseMode>false</baseMode>
+    <multiSelect>true</multiSelect>
+    <template>fai-list.tpl</template>
+    <module>fai</module>
+    <label>List of deployment classes and products</label>
+    <defaultSortColumn>0</defaultSortColumn>
+
+    <objectType>
+      <label>FAI</label>
+      <objectClass>FAIclass</objectClass>
+      <category>fai</category>
+      <class>fai</class>
+      <image>plugins/fai/images/script.png</image>
+    </objectType>
+
+  </definition>
+
+  <table>
+    <layout>||250px|170px;r|</layout>
+
+    <column>
+      <label>Name</label>
+      <sortAttribute>cn</sortAttribute>
+      <sortType>string</sortType>
+      <value>%{filter:link(row,dn,"%s",cn)}</value>
+      <export>true</export>
+    </column>
+
+    <column>
+      <label>Properties</label>
+      <value>%{filter:filterProperties(row,TYPES)}</value>
+    </column>
+
+    <column>
+      <label>Actions</label>
+      <value>%{filter:actions(dn,row,objectClass)}</value>
+    </column>
+
+  </table>
+
+  <actionmenu>
+
+    <action>
+     <type>sub</type>
+     <image>images/lists/element.png[new]</image>
+     <label>Create</label>
+
+     <action>
+      <name>new_profile</name>
+      <type>entry</type>
+      <image>plugins/fai/images/fai_profile.png</image>
+      <label>Profile</label>
+     </action>
+     <action>
+      <name>new_template</name>
+      <type>entry</type>
+      <image>plugins/fai/images/fai_template.png</image>
+      <label>Template</label>
+     </action>
+     <action>
+      <name>new_script</name>
+      <type>entry</type>
+      <image>plugins/fai/images/fai_script.png</image>
+      <label>Script</label>
+     </action>
+     <action>
+      <name>new_hook</name>
+      <type>entry</type>
+      <image>plugins/fai/images/fai_hook.png</image>
+      <label>Hook</label>
+     </action>
+     <action>
+      <name>new_variable</name>
+      <type>entry</type>
+      <image>plugins/fai/images/fai_variable.png</image>
+      <label>Variable</label>
+     </action>
+     <action>
+      <name>new_package</name>
+      <type>entry</type>
+      <image>plugins/fai/images/fai_packages.png</image>
+      <label>Package list</label>
+     </action>
+     <action>
+      <name>new_partition</name>
+      <type>entry</type>
+      <image>plugins/fai/images/fai_partitionTable.png</image>
+      <label>Partition table</label>
+     </action>
+
+    </action>
+
+    <action>
+      <type>separator</type>
+    </action>
+
+    <action>
+      <name>remove_multiple</name>
+      <type>entry</type>
+      <image>images/lists/trash.png</image>
+      <label>Remove entries</label>
+    </action>
+
+    <action>
+      <type>separator</type>
+    </action>
+
+    <action>
+     <name>createBranch</name>
+     <type>entry</type>
+     <image>plugins/fai/images/branch_small.png[new]</image>
+     <label>Create branch</label>
+    </action>
+
+    <action>
+     <name>createFreeze</name>
+     <type>entry</type>
+     <image>plugins/fai/images/freeze.png[new]</image>
+     <label>Create freeze</label>
+    </action>
+
+    <action>
+     <name>removeBranch</name>
+     <type>entry</type>
+     <image>images/lists/trash.png</image>
+     <label>Remove release</label>
+    </action>
+
+    <action>
+      <type>separator</type>
+    </action>
+
+    <action>
+      <type>exporter</type>
+    </action>
+
+    <action>
+      <type>separator</type>
+    </action>
+
+    <action>
+      <type>copypaste</type>
+      <cut>false</cut>
+    </action>
+
+  </actionmenu>
+
+  <actiontriggers snapshot="false" copypaste="true">
+
+    <action>
+      <name>cp</name>
+      <cut>false</cut>
+      <objectclass>FAKE_OC_FAI</objectclass>
+      <type>copypaste</type>
+    </action>
+
+    <action>
+      <name>edit</name>
+      <type>entry</type>
+      <image>images/lists/edit.png</image>
+      <label>Edit</label>
+    </action>
+
+    <action>
+      <name>remove</name>
+      <type>entry</type>
+      <objectclass>FAKE_OC_IsBranch</objectclass>
+      <image>images/lists/trash.png</image>
+      <label>Remove</label>
+    </action>
+
+  </actiontriggers>
+
+</list>

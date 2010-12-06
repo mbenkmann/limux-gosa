@@ -1,0 +1,7 @@
+dn: cn=goconfig,cn=schema,cn=config
+objectClass: olcSchemaConfig
+cn: goconfig
+olcAttributeTypes: ( 1.3.6.1.4.1.10098.1.1.10.8 NAME 'goLogcheckIgnoreMatch' DESC 'Contains a regular expression to ignore' EQUALITY caseExactIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26)
+olcAttributeTypes: ( 1.3.6.1.4.1.10098.1.1.10.9 NAME 'goLogcheckMatch' DESC 'Contains a regular expression to ignore' EQUALITY caseExactIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26)
+olcAttributeTypes: ( 1.3.6.1.4.1.10098.1.1.10.10 NAME 'goLogcheckCategory' DESC 'Contains a regular expression to ignore' EQUALITY caseExactIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE)
+olcObjectClasses: (1.3.6.1.4.1.10098.1.2.2.2 NAME 'goLogcheckObject' SUP top STRUCTURAL DESC 'Logcheck rule container (v2.4)' MUST ( cn $ goLogcheckCategory ) MAY ( goLogcheckMatch $ goLogcheckIgnoreMatch ))

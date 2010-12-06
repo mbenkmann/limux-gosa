@@ -1,0 +1,6 @@
+# Should we start the server
+START_SERVER=0
+# Configure Debuging Level
+DEBUG=-vvvvvvv
+# Debug parts of GOsa-si server see man gosa-si-server
+#DEBUGPARTS=

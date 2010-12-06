@@ -1,0 +1,185 @@
+# translation of messages.po to deutsch
+# translation of messages.po to
+# GOsa2 Translations
+# Copyright (C) 2003 GONICUS GmbH, Germany
+# This file is distributed under the same license as the GOsa2 package.
+#
+#
+# Alfred Schroeder <schroeder@GONICUS.de>, 2004.
+# Cajus Pollmeier <pollmeier@gonicus.de>, 2004, 2005, 2006, 2008, 2009.
+# Jan Wenzel <jan.wenzel@gonicus.de>, 2004,2005, 2008.
+# Stefan Koehler <stefan.koehler@GONICUS.de>, 2005.
+# Fabian Hickert <fabian.hickert@gonicus.de>, 2010.
+msgid ""
+msgstr ""
+"Project-Id-Version: messages\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-11-04 15:22+0100\n"
+"PO-Revision-Date: 2010-09-14 14:40+0200\n"
+"Last-Translator: Fabian Hickert <fabian.hickert@gonicus.de>\n"
+"Language-Team: Deutsch <kde-i18n-de@kde.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 1.0\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: admin/systems/services/apache2/servApacheVhost.tpl:1
+msgid "Apache virtual hosts"
+msgstr "Apache virtuelle Hosts"
+
+#: admin/systems/services/apache2/servApacheVhost.tpl:7
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:50
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:78
+msgid "Add"
+msgstr "Hinzufügen"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:85
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:96
+msgid "Alias"
+msgstr "Alias"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:85
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:96
+msgid "Directory"
+msgstr "Verzeichnis"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:203
+#: admin/systems/services/apache2/class_servApacheVhost.inc:71
+msgid "Name"
+msgstr "Name"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:210
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:5
+msgid "Virtual host name"
+msgstr "Virtueller Host-Name"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:211
+msgid "Only lowercase strings are allowed as Virtual Host Name."
+msgstr "Es sind nur Kleinbuchstaben für virtuelle Host-Namen erlaubt."
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:211
+msgid "e.g. example.com"
+msgstr "z.B. beispiel.com"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:217
+#: admin/systems/services/apache2/class_servApacheVhost.inc:301
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:11
+msgid "Document root"
+msgstr "Document-Root"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:223
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:17
+msgid "Administrator mail address"
+msgstr "Administrator Mail-Adresse"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:232
+#: admin/systems/services/apache2/class_servApacheVhost.inc:302
+msgid "Server alias"
+msgstr "Server-Alias"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:242
+#: admin/systems/services/apache2/class_servApacheVhost.inc:304
+msgid "Script alias"
+msgstr "Skript-Alias"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:61
+#: admin/systems/services/apache2/class_servApacheVhost.inc:277
+#: admin/systems/services/apache2/class_servApacheVhost.inc:290
+msgid "Apache service"
+msgstr "Apache Dienst"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:230
+#: admin/systems/services/apache2/class_servApacheVhost.inc:241
+#: admin/systems/services/apache2/class_servApacheVhost.inc:264
+msgid "LDAP error"
+msgstr "LDAP-Fehler"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:291
+msgid "Apache virtual host service"
+msgstr "Apache Virtual Host Dienst"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:291
+msgid "Services"
+msgstr "Dienste"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:299
+msgid "Virtual hosts"
+msgstr "Virtuelle Hosts"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:300
+msgid "Server name"
+msgstr "Server-Name"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:303
+msgid "Server admin"
+msgstr "Server-Admin"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:1
+msgid "Generic"
+msgstr "Allgemein"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:3
+msgid "Apache Virutal Host"
+msgstr "Apache virtueller Host"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:26
+msgid "Server settings"
+msgstr "Server-Einstellungen"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:30
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:33
+msgid "Server Alias"
+msgstr "Server-Alias"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:37
+msgid "URL Alias"
+msgstr "URL-Alias"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:40
+msgid "Directory Path"
+msgstr "Pfad"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:59
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:62
+msgid "Script Alias"
+msgstr "Skript-Alias"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:65
+msgid "Alias Directory"
+msgstr "Alias-Verzeichnis"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:68
+msgid "Script Directory"
+msgstr "Skript-Verzeichnis"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:89
+msgid "Save"
+msgstr "Speichern"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:91
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: admin/systems/services/apache2/class_apacheUtils.inc:194
+#, php-format
+msgid ""
+"Undefined virtual host name '%s'. Virtual host name must be a valid, fully "
+"qualified domain name like 'www.example.com' or 'example.com'."
+msgstr ""
+"Der virtuelle Host-Name '%s' ist nicht definiert. Virtuelle Host-Namen "
+"müssen voll qulifiziert sein, wie beispielsweise: 'www.example.com' oder "
+"'example.com'."
+
+#~ msgid "Apache VHosts"
+#~ msgstr "Apache"
+
+#~ msgid "Up"
+#~ msgstr "Auf"
+
+#~ msgid "Down"
+#~ msgstr "Ab"
+
+#~ msgid "Delete"
+#~ msgstr "Entfernen"

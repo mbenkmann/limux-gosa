@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<list>
+  <definition>
+    <departmentBrowser>false</departmentBrowser>
+    <departmentRootVisible>false</departmentRootVisible>
+    <baseMode>false</baseMode>
+    <multiSelect>true</multiSelect>
+    <template>services/repository/repository-list.tpl</template>
+    <label>List of repositories</label>
+    <defaultSortColumn>1</defaultSortColumn>
+
+    <objectType>
+      <label>Service</label>
+      <objectClass>FAKE_OC_FaiRepository</objectClass>
+      <category>server</category>
+      <class>servrepository</class>
+      <image>images/lits/element.png[new]</image>
+    </objectType>
+
+  </definition>
+
+  <table>
+    <layout>|||170px;r|</layout>
+
+    <column>
+      <label>Release</label>
+      <sortAttribute>Release</sortAttribute>
+      <sortType>string</sortType>
+      <value>%{filter:link(row,dn,"%s",Release)}</value>
+      <export>true</export>
+    </column>
+
+    <column>
+      <label>Sections</label>
+      <sortAttribute>Sections</sortAttribute>
+      <sortType>string</sortType>
+      <value>%{filter:filterSections(row,Sections)}</value>
+      <export>true</export>
+    </column>
+
+    <column>
+      <label>Actions</label>
+      <value>%{filter:actions(dn,row,objectClass)}</value>
+    </column>
+
+  </table>
+
+  <actionmenu>
+
+    <action>
+     <type>sub</type>
+     <image>images/lists/element.png[new]</image>
+     <label>Create</label>
+
+     <action>
+      <name>new</name>
+      <type>entry</type>
+      <image>images/lists/element.png[new]</image>
+      <label>Release</label>
+     </action>
+    </action>
+
+    <action>
+      <type>separator</type>
+    </action>
+
+    <action>
+      <name>remove</name>
+      <type>entry</type>
+      <image>images/lists/trash.png</image>
+      <label>Remove</label>
+    </action>
+
+    <action>
+      <type>separator</type>
+    </action>
+
+    <action>
+      <type>exporter</type>
+    </action>
+
+  </actionmenu>
+
+  <actiontriggers snapshot="false" copypaste="false">
+
+    <action>
+      <name>edit</name>
+      <type>entry</type>
+      <image>images/lists/edit.png</image>
+      <label>Edit</label>
+    </action>
+
+    <action>
+      <name>remove</name>
+      <type>entry</type>
+      <image>images/lists/trash.png</image>
+      <label>Remove</label>
+    </action>
+
+  </actiontriggers>
+
+</list>

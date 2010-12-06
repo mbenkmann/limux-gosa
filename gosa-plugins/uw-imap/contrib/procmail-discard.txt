@@ -1,0 +1,4 @@
+# Discard any local messages
+:0 :
+/dev/null
+

@@ -1,0 +1,15 @@
+#*** Procmail script for $user ***
+
+DROPPRIVS=true
+
+
+# Include variable definitions from procmail library
+INCLUDERC=\$PMSRC/pm-javar.rc
+
+
+# Check for empty body and discard
+:0 B:
+*\$ ! \$NSPC
+/dev/null
+
+

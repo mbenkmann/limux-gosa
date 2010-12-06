@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<filterdef>
+  <definition>
+    <category>gofonconference</category>
+    <initial>true</initial>
+    <scope>auto</scope>
+    <default>default</default>
+    <attribute>dn</attribute>
+    <attribute>objectClass</attribute>
+    <attribute>cn</attribute>
+    <attribute>description</attribute>
+    <attribute>telephoneNumber</attribute>
+  </definition>
+
+  <search>
+    <tag>default</tag>
+    <label>Default</label>
+    <query>
+      <backend>LDAP</backend>
+      <filter>(&amp;(objectClass=goFonConference)(cn=$))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+
+  <search>
+    <tag>byNumber</tag>
+    <label>Phone number</label>
+    <query>
+      <backend>LDAP</backend>
+      <filter>(&amp;(objectClass=goFonConference)(telephoneNumber=$))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+
+</filterdef>

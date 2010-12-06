@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<list>
+  <definition>
+    <departmentBrowser>false</departmentBrowser>
+    <departmentRootVisible>false</departmentRootVisible>
+    <baseMode>false</baseMode>
+    <multiSelect>true</multiSelect>
+    <template>../plugins/admin/fai/classSelect/selectClass-list.tpl</template>
+    <module>users</module>
+    <label>Please select the desired entries</label>
+    <defaultSortColumn>1</defaultSortColumn>
+
+    <objectType>
+      <label>FAI</label>
+      <objectClass>FAIclass</objectClass>
+      <category>fai</category>
+      <class>fai</class>
+      <image>plugins/fai/images/script.png</image>
+    </objectType>
+
+  </definition>
+
+  <table>
+    <layout>|220px||</layout>
+
+    <column>
+      <label>Name</label>
+      <sortAttribute>cn</sortAttribute>
+      <sortType>string</sortType>
+      <value>%{cn}</value>
+      <export>true</export>
+    </column>
+
+    <column>
+      <label>Properties</label>
+      <value>%{filter:filterProperties(row,objectClass)}</value>
+    </column>
+
+  </table>
+
+  <actionmenu>
+  </actionmenu>
+
+  <actiontriggers snapshot="false" copypaste="false">
+  </actiontriggers>
+</list>

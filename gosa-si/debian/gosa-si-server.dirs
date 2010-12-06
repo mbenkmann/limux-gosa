@@ -1,0 +1,7 @@
+usr/sbin
+usr/lib/gosa-si/modules
+usr/lib/gosa-si/server/GosaPackages
+usr/lib/gosa-si/server/ServerPackages
+usr/lib/gosa-si/server/ClientPackages
+etc/gosa-si
+/var/log/fai

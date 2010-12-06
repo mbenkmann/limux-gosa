@@ -1,0 +1,237 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: polski\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-11-04 15:23+0100\n"
+"PO-Revision-Date: 2010-04-30 21:29+0100\n"
+"Last-Translator: Piort Rybicki <meritus@innervision.pl>\n"
+"Language-Team: Piotr Rybicki <meritus@innervision.pl>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Polish\n"
+"X-Poedit-Country: POLAND\n"
+"X-Poedit-SourceCharset: iso-8859-2\n"
+"X-Poedit-Basepath: tedst\n"
+
+#: admin/systems/services/syslog/goSyslogServer.tpl:1
+msgid "Syslog Service"
+msgstr "Usługa Syslog"
+
+#: admin/systems/services/syslog/goSyslogServer.tpl:1
+msgid "enabled"
+msgstr "włączone"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:27
+#: admin/systems/services/syslog/class_goSyslogServer.inc:47
+msgid "Syslog server"
+msgstr "Serwer Syslog"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:68
+#: admin/systems/services/syslog/class_goSyslogServer.inc:69
+msgid "Logging service"
+msgstr "Usługa Logowania"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:69
+#: admin/systems/services/syslog/class_goLogDBServer.inc:93
+msgid "Services"
+msgstr "Usługi"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:31
+#: admin/systems/services/syslog/class_goLogDBServer.inc:59
+msgid "Syslog service database"
+msgstr "Baza usługi Syslog"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:69
+msgid "User"
+msgstr "Użytkownik"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:72
+#: admin/systems/services/syslog/class_goLogDBServer.inc:105
+#: admin/systems/services/syslog/goLogDBServer.tpl:20
+msgid "Password"
+msgstr "Hasło"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:75
+#: admin/systems/services/syslog/class_goLogDBServer.inc:106
+#: admin/systems/services/syslog/goLogDBServer.tpl:4
+msgid "Database"
+msgstr "Baza"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:92
+#: admin/systems/services/syslog/class_goLogDBServer.inc:93
+msgid "Logging database"
+msgstr "Baza logowania"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:101
+msgid "Start"
+msgstr "Start"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:102
+msgid "Stop"
+msgstr "Stop"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:103
+msgid "Restart"
+msgstr "Restart"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:104
+#, fuzzy
+msgid "Administrator"
+msgstr "Administracja"
+
+#: admin/systems/services/syslog/goLogDBServer.tpl:1
+msgid "Logging database information"
+msgstr "Informacje bazy logowania"
+
+#: admin/systems/services/syslog/goLogDBServer.tpl:12
+msgid "Logging DB user"
+msgstr "Użytkownik bazy logowania"
+
+#~ msgid "Admin"
+#~ msgstr "Admin"
+
+#, fuzzy
+#~ msgid "GOsa MySQL logging service"
+#~ msgstr "Usługa Logowania"
+
+#, fuzzy
+#~ msgid "Allow view of entries on this server"
+#~ msgstr "Zezwól na logowanie do serwera terminali"
+
+#, fuzzy
+#~ msgid "Database user"
+#~ msgstr "Bazy danych"
+
+#~ msgid "Filter"
+#~ msgstr "Filtr"
+
+#~ msgid "Show hosts"
+#~ msgstr "Pokaż hosty"
+
+#~ msgid "Action"
+#~ msgstr "Akcja"
+
+#~ msgid "Time interval"
+#~ msgstr "Interwał czasowy"
+
+#~ msgid "Search for"
+#~ msgstr "Szukaj dla"
+
+#~ msgid "Enter string to search for"
+#~ msgstr "Proszę podać szukany ciąg znaków"
+
+#~ msgid "Ruleset"
+#~ msgstr "Reguły"
+
+#~ msgid "Edit"
+#~ msgstr "Edytuj"
+
+#~ msgid "Search"
+#~ msgstr "Szukaj"
+
+#~ msgid "Date"
+#~ msgstr "Data"
+
+#, fuzzy
+#~ msgid "Object type"
+#~ msgstr "Nazwa obiektu"
+
+#~ msgid "Object"
+#~ msgstr "Obiekt"
+
+#~ msgid "Message"
+#~ msgstr "Wiadomość"
+
+#~ msgid "Search returned no results..."
+#~ msgstr "Wyszukiwanie nie zwróciło żadnych wyników..."
+
+#~ msgid "System logs"
+#~ msgstr "Logi systemowe"
+
+#~ msgid "This does something"
+#~ msgstr "To robi coś"
+
+#~ msgid "Warning"
+#~ msgstr "Ostrzeżenie"
+
+#, fuzzy
+#~ msgid "Configuration error"
+#~ msgstr "Plik konfiguracyjny"
+
+#, fuzzy
+#~ msgid "Missing %s PHP extension!"
+#~ msgstr "Rozszerzenie inwentarza"
+
+#~ msgid "Error"
+#~ msgstr "Błąd"
+
+#~ msgid "All"
+#~ msgstr "Wszystkie"
+
+#~ msgid "one hour"
+#~ msgstr "jedna godzina"
+
+#~ msgid "6 hours"
+#~ msgstr "6 godzin"
+
+#~ msgid "12 hours"
+#~ msgstr "12 godzin"
+
+#~ msgid "24 hours"
+#~ msgstr "24 godziny"
+
+#~ msgid "2 days"
+#~ msgstr "2 dni"
+
+#~ msgid "one week"
+#~ msgstr "jeden tydzień"
+
+#~ msgid "2 weeks"
+#~ msgstr "2 tygodnie"
+
+#~ msgid "one month"
+#~ msgstr "jeden miesiąc"
+
+#, fuzzy
+#~ msgid "Log view"
+#~ msgstr "Usługa logowania"
+
+#, fuzzy
+#~ msgid "Log view addon"
+#~ msgstr "Przesuń w dół"
+
+#, fuzzy
+#~ msgid "You have insufficient permissions to view syslog entries."
+#~ msgstr "Brak uprawnień do usunięcia tej bloklisty."
+
+#~ msgid "Log level"
+#~ msgstr "Poziom logu"
+
+#~ msgid "Level"
+#~ msgstr "Poziom"
+
+#~ msgid "Hostname"
+#~ msgstr "Nazwa hosta"
+
+#~ msgid "Save"
+#~ msgstr "Zapisz"
+
+#~ msgid "Cancel"
+#~ msgstr "Anuluj"
+
+#, fuzzy
+#~ msgid "No %s servers defined!"
+#~ msgstr "Nie zdefiniowano serwerów logowania!"
+
+#, fuzzy
+#~ msgid "Cannot connect to %s database!"
+#~ msgstr "Nie można połączyć się z serwerem baz danych!"
+
+#, fuzzy
+#~ msgid "Cannot select %s database!"
+#~ msgstr "Nie można wybrać bazy danych!"
+
+#~ msgid "Database query failed!"
+#~ msgstr "Zapytanie do bazy danych nieudane"

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<list>
+  <definition>
+    <departmentBrowser>false</departmentBrowser>
+    <departmentRootVisible>false</departmentRootVisible>
+    <baseMode>false</baseMode>
+    <multiSelect>true</multiSelect>
+    <template>../plugins/admin/fai/packageSelect/selectPackage-list.tpl</template>
+    <label>Please select the desired entries</label>
+    <defaultSortColumn>1</defaultSortColumn>
+
+    <objectType>
+      <label>FAI</label>
+      <objectClass>FAKE_OC__FaiPackage</objectClass>
+      <category>fai</category>
+      <class>faiPackage</class>
+      <image>plugins/fai/images/fai_packages.png</image>
+    </objectType>
+
+  </definition>
+
+  <table>
+    <layout>|20px;c||180|</layout>
+
+    <department>
+      <value>%{filter:objectType(dn,objectClass)}</value>
+    </department>
+
+    <department>
+      <value>%{filter:departmentLink(row,dn,description)}</value>
+      <span>1</span>
+    </department>
+
+    <column>
+      <value>%{filter:objectType(dn,objectClass)}</value>
+    </column>
+
+    <column>
+      <label>Name</label>
+      <sortAttribute>PACKAGE</sortAttribute>
+      <sortType>string</sortType>
+      <value>%{PACKAGE}</value>
+      <export>true</export>
+    </column>
+
+    <column>
+      <label>Version</label>
+      <sortAttribute>VERSION</sortAttribute>
+      <sortType>string</sortType>
+      <value>%{VERSION}</value>
+      <export>true</export>
+    </column>
+
+
+  </table>
+
+  <actionmenu>
+  </actionmenu>
+
+  <actiontriggers snapshot="false" copypaste="false">
+  </actiontriggers>
+
+</list>

@@ -1,0 +1,34 @@
+# procmail spam handling
+GOSA_SPAM="yes"
+
+:0
+* ! ^From:.*($addrlist)
+* ! FROM_DAEMON
+{
+
+  #   Do not add extra headers. This saves external shell call
+  #   (formail). Also do not try to kill the message content,
+  #   again saving one external call (awk). With these, the
+  #   recipe is faster and more CPU friendly.
+  PM_JA_UBE_HDR                  = ""
+  JA_UBE_ATTACHMENT_ILLEGAL_KILL = "no"
+  JA_UBE_FLAG_FROM_NSLOOKUP      = "no"
+
+  INCLUDERC = \$PMSRC/pm-jaube.rc
+
+  #   Variable "ERROR" is set if message was UBE, record error
+  #   to log file with "()\/"
+
+  :0 :
+  * ERROR ?? ()\/[a-z].*
+  {
+    #  Don't save those *.exe, *.zip UBE attachements
+    :0
+    *  ERROR ?? Attachment-FileIllegal
+    /dev/null
+
+    :0 :
+    $spambox
+  }
+}
+

@@ -1,0 +1,143 @@
+#: admin/systems/services/apache2/servApacheVhost.tpl:1
+msgid "Apache virtual hosts"
+msgstr ""
+
+#: admin/systems/services/apache2/servApacheVhost.tpl:7
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:50
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:78
+msgid "Add"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:85
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:96
+msgid "Alias"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:85
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:96
+msgid "Directory"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:203
+#: admin/systems/services/apache2/class_servApacheVhost.inc:71
+msgid "Name"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:210
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:5
+msgid "Virtual host name"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:211
+msgid "Only lowercase strings are allowed as Virtual Host Name."
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:211
+msgid "e.g. example.com"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:217
+#: admin/systems/services/apache2/class_servApacheVhost.inc:301
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:11
+msgid "Document root"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:223
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:17
+msgid "Administrator mail address"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:232
+#: admin/systems/services/apache2/class_servApacheVhost.inc:302
+msgid "Server alias"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:242
+#: admin/systems/services/apache2/class_servApacheVhost.inc:304
+msgid "Script alias"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:61
+#: admin/systems/services/apache2/class_servApacheVhost.inc:277
+#: admin/systems/services/apache2/class_servApacheVhost.inc:290
+msgid "Apache service"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:230
+#: admin/systems/services/apache2/class_servApacheVhost.inc:241
+#: admin/systems/services/apache2/class_servApacheVhost.inc:264
+msgid "LDAP error"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:291
+msgid "Apache virtual host service"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:291
+msgid "Services"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:299
+msgid "Virtual hosts"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:300
+msgid "Server name"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:303
+msgid "Server admin"
+msgstr ""
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:1
+msgid "Generic"
+msgstr ""
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:3
+msgid "Apache Virutal Host"
+msgstr ""
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:26
+msgid "Server settings"
+msgstr ""
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:30
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:33
+msgid "Server Alias"
+msgstr ""
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:37
+msgid "URL Alias"
+msgstr ""
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:40
+msgid "Directory Path"
+msgstr ""
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:59
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:62
+msgid "Script Alias"
+msgstr ""
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:65
+msgid "Alias Directory"
+msgstr ""
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:68
+msgid "Script Directory"
+msgstr ""
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:89
+msgid "Save"
+msgstr ""
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:91
+msgid "Cancel"
+msgstr ""
+
+#: admin/systems/services/apache2/class_apacheUtils.inc:194
+#, php-format
+msgid ""
+"Undefined virtual host name '%s'. Virtual host name must be a valid, fully "
+"qualified domain name like 'www.example.com' or 'example.com'."
+msgstr ""

@@ -1,0 +1,488 @@
+# translation of messages.po to Dutch
+# GOsa2 Translations
+# Copyright (C) 2003 GONICUS GmbH, Germany
+# This file is distributed under the same license as the GOsa2 package.
+# Alfred Schroeder <schroeder@GONICUS.de>, 2004.
+# Cajus Pollmeier <pollmeier@gonicus.de>, 2004.
+#
+# Translator:
+# Niels Klomp (CareWorks ICT Services) <nk@careworks.nl>, 2005.
+msgid ""
+msgstr ""
+"Project-Id-Version: messages\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-11-04 15:24+0100\n"
+"PO-Revision-Date: 2006-06-02 16:58+0100\n"
+"Last-Translator: Niels Klomp (CareWorks ICT Services) <nk@careworks.nl>\n"
+"Language-Team: CareWorks ICT Services <info@careworks.nl>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:58
+#, fuzzy
+msgid "Kerberos service"
+msgstr "Kerberos server"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:74
+#: admin/systems/services/kerberos/class_goKrbServer.inc:356
+#: admin/systems/services/kerberos/class_goKrbServer.inc:365
+#: admin/systems/services/kerberos/class_goKrbServer.inc:369
+#: admin/systems/services/kerberos/class_password-methods-MIT.inc:236
+#: admin/systems/services/kerberos/class_password-methods-MIT.inc:292
+#: admin/systems/services/kerberos/class_password-methods-MIT.inc:320
+#: admin/systems/services/kerberos/class_password-methods-MIT.inc:395
+#: admin/systems/services/kerberos/class_password-methods-MIT.inc:410
+#: admin/systems/services/kerberos/class_password-methods-MIT.inc:690
+#: admin/systems/services/kerberos/class_krb_host_keys.inc:361
+#: admin/systems/services/kerberos/class_krb_host_keys.inc:394
+#, fuzzy
+msgid "Service infrastructure"
+msgstr "Zoek binnen subtree"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:90
+msgid "Name"
+msgstr "Naam"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:173
+#, fuzzy
+msgid "Kerberos service (kadmin access informations)"
+msgstr "Kerberos kadmin toegang"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:186
+#: admin/systems/services/kerberos/class_goKrbServer.inc:399
+#: admin/systems/services/kerberos/class_krb_host_keys.inc:90
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:24
+#, fuzzy
+msgid "Realm"
+msgstr "RAM"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:189
+msgid ""
+"Cannot apply policy changes! The defined Kerberos server has no MAC address."
+msgstr ""
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:274
+msgid "Remove"
+msgstr "Verwijderen"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:274
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:41
+#, fuzzy
+msgid "Policy"
+msgstr "Pools"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:382
+#: admin/systems/services/kerberos/class_password-methods-MIT.inc:494
+#: admin/systems/services/kerberos/class_krb_host_keys.inc:253
+msgid "Kerberos"
+msgstr "Kerberos"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:383
+#, fuzzy
+msgid "Kerberos access information"
+msgstr "Kerberos kadmin toegang"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:383
+msgid "Services"
+msgstr "Services"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:395
+#, fuzzy
+msgid "Start"
+msgstr "Opstarten"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:396
+msgid "Stop"
+msgstr ""
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:397
+#, fuzzy
+msgid "Restart"
+msgstr "Opnieuw proberen"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:398
+#: admin/systems/services/kerberos/goKrbServer.tpl:9
+#, fuzzy
+msgid "Policies"
+msgstr "Pools"
+
+#: admin/systems/services/kerberos/class_password-methods-MIT.inc:235
+#, fuzzy, php-format
+msgid "Cannot load principal '%s', from server '%s'!"
+msgstr "Kan de database %s op %s niet selecteren."
+
+#: admin/systems/services/kerberos/class_password-methods-MIT.inc:291
+#, fuzzy, php-format
+msgid "Cannot load principals from server '%s'!"
+msgstr "Kan niet verbinden met de database server!"
+
+#: admin/systems/services/kerberos/class_password-methods-MIT.inc:319
+#, fuzzy, php-format
+msgid "Cannot load policies from server '%s'!"
+msgstr "Kan bestand '%s' niet openen."
+
+#: admin/systems/services/kerberos/class_password-methods-MIT.inc:324
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:165
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:173
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:177
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:181
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:185
+msgid "none"
+msgstr "geen"
+
+#: admin/systems/services/kerberos/class_password-methods-MIT.inc:449
+#, fuzzy
+msgid "Daemon based"
+msgstr "Omlaag"
+
+#: admin/systems/services/kerberos/class_password-methods-MIT.inc:608
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:58
+msgid "Ticket max life"
+msgstr ""
+
+#: admin/systems/services/kerberos/class_password-methods-MIT.inc:611
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:64
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:71
+msgid "Ticket max renew"
+msgstr ""
+
+#: admin/systems/services/kerberos/krb5_policy.tpl:1
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:17
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:22
+#, fuzzy
+msgid "Policy settings"
+msgstr "Posix instellingen"
+
+#: admin/systems/services/kerberos/krb5_policy.tpl:3
+#: admin/systems/services/kerberos/krb5_policy.tpl:7
+#: admin/systems/services/kerberos/krb5_policy.tpl:29
+#, fuzzy
+msgid "Kerberos policy"
+msgstr "Kerberos Realm"
+
+#: admin/systems/services/kerberos/krb5_policy.tpl:9
+#: admin/systems/services/kerberos/class_krb5_policy.inc:109
+#: admin/systems/services/kerberos/class_krb5_policy.inc:112
+#: admin/systems/services/kerberos/class_krb5_policy.inc:116
+#, fuzzy
+msgid "Policy name"
+msgstr "Naam van de locatie"
+
+#: admin/systems/services/kerberos/krb5_policy.tpl:13
+#: admin/systems/services/kerberos/class_krb5_policy.inc:128
+#: admin/systems/services/kerberos/class_krb5_policy.inc:130
+#: admin/systems/services/kerberos/class_krb5_policy.inc:140
+#, fuzzy
+msgid "Minimum password length"
+msgstr "Wachtwoord encryptie"
+
+#: admin/systems/services/kerberos/krb5_policy.tpl:17
+#: admin/systems/services/kerberos/class_krb5_policy.inc:135
+#: admin/systems/services/kerberos/class_krb5_policy.inc:137
+#: admin/systems/services/kerberos/class_krb5_policy.inc:140
+msgid "Required different characters"
+msgstr ""
+
+#: admin/systems/services/kerberos/krb5_policy.tpl:21
+#: admin/systems/services/kerberos/class_krb5_policy.inc:121
+#: admin/systems/services/kerberos/class_krb5_policy.inc:123
+#, fuzzy
+msgid "Password history size"
+msgstr "Wachtwoord encryptie"
+
+#: admin/systems/services/kerberos/krb5_policy.tpl:32
+#: admin/systems/services/kerberos/class_krb5_policy.inc:145
+#: admin/systems/services/kerberos/class_krb5_policy.inc:147
+#: admin/systems/services/kerberos/class_krb5_policy.inc:157
+msgid "Minimum password lifetime"
+msgstr ""
+
+#: admin/systems/services/kerberos/krb5_policy.tpl:33
+#: admin/systems/services/kerberos/krb5_policy.tpl:37
+msgid "seconds"
+msgstr ""
+
+#: admin/systems/services/kerberos/krb5_policy.tpl:36
+#: admin/systems/services/kerberos/class_krb5_policy.inc:152
+#: admin/systems/services/kerberos/class_krb5_policy.inc:154
+#: admin/systems/services/kerberos/class_krb5_policy.inc:157
+#, fuzzy
+msgid "Password lifetime"
+msgstr "Wachtwoord"
+
+#: admin/systems/services/kerberos/class_krb5_policy.inc:79
+#, php-format
+msgid "This policy is referenced %d times."
+msgstr ""
+
+#: admin/systems/services/kerberos/class_krb5_policy.inc:139
+#: admin/systems/services/kerberos/class_krb5_policy.inc:156
+#, fuzzy, php-format
+msgid ""
+"The value specified for '%s' must be smaller than the value specified for "
+"'%s'!"
+msgstr "De sieve poort dient nummeriek te zijn."
+
+#: admin/systems/services/kerberos/class_krb_host_keys.inc:90
+#, fuzzy
+msgid "Principle"
+msgstr "Printer"
+
+#: admin/systems/services/kerberos/class_krb_host_keys.inc:90
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:160
+msgid "Status"
+msgstr "Status"
+
+#: admin/systems/services/kerberos/class_krb_host_keys.inc:244
+msgid "updated to"
+msgstr ""
+
+#: admin/systems/services/kerberos/class_krb_host_keys.inc:253
+#, php-format
+msgid ""
+"The principal name of this system has changed. Do you want to update your "
+"principals? The affected principals are listed below: %s"
+msgstr ""
+
+#: admin/systems/services/kerberos/class_krb_host_keys.inc:266
+#, fuzzy
+msgid "Create key"
+msgstr "Aanmaken"
+
+#: admin/systems/services/kerberos/class_krb_host_keys.inc:268
+#, fuzzy
+msgid "Recreate key"
+msgstr "Aanmaken"
+
+#: admin/systems/services/kerberos/class_krb_host_keys.inc:269
+#, fuzzy
+msgid "Remove key"
+msgstr "Verwijderen"
+
+#: admin/systems/services/kerberos/class_krb_host_keys.inc:308
+#: admin/systems/services/kerberos/class_krb_host_keys.inc:334
+#, fuzzy
+msgid "installed"
+msgstr "gedeactiveerd"
+
+#: admin/systems/services/kerberos/class_krb_host_keys.inc:475
+#, fuzzy
+msgid "Kerberos key"
+msgstr "Kerberos Realm"
+
+#: admin/systems/services/kerberos/class_krb_host_keys.inc:476
+#, fuzzy
+msgid "Kerberos host key"
+msgstr "Kerberos Realm"
+
+#: admin/systems/services/kerberos/krb_host_keys.tpl:3
+#, fuzzy
+msgid "Kerberos keys"
+msgstr "Kerberos Realm"
+
+#: admin/systems/services/kerberos/goKrbServer.tpl:1
+msgid "Kerberos kadmin access"
+msgstr "Kerberos kadmin toegang"
+
+#: admin/systems/services/kerberos/goKrbServer.tpl:3
+#, fuzzy
+msgid "Kerberos Realm"
+msgstr "Kerberos Realm"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:4
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:20
+#, fuzzy
+msgid "Kerberos options"
+msgstr "Kerberos"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:9
+#, fuzzy
+msgid "Retry"
+msgstr "Opnieuw proberen"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:12
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:245
+msgid "Cancel"
+msgstr "Annuleren"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:74
+msgid "infinite"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:75
+#, fuzzy
+msgid "Hour"
+msgstr "uur"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:76
+#, fuzzy
+msgid "Minute"
+msgstr "Printer"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:77
+#, fuzzy
+msgid "Day"
+msgstr "dag"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:78
+#, fuzzy
+msgid "Month"
+msgstr "maand"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:79
+#, fuzzy
+msgid "Year"
+msgstr "Zoeken"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:82
+msgid "Valid ticket end time"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:120
+#, fuzzy
+msgid "Password expires"
+msgstr "Wachtwoord"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:162
+msgid "Generic"
+msgstr "Algemeen"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:164
+#, fuzzy
+msgid "Failed logins"
+msgstr "Mislukt"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:168
+#, fuzzy
+msgid "Key version number"
+msgstr "Telefoonnummer"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:172
+#, fuzzy
+msgid "Last failed login"
+msgstr "Achternaam"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:176
+#, fuzzy
+msgid "Last password change"
+msgstr "Het veranderen van het wachtwoord is niet toegestaan"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:180
+msgid "Last successful login"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:184
+#, fuzzy
+msgid "Last modification date"
+msgstr "Geen certificaat geinstalleerd"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:191
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:193
+#, fuzzy
+msgid "Flags"
+msgstr "klasse"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:197
+msgid "Prohibit issuance of service tickets"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:200
+msgid "Prohibit forward able tickets"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:203
+msgid "Disallow proxable tickets"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:206
+msgid "Prohibit renewable tickets"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:209
+msgid "Pohibit postdated tickets"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:212
+msgid "Disallow Ticket-Granting Service"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:215
+#, fuzzy
+msgid "Password change service"
+msgstr "Het veranderen van het wachtwoord is niet toegestaan"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:218
+#, fuzzy
+msgid "Pre-authentication required"
+msgstr "Nagios authenticatie"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:221
+#, fuzzy
+msgid "Force a password change"
+msgstr "Het veranderen van het wachtwoord is niet toegestaan"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:224
+#, fuzzy
+msgid "Hardware pre-authentication"
+msgstr "Nagios authenticatie"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:227
+#, fuzzy
+msgid "Disallow user to user authentication"
+msgstr "Nagios authenticatie"
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:230
+msgid "Forbid ticket issuance"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_kerberos_mit.tpl:244
+msgid "Save"
+msgstr "Opslaan"
+
+#, fuzzy
+#~ msgid "Heimdal"
+#~ msgstr "Serieel"
+
+#, fuzzy
+#~ msgid "Heimdal options"
+#~ msgstr "Serieel"
+
+#, fuzzy
+#~ msgid "Password end"
+#~ msgstr "Wachtwoord"
+
+#~ msgid "Admin user"
+#~ msgstr "Beheerder"
+
+#, fuzzy
+#~ msgid "Admin"
+#~ msgstr "Beheerders"
+
+#, fuzzy
+#~ msgid "Valid password"
+#~ msgstr "Oud wachtwoord"
+
+#, fuzzy
+#~ msgid "Please specify a numeric value for %s."
+#~ msgstr "Geef a.u.b. een nummerieke waarde op voor TTL."
+
+#~ msgid "The specified kerberos password is empty."
+#~ msgstr "Het opgegeven kerberos wachtwoord is leeg."
+
+#, fuzzy
+#~ msgid "The specified kerberos admin is empty."
+#~ msgstr "Het opgegeven kerberos wachtwoord is leeg."
+
+#, fuzzy
+#~ msgid "The specified kerberos realm is empty."
+#~ msgstr "Het opgegeven kerberos wachtwoord is leeg."
+
+#, fuzzy
+#~ msgid "Tried to remove heimdal extension."
+#~ msgstr "Verwijder omgevingsmogelijkheden"
+
+#, fuzzy
+#~ msgid "Could not add or update heimdal extensions."
+#~ msgstr "Dit account heeft E-mail mogelijkheden uitgeschakeld."

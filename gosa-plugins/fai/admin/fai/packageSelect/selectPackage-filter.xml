@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<filterdef>
+  <definition>
+    <category>groups</category>
+    <initial>true</initial>
+    <default>default</default>
+    <scope>auto</scope>
+    <attribute>SECTION</attribute>
+    <attribute>VERSION</attribute>
+    <attribute>PACKAGE</attribute>
+  </definition>
+
+  <search>
+    <tag>default</tag>
+    <label>Default filter</label>
+    <query>
+      <backend>FAIPackages</backend>
+      <filter>$NAME</filter>
+    </query>
+    <autocomplete>
+      <attribute>PACKAGE</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+</filterdef>

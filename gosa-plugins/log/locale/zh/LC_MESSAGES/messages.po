@@ -1,0 +1,250 @@
+# translation of messages.po to Chinese Simplified
+# Copyright (C) 2003 GONICUS GmbH, Germany
+# This file is distributed under the same license as the GOsa2 package.
+#
+# Jiang Xin <worldhello.net@gmail.com>, 2007.
+msgid ""
+msgstr ""
+"Project-Id-Version: messages\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-11-04 15:23+0100\n"
+"PO-Revision-Date: 2007-06-03 12:27+0800\n"
+"Last-Translator: Jiang Xin <worldhello.net@gmail.com>\n"
+"Language-Team: Chinese Simplified <zh@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+
+#: admin/systems/services/syslog/goSyslogServer.tpl:1
+#, fuzzy
+msgid "Syslog Service"
+msgstr "系统日志显示"
+
+#: admin/systems/services/syslog/goSyslogServer.tpl:1
+#, fuzzy
+msgid "enabled"
+msgstr "禁用"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:27
+#: admin/systems/services/syslog/class_goSyslogServer.inc:47
+#, fuzzy
+msgid "Syslog server"
+msgstr "显示服务器"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:68
+#: admin/systems/services/syslog/class_goSyslogServer.inc:69
+#, fuzzy
+msgid "Logging service"
+msgstr "Syslog 服务"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:69
+#: admin/systems/services/syslog/class_goLogDBServer.inc:93
+msgid "Services"
+msgstr "服务"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:31
+#: admin/systems/services/syslog/class_goLogDBServer.inc:59
+#, fuzzy
+msgid "Syslog service database"
+msgstr "日志数据库"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:69
+msgid "User"
+msgstr "用户"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:72
+#: admin/systems/services/syslog/class_goLogDBServer.inc:105
+#: admin/systems/services/syslog/goLogDBServer.tpl:20
+msgid "Password"
+msgstr "口令"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:75
+#: admin/systems/services/syslog/class_goLogDBServer.inc:106
+#: admin/systems/services/syslog/goLogDBServer.tpl:4
+msgid "Database"
+msgstr "数据库"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:92
+#: admin/systems/services/syslog/class_goLogDBServer.inc:93
+#, fuzzy
+msgid "Logging database"
+msgstr "日志数据库"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:101
+#, fuzzy
+msgid "Start"
+msgstr "启动"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:102
+msgid "Stop"
+msgstr ""
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:103
+#, fuzzy
+msgid "Restart"
+msgstr "仓库"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:104
+#, fuzzy
+msgid "Administrator"
+msgstr "系统管理"
+
+#: admin/systems/services/syslog/goLogDBServer.tpl:1
+#, fuzzy
+msgid "Logging database information"
+msgstr "切换信息"
+
+#: admin/systems/services/syslog/goLogDBServer.tpl:12
+#, fuzzy
+msgid "Logging DB user"
+msgstr "Logging DB 用户"
+
+#, fuzzy
+#~ msgid "Admin"
+#~ msgstr "管理员 DN"
+
+#, fuzzy
+#~ msgid "GOsa MySQL logging service"
+#~ msgstr "Syslog 服务"
+
+#, fuzzy
+#~ msgid "Allow view of entries on this server"
+#~ msgstr "允许登录到终端服务器"
+
+#~ msgid "Database user"
+#~ msgstr "数据库用户"
+
+#~ msgid "Filter"
+#~ msgstr "过滤器"
+
+#~ msgid "Show hosts"
+#~ msgstr "显示主机"
+
+#~ msgid "Action"
+#~ msgstr "行动"
+
+#~ msgid "Time interval"
+#~ msgstr "时间间隔"
+
+#~ msgid "Search for"
+#~ msgstr "查询"
+
+#~ msgid "Enter string to search for"
+#~ msgstr "输入要查询的字符串"
+
+#~ msgid "Ruleset"
+#~ msgstr "规则集"
+
+#~ msgid "Edit"
+#~ msgstr "编辑"
+
+#~ msgid "Search"
+#~ msgstr "查找"
+
+#~ msgid "Date"
+#~ msgstr "日期"
+
+#, fuzzy
+#~ msgid "Object type"
+#~ msgstr "对象名称"
+
+#~ msgid "Object"
+#~ msgstr "对象"
+
+#~ msgid "Message"
+#~ msgstr "信息"
+
+#~ msgid "Search returned no results..."
+#~ msgstr "查无结果..."
+
+#~ msgid "System logs"
+#~ msgstr "系统日志"
+
+#, fuzzy
+#~ msgid "This does something"
+#~ msgstr "******"
+
+#~ msgid "Warning"
+#~ msgstr "警告"
+
+#, fuzzy
+#~ msgid "Configuration error"
+#~ msgstr "配置文件"
+
+#, fuzzy
+#~ msgid "Missing %s PHP extension!"
+#~ msgstr "删除打印机扩展"
+
+#~ msgid "Error"
+#~ msgstr "错误"
+
+#~ msgid "All"
+#~ msgstr "全部"
+
+#~ msgid "one hour"
+#~ msgstr "1 小时"
+
+#~ msgid "6 hours"
+#~ msgstr "6 小时"
+
+#~ msgid "12 hours"
+#~ msgstr "12 小时"
+
+#~ msgid "24 hours"
+#~ msgstr "24 小时"
+
+#~ msgid "2 days"
+#~ msgstr "2 天"
+
+#~ msgid "one week"
+#~ msgstr "1 星期"
+
+#~ msgid "2 weeks"
+#~ msgstr "2 星期"
+
+#~ msgid "one month"
+#~ msgstr "1 个月"
+
+#, fuzzy
+#~ msgid "Log view"
+#~ msgstr "日志级别"
+
+#, fuzzy
+#~ msgid "Log view addon"
+#~ msgstr "向下移动"
+
+#, fuzzy
+#~ msgid "You have insufficient permissions to view syslog entries."
+#~ msgstr "您无权查看和编辑 ACL。"
+
+#~ msgid "Log level"
+#~ msgstr "日志级别"
+
+#~ msgid "Level"
+#~ msgstr "级别"
+
+#~ msgid "Hostname"
+#~ msgstr "主机名"
+
+#~ msgid "Save"
+#~ msgstr "保存"
+
+#~ msgid "Cancel"
+#~ msgstr "取消"
+
+#, fuzzy
+#~ msgid "No %s servers defined!"
+#~ msgstr "没有定义日志主机！"
+
+#, fuzzy
+#~ msgid "Cannot connect to %s database!"
+#~ msgstr "无法连接到数据库!"
+
+#, fuzzy
+#~ msgid "Cannot select %s database!"
+#~ msgstr "无法选择数据库！"
+
+#~ msgid "Database query failed!"
+#~ msgstr "数据库查询失败！"

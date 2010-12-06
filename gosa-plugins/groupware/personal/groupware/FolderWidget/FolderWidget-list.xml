@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<list>
+  <definition>
+    <departmentBrowser>false</departmentBrowser>
+    <departmentRootVisible>false</departmentRootVisible>
+    <baseMode>false</baseMode>
+    <multiSelect>true</multiSelect>
+    <template>../plugins/personal/groupware/FolderWidget/FolderWidget-list.tpl</template>
+    <module>users</module>
+    <label>List of groupware folders</label>
+    <defaultSortColumn>1</defaultSortColumn>
+
+    <objectType>
+      <label>Folder</label>
+      <objectClass>FAKE_OC_Groupware_sharedFolder</objectClass>
+      <image>images/lists/folder.png</image>
+    </objectType>
+
+    <objectType>
+      <label>Folder</label>
+      <objectClass>FAKE_OC_Groupware_userFolder</objectClass>
+      <image>plugins/users/images/select_user.png</image>
+    </objectType>
+  </definition>
+
+  <table>
+    <layout>|20px;c||170px;r|</layout>
+
+    <column>
+      <value>%{filter:objectType(dn,objectClass)}</value>
+    </column>
+
+    <column>
+      <label>Name</label>
+      <sortAttribute>cn</sortAttribute>
+      <sortType>string</sortType>
+      <value>%{filter:link(row,cn,"%s",cn)}</value>
+      <export>true</export>
+    </column>
+
+<!--
+    <column>
+      <label>Type</label>
+      <sortAttribute>folderType</sortAttribute>
+      <sortType>string</sortType>
+      <value>%{filter:link(row,dn,"%s",folderType)}</value>
+      <export>true</export>
+    </column>
+-->
+    <column>
+      <label>Actions</label>
+      <value>%{filter:actions(dn,row,objectClass)}</value>
+    </column>
+
+  </table>
+
+  <actionmenu>
+
+    <action>
+     <type>sub</type>
+     <image>images/lists/element.png[new]</image>
+     <label>Create</label>
+
+     <action>
+      <name>new</name>
+      <type>entry</type>
+      <image>images/lists/folder.png</image>
+      <label>Sub folder</label>
+     </action>
+
+    </action>
+
+    <action>
+      <type>separator</type>
+    </action>
+
+    <action>
+      <name>remove</name>
+      <type>entry</type>
+      <image>images/lists/trash.png</image>
+      <label>Remove</label>
+    </action>
+
+    <action>
+      <type>exporter</type>
+    </action>
+
+  </actionmenu>
+
+  <actiontriggers snapshot="false" copypaste="false">
+
+    <action>
+      <name>editEntry</name>
+      <type>entry</type>
+      <image>images/lists/edit.png</image>
+      <label>Edit Sudo role</label>
+    </action>
+
+    <action>
+      <name>remove</name>
+      <type>entry</type>
+      <image>images/lists/trash.png</image>
+      <label>Remove Sudo role</label>
+    </action>
+
+  </actiontriggers>
+
+</list>

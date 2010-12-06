@@ -1,0 +1,10 @@
+# Care for cleanups
+
+# Remove stale vacation cache
+:0
+* !  \$GOSA_VACATION ?? yes
+* ! ? test -f \$VACATION_CACHE
+{
+  rm -f \$VACATION_CACHE
+}
+

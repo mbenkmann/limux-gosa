@@ -1,0 +1,189 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: polski\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-11-04 15:22+0100\n"
+"PO-Revision-Date: 2007-07-14 21:45+0100\n"
+"Last-Translator: Piotr Rybicki <meritus@innervision.pl>\n"
+"Language-Team: Piotr Rybicki <meritus@innervision.pl>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Polish\n"
+"X-Poedit-Country: POLAND\n"
+"X-Poedit-SourceCharset: iso-8859-2\n"
+"X-Poedit-Basepath: tedst\n"
+
+#: admin/systems/services/apache2/servApacheVhost.tpl:1
+#, fuzzy
+msgid "Apache virtual hosts"
+msgstr "Cache"
+
+#: admin/systems/services/apache2/servApacheVhost.tpl:7
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:50
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:78
+msgid "Add"
+msgstr "Dodaj"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:85
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:96
+msgid "Alias"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:85
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:96
+msgid "Directory"
+msgstr "Katalog"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:203
+#: admin/systems/services/apache2/class_servApacheVhost.inc:71
+msgid "Name"
+msgstr "Imię"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:210
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:5
+#, fuzzy
+msgid "Virtual host name"
+msgstr "Imię"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:211
+msgid "Only lowercase strings are allowed as Virtual Host Name."
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:211
+msgid "e.g. example.com"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:217
+#: admin/systems/services/apache2/class_servApacheVhost.inc:301
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:11
+msgid "Document root"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:223
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:17
+#, fuzzy
+msgid "Administrator mail address"
+msgstr "Adres email"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:232
+#: admin/systems/services/apache2/class_servApacheVhost.inc:302
+#, fuzzy
+msgid "Server alias"
+msgstr "Serwery"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:242
+#: admin/systems/services/apache2/class_servApacheVhost.inc:304
+#, fuzzy
+msgid "Script alias"
+msgstr "Skrypt"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:61
+#: admin/systems/services/apache2/class_servApacheVhost.inc:277
+#: admin/systems/services/apache2/class_servApacheVhost.inc:290
+#, fuzzy
+msgid "Apache service"
+msgstr "Cache"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:230
+#: admin/systems/services/apache2/class_servApacheVhost.inc:241
+#: admin/systems/services/apache2/class_servApacheVhost.inc:264
+#, fuzzy
+msgid "LDAP error"
+msgstr "błąd LDAP:"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:291
+msgid "Apache virtual host service"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:291
+msgid "Services"
+msgstr "Usługi"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:299
+msgid "Virtual hosts"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:300
+#, fuzzy
+msgid "Server name"
+msgstr "Serwer"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:303
+#, fuzzy
+msgid "Server admin"
+msgstr "Serwery"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:1
+msgid "Generic"
+msgstr "Ogólne"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:3
+#, fuzzy
+msgid "Apache Virutal Host"
+msgstr "Cache"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:26
+#, fuzzy
+msgid "Server settings"
+msgstr "Ustawienia użytkownika"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:30
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:33
+#, fuzzy
+msgid "Server Alias"
+msgstr "Serwery"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:37
+msgid "URL Alias"
+msgstr ""
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:40
+#, fuzzy
+msgid "Directory Path"
+msgstr "Katalog"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:59
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:62
+#, fuzzy
+msgid "Script Alias"
+msgstr "Skrypt"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:65
+#, fuzzy
+msgid "Alias Directory"
+msgstr "Katalog"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:68
+#, fuzzy
+msgid "Script Directory"
+msgstr "Katalog"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:89
+msgid "Save"
+msgstr "Zapisz"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:91
+msgid "Cancel"
+msgstr "Anuluj"
+
+#: admin/systems/services/apache2/class_apacheUtils.inc:194
+#, php-format
+msgid ""
+"Undefined virtual host name '%s'. Virtual host name must be a valid, fully "
+"qualified domain name like 'www.example.com' or 'example.com'."
+msgstr ""
+
+#, fuzzy
+#~ msgid "Apache VHosts"
+#~ msgstr "Cache"
+
+#~ msgid "Up"
+#~ msgstr "Góra"
+
+#~ msgid "Down"
+#~ msgstr "W dół"
+
+#~ msgid "Delete"
+#~ msgstr "Usuń"

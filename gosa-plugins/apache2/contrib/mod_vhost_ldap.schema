@@ -1,0 +1,68 @@
+##
+## OIDs are owned by Globe Internet
+##
+## 1.3.6.1.4.1.14287.1.x   - mod_vhost_ldap
+## 1.3.6.1.4.1.14287.1.1.x - attributetypes
+## 1.3.6.1.4.1.14287.1.2.x - objectclasses
+##
+
+attributetype ( 1.3.6.1.4.1.8387.1.1.2 NAME 'apacheServerName'
+	SUP name
+	DESC 'mod_vhost_ldap: Apache ServerName'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256}
+	SINGLE-VALUE )
+	
+attributetype ( 1.3.6.1.4.1.8387.1.1.3 NAME 'apacheServerAlias'
+	SUP name
+	DESC 'mod_vhost_ldap: Apache ServerAlias'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256} )
+	
+attributetype ( 1.3.6.1.4.1.8387.1.1.4 NAME 'apacheDocumentRoot'
+	SUP name
+	DESC 'mod_vhost_ldap: Apache DocumentRoot'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256}
+	SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.8387.1.1.5 NAME 'apacheServerAdmin'
+	SUP name
+	DESC 'mod_vhost_ldap: Apache ServerAdmin'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256}
+	SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.14287.1.1.6 NAME 'apacheScriptAlias'
+        SUP name
+        DESC 'mod_cfg_ldap: Apache ScriptAlias'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256}
+        SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.8387.1.1.7 NAME 'apacheSuexecUid'
+	SUP name
+	DESC 'mod_vhost_ldap: Apache SuexecUid'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256}
+	SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.8387.1.1.8 NAME 'apacheSuexecGid'
+	SUP name
+	DESC 'mod_vhost_ldap: Apache SuexecGid'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256}
+	SINGLE-VALUE )
+
+objectclass ( 1.3.6.1.4.1.8387.1.2.1 NAME 'apacheConfig'
+	SUP 'top'
+	MUST ( apacheServerName $ apacheDocumentRoot )
+        MAY ( apacheServerAlias $ apacheServerAdmin $ apacheScriptAlias $
+                apacheSuexecUid $ apacheSuexecGid ) )

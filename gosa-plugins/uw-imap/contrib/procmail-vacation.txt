@@ -1,0 +1,35 @@
+# Vacation message
+GOSA_VACATION=yes
+VACATION_CACHE=\$HOME/.vacation.cache
+
+:0
+*   ^TO_$mail
+* ! ^FROM_DAEMON
+* ! ^X-Loop: ($addrlist)
+* ! ^Precedence:.*(bulk|list|junk)
+{
+  :0 c: \$HOME/.vacation.\$LOCKEXT
+  * ! ? formail -rD 8192 \$VACATION_CACHE
+  {
+    # Compose reply and add some basic headers
+    :0 fhw
+    |   formail -rt                                                     \
+        -A "Precedence: junk"                                           \
+        -A "X-Loop: $mail"
+
+    :0 a    # Formail succeeded
+    {
+      #  Change subject
+      :0 fhw
+      * ^Subject: *\/[^ ].*
+      | formail -I "Subject: vacation (was: \$MATCH)"
+
+      :0 fb           # put message to body
+      | echo -n "$vacmsg"
+
+      :0              # Send it
+      | \$SENDMAIL
+    }
+  }
+}
+

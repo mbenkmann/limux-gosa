@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<filterdef>
+  <definition>
+    <category>gofonmacro</category>
+    <initial>true</initial>
+    <default>default</default>
+    <scope>auto</scope>
+    <attribute>dn</attribute>
+    <attribute>objectClass</attribute>
+    <attribute>cn</attribute>
+    <attribute>description</attribute>
+  </definition>
+
+  <search>
+    <tag>default</tag>
+    <label>Default filter</label>
+    <query>
+      <backend>LDAP</backend>
+      <filter>(&amp;(objectClass=goFonMacro)(|(cn=$)(displayName=$)))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+
+  <search>
+    <tag>visibleOnly</tag>
+    <label>Enabled</label>
+    <query>
+      <backend>LDAP</backend>
+      <filter>(&amp;(objectClass=goFonMacro)(|(cn=$)(displayName=$))(goFonMacroVisible=1))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+</filterdef>

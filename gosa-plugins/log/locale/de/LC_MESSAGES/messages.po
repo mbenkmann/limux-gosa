@@ -1,0 +1,99 @@
+# translation of messages.po to Deutsch
+# GOsa2 Translations
+# Copyright (C) 2003 GONICUS GmbH, Germany
+# This file is distributed under the same license as the GOsa2 package.
+#
+#
+# Alfred Schroeder <schroeder@GONICUS.de>, 2004.
+# Cajus Pollmeier <pollmeier@gonicus.de>, 2004, 2005, 2006.
+# Jan Wenzel <jan.wenzel@gonicus.de>, 2004,2005, 2008.
+# Stefan Koehler <stefan.koehler@GONICUS.de>, 2005.
+msgid ""
+msgstr ""
+"Project-Id-Version: messages\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-11-04 15:23+0100\n"
+"PO-Revision-Date: 2010-09-17 08:24+0100\n"
+"Last-Translator: Fabian Hickert <Fabian.Hickert@GONICUS.DE>\n"
+"Language-Team: Deutsch <de@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+
+#: admin/systems/services/syslog/goSyslogServer.tpl:1
+msgid "Syslog Service"
+msgstr "Systemprotokoll-Dienst"
+
+#: admin/systems/services/syslog/goSyslogServer.tpl:1
+msgid "enabled"
+msgstr "aktiv"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:27
+#: admin/systems/services/syslog/class_goSyslogServer.inc:47
+msgid "Syslog server"
+msgstr "Systemprotokoll-Server"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:68
+#: admin/systems/services/syslog/class_goSyslogServer.inc:69
+msgid "Logging service"
+msgstr "Protokoll-Dienst"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:69
+#: admin/systems/services/syslog/class_goLogDBServer.inc:93
+msgid "Services"
+msgstr "Dienste"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:31
+#: admin/systems/services/syslog/class_goLogDBServer.inc:59
+msgid "Syslog service database"
+msgstr "Protokoll-Datenbank"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:69
+msgid "User"
+msgstr "Benutzer"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:72
+#: admin/systems/services/syslog/class_goLogDBServer.inc:105
+#: admin/systems/services/syslog/goLogDBServer.tpl:20
+msgid "Password"
+msgstr "Passwort"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:75
+#: admin/systems/services/syslog/class_goLogDBServer.inc:106
+#: admin/systems/services/syslog/goLogDBServer.tpl:4
+msgid "Database"
+msgstr "Datenbank"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:92
+#: admin/systems/services/syslog/class_goLogDBServer.inc:93
+msgid "Logging database"
+msgstr "Protokoll-Datenbank"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:101
+msgid "Start"
+msgstr "Start"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:102
+msgid "Stop"
+msgstr "Ende"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:103
+msgid "Restart"
+msgstr "Neustart"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:104
+msgid "Administrator"
+msgstr "Administrator"
+
+#: admin/systems/services/syslog/goLogDBServer.tpl:1
+msgid "Logging database information"
+msgstr "Informationen zur Protokollierungsdatenbank"
+
+#: admin/systems/services/syslog/goLogDBServer.tpl:12
+msgid "Logging DB user"
+msgstr "Protokollierungsdatenbank-Benutzer"
+
+#~ msgid "Admin"
+#~ msgstr "Administrator"

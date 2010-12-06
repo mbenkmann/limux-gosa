@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<filterdef>
+
+  <definition>
+    <category>Groupware</category>
+    <initial>true</initial>
+    <default>default</default>
+    <scope>auto</scope>
+    <attribute>-</attribute>
+  </definition>
+
+  <search>
+    <tag>default</tag>
+    <label>Default filter</label>
+    <query>
+      <backend>FolderWidget</backend>
+      <filter>$</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+
+</filterdef>

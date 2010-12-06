@@ -1,0 +1,97 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-12-01 16:20+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: admin/newConfigManagement/DeviceConfig-list.xml:10
+msgid "List of items"
+msgstr ""
+
+#: admin/newConfigManagement/DeviceConfig-list.xml:34
+msgid "Name"
+msgstr ""
+
+#: admin/newConfigManagement/DeviceConfig-list.xml:42
+msgid "Description"
+msgstr ""
+
+#: admin/newConfigManagement/DeviceConfig-list.xml:50
+msgid "Actions"
+msgstr ""
+
+#: admin/newConfigManagement/DeviceConfig-list.xml:64
+msgid "Remove"
+msgstr ""
+
+#: admin/newConfigManagement/DeviceConfig-list.xml:75
+msgid "Edit item"
+msgstr ""
+
+#: admin/newConfigManagement/DeviceConfig-list.xml:82
+msgid "Remove item"
+msgstr ""
+
+#: admin/newConfigManagement/DeviceConfig-list.tpl:9
+msgid "Container"
+msgstr ""
+
+#: admin/newConfigManagement/DeviceConfig-list.tpl:10
+msgid "Item"
+msgstr ""
+
+#: admin/newConfigManagement/class_newConfigManagement.inc:8
+#: admin/newConfigManagement/class_newConfigManagement.inc:9
+#: admin/newConfigManagement/class_newConfigManagement.inc:352
+#: admin/newConfigManagement/class_newConfigManagement.inc:353
+#: admin/newConfigManagement/class_newConfigManagement.inc:359
+msgid "Config management"
+msgstr ""
+
+#: admin/newConfigManagement/class_newConfigManagement.inc:42
+#: admin/newConfigManagement/class_newConfigManagement.inc:94
+msgid "Error"
+msgstr ""
+
+#: admin/newConfigManagement/class_newConfigManagement.inc:42
+#: admin/newConfigManagement/class_newConfigManagement.inc:95
+#, php-format
+msgid "Failed to load distributions: %s"
+msgstr ""
+
+#: admin/newConfigManagement/class_newConfigManagement.inc:262
+msgid "No selectable install methods returned!"
+msgstr ""
+
+#: admin/newConfigManagement/class_newConfigManagement.inc:263
+msgid "Setup"
+msgstr ""
+
+#: admin/newConfigManagement/class_newConfigManagement.inc:278
+msgid "Distribution"
+msgstr ""
+
+#: admin/newConfigManagement/class_newConfigManagement.inc:284
+msgid "Release"
+msgstr ""
+
+#: admin/newConfigManagement/class_newConfigManagement.inc:290
+msgid "Component"
+msgstr ""
+
+#: admin/newConfigManagement/DeviceConfig-filter.xml:14
+msgid "Default filter"
+msgstr ""

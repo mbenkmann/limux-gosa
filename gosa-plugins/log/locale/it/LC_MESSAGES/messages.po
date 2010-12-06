@@ -1,0 +1,221 @@
+# translation of messages.po to Italian
+# Copyright (c) 2005 B-Open Solutions srl - http://www.bopen.it/
+# Copyright (c) 2005 Alessandro Amici <a.amici@bopen.it>
+# Alessandro Amici <a.amici@bopen.it>, 2005.
+msgid ""
+msgstr ""
+"Project-Id-Version: messages\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-11-04 15:23+0100\n"
+"PO-Revision-Date: 2005-11-18 15:26+0100\n"
+"Last-Translator: Alessandro Amici <a.amici@bopen.it>\n"
+"Language-Team: Italian\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.9.1\n"
+
+#: admin/systems/services/syslog/goSyslogServer.tpl:1
+#, fuzzy
+msgid "Syslog Service"
+msgstr "Dipartimento"
+
+#: admin/systems/services/syslog/goSyslogServer.tpl:1
+#, fuzzy
+msgid "enabled"
+msgstr "disabilitato"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:27
+#: admin/systems/services/syslog/class_goSyslogServer.inc:47
+#, fuzzy
+msgid "Syslog server"
+msgstr "Mostra server"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:68
+#: admin/systems/services/syslog/class_goSyslogServer.inc:69
+#, fuzzy
+msgid "Logging service"
+msgstr "Utenti di Dominio"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:69
+#: admin/systems/services/syslog/class_goLogDBServer.inc:93
+msgid "Services"
+msgstr "Servizi"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:31
+#: admin/systems/services/syslog/class_goLogDBServer.inc:59
+#, fuzzy
+msgid "Syslog service database"
+msgstr "Database"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:69
+msgid "User"
+msgstr ""
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:72
+#: admin/systems/services/syslog/class_goLogDBServer.inc:105
+#: admin/systems/services/syslog/goLogDBServer.tpl:20
+msgid "Password"
+msgstr "Password"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:75
+#: admin/systems/services/syslog/class_goLogDBServer.inc:106
+#: admin/systems/services/syslog/goLogDBServer.tpl:4
+#, fuzzy
+msgid "Database"
+msgstr "Database"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:92
+#: admin/systems/services/syslog/class_goLogDBServer.inc:93
+#, fuzzy
+msgid "Logging database"
+msgstr "Database"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:101
+#, fuzzy
+msgid "Start"
+msgstr "Avvio"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:102
+msgid "Stop"
+msgstr ""
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:103
+#, fuzzy
+msgid "Restart"
+msgstr "Riprova"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:104
+#, fuzzy
+msgid "Administrator"
+msgstr "Amministrazione"
+
+#: admin/systems/services/syslog/goLogDBServer.tpl:1
+#, fuzzy
+msgid "Logging database information"
+msgstr "Informazioni organizzazione"
+
+#: admin/systems/services/syslog/goLogDBServer.tpl:12
+#, fuzzy
+msgid "Logging DB user"
+msgstr "Utenti di Dominio"
+
+#, fuzzy
+#~ msgid "Admin"
+#~ msgstr "DN dell'amministratore"
+
+#, fuzzy
+#~ msgid "GOsa MySQL logging service"
+#~ msgstr "Utenti di Dominio"
+
+#, fuzzy
+#~ msgid "Allow view of entries on this server"
+#~ msgstr "Permetti la connessione al Terminal Server"
+
+#, fuzzy
+#~ msgid "Database user"
+#~ msgstr "Database"
+
+#~ msgid "Filter"
+#~ msgstr "Filtro"
+
+#, fuzzy
+#~ msgid "Show hosts"
+#~ msgstr "Mostra telefoni"
+
+#~ msgid "Action"
+#~ msgstr "Azione"
+
+#~ msgid "Search for"
+#~ msgstr "Cerca"
+
+#, fuzzy
+#~ msgid "Ruleset"
+#~ msgstr "Rimuovi"
+
+#~ msgid "Edit"
+#~ msgstr "Modifica"
+
+#~ msgid "Search"
+#~ msgstr "Cerca"
+
+#~ msgid "Date"
+#~ msgstr "Data"
+
+#, fuzzy
+#~ msgid "Object type"
+#~ msgstr "Nome dell'oggetto"
+
+#~ msgid "Object"
+#~ msgstr "Oggetto"
+
+#, fuzzy
+#~ msgid "Message"
+#~ msgstr "Home Page"
+
+#~ msgid "System logs"
+#~ msgstr "Log di sitema"
+
+#~ msgid "This does something"
+#~ msgstr "Questo fa qualcosa"
+
+#~ msgid "Warning"
+#~ msgstr "Attenzione"
+
+#, fuzzy
+#~ msgid "Configuration error"
+#~ msgstr "File di configurazione"
+
+#, fuzzy
+#~ msgid "Missing %s PHP extension!"
+#~ msgstr "Elimina foto"
+
+#, fuzzy
+#~ msgid "one hour"
+#~ msgstr "Numero di telefono"
+
+#, fuzzy
+#~ msgid "one week"
+#~ msgstr "Numero di telefono"
+
+#, fuzzy
+#~ msgid "Log view"
+#~ msgstr "Utenti di Dominio"
+
+#, fuzzy
+#~ msgid "Log view addon"
+#~ msgstr "Dominio"
+
+#, fuzzy
+#~ msgid "You have insufficient permissions to view syslog entries."
+#~ msgstr "Non hai il permesso di cambiare la tua password."
+
+#, fuzzy
+#~ msgid "Log level"
+#~ msgstr "Rimuovi"
+
+#, fuzzy
+#~ msgid "Hostname"
+#~ msgstr "Scegli il tuo numero di telefono personale"
+
+#~ msgid "Save"
+#~ msgstr "Salva"
+
+#~ msgid "Cancel"
+#~ msgstr "Annulla"
+
+#, fuzzy
+#~ msgid "No %s servers defined!"
+#~ msgstr "Mostra server"
+
+#, fuzzy
+#~ msgid "Cannot connect to %s database!"
+#~ msgstr "Impossibile connettersi al server del database!"
+
+#, fuzzy
+#~ msgid "Cannot select %s database!"
+#~ msgstr "Impossibile selezionare il database!"
+
+#~ msgid "Database query failed!"
+#~ msgstr "La query al database è fallita!"

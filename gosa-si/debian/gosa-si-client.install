@@ -1,0 +1,6 @@
+gosa-si-client                  usr/sbin
+client.conf                     etc/gosa-si
+client/events/corefunctions.pm	usr/lib/gosa-si/client/events
+client/events/installation.pm   usr/lib/gosa-si/client/events
+client/events/gosaTriggered.pm  usr/lib/gosa-si/client/events
+client/events/mailqueue.pm      usr/lib/gosa-si/client/events

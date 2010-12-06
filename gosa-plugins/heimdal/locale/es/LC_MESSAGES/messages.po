@@ -1,0 +1,209 @@
+# translation of admin.po to
+# translation of systems.po to
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# , 2010.
+msgid ""
+msgstr ""
+"Project-Id-Version: admin\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-11-04 15:23+0100\n"
+"PO-Revision-Date: 2010-01-28 23:47+0100\n"
+"Last-Translator: \n"
+"Language-Team: Spanish <>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 1.0\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:5
+msgid "Heimdal options"
+msgstr "Opciones Heimdal"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:6
+msgid "Use empty values for infinite"
+msgstr "Usar valores vacíos para infinito"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:10
+msgid "Ticket max life"
+msgstr "Duración máxima del ticket"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:18
+msgid "Ticket max renew"
+msgstr "Periodo de renovación del ticket"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:32
+msgid "infinite"
+msgstr "infinito"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:34
+msgid "Hour"
+msgstr "Hora"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:36
+msgid "Minute"
+msgstr "Minuto"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:38
+msgid "Day"
+msgstr "Día"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:40
+msgid "Month"
+msgstr "Mes"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:42
+msgid "Year"
+msgstr "Año"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:47
+msgid "Valid ticket start time"
+msgstr "Fecha inicial de validez del ticket"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:87
+msgid "Valid ticket end time"
+msgstr "Fecha final de validez del ticket"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:127
+msgid "Password end"
+msgstr "Fin de contraseña"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:198
+msgid "Save"
+msgstr "Guardar"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:200
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:58
+msgid "Kerberos service"
+msgstr "Servicio Kerberos"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:74
+#: admin/systems/services/kerberos/class_goKrbServer.inc:358
+#: admin/systems/services/kerberos/class_goKrbServer.inc:367
+#: admin/systems/services/kerberos/class_goKrbServer.inc:371
+msgid "Service infrastructure"
+msgstr "Infraestructura de servicio"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:165
+msgid "Kerberos service (kadmin access informations)"
+msgstr "Servicio Kerberos (información acceso kadmin)"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:178
+#: admin/systems/services/kerberos/class_goKrbServer.inc:394
+msgid "Realm"
+msgstr "Dominio"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:181
+msgid ""
+"In order to save policy changes, the server requires a valid mac address."
+msgstr ""
+"Para poder grabar los cambios en la política, el servidor debe tener un "
+"dirección MAC válida."
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:265
+msgid "Remove"
+msgstr "Eliminar"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:265
+msgid "Policy"
+msgstr "Política"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:384
+msgid "Kerberos"
+msgstr "Kerberos"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:385
+msgid "Kerberos access information"
+msgstr "Acceso a información Kerberos"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:385
+msgid "Services"
+msgstr "Servicios"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:393
+#: admin/systems/services/kerberos/goKrbServer.tpl:16
+msgid "Policies"
+msgstr "Políticas"
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:104
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:127
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:177
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:189
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:226
+msgid "Heimdal"
+msgstr "Heimdal"
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:104
+#, fuzzy, php-format
+msgid ""
+"Error loading Heimdal configuration, more than one configuration entry was "
+"found for '%s'."
+msgstr ""
+"Hay un error cargando la configuración de heimdal, se ha encontrado mas de "
+"una entrada en la configuración para '%s'."
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:157
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:413
+msgid "LDAP error"
+msgstr "Error LDAP"
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:333
+msgid "Max life"
+msgstr "Duración máxima"
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:336
+msgid "Max renew"
+msgstr "Renovación máxima"
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:339
+msgid "Valid start"
+msgstr "Inicio válido"
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:342
+msgid "Valid end"
+msgstr "Fin válido"
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:345
+msgid "Valid password"
+msgstr "Contraseña válida"
+
+#: admin/systems/services/kerberos/goKrbServer.tpl:1
+msgid "Kerberos kadmin access"
+msgstr "Acceso a Kerberos kadmin"
+
+#: admin/systems/services/kerberos/goKrbServer.tpl:8
+msgid "Kerberos Realms"
+msgstr "Dominio Kerberos"
+
+#~ msgid "Admin user"
+#~ msgstr "Usuario administrador"
+
+#~ msgid "Admin"
+#~ msgstr "Administrador"
+
+#, fuzzy
+#~ msgid "Please specify a numeric value for %s."
+#~ msgstr "Por favor introduzca un valor numérico para TTL."
+
+#~ msgid "The specified kerberos password is empty."
+#~ msgstr "No ha introducido ninguna contraseña kerberos."
+
+#~ msgid "The specified kerberos admin is empty."
+#~ msgstr "No ha introducido ningún administrador kerberos."
+
+#~ msgid "The specified kerberos realm is empty."
+#~ msgstr "No ha introducido ningún dominio kerberos."
+
+#, fuzzy
+#~ msgid "Tried to remove heimdal extension."
+#~ msgstr "Eliminar extensión de entorno"
+
+#, fuzzy
+#~ msgid "Could not add or update heimdal extensions."
+#~ msgstr "No se puede subir la imagen a %s."

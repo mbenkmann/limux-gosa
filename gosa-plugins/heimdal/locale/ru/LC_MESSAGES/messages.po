@@ -1,0 +1,224 @@
+# Translation of messages.po to Russian
+# Valia V. Vaneeva <fattie@altlinux.ru>, 2004.
+# $Id: messages.po,v 1.61 2005/04/18 10:37:13 migor-guest Exp $
+msgid ""
+msgstr ""
+"Project-Id-Version: messages\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-11-04 15:23+0100\n"
+"PO-Revision-Date: 2005-04-18 14:35+0300\n"
+"Last-Translator: Igor Muratov <migor@altlinux.org>\n"
+"Language-Team: ALT Linux Team\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: poEdit 1.3.1\n"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:5
+#, fuzzy
+msgid "Heimdal options"
+msgstr "Email"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:6
+msgid "Use empty values for infinite"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:10
+msgid "Ticket max life"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:18
+msgid "Ticket max renew"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:32
+msgid "infinite"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:34
+#, fuzzy
+msgid "Hour"
+msgstr "час"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:36
+#, fuzzy
+msgid "Minute"
+msgstr "Принтер"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:38
+#, fuzzy
+msgid "Day"
+msgstr "день"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:40
+#, fuzzy
+msgid "Month"
+msgstr "месяц"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:42
+#, fuzzy
+msgid "Year"
+msgstr "Поиск"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:47
+msgid "Valid ticket start time"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:87
+msgid "Valid ticket end time"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:127
+#, fuzzy
+msgid "Password end"
+msgstr "Пароль"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:198
+msgid "Save"
+msgstr "Сохранить"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:200
+msgid "Cancel"
+msgstr "Отмена"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:58
+#, fuzzy
+msgid "Kerberos service"
+msgstr "Kerberos"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:74
+#: admin/systems/services/kerberos/class_goKrbServer.inc:358
+#: admin/systems/services/kerberos/class_goKrbServer.inc:367
+#: admin/systems/services/kerberos/class_goKrbServer.inc:371
+#, fuzzy
+msgid "Service infrastructure"
+msgstr "Искать в поддеревьях"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:165
+#, fuzzy
+msgid "Kerberos service (kadmin access informations)"
+msgstr "Личная информация"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:178
+#: admin/systems/services/kerberos/class_goKrbServer.inc:394
+#, fuzzy
+msgid "Realm"
+msgstr "Имя сервера"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:181
+msgid ""
+"In order to save policy changes, the server requires a valid mac address."
+msgstr ""
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:265
+msgid "Remove"
+msgstr "Удалить"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:265
+#, fuzzy
+msgid "Policy"
+msgstr "Английский"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:384
+msgid "Kerberos"
+msgstr "Kerberos"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:385
+#, fuzzy
+msgid "Kerberos access information"
+msgstr "Личная информация"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:385
+msgid "Services"
+msgstr "Сервисы"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:393
+#: admin/systems/services/kerberos/goKrbServer.tpl:16
+#, fuzzy
+msgid "Policies"
+msgstr "Английский"
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:104
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:127
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:177
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:189
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:226
+#, fuzzy
+msgid "Heimdal"
+msgstr "Email"
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:104
+#, php-format
+msgid ""
+"Error loading Heimdal configuration, more than one configuration entry was "
+"found for '%s'."
+msgstr ""
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:157
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:413
+#, fuzzy
+msgid "LDAP error"
+msgstr "Ошибка LDAP:"
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:333
+msgid "Max life"
+msgstr ""
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:336
+msgid "Max renew"
+msgstr ""
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:339
+msgid "Valid start"
+msgstr ""
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:342
+msgid "Valid end"
+msgstr ""
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:345
+#, fuzzy
+msgid "Valid password"
+msgstr "Пароль"
+
+#: admin/systems/services/kerberos/goKrbServer.tpl:1
+msgid "Kerberos kadmin access"
+msgstr ""
+
+#: admin/systems/services/kerberos/goKrbServer.tpl:8
+#, fuzzy
+msgid "Kerberos Realms"
+msgstr "Kerberos"
+
+#, fuzzy
+#~ msgid "Admin user"
+#~ msgstr "Пользователи домена"
+
+#, fuzzy
+#~ msgid "Admin"
+#~ msgstr "DN администратора"
+
+#, fuzzy
+#~ msgid "Please specify a numeric value for %s."
+#~ msgstr "Укажите корректный номер телефона."
+
+#, fuzzy
+#~ msgid "The specified kerberos password is empty."
+#~ msgstr "Значение поля \"Файлы\" некорректно."
+
+#, fuzzy
+#~ msgid "The specified kerberos admin is empty."
+#~ msgstr "Значение поля \"Файлы\" некорректно."
+
+#, fuzzy
+#~ msgid "The specified kerberos realm is empty."
+#~ msgstr "Значение поля \"Файлы\" некорректно."
+
+#, fuzzy
+#~ msgid "Tried to remove heimdal extension."
+#~ msgstr "Удалить параметры"
+
+#, fuzzy
+#~ msgid "Could not add or update heimdal extensions."
+#~ msgstr "В этой учетной записи нет почтовых расширений."

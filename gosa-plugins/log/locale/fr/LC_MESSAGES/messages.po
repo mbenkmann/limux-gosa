@@ -1,0 +1,93 @@
+# translation of messages.po to
+# Benoit Mortier <benoit.mortier@opensides.be>, 2005, 2006, 2007, 2008, 2010.
+msgid ""
+msgstr ""
+"Project-Id-Version: messages\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-11-04 15:23+0100\n"
+"PO-Revision-Date: 2010-01-22 21:07+0100\n"
+"Last-Translator: Benoit Mortier <benoit.mortier@opensides.be>\n"
+"Language-Team:  <fr@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+"Plural-Forms:  nplurals=2; plural=(n > 1);\n"
+
+#: admin/systems/services/syslog/goSyslogServer.tpl:1
+msgid "Syslog Service"
+msgstr "Service Syslog"
+
+#: admin/systems/services/syslog/goSyslogServer.tpl:1
+msgid "enabled"
+msgstr "Activé"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:27
+#: admin/systems/services/syslog/class_goSyslogServer.inc:47
+msgid "Syslog server"
+msgstr "Serveur Syslog"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:68
+#: admin/systems/services/syslog/class_goSyslogServer.inc:69
+msgid "Logging service"
+msgstr "Service de journaux systèmes GOsa"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:69
+#: admin/systems/services/syslog/class_goLogDBServer.inc:93
+msgid "Services"
+msgstr "Services"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:31
+#: admin/systems/services/syslog/class_goLogDBServer.inc:59
+msgid "Syslog service database"
+msgstr "Base de données des journaux systèmes Syslog"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:69
+msgid "User"
+msgstr "Utilisateur"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:72
+#: admin/systems/services/syslog/class_goLogDBServer.inc:105
+#: admin/systems/services/syslog/goLogDBServer.tpl:20
+msgid "Password"
+msgstr "Mot de passe"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:75
+#: admin/systems/services/syslog/class_goLogDBServer.inc:106
+#: admin/systems/services/syslog/goLogDBServer.tpl:4
+msgid "Database"
+msgstr "Base de données"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:92
+#: admin/systems/services/syslog/class_goLogDBServer.inc:93
+msgid "Logging database"
+msgstr "Base de données des journaux systèmes GOsa"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:101
+msgid "Start"
+msgstr "Démarrage"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:102
+msgid "Stop"
+msgstr "Arrêt"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:103
+msgid "Restart"
+msgstr "Redémarrer"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:104
+#, fuzzy
+msgid "Administrator"
+msgstr "DN de l'administrateur"
+
+#: admin/systems/services/syslog/goLogDBServer.tpl:1
+msgid "Logging database information"
+msgstr "Information sur la base de données des journaux systèmes"
+
+#: admin/systems/services/syslog/goLogDBServer.tpl:12
+msgid "Logging DB user"
+msgstr "Utilisateur de la base de données des journaux systèmesa"
+
+#~ msgid "Admin"
+#~ msgstr "Administrateur"

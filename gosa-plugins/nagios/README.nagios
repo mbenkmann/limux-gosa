@@ -1,0 +1,25 @@
+To use the nagios plugin
+
+1) Add the nagios.schema to your schema directory
+
+2) Check that the nagiosAccount plugin is in your gosa.conf and that the tab is active
+
+<!--                     <plugin acl="default" class="nagiosAccount" icon="monitoring.png"
+                                path="plugins/personal/nagios" /> -->
+
+<!--    <nagios>
+                <tab class="nagiosAccount" />
+        </nagios> -->
+
+3) copy gosa_bind.conf and nagios_ldap.conf to /etc/gosa
+ 
+4) configure gosa_bind.conf to connect to your ldap tree
+
+5) Configure nagios_ldap.conf for how to write the configuration file
+
+Benoit Mortier
+Guillaume Delecourt
+OpenSides 2005-2009
+
+
+

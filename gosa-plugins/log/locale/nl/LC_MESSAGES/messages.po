@@ -1,0 +1,253 @@
+# translation of messages.po to Dutch
+# GOsa2 Translations
+# Copyright (C) 2003 GONICUS GmbH, Germany
+# This file is distributed under the same license as the GOsa2 package.
+# Alfred Schroeder <schroeder@GONICUS.de>, 2004.
+# Cajus Pollmeier <pollmeier@gonicus.de>, 2004.
+#
+# Translator:
+# Niels Klomp (CareWorks ICT Services) <nk@careworks.nl>, 2005.
+msgid ""
+msgstr ""
+"Project-Id-Version: messages\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-11-04 15:23+0100\n"
+"PO-Revision-Date: 2006-06-02 16:58+0100\n"
+"Last-Translator: Niels Klomp (CareWorks ICT Services) <nk@careworks.nl>\n"
+"Language-Team: CareWorks ICT Services <info@careworks.nl>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: admin/systems/services/syslog/goSyslogServer.tpl:1
+#, fuzzy
+msgid "Syslog Service"
+msgstr "Systeem log weergave"
+
+#: admin/systems/services/syslog/goSyslogServer.tpl:1
+#, fuzzy
+msgid "enabled"
+msgstr "gedeactiveerd"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:27
+#: admin/systems/services/syslog/class_goSyslogServer.inc:47
+#, fuzzy
+msgid "Syslog server"
+msgstr "Toon servers"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:68
+#: admin/systems/services/syslog/class_goSyslogServer.inc:69
+#, fuzzy
+msgid "Logging service"
+msgstr "Log DB gebruiker"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:69
+#: admin/systems/services/syslog/class_goLogDBServer.inc:93
+msgid "Services"
+msgstr "Services"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:31
+#: admin/systems/services/syslog/class_goLogDBServer.inc:59
+#, fuzzy
+msgid "Syslog service database"
+msgstr "Log database"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:69
+msgid "User"
+msgstr "Gebruiker"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:72
+#: admin/systems/services/syslog/class_goLogDBServer.inc:105
+#: admin/systems/services/syslog/goLogDBServer.tpl:20
+msgid "Password"
+msgstr "Wachtwoord"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:75
+#: admin/systems/services/syslog/class_goLogDBServer.inc:106
+#: admin/systems/services/syslog/goLogDBServer.tpl:4
+msgid "Database"
+msgstr "Database"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:92
+#: admin/systems/services/syslog/class_goLogDBServer.inc:93
+#, fuzzy
+msgid "Logging database"
+msgstr "Log database"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:101
+#, fuzzy
+msgid "Start"
+msgstr "Opstarten"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:102
+msgid "Stop"
+msgstr ""
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:103
+#, fuzzy
+msgid "Restart"
+msgstr "Opnieuw proberen"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:104
+#, fuzzy
+msgid "Administrator"
+msgstr "Beheer"
+
+#: admin/systems/services/syslog/goLogDBServer.tpl:1
+#, fuzzy
+msgid "Logging database information"
+msgstr "Informatie weergeven/verbergen"
+
+#: admin/systems/services/syslog/goLogDBServer.tpl:12
+#, fuzzy
+msgid "Logging DB user"
+msgstr "Log DB gebruiker"
+
+#, fuzzy
+#~ msgid "Admin"
+#~ msgstr "Beheerders DN"
+
+#, fuzzy
+#~ msgid "GOsa MySQL logging service"
+#~ msgstr "Log DB gebruiker"
+
+#, fuzzy
+#~ msgid "Allow view of entries on this server"
+#~ msgstr "Sta inloggen op de Terminal Server toe"
+
+#, fuzzy
+#~ msgid "Database user"
+#~ msgstr "Databases"
+
+#~ msgid "Filter"
+#~ msgstr "Filter"
+
+#~ msgid "Show hosts"
+#~ msgstr "Toon computers"
+
+#~ msgid "Action"
+#~ msgstr "Actie"
+
+#~ msgid "Time interval"
+#~ msgstr "Tijd interval"
+
+#~ msgid "Search for"
+#~ msgstr "Zoek naar"
+
+#~ msgid "Enter string to search for"
+#~ msgstr "Voer de te zoeken string in"
+
+#~ msgid "Ruleset"
+#~ msgstr "Ruleset"
+
+#~ msgid "Edit"
+#~ msgstr "Bewerken"
+
+#~ msgid "Search"
+#~ msgstr "Zoeken"
+
+#~ msgid "Date"
+#~ msgstr "Datum"
+
+#, fuzzy
+#~ msgid "Object type"
+#~ msgstr "Objectnaam"
+
+#~ msgid "Object"
+#~ msgstr "Object"
+
+#~ msgid "Message"
+#~ msgstr "Bericht"
+
+#~ msgid "Search returned no results..."
+#~ msgstr "De zoekopdracht gaf geen resultaten terug..."
+
+#~ msgid "System logs"
+#~ msgstr "Systeem logs"
+
+#~ msgid "This does something"
+#~ msgstr "Dit doet iets"
+
+#~ msgid "Warning"
+#~ msgstr "Waarschuwing"
+
+#, fuzzy
+#~ msgid "Configuration error"
+#~ msgstr "Configuratie bestand"
+
+#, fuzzy
+#~ msgid "Missing %s PHP extension!"
+#~ msgstr "Verwijder printer mogelijkheden"
+
+#~ msgid "Error"
+#~ msgstr "Fout"
+
+#~ msgid "All"
+#~ msgstr "Alle"
+
+#~ msgid "one hour"
+#~ msgstr "1 uur"
+
+#~ msgid "6 hours"
+#~ msgstr "6 uur"
+
+#~ msgid "12 hours"
+#~ msgstr "12 uur"
+
+#~ msgid "24 hours"
+#~ msgstr "24 uur"
+
+#~ msgid "2 days"
+#~ msgstr "2 dagen"
+
+#~ msgid "one week"
+#~ msgstr "1 week"
+
+#~ msgid "2 weeks"
+#~ msgstr "2 weken"
+
+#~ msgid "one month"
+#~ msgstr "1 maand"
+
+#, fuzzy
+#~ msgid "Log view"
+#~ msgstr "Log DB gebruiker"
+
+#, fuzzy
+#~ msgid "Log view addon"
+#~ msgstr "Omlaag verplaatsen"
+
+#, fuzzy
+#~ msgid "You have insufficient permissions to view syslog entries."
+#~ msgstr "U heeft geen toestemming om deze blokkeerlijst te verwijderen."
+
+#~ msgid "Log level"
+#~ msgstr "Log prioriteit"
+
+#~ msgid "Level"
+#~ msgstr "Prioriteit"
+
+#~ msgid "Hostname"
+#~ msgstr "Computernaam"
+
+#~ msgid "Save"
+#~ msgstr "Opslaan"
+
+#~ msgid "Cancel"
+#~ msgstr "Annuleren"
+
+#, fuzzy
+#~ msgid "No %s servers defined!"
+#~ msgstr "Geen LOG servers gedefiniëerd!"
+
+#, fuzzy
+#~ msgid "Cannot connect to %s database!"
+#~ msgstr "Kan niet verbinden met de database server!"
+
+#, fuzzy
+#~ msgid "Cannot select %s database!"
+#~ msgstr "De opgegeven database kon niet geselecteerd worden!"
+
+#~ msgid "Database query failed!"
+#~ msgstr "De database zoekopdracht is mislukt"

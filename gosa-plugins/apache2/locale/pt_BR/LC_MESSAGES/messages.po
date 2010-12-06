@@ -1,0 +1,186 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GOsa plugins - apache2\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-11-04 15:22+0100\n"
+"PO-Revision-Date: 2010-03-12 18:16-0300\n"
+"Last-Translator: Marcos Amorim <marcosmamorim@gmail.com>\n"
+"Language-Team: Marcos Amorim <marcosmamorim@gmail.com> Clever de Oliveira "
+"<clever@dri.cefetmg.br>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Portuguese\n"
+"X-Poedit-Country: BRAZIL\n"
+
+#: admin/systems/services/apache2/servApacheVhost.tpl:1
+#, fuzzy
+msgid "Apache virtual hosts"
+msgstr "Serviço de endereços virtuais"
+
+#: admin/systems/services/apache2/servApacheVhost.tpl:7
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:50
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:78
+msgid "Add"
+msgstr "Adicionar"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:85
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:96
+#, fuzzy
+msgid "Alias"
+msgstr "Alias URL"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:85
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:96
+msgid "Directory"
+msgstr "Diretório"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:203
+#: admin/systems/services/apache2/class_servApacheVhost.inc:71
+msgid "Name"
+msgstr "Nome"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:210
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:5
+msgid "Virtual host name"
+msgstr "Nome virtual"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:211
+msgid "Only lowercase strings are allowed as Virtual Host Name."
+msgstr ""
+"Somente letras minuscula são permitidas para nomes de endereços virtuais."
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:211
+msgid "e.g. example.com"
+msgstr "ex. exemplo.com.br"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:217
+#: admin/systems/services/apache2/class_servApacheVhost.inc:301
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:11
+msgid "Document root"
+msgstr "Raiz"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:223
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:17
+#, fuzzy
+msgid "Administrator mail address"
+msgstr "Endereço de email do admin."
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:232
+#: admin/systems/services/apache2/class_servApacheVhost.inc:302
+msgid "Server alias"
+msgstr "Alias do servidor"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:242
+#: admin/systems/services/apache2/class_servApacheVhost.inc:304
+msgid "Script alias"
+msgstr "Alias de script"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:61
+#: admin/systems/services/apache2/class_servApacheVhost.inc:277
+#: admin/systems/services/apache2/class_servApacheVhost.inc:290
+msgid "Apache service"
+msgstr "Serviço Apache"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:230
+#: admin/systems/services/apache2/class_servApacheVhost.inc:241
+#: admin/systems/services/apache2/class_servApacheVhost.inc:264
+msgid "LDAP error"
+msgstr "Erro LDAP"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:291
+msgid "Apache virtual host service"
+msgstr "Serviço de endereços virtuais"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:291
+msgid "Services"
+msgstr "Serviços"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:299
+msgid "Virtual hosts"
+msgstr "Endereço Virtual"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:300
+#, fuzzy
+msgid "Server name"
+msgstr "Servidor"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:303
+#, fuzzy
+msgid "Server admin"
+msgstr "Alias do servidor"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:1
+msgid "Generic"
+msgstr "Geral"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:3
+#, fuzzy
+msgid "Apache Virutal Host"
+msgstr "Virtual Host Apache"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:26
+#, fuzzy
+msgid "Server settings"
+msgstr "Configurações do usuário"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:30
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:33
+msgid "Server Alias"
+msgstr "Alias do servidor"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:37
+msgid "URL Alias"
+msgstr "Alias URL"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:40
+msgid "Directory Path"
+msgstr "Caminho do diretório"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:59
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:62
+msgid "Script Alias"
+msgstr "Alias de script"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:65
+msgid "Alias Directory"
+msgstr "Alias de diretório"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:68
+msgid "Script Directory"
+msgstr "Diretório de script"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:89
+msgid "Save"
+msgstr "Salvar"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:91
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: admin/systems/services/apache2/class_apacheUtils.inc:194
+#, fuzzy, php-format
+msgid ""
+"Undefined virtual host name '%s'. Virtual host name must be a valid, fully "
+"qualified domain name like 'www.example.com' or 'example.com'."
+msgstr ""
+"Nome virtual indefinido %s. Nomes virtuais deve parecer com isso 'www."
+"exemplo.com.br ou exemplo.com.br'."
+
+#~ msgid "Apache VHosts"
+#~ msgstr "Virtual Host Apache"
+
+#~ msgid "Up"
+#~ msgstr "Acima"
+
+#~ msgid "Down"
+#~ msgstr "Abaixo"
+
+#~ msgid "Delete"
+#~ msgstr "Excluir"

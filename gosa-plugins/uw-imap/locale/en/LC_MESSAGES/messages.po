@@ -1,0 +1,12 @@
+#: personal/mail/uw-imap/class_mail-methods-uwimap.inc:61
+msgid "Configuration error"
+msgstr ""
+
+#: personal/mail/uw-imap/class_mail-methods-uwimap.inc:138
+msgid "Error"
+msgstr ""
+
+#: personal/mail/uw-imap/class_mail-methods-uwimap.inc:138
+#, php-format
+msgid "Unable to write procmail script to '%s'."
+msgstr ""

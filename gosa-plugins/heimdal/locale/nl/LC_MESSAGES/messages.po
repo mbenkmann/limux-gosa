@@ -1,0 +1,227 @@
+# translation of messages.po to Dutch
+# GOsa2 Translations
+# Copyright (C) 2003 GONICUS GmbH, Germany
+# This file is distributed under the same license as the GOsa2 package.
+# Alfred Schroeder <schroeder@GONICUS.de>, 2004.
+# Cajus Pollmeier <pollmeier@gonicus.de>, 2004.
+#
+# Translator:
+# Niels Klomp (CareWorks ICT Services) <nk@careworks.nl>, 2005.
+msgid ""
+msgstr ""
+"Project-Id-Version: messages\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-11-04 15:23+0100\n"
+"PO-Revision-Date: 2006-06-02 16:58+0100\n"
+"Last-Translator: Niels Klomp (CareWorks ICT Services) <nk@careworks.nl>\n"
+"Language-Team: CareWorks ICT Services <info@careworks.nl>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:5
+#, fuzzy
+msgid "Heimdal options"
+msgstr "Serieel"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:6
+msgid "Use empty values for infinite"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:10
+msgid "Ticket max life"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:18
+msgid "Ticket max renew"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:32
+msgid "infinite"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:34
+#, fuzzy
+msgid "Hour"
+msgstr "uur"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:36
+#, fuzzy
+msgid "Minute"
+msgstr "Printer"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:38
+#, fuzzy
+msgid "Day"
+msgstr "dag"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:40
+#, fuzzy
+msgid "Month"
+msgstr "maand"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:42
+#, fuzzy
+msgid "Year"
+msgstr "Zoeken"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:47
+msgid "Valid ticket start time"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:87
+msgid "Valid ticket end time"
+msgstr ""
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:127
+#, fuzzy
+msgid "Password end"
+msgstr "Wachtwoord"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:198
+msgid "Save"
+msgstr "Opslaan"
+
+#: admin/systems/services/kerberos/pwd_heimdal.tpl:200
+msgid "Cancel"
+msgstr "Annuleren"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:58
+#, fuzzy
+msgid "Kerberos service"
+msgstr "Kerberos server"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:74
+#: admin/systems/services/kerberos/class_goKrbServer.inc:358
+#: admin/systems/services/kerberos/class_goKrbServer.inc:367
+#: admin/systems/services/kerberos/class_goKrbServer.inc:371
+#, fuzzy
+msgid "Service infrastructure"
+msgstr "Zoek binnen subtree"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:165
+#, fuzzy
+msgid "Kerberos service (kadmin access informations)"
+msgstr "Kerberos kadmin toegang"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:178
+#: admin/systems/services/kerberos/class_goKrbServer.inc:394
+#, fuzzy
+msgid "Realm"
+msgstr "RAM"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:181
+msgid ""
+"In order to save policy changes, the server requires a valid mac address."
+msgstr ""
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:265
+msgid "Remove"
+msgstr "Verwijderen"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:265
+#, fuzzy
+msgid "Policy"
+msgstr "Pools"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:384
+msgid "Kerberos"
+msgstr "Kerberos"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:385
+#, fuzzy
+msgid "Kerberos access information"
+msgstr "Kerberos kadmin toegang"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:385
+msgid "Services"
+msgstr "Services"
+
+#: admin/systems/services/kerberos/class_goKrbServer.inc:393
+#: admin/systems/services/kerberos/goKrbServer.tpl:16
+#, fuzzy
+msgid "Policies"
+msgstr "Pools"
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:104
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:127
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:177
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:189
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:226
+#, fuzzy
+msgid "Heimdal"
+msgstr "Serieel"
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:104
+#, php-format
+msgid ""
+"Error loading Heimdal configuration, more than one configuration entry was "
+"found for '%s'."
+msgstr ""
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:157
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:413
+#, fuzzy
+msgid "LDAP error"
+msgstr "LDAP fout:"
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:333
+msgid "Max life"
+msgstr ""
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:336
+msgid "Max renew"
+msgstr ""
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:339
+msgid "Valid start"
+msgstr ""
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:342
+msgid "Valid end"
+msgstr ""
+
+#: admin/systems/services/kerberos/class_password-methods-heimdal.inc:345
+#, fuzzy
+msgid "Valid password"
+msgstr "Oud wachtwoord"
+
+#: admin/systems/services/kerberos/goKrbServer.tpl:1
+msgid "Kerberos kadmin access"
+msgstr "Kerberos kadmin toegang"
+
+#: admin/systems/services/kerberos/goKrbServer.tpl:8
+#, fuzzy
+msgid "Kerberos Realms"
+msgstr "Kerberos Realm"
+
+#~ msgid "Admin user"
+#~ msgstr "Beheerder"
+
+#, fuzzy
+#~ msgid "Admin"
+#~ msgstr "Beheerders"
+
+#, fuzzy
+#~ msgid "Please specify a numeric value for %s."
+#~ msgstr "Geef a.u.b. een nummerieke waarde op voor TTL."
+
+#~ msgid "The specified kerberos password is empty."
+#~ msgstr "Het opgegeven kerberos wachtwoord is leeg."
+
+#, fuzzy
+#~ msgid "The specified kerberos admin is empty."
+#~ msgstr "Het opgegeven kerberos wachtwoord is leeg."
+
+#, fuzzy
+#~ msgid "The specified kerberos realm is empty."
+#~ msgstr "Het opgegeven kerberos wachtwoord is leeg."
+
+#, fuzzy
+#~ msgid "Tried to remove heimdal extension."
+#~ msgstr "Verwijder omgevingsmogelijkheden"
+
+#, fuzzy
+#~ msgid "Could not add or update heimdal extensions."
+#~ msgstr "Dit account heeft E-mail mogelijkheden uitgeschakeld."

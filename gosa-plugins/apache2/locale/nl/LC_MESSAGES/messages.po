@@ -1,0 +1,194 @@
+# translation of messages.po to Dutch
+# GOsa2 Translations
+# Copyright (C) 2003 GONICUS GmbH, Germany
+# This file is distributed under the same license as the GOsa2 package.
+# Alfred Schroeder <schroeder@GONICUS.de>, 2004.
+# Cajus Pollmeier <pollmeier@gonicus.de>, 2004.
+#
+# Translator:
+# Niels Klomp (CareWorks ICT Services) <nk@careworks.nl>, 2005.
+msgid ""
+msgstr ""
+"Project-Id-Version: messages\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-11-04 15:22+0100\n"
+"PO-Revision-Date: 2006-06-02 16:58+0100\n"
+"Last-Translator: Niels Klomp (CareWorks ICT Services) <nk@careworks.nl>\n"
+"Language-Team: CareWorks ICT Services <info@careworks.nl>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: admin/systems/services/apache2/servApacheVhost.tpl:1
+#, fuzzy
+msgid "Apache virtual hosts"
+msgstr "Cache"
+
+#: admin/systems/services/apache2/servApacheVhost.tpl:7
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:50
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:78
+msgid "Add"
+msgstr "Toevoegen"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:85
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:96
+msgid "Alias"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:85
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:96
+msgid "Directory"
+msgstr "Directory"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:203
+#: admin/systems/services/apache2/class_servApacheVhost.inc:71
+msgid "Name"
+msgstr "Naam"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:210
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:5
+#, fuzzy
+msgid "Virtual host name"
+msgstr "Voornaam"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:211
+msgid "Only lowercase strings are allowed as Virtual Host Name."
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:211
+msgid "e.g. example.com"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:217
+#: admin/systems/services/apache2/class_servApacheVhost.inc:301
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:11
+msgid "Document root"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:223
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:17
+#, fuzzy
+msgid "Administrator mail address"
+msgstr "E-mail adres"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:232
+#: admin/systems/services/apache2/class_servApacheVhost.inc:302
+#, fuzzy
+msgid "Server alias"
+msgstr "Servers"
+
+#: admin/systems/services/apache2/class_servApacheEditVhost.inc:242
+#: admin/systems/services/apache2/class_servApacheVhost.inc:304
+#, fuzzy
+msgid "Script alias"
+msgstr "Script"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:61
+#: admin/systems/services/apache2/class_servApacheVhost.inc:277
+#: admin/systems/services/apache2/class_servApacheVhost.inc:290
+#, fuzzy
+msgid "Apache service"
+msgstr "Cache"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:230
+#: admin/systems/services/apache2/class_servApacheVhost.inc:241
+#: admin/systems/services/apache2/class_servApacheVhost.inc:264
+#, fuzzy
+msgid "LDAP error"
+msgstr "LDAP fout:"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:291
+msgid "Apache virtual host service"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:291
+msgid "Services"
+msgstr "Services"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:299
+msgid "Virtual hosts"
+msgstr ""
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:300
+#, fuzzy
+msgid "Server name"
+msgstr "Server"
+
+#: admin/systems/services/apache2/class_servApacheVhost.inc:303
+#, fuzzy
+msgid "Server admin"
+msgstr "Servers"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:1
+msgid "Generic"
+msgstr "Algemeen"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:3
+#, fuzzy
+msgid "Apache Virutal Host"
+msgstr "Cache"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:26
+#, fuzzy
+msgid "Server settings"
+msgstr "Gebruikersinstellingen"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:30
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:33
+#, fuzzy
+msgid "Server Alias"
+msgstr "Servers"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:37
+msgid "URL Alias"
+msgstr ""
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:40
+#, fuzzy
+msgid "Directory Path"
+msgstr "Directory"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:59
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:62
+#, fuzzy
+msgid "Script Alias"
+msgstr "Script"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:65
+#, fuzzy
+msgid "Alias Directory"
+msgstr "Directory"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:68
+#, fuzzy
+msgid "Script Directory"
+msgstr "Directory"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:89
+msgid "Save"
+msgstr "Opslaan"
+
+#: admin/systems/services/apache2/servApacheVhostEdit.tpl:91
+msgid "Cancel"
+msgstr "Annuleren"
+
+#: admin/systems/services/apache2/class_apacheUtils.inc:194
+#, php-format
+msgid ""
+"Undefined virtual host name '%s'. Virtual host name must be a valid, fully "
+"qualified domain name like 'www.example.com' or 'example.com'."
+msgstr ""
+
+#, fuzzy
+#~ msgid "Apache VHosts"
+#~ msgstr "Cache"
+
+#~ msgid "Up"
+#~ msgstr "Omhoog"
+
+#~ msgid "Down"
+#~ msgstr "Omlaag"
+
+#~ msgid "Delete"
+#~ msgstr "Verwijderen"

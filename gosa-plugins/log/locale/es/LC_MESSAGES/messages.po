@@ -1,0 +1,235 @@
+# translation of admin.po to
+# translation of systems.po to
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# , 2010.
+msgid ""
+msgstr ""
+"Project-Id-Version: admin\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-11-04 15:23+0100\n"
+"PO-Revision-Date: 2010-01-28 23:48+0100\n"
+"Last-Translator: \n"
+"Language-Team: Spanish <>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 1.0\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: admin/systems/services/syslog/goSyslogServer.tpl:1
+msgid "Syslog Service"
+msgstr "Servicio de Registro de Sistema"
+
+#: admin/systems/services/syslog/goSyslogServer.tpl:1
+msgid "enabled"
+msgstr "activado"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:27
+#: admin/systems/services/syslog/class_goSyslogServer.inc:47
+msgid "Syslog server"
+msgstr "Servidor de registro de sistema"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:68
+#: admin/systems/services/syslog/class_goSyslogServer.inc:69
+msgid "Logging service"
+msgstr "Servicio de Registro de sistema"
+
+#: admin/systems/services/syslog/class_goSyslogServer.inc:69
+#: admin/systems/services/syslog/class_goLogDBServer.inc:93
+msgid "Services"
+msgstr "Servicios"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:31
+#: admin/systems/services/syslog/class_goLogDBServer.inc:59
+msgid "Syslog service database"
+msgstr "Servicio de Base de datos del Registro de sistema"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:69
+msgid "User"
+msgstr "Usuario"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:72
+#: admin/systems/services/syslog/class_goLogDBServer.inc:105
+#: admin/systems/services/syslog/goLogDBServer.tpl:20
+msgid "Password"
+msgstr "Contraseña"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:75
+#: admin/systems/services/syslog/class_goLogDBServer.inc:106
+#: admin/systems/services/syslog/goLogDBServer.tpl:4
+msgid "Database"
+msgstr "Bases de datos"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:92
+#: admin/systems/services/syslog/class_goLogDBServer.inc:93
+msgid "Logging database"
+msgstr "Base de datos de Registro"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:101
+msgid "Start"
+msgstr "Inicio"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:102
+msgid "Stop"
+msgstr "Parada"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:103
+msgid "Restart"
+msgstr "Reiniciar"
+
+#: admin/systems/services/syslog/class_goLogDBServer.inc:104
+#, fuzzy
+msgid "Administrator"
+msgstr "DN del administrador"
+
+#: admin/systems/services/syslog/goLogDBServer.tpl:1
+msgid "Logging database information"
+msgstr "Información de base de datos de Registro"
+
+#: admin/systems/services/syslog/goLogDBServer.tpl:12
+msgid "Logging DB user"
+msgstr "Usuario de Base de datos de registro"
+
+#~ msgid "Admin"
+#~ msgstr "Administrador"
+
+#~ msgid "GOsa MySQL logging service"
+#~ msgstr "Servicio de registro de GOsa en MySQL"
+
+#~ msgid "Allow view of entries on this server"
+#~ msgstr "Permitir vista de entradas en este servidor"
+
+#~ msgid "Database user"
+#~ msgstr "Usuario de base de datos"
+
+#~ msgid "Filter"
+#~ msgstr "Filtro"
+
+#~ msgid "Show hosts"
+#~ msgstr "Mostrar equipos"
+
+#~ msgid "Action"
+#~ msgstr "Acción"
+
+#~ msgid "Time interval"
+#~ msgstr "Intervalo de tiempo"
+
+#~ msgid "Search for"
+#~ msgstr "Buscar por"
+
+#~ msgid "Enter string to search for"
+#~ msgstr "Introducir la cadena de búsqueda"
+
+#~ msgid "Ruleset"
+#~ msgstr "Paquete de reglas"
+
+#~ msgid "Edit"
+#~ msgstr "Editar"
+
+#~ msgid "Search"
+#~ msgstr "Buscar"
+
+#~ msgid "Date"
+#~ msgstr "Fecha"
+
+#~ msgid "Object type"
+#~ msgstr "Tipo de objeto"
+
+#~ msgid "Object"
+#~ msgstr "Objeto"
+
+#~ msgid "Message"
+#~ msgstr "Mensaje"
+
+#~ msgid "Search returned no results..."
+#~ msgstr "La búsqueda no ha encontrado resultados..."
+
+#~ msgid "System logs"
+#~ msgstr "Registro del sistema"
+
+#~ msgid "This does something"
+#~ msgstr "Esto hace algo"
+
+#~ msgid "Warning"
+#~ msgstr "Aviso"
+
+#~ msgid "Configuration error"
+#~ msgstr "Error en la configuración"
+
+#~ msgid "Missing %s PHP extension!"
+#~ msgstr "¡Extensión PHP %s no encontrada!"
+
+#~ msgid "Error"
+#~ msgstr "Error"
+
+#~ msgid "All"
+#~ msgstr "Todo"
+
+#~ msgid "one hour"
+#~ msgstr "Una hora"
+
+#~ msgid "6 hours"
+#~ msgstr "6 horas"
+
+#~ msgid "12 hours"
+#~ msgstr "12 horas"
+
+#~ msgid "24 hours"
+#~ msgstr "24 horas"
+
+#~ msgid "2 days"
+#~ msgstr "2 días"
+
+#~ msgid "one week"
+#~ msgstr "una semana"
+
+#~ msgid "2 weeks"
+#~ msgstr "2 semanas"
+
+#~ msgid "one month"
+#~ msgstr "un mes"
+
+#~ msgid "Log view"
+#~ msgstr "Vista del registro"
+
+#~ msgid "Log view addon"
+#~ msgstr "Extensión de vista del registro"
+
+#~ msgid "You have insufficient permissions to view syslog entries."
+#~ msgstr "No tiene permisos para ver los registros de syslog."
+
+#~ msgid ""
+#~ "Missing logging table (%s.%s) update your GOsa logging database schema."
+#~ msgstr ""
+#~ "La tabla de registro (%s.%s) no es accesible, actualice el esquema de la "
+#~ "base de datos de registro de GOsa."
+
+#~ msgid "Log level"
+#~ msgstr "Nivel de registro"
+
+#~ msgid "Level"
+#~ msgstr "Nivel"
+
+#~ msgid "Hostname"
+#~ msgstr "Nombre de Maquina"
+
+#~ msgid "Save"
+#~ msgstr "Guardar"
+
+#~ msgid "Cancel"
+#~ msgstr "Cancelar"
+
+#, fuzzy
+#~ msgid "No %s servers defined!"
+#~ msgstr "Servidor de registro de sistema activado"
+
+#, fuzzy
+#~ msgid "Cannot connect to %s database!"
+#~ msgstr "¡No puedo conectar al servidor de base de datos postgresql!."
+
+#, fuzzy
+#~ msgid "Cannot select %s database!"
+#~ msgstr "No se puede añadir la cuenta a la base de datos Kerberos"

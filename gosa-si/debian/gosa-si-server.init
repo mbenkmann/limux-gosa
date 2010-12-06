@@ -1,0 +1,85 @@
+#!/bin/sh
+# Start/stop the GOsa support daemon infrastructure.
+#
+### BEGIN INIT INFO
+# Provides:          gosa-si-server
+# Required-Start:    $network $remote_fs $named $syslog $time
+# Required-Stop:     $network $remote_fs $named $syslog $time
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: GOsa message server component
+# Description:       gosa-si-server establishes the communication between a couple of
+#                    GOsa hosting servers and optionally clients to do event
+#                    signaling for all communication partners.
+### END INIT INFO
+
+# variables for the gosa-si-server.
+SERVER="gosa-si-server"
+DAEMON_SERVER="/usr/sbin/${SERVER}"
+RUN_DIRECTORY="/var/run/gosa-si"
+PIDFILE_SERVER="$RUN_DIRECTORY/${SERVER}.pid"
+
+PATH="/sbin:/usr/sbin:/bin:/usr/bin"
+
+# Load defaults
+[ -r /etc/default/gosa-si-server ] && . /etc/default/gosa-si-server
+
+# Load LSB support functions
+. /lib/lsb/init-functions
+
+if [ ! -d "/var/run/gosa-si" ]; then
+	mkdir $RUN_DIRECTORY
+fi
+
+start_server() {
+	start-stop-daemon --start --quiet --pidfile ${PIDFILE_SERVER} --name ${SERVER} --startas ${DAEMON_SERVER} -- $1 $DEBUG
+}
+
+stop_server() {
+	start-stop-daemon --stop --retry 5 --quiet --pidfile ${PIDFILE_SERVER} --name ${SERVER}
+}
+
+
+case "$1" in
+ start)  log_daemon_msg "Starting GOsa support infrastructure Server"
+	if [ "$START_SERVER" = "1" -a -x ${DAEMON_SERVER} ]; then
+		log_progress_msg "server"
+		start_server
+	fi
+		log_end_msg $?
+	;;
+stop)   log_daemon_msg "Stopping GOsa support infrastructure Server"
+	if [ "$START_SERVER" = "1" -a -x ${DAEMON_SERVER} ]; then
+		log_progress_msg "server"
+		stop_server
+	fi
+		log_end_msg $?
+;;
+reload|force-reload|restart) log_daemon_msg "Restarting GOsa support infrastructure Server" 
+	if [ "$START_SERVER" = "1" -a -x ${DAEMON_SERVER} ]; then
+		stop_server
+		start_server
+	fi
+	log_progress_msg "done"
+	log_end_msg $?
+;;
+status)
+	if [ "$START_SERVER" = "1" -a -x ${DAEMON_SERVER} ]; then
+		status=0
+		pidofproc -p "${PIDFILE_SERVER}" "${DAEMON_SERVER}" >/dev/null || status="$?"
+		log_daemon_msg "Status of GOsa-si server" "${NAME}"
+		if [ "$status" = 0 ]; then
+			log_progress_msg "is running"
+			log_end_msg 0
+		else
+			log_progress_msg "is not running"
+			log_end_msg $status
+		fi
+	fi
+;;
+
+*)	log_action_msg "Usage: /etc/init.d/gosa-si {start|stop|restart|reload|force-reload|status}"
+        exit 2
+        ;;
+esac
+exit 0
