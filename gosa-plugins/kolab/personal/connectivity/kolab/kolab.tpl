@@ -40,7 +40,7 @@
 	{/if}">
 {/if}
 
-</h3>{t}Kolab account{/t}</h3>
+{t}Kolab account{/t}</h3>
 <table style="width:100%" summary="{t}Kolab delegation configuration{/t}">
  <tr>
   <td style='width:50%; '>
