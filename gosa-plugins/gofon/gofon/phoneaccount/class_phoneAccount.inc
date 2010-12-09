@@ -4,7 +4,7 @@ class phoneAccount extends plugin
 {
     /* Definitions */
     var $plHeadline   = "Phone";
-    var $plDescription= "This does something";
+    var $plDescription= "Manage personal phone settings";
     var $plIcon       = "plugins/gofon/images/phoneAccount.png";
 
     /* Attributes */
