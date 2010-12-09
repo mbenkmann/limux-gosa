@@ -4,7 +4,7 @@ class gofaxAccount extends plugin
 {
   /* Definitions */
   var $plHeadline= "FAX";
-  var $plDescription= "This does something";
+  var $plDescription= "Manage personal facsimile settings";
   var $plIcon = "plugins/gofax/images/plugin.png";
 
   var $departments;
