@@ -46,6 +46,8 @@ class mailgroup extends plugin
     var $orig_cn = "";
     var $show_effective_memeber = FALSE;
 
+    var $aclPostToId = array();
+
     function __construct (&$config, $dn= NULL, $base_object= NULL)
     {
         plugin::plugin($config, $dn);
@@ -655,18 +657,14 @@ class mailgroup extends plugin
 
 
                 foreach($this->folder_acls as $user => $acl){
-                    if(get_magic_quotes_gpc()){
-                        $pname = addslashes($user);
-                    }else{
-                        $pname = $user;
-                    }
                     if($user == "__member__" || $user == "__anyone__") continue;
-                    if(isset($_POST['remove_acl_user_'.$pname])){
-                    }elseif(isset($_POST['acl_user_'.$pname])){
-                        if($user != get_post('acl_user_'.$pname)){
-                            $new_acls[get_post('acl_user_'.$pname)] = get_post('acl_value_'.$pname);
+                    $id = $this->aclPostToId[$user];
+                    if(isset($_POST['remove_acl_user_'.$id])){
+                    }elseif(isset($_POST['acl_user_'.$id])){
+                        if($user != get_post('acl_user_'.$id)){
+                            $new_acls[get_post('acl_user_'.$id)] = get_post('acl_value_'.$id);
                         }else{
-                            $new_acls[$user] = get_post('acl_value_'.$pname);
+                            $new_acls[$user] = get_post('acl_value_'.$id);
                         }
                     }else{
                         $new_acls[$user] = $acl;
@@ -1209,8 +1207,11 @@ class mailgroup extends plugin
     function postable_acls()
     {
         $ret = array();
+        $this->aclPostToId = array();
         foreach($this->folder_acls as $name => $acl){
-            $ret[set_post($name)] = array("name" => set_post($name),"acl" => set_post($acl),"post_name" => set_post($name));
+            $id = count($this->aclPostToId);
+            $this->aclPostToId[$name] = $id;
+            $ret[set_post($name)] = array("name" => set_post($name),"acl" => set_post($acl),"post_name" => $id);
         }
         return($ret);
     }
