@@ -658,7 +658,9 @@ class mailgroup extends plugin
 
                 foreach($this->folder_acls as $user => $acl){
                     if($user == "__member__" || $user == "__anyone__") continue;
-                    $id = $this->aclPostToId[$user];
+
+                    $id = (isset($this->aclPostToId[$user])) ? $this->aclPostToId[$user] : -1;
+
                     if(isset($_POST['remove_acl_user_'.$id])){
                     }elseif(isset($_POST['acl_user_'.$id])){
                         if($user != get_post('acl_user_'.$id)){
