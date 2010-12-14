@@ -377,6 +377,34 @@
                 {render acl=$cannotChangePasswordACL  checkbox=$multiple_support checked=$use_cannotChangePassword}
                  <input type='checkbox' value='1' name='flag_cannotChangePassword'
                     {if $flag_cannotChangePassword} checked {/if} id='flag_cannotChangePassword'>
+    </table>
+    <table>
+      <tr>
+        <td colspan=2>
+           {render acl=$sambaKickoffTimeACL  checkbox=$multiple_support checked=$use_sambaKickoffTime}
+             <input id="flag_sambaKickoffTime" type=checkbox name="flag_sambaKickoffTime" value="1" 
+                    {if $flag_sambaKickoffTime} checked {/if} class="center">
+           {/render}
+           <label for="flag_sambaKickoffTime">{t}Account expires after{/t}</label>
+         </td>
+         <td style='width:200px;'>
+           {render acl=$sambaKickoffTimeACL}
+             <input type="text" id="sambaKickoffTime" name="sambaKickoffTime" class="date" style='width:100px' value="{$sambaKickoffTime}">
+                {if $sambaKickoffTimeACL|regex_replace:"/[cdmr]/":"" == "w"}
+                  <script type="text/javascript">
+                    {literal}
+                       var datepicker2 = new DatePicker({ 
+                            relative : 'sambaKickoffTime', 
+                            language : '{/literal}{$lang}{literal}', 
+                            keepFieldEmpty : true, 
+                            enableCloseEffect : false, 
+                            enableShowEffect : false });
+                    {/literal}
+                  </script>
+               {/if}
+            {/render}
+          </td>
+       </tr>
                 {/render}
             </td>
             <td>

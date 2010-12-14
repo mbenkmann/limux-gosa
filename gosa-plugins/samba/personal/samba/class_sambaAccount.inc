@@ -45,7 +45,7 @@ class sambaAccount extends plugin
     var $sambaPwdLastSet= "0";
     var $sambaLogonTime= "0";
     var $sambaLogoffTime= "2147483647";
-    var $sambaKickoffTime= "2147483647";
+    var $sambaKickoffTime= "";
     var $sambaPwdCanChange= "0";
     var $sambaPwdMustChange= "0";
 
@@ -56,6 +56,7 @@ class sambaAccount extends plugin
     var $flag_noPasswordRequired    = FALSE;
     var $flag_temporaryDisabled     = FALSE;
     var $flag_cannotChangePassword  = FALSE;
+    var $flag_sambaKickoffTime      = FALSE;
 
     // String values 
     var $sambaHomePath= "";
@@ -141,6 +142,12 @@ class sambaAccount extends plugin
 
         // Load flags
         $this->loadFlagsFromSource($this->attrs);
+
+        // Set kickOffTime to date
+        if(isset($this->attrs['sambaKickoffTime'][0])){
+            $this->sambaKickoffTime = date("d.m.Y", $this->sambaKickoffTime);
+            $this->flag_sambaKickoffTime = TRUE;
+        }
     }
 
 
@@ -483,7 +490,7 @@ class sambaAccount extends plugin
                     "CtxMaxDisconnectionTime","CtxMaxIdleTimeF","CtxMaxIdleTime","connectclientdrives",
                     "onnectclientprinters","defaultprinter","shadow","brokenconn",
                     "reconn","connectclientprinters","SetSambaLogonHours",
-                    "workstation_list",
+                    "workstation_list","sambaKickoffTime",
                     "enforcePasswordChange", "passwordNeverExpires", "noPasswordRequired",
                     "temporaryDisabled","cannotChangePassword") as $attr){
 
@@ -523,7 +530,7 @@ class sambaAccount extends plugin
 
         // Assign flags
         foreach(array("flag_enforcePasswordChange", "flag_passwordNeverExpires", "flag_noPasswordRequired", 
-                    "flag_temporaryDisabled","flag_cannotChangePassword") as $attr){
+                    "flag_temporaryDisabled","flag_cannotChangePassword","flag_sambaKickoffTime") as $attr){
             $smarty->assign($attr, set_post($this->$attr));
         }
 
@@ -852,6 +859,14 @@ class sambaAccount extends plugin
         /* Call common method to give check the hook */
         $message= plugin::check();
 
+        if($this->flag_sambaKickoffTime){
+            if(!preg_match("/^[0-3][0-9]\.[0-1][0-9]\.([0-9]){4}$/",$this->sambaKickoffTime)){
+                $message[] = msgPool::invalid(_("Account expires after"));
+            }elseif(!strtotime($this->sambaKickoffTime) || strtotime($this->sambaKickoffTime) >= 2147483647){
+                $message[] = msgPool::invalid(_("Account expires after"));
+            }
+        }
+
         /* sambaHomePath requires sambaHomeDrive and vice versa */
         if(!empty($this->sambaHomePath) && empty($this->sambaHomeDrive)){
             $message[]= msgPool::required(_("Home drive"));
@@ -906,7 +921,7 @@ class sambaAccount extends plugin
 
             // Get posted flags.
             foreach(array("enforcePasswordChange", "passwordNeverExpires", "noPasswordRequired",
-                        "temporaryDisabled","cannotChangePassword") as $name){
+                        "temporaryDisabled","cannotChangePassword","sambaKickoffTime") as $name){
                 $flag = "flag_{$name}";
                 if($this->acl_is_writeable($name)){
                     $tmp = isset($_POST[$flag]);
@@ -978,6 +993,12 @@ class sambaAccount extends plugin
         }
         $this->attrs['objectClass']= $tmp;
 
+        // Handle "sambaKickoffTime" flag.
+        if($this->flag_sambaKickoffTime){
+            $this->attrs['sambaKickoffTime'] = strtotime($this->sambaKickoffTime);
+        }else{
+            $this->attrs['sambaKickoffTime']= array();
+        }
 
         // Handle "enforce password change" flag.
         if($this->flag_enforcePasswordChange){
@@ -1169,7 +1190,7 @@ class sambaAccount extends plugin
                         "sambaProfilePath"            => _("Generic profile path") ,
                         "AllowLoginOnTerminalServer"  => _("Allow login on terminal server"),
                         "InheritClientConfig"         => _("Inherit client configuration"),
-
+                        "sambaKickoffTime"            => _("Account expires"), 
                         "enforcePasswordChange"       => _("Enforce password change"),
                         "cannotChangePassword"        => _("Disallow password change") ,
                         "noPasswordRequired"          => _("Login from windows client requires no password"),
@@ -1199,7 +1220,7 @@ class sambaAccount extends plugin
                         "onnectclientprinters","defaultprinter","shadow","brokenconn",
                         "reconn","connectclientprinters","SetSambaLogonHours","workstation_list",
                         "enforcePasswordChange", "passwordNeverExpires", "noPasswordRequired",
-                        "temporaryDisabled","cannotChangePassword"
+                        "temporaryDisabled","cannotChangePassword","sambaKickoffTime"
                         ) as $attr){
                 if(isset($_POST["use_".$attr]) || isset($_POST["use_flag_".$attr]) ){
                     $this->multi_boxes[] = $attr;
@@ -1235,6 +1256,15 @@ class sambaAccount extends plugin
         /* Too many workstations? Windows usrmgr only supports eight */
         if (substr_count($this->sambaUserWorkstations, ",") >= 8){
             $message[]= _("The windows user manager only allows eight clients. You've specified more than eight.");
+        }
+
+
+        if(in_array("sambaKickoffTime", $this->multi_boxes) && $this->flag_sambaKickoffTime){
+            if(!preg_match("/^[0-3][0-9]\.[0-1][0-9]\.([0-9]){4}$/",$this->sambaKickoffTime)){
+                $message[] = msgPool::invalid(_("Account expires after"));
+            }elseif(!strtotime($this->sambaKickoffTime) || strtotime($this->sambaKickoffTime) >= 2147483647){
+                $message[] = msgPool::invalid(_("Account expires after"));
+            }
         }
         return($message);
     }
@@ -1279,6 +1309,12 @@ class sambaAccount extends plugin
                 $station = trim($attrs['sambaUserWorkstations'][$i]);
                 $this->multiple_sambaUserWorkstations[$station] = array("Name" => $station, "UsedByAllUsers" => TRUE);
             }
+        }
+
+        // Set kickOffTime to date
+        if(isset($attrs['sambaKickoffTime'][0])){
+            $this->sambaKickoffTime = date("d.m.Y", $this->sambaKickoffTime);
+            $this->flag_sambaKickoffTime = TRUE;
         }
     }
 
@@ -1359,7 +1395,7 @@ class sambaAccount extends plugin
 
         // Handle Flags.
         foreach(array("flag_enforcePasswordChange", "flag_passwordNeverExpires", "flag_noPasswordRequired",
-                    "flag_temporaryDisabled","flag_cannotChangePassword") as $attr){
+                    "flag_temporaryDisabled","flag_cannotChangePassword","flag_sambaKickoffTime") as $attr){
             $ret[$attr] = $this->$attr;
         }
 
@@ -1370,6 +1406,7 @@ class sambaAccount extends plugin
         if(in_array("workstation_list",$this->multi_boxes)){
             $ret['multiple_sambaUserWorkstations'] = $this->multiple_sambaUserWorkstations;
         }
+
         return($ret);
     }
 
