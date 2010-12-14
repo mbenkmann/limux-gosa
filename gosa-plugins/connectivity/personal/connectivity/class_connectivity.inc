@@ -86,7 +86,6 @@ class connectivity extends plugin
       }
     }
 
-    /* Remove checkboxes in single edit mode */
     if ($this->parent !== NULL){
       foreach ($this->plugin_name as $name){
         $this->plugin[$name]->parent= $this->parent;
@@ -155,6 +154,13 @@ class connectivity extends plugin
   /* Save to LDAP */
   function save()
   {
+    // Append parent to sub-plugins.
+    if ($this->parent !== NULL){
+      foreach ($this->plugin_name as $name){
+        $this->plugin[$name]->parent= $this->parent;
+      }
+    }
+
     /* Save objects */
     foreach ($this->plugin_name as $name){
       $this->plugin[$name]->dn= $this->dn;
@@ -169,6 +175,13 @@ class connectivity extends plugin
 
   function remove_from_parent()
   {
+    // Append parent to sub-plugins.
+    if ($this->parent !== NULL){
+      foreach ($this->plugin_name as $name){
+        $this->plugin[$name]->parent= $this->parent;
+      }
+    }
+
     /* Remove objects */
     foreach ($this->plugin_name as $name){
       $this->plugin[$name]->dn= $this->dn;
