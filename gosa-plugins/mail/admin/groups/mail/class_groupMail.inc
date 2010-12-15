@@ -98,12 +98,12 @@ class mailgroup extends plugin
         $ldap = $this->config->get_ldap_link();
         if(isset($this->attrs['acl'])){
             for($i = 0; $i < $this->attrs['acl']['count'] ; $i++){
-                $str = trim($this->attrs['acl'][$i]);
 
                 /* Be carefull here, since kolab22 uses spaces in the acls (herbert read anon/post)
                  */
-                $name = trim(preg_replace("/^([^\s]*).*$/","\\1",$str));
-                $acl  = trim(preg_replace("/^[^\s]*+\s/","",$str));
+                $str = $this->attrs['acl'][$i];
+                list($name, $acl) = preg_split("/[ ]{1}/", $str, 2);
+
                 if($name == "anyone") $name = "__anyone__";
                 $this->folder_acls[$name] = $acl;
             }
@@ -647,9 +647,9 @@ class mailgroup extends plugin
             if(isset($_POST['mail_acls_posted'])){
                 $new_acls = array();
                 foreach(array("__anyone__","__member__") as $attr){
-
-                    if(isset($_POST['acl_value_'.$attr])){ 
-                        $new_acls[$attr] = get_post('acl_value_'.$attr);
+                    $id = (isset($this->aclPostToId[$attr])) ? $this->aclPostToId[$attr] : -1;
+                    if(isset($_POST['acl_value_'.$id])){ 
+                        $new_acls[$attr] = get_post('acl_value_'.$id);
                     }else{
                         $new_acls[$attr] = $this->folder_acls[$attr];
                     }
