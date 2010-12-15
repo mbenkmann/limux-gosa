@@ -81,6 +81,19 @@ class workstartup extends plugin
                 $attrs = $ldap->fetch();
                 $this->o_group_dn = $attrs['dn'];
             }
+
+            if ($ldap->count() > 1) { 
+                $ogroups = array(); 
+                array_push($ogroups, $attrs['dn']); 
+                while ($attrs = $ldap->fetch()) { 
+                    array_push($ogroups, $attrs['dn']); 
+                } 
+                $str = ""; 
+                foreach($ogroups as $dn) { 
+                    $str .= "<li>".$dn."</li>"; 
+                } 
+                msg_dialog::display(_("Warning"), sprintf(_("This system is member of more than one object group, object group inheritence will not work!")."<br><ul>%s</ul>", $str), WARNING_DIALOG); 
+            } 
         }
 
         /* Creating a list of valid Mirrors 

@@ -61,7 +61,7 @@ class termgroup extends plugin
         if(isset($this->attrs['member'])){
             for ($i= 0; $i<$this->attrs['member']['count']; $i++){
                 $member= $this->attrs['member'][$i];
-                array_push($this->member_dn, $member);
+                array_push($this->member_dn, @LDAP::convert($member)); 
                 $ldap->cat($member, array('objectClass', 'macAddress', 'cn'));
                 if ($ldap->success()){
                     $attrs = $ldap->fetch();
