@@ -102,6 +102,10 @@ class netatalk extends plugin {
     $this->get_netatalk_shares(); 
     $this->apple_user_share = $this->selectedshare;
 
+    if(!$this->is_account){
+        $this->apple_user_share = key($this->shares);
+    }
+
     /* Save initial account state */
     $this->initially_was_account = $this->is_account;
   }
