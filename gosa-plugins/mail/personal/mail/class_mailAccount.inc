@@ -1029,7 +1029,7 @@ class mailAccount extends plugin
       }
       if ($this->is_template){
         if (!tests::is_email($mail, TRUE)){
-          $message[]= msgPool::invalid(_("Mail address"),"","","%givenName.%sn@your-domain.com");
+          $message[]= msgPool::invalid(_("Mail address"),"","","{%givenName}.{%sn}@your-domain.com");
         }
       } else {
         if (!tests::is_email($mail)){
