@@ -581,7 +581,7 @@ class mailMethodCyrus extends mailMethod{
       foreach ($gosaMailAlternateAddress as $val){
         $addrlist .= ", \"$val\"";
       }
-      $vacmsg= $gosaVacationMessage;
+      $vacmsg= addslashes(addslashes($gosaVacationMessage));
       $text= preg_replace('/"/', '\\"', implode ("", file(CONFIG_DIR."/sieve-vacation.txt")));
       eval ("\$script.=\"$text\";");
     }
