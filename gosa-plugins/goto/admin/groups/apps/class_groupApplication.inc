@@ -758,7 +758,7 @@ class appgroup extends plugin
                 break;
             }
         }
-        while(isset($all_l[$i]) && !in_array_strict($all_l[$i]['TYPE'],array("ENTRY","FOLDER","CLOSE","OPEN")) && $i < count($all_l)){
+        while(isset($all_l[$i]) && !in_array_strict($all_l[$i]['TYPE'],array("SEPERATOR", "ENTRY","FOLDER","CLOSE","OPEN")) && $i < count($all_l)){
             $i++;
         }
 
@@ -791,7 +791,7 @@ class appgroup extends plugin
                 $i++;
             }
         }else{
-            while(isset($all_l[$i]) && !in_array_strict($all_l[$i]['TYPE'],array("ENTRY","FOLDER")) && $i < count($all_l)){
+            while(isset($all_l[$i]) && !in_array_strict($all_l[$i]['TYPE'],array("SEPERATOR", "ENTRY","FOLDER")) && $i < count($all_l)){
                 $i++;
             }
         }
@@ -803,9 +803,6 @@ class appgroup extends plugin
         }
         return($all_l[$i]['UNIQID']);
     }
-
-
-
 
     /* !\brief Handle ui POSTS, like sort up/down/delete
      */ 
