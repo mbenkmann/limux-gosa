@@ -343,7 +343,7 @@ class mailgroup extends plugin
                 $list = $this->mailAddressSelect->save();
                 foreach ($list as $entry){
                     $val = $entry['mail'][0];
-                    if (!in_array ($val, $this->gosaMailAlternateAddress) && $val != $this->mail){
+                    if (!in_array_strict($val, $this->gosaMailAlternateAddress) && $val != $this->mail){
                         $this->addForwarder($val);
                         $this->is_modified= TRUE;
                     }
