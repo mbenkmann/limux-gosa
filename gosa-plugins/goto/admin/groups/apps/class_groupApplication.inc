@@ -315,7 +315,7 @@ class appgroup extends plugin
 
                     /* Add a menu folder 
                      */
-                    if(in_array("gotoSubmenuEntry",$attrs['objectClass'])){
+                    if(in_array_strict("gotoSubmenuEntry",$attrs['objectClass'])){
                         $type = "FOLDER";
 
                         $data['ICON'] = "";
@@ -325,7 +325,7 @@ class appgroup extends plugin
 
                         /* Add a menu entry 
                          */
-                    }elseif(in_array("gotoMenuEntry",$attrs['objectClass'])){
+                    }elseif(in_array_strict("gotoMenuEntry",$attrs['objectClass'])){
 
                         $type = "ENTRY";
                         $data['INFO'] = "";
@@ -345,7 +345,7 @@ class appgroup extends plugin
 
                         /* Add a release
                          */
-                    }elseif(in_array("FAIbranch",$attrs['objectClass'])){
+                    }elseif(in_array_strict("FAIbranch",$attrs['objectClass'])){
                         $type = "RELEASE";
                         if(isset($attrs['FAIstate'][0])){
                             $data['FAIstate'] = $attrs['FAIstate'][0];
@@ -465,7 +465,7 @@ class appgroup extends plugin
         // Add applications found on this base 
         $used_apps = $this->_get_used_entry_name();
         foreach($this->apps as $key => $app){
-            if(in_array($app['cn'][0],$used_apps)) continue;
+            if(in_array_strict($app['cn'][0],$used_apps)) continue;
             if(!preg_match("/".get_ou("application", "applicationRDN").preg_quote($this->curbase, '/')."$/",$app['dn'])){
                 continue;
             }
@@ -758,7 +758,7 @@ class appgroup extends plugin
                 break;
             }
         }
-        while(isset($all_l[$i]) && !in_array($all_l[$i]['TYPE'],array("ENTRY","FOLDER","CLOSE","OPEN")) && $i < count($all_l)){
+        while(isset($all_l[$i]) && !in_array_strict($all_l[$i]['TYPE'],array("ENTRY","FOLDER","CLOSE","OPEN")) && $i < count($all_l)){
             $i++;
         }
 
@@ -766,7 +766,7 @@ class appgroup extends plugin
             return(FALSE);
         }
 
-        if(in_array($all_l[$i]['TYPE'],array("CLOSE","OPEN"))){
+        if(in_array_strict($all_l[$i]['TYPE'],array("CLOSE","OPEN"))){
             return($all_l[$i]['PARENT']);
         }     
 
@@ -791,14 +791,14 @@ class appgroup extends plugin
                 $i++;
             }
         }else{
-            while(isset($all_l[$i]) && !in_array($all_l[$i]['TYPE'],array("ENTRY","FOLDER")) && $i < count($all_l)){
+            while(isset($all_l[$i]) && !in_array_strict($all_l[$i]['TYPE'],array("ENTRY","FOLDER")) && $i < count($all_l)){
                 $i++;
             }
         }
         if(!isset($all_l[$i])){
             return(FALSE);
         }
-        if(in_array($all_l[$i]['TYPE'],array("CLOSE","OPEN"))){
+        if(in_array_strict($all_l[$i]['TYPE'],array("CLOSE","OPEN"))){
             return($all_l[$i]['PARENT']);
         }
         return($all_l[$i]['UNIQID']);
@@ -831,7 +831,7 @@ class appgroup extends plugin
                 $menu = $all[$source_rel]['ENTRIES'];
 
                 foreach($menu as $entry){
-                    if(in_array($entry['TYPE'],array("FOLDER","ENTRY","SEPERATOR"))){
+                    if(in_array_strict($entry['TYPE'],array("FOLDER","ENTRY","SEPERATOR"))){
                         $this->_add_entry($current_rel,$entry,-1);
                     }
                 }
@@ -1296,7 +1296,7 @@ class appgroup extends plugin
             if(isset($entry['LDAP_ATTRS'])){
                 for($i = 0 ; $i < $entry['LDAP_ATTRS']['objectClass']['count']; $i ++){
                     $oc = $entry['LDAP_ATTRS']['objectClass'][$i];
-                    if(!in_array($oc,$attrs['objectClass'])){
+                    if(!in_array_strict($oc,$attrs['objectClass'])){
                         $attrs['objectClass'][] = $oc;
                     }
                 }
@@ -1442,7 +1442,7 @@ class appgroup extends plugin
     {
         $ret = plugin::get_multi_edit_values();
 
-        if(in_array("apps",$this->multi_boxes)){
+        if(in_array_strict("apps",$this->multi_boxes)){
             $ret['gosaApplicationParameter'] = $this->gosaApplicationParameter;
             $ret['Categories']               = $this->Categories;
             $ret['gosaMemberApplication']    = $this->gosaMemberApplication;

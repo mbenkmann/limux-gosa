@@ -33,7 +33,7 @@ class sieve_require
     foreach($this->data as $dat){
       $current[] = $dat;
     }
-    if(!in_array($str,$current)){
+    if(!in_array_strict($str,$current)){
       $this->data[] = $str;
     }
     $this->data = array_unique($this->data);

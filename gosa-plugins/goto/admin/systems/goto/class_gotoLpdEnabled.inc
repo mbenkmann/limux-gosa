@@ -228,7 +228,7 @@ class gotoLpdEnable extends plugin
         foreach($this->data as $entry){
             $str = "";
             foreach($attrs as $attr){
-                if(in_array($attr,$serial_only) && $entry['s_Type'] != "Serial"){
+                if(in_array_strict($attr,$serial_only) && $entry['s_Type'] != "Serial"){
                     $str .= ":";
                 }else{
                     $str .= $entry[$attr].":";

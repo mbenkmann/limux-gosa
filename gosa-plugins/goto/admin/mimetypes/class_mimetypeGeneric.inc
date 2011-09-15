@@ -234,7 +234,7 @@ class mimetype extends plugin
                     if(isset($_POST['NewApplication']) && !empty($_POST['NewApplication'])){
                         $str = trim(get_post("NewApplication"));
                     }
-                    if($str != "" && !in_array($str,$this->use_gotoMimeApplication)){
+                    if($str != "" && !in_array_strict($str,$this->use_gotoMimeApplication)){
                         $this->use_gotoMimeApplication[] = $str;
                     }
                 }
@@ -253,7 +253,7 @@ class mimetype extends plugin
                     if(isset($_POST['NewEmbeddedApplication']) && !empty($_POST['NewEmbeddedApplication'])){
                         $str = trim(get_post('NewEmbeddedApplication'));
                     }
-                    if($str != "" && !in_array($str,$this->use_gotoMimeEmbeddedApplication)){
+                    if($str != "" && !in_array_strict($str,$this->use_gotoMimeEmbeddedApplication)){
                         $this->use_gotoMimeEmbeddedApplication[] = $str;
                     }
                 }
@@ -329,15 +329,15 @@ class mimetype extends plugin
             $this->embeddedList->save_object();
 
             $action=$this->patternList->getAction();
-            if(in_array($action['action'],array('delete', 'reorder'))){
+            if(in_array_strict($action['action'],array('delete', 'reorder'))){
                 $this->use_gotoMimeFilePattern = array_values($this->patternList->getMaintainedData());
             }
             $action=$this->applicationList->getAction();
-            if(in_array($action['action'],array('delete', 'reorder'))){
+            if(in_array_strict($action['action'],array('delete', 'reorder'))){
                 $this->use_gotoMimeApplication = array_values($this->applicationList->getMaintainedData());
             }
             $action=$this->embeddedList->getAction();
-            if(in_array($action['action'],array('delete', 'reorder'))){
+            if(in_array_strict($action['action'],array('delete', 'reorder'))){
                 $this->use_gotoMimeEmbeddedApplication = array_values($this->embeddedList->getMaintainedData());
             }
 

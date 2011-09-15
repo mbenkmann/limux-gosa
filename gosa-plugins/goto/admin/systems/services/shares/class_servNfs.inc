@@ -189,7 +189,7 @@ class servnfs extends plugin
             }
         }
 
-        if(!in_array($this->type,$this->types)){
+        if(!in_array_strict($this->type,$this->types)){
             $message[]= msgPool::required(_("Type"));
         }
 

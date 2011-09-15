@@ -135,7 +135,7 @@ class goKioskService extends goService{
                 foreach($this->gotoKioskProfiles as $k){
                     $used[] = $k['name'];
                 }  
-                if(in_array($file['name'], $used)){
+                if(in_array_strict($file['name'], $used)){
                     msg_dialog::display(_("Warning"), msgPool::duplicated(_("Profile")), WARNING_DIALOG);
                 }else{
                     $this->gotoKioskProfiles[] = $tmp;

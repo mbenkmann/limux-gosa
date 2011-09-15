@@ -95,7 +95,7 @@ class InstallRecipe extends plugin
         // Detect account status by checking the used objectClasses
         $this->is_account = FALSE;
         foreach($this->map as $type){
-            if(in_array($type['objectClass'], $this->attrs['objectClass'])){
+            if(in_array_strict($type['objectClass'], $this->attrs['objectClass'])){
                 $this->installBootstrapMethod = $type['bootstrap'];
                 $this->installConfigManagement = $type['type'];
                 $this->is_account = TRUE;
@@ -381,7 +381,7 @@ class InstallRecipe extends plugin
             $this->installNTPServer = $this->installNTPServerList->getMaintainedData();
             if(isset($_POST['installNTPServer_Input']) && isset($_POST['installNTPServer_Add'])){
                 $add = get_post('installNTPServer_Input');
-                if(!in_array($add, $this->installNTPServer) && !empty($add)){
+                if(!in_array_strict($add, $this->installNTPServer) && !empty($add)){
                     $this->installNTPServer[] = $add;
                 }
             }

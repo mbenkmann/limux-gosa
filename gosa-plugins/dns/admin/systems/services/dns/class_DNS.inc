@@ -138,7 +138,7 @@ class DNS
 
                 /* Skip some attributes 
                  */
-                if(in_array($name,$SkipRecords)) continue;
+                if(in_array_strict($name,$SkipRecords)) continue;
 
                 /* If there is a record attribute
                  */
@@ -560,7 +560,7 @@ class DNS
          *  Or overwritten and filled with new values.
          */
         foreach($newRecords as $name => $def){
-            if(!in_array($name,$specialAttributes)){
+            if(!in_array_strict($name,$specialAttributes)){
                 $add[$stdDn][$name] = $def;
             }
         }
@@ -568,7 +568,7 @@ class DNS
         /* Delete all OLD special attributes.
          */
         foreach($oldEntry['RECORDS'] as $id => $rec){
-            if(in_array($rec['type'],$specialAttributes)){
+            if(in_array_strict($rec['type'],$specialAttributes)){
                 $deldn= "relativeDomainName=".$rec['value'].",".$baseDn;
                 $del[$deldn] = "";
             }

@@ -165,7 +165,7 @@ class systemManagement extends management
             $entry = $headpage->getEntry($dn);
             $ui       = get_userinfo();
             $smarty = get_smarty();
-            if(in_array("FAKE_OC_PWD_changeAble", $entry['objectClass'])){
+            if(in_array_strict("FAKE_OC_PWD_changeAble", $entry['objectClass'])){
                 $acl = $tDefs[$type]['aclCategory'].'/'.$tDefs[$type]['aclClass'];
                 $tabacl   = $ui->get_permissions($dn,$acl,"userPassword");
                 if(preg_match("/w/",$tabacl)){
@@ -268,7 +268,7 @@ class systemManagement extends management
         $ui       = get_userinfo();
         $smarty = get_smarty();
 
-        if(!in_array('FAKE_OC_PWD_changeAble', $entry['objectClass'])){
+        if(!in_array_strict('FAKE_OC_PWD_changeAble', $entry['objectClass'])){
             trigger_error("Tried to change pwd, for invalid object!");
         }elseif (get_post('new_password') != get_post('repeated_password')){
             msg_dialog::display(_("Error"), 
@@ -292,7 +292,7 @@ class systemManagement extends management
 
                     /* Remove password attribute
                      */
-                    if(in_array("simpleSecurityObject",$old_attrs['objectClass'])){
+                    if(in_array_strict("simpleSecurityObject",$old_attrs['objectClass'])){
                         $attrs['objectClass'] = array();
                         for($i = 0 ; $i < $old_attrs['objectClass']['count'] ; $i ++){
                             if(!preg_match("/simpleSecurityObject/i",$old_attrs['objectClass'][$i])){
@@ -305,7 +305,7 @@ class systemManagement extends management
 
                     /* Add/modify password attribute
                      */
-                    if(!in_array("simpleSecurityObject",$old_attrs['objectClass'])){
+                    if(!in_array_strict("simpleSecurityObject",$old_attrs['objectClass'])){
                         $attrs['objectClass'] = array();
                         for($i = 0 ; $i < $old_attrs['objectClass']['count'] ; $i ++){
                             $attrs['objectClass'][] = $old_attrs['objectClass'][$i];
@@ -490,13 +490,13 @@ class systemManagement extends management
             /* Skip installation or update trigerred events,
              *  if this entry is currently processing.
              */
-            if($triggered && in_array($event,array("DaemonEvent_reinstall","DaemonEvent_update"))){
+            if($triggered && in_array_strict($event,array("DaemonEvent_reinstall","DaemonEvent_update"))){
                 foreach($mac as $key => $mac_address){
                     foreach($o_queue->get_entries_by_mac(array($mac_address)) as $entry){
                         $entry['STATUS'] = strtoupper($entry['STATUS']);
                         if($entry['STATUS'] == "PROCESSING" &&
                                 isset($events['QUEUED'][$entry['HEADERTAG']]) &&
-                                in_array($events['QUEUED'][$entry['HEADERTAG']],array("DaemonEvent_reinstall","DaemonEvent_update"))){
+                                in_array_strict($events['QUEUED'][$entry['HEADERTAG']],array("DaemonEvent_reinstall","DaemonEvent_update"))){
                             unset($mac[$key]);
 
                             new log("security","systems/".get_class($this),"",array(),"Skip adding 'DaemonEvent::".$type."' for mac '".$mac_address."', there is already a job in progress.");
@@ -1075,7 +1075,7 @@ class systemManagement extends management
                 $ocs = $attrs['objectClass'];
                 unset($ocs['count']);
                 $new_attrs = array();
-                if(!in_array("FAIobject",$ocs)){
+                if(!in_array_strict("FAIobject",$ocs)){
                     $ocs[] = "FAIobject";
                     $new_attrs['objectClass'] = $ocs;
                 }

@@ -159,12 +159,12 @@ class sudo extends plugin
         if(isset($_POST['userGroupSelect_save']) && $this->dialog instanceof userGroupSelect){
             if($this->acl_is_writeable("sudoUser")){
                 foreach($this->dialog->save() as $entry){
-                    if(in_array("posixGroup",$entry['objectClass'])){
+                    if(in_array_strict("posixGroup",$entry['objectClass'])){
                         $name = trim("%".$entry['cn'][0]);
                     }elseif(isset($entry['uid'][0])){
                         $name = trim($entry['uid'][0]);
                     }
-                    if(!in_array($name,$this->sudoUser) && !in_array("!".$name,$this->sudoUser)){
+                    if(!in_array_strict($name,$this->sudoUser) && !in_array_strict("!".$name,$this->sudoUser)){
                         $this->sudoUser[] = $name;
                     }
                 }   
@@ -209,7 +209,7 @@ class sudo extends plugin
             if($this->acl_is_writeable("sudoHost")){
                 foreach($this->dialog->save() as $entry){
                     $cn = trim($entry['cn'][0]);
-                    if(!in_array($cn,$this->sudoHost) && !in_array("!".$cn,$this->sudoHost)){
+                    if(!in_array_strict($cn,$this->sudoHost) && !in_array_strict("!".$cn,$this->sudoHost)){
                         $this->sudoHost[] = $cn;
                     }
                 }   

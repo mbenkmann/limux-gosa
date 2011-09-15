@@ -157,7 +157,7 @@ class mailgroup extends plugin
                 if($this->mailMethod->domainSelectionEnabled() || $this->mailMethod->mailEqualsCN()){
                     $this->mailDomainPart = preg_replace("/^[^@]*+@/","",$this->mail);
                     $this->mail = preg_replace("/@.*$/","\\1",$this->mail);
-                    if(!in_array($this->mailDomainPart,$this->mailDomainParts)){
+                    if(!in_array_strict($this->mailDomainPart,$this->mailDomainParts)){
                         $this->mailDomainParts[] = $this->mailDomainPart;
                     }
                 }
@@ -188,7 +188,7 @@ class mailgroup extends plugin
             $member = $this->get_member();
             foreach($this->folder_acls as $user => $acl){
                 if(preg_match("/^__/",$user)) continue;
-                if(!in_array($user,$member['mail'])) continue; 
+                if(!in_array_strict($user,$member['mail'])) continue; 
                 if(!isset($acl_usage[$acl])) $acl_usage[$acl]=0;
                 $acl_usage[$acl] ++;
                 if($acl_usage[$acl] > $most_cnt){
@@ -199,7 +199,7 @@ class mailgroup extends plugin
             $this->folder_acls['__member__'] = $most_acl;  
             foreach($this->folder_acls as $name => $acl){
                 if(preg_match("/^__/",$name)) continue;
-                if($acl == $most_acl && in_array($name,$member['mail'])){
+                if($acl == $most_acl && in_array_strict($name,$member['mail'])){
                     unset($this->folder_acls[$name]);
                 }
             }
@@ -246,8 +246,8 @@ class mailgroup extends plugin
             foreach($users as $user){
                 $member['all'][$user['uid'][0]] = $user['dn'];
                 if(isset($user[$uattrib]) 
-                        && in_array("gosaMailAccount",$user['objectClass']) 
-                        && (in_array($user['uid'][0], $this->attrs['memberUid']))){
+                        && in_array_strict("gosaMailAccount",$user['objectClass']) 
+                        && (in_array_strict($user['uid'][0], $this->attrs['memberUid']))){
                     $member['mail'][$user['uid'][0]] = $user[$uattrib][0];
                 }
             }
@@ -380,7 +380,7 @@ class mailgroup extends plugin
                         }
                     }
                 } elseif ($address == $this->mail
-                        || in_array($address, $this->gosaMailAlternateAddress)) {
+                        || in_array_strict($address, $this->gosaMailAlternateAddress)) {
                     msg_dialog::display(_("Error"),_("Cannot add primary address to the list of forwarders!") , ERROR_DIALOG);
                 } else {
                     $valid= TRUE;
@@ -502,7 +502,7 @@ class mailgroup extends plugin
           Multi edit support 
          ******/
         foreach($this->attributes as $attr){
-            if(in_array($attr,$this->multi_boxes)){
+            if(in_array_strict($attr,$this->multi_boxes)){
                 $smarty->assign("use_".$attr,TRUE);
             }else{
                 $smarty->assign("use_".$attr,FALSE);
@@ -511,7 +511,7 @@ class mailgroup extends plugin
 
         /* Multiple support handling */
         foreach(array("kolabFolderType") as $attr){
-            if(in_array($attr,$this->multi_boxes)){
+            if(in_array_strict($attr,$this->multi_boxes)){
                 $smarty->assign("use_".$attr,TRUE);
             }else{
                 $smarty->assign("use_".$attr,FALSE);
@@ -624,7 +624,7 @@ class mailgroup extends plugin
                 /* Get posted mail domain part, if necessary
                  */
                 if($this->mailMethod->domainSelectionEnabled() && isset($_POST['MailDomain'])){
-                    if(in_array(get_post('MailDomain'), $this->mailDomainParts)){
+                    if(in_array_strict(get_post('MailDomain'), $this->mailDomainParts)){
                         $this->mailDomainPart = get_post('MailDomain');
                     }
                 }
@@ -913,7 +913,7 @@ class mailgroup extends plugin
 
         foreach (array("gosaMailAlternateAddress", "gosaMailForwardingAddress") as $val){
 
-            if (in_array($val, $skip)){
+            if (in_array_strict($val, $skip)){
                 continue;
             }
 
@@ -1044,7 +1044,7 @@ class mailgroup extends plugin
         $this->gosaMailForwardingAddress_Some = array();
         if(isset($all['gosaMailForwardingAddress'])){
             for($i = 0 ; $i < $all['gosaMailForwardingAddress']['count'] ; $i++){
-                if(!in_array($all['gosaMailForwardingAddress'][$i],$this->gosaMailForwardingAddress)){
+                if(!in_array_strict($all['gosaMailForwardingAddress'][$i],$this->gosaMailForwardingAddress)){
                     $this->gosaMailForwardingAddress_Some[] = $all['gosaMailForwardingAddress'][$i];
                 }
             }
@@ -1096,11 +1096,11 @@ class mailgroup extends plugin
         $ret = plugin::get_multi_edit_values();
         $ret['Forward_some'] = $this->gosaMailForwardingAddress_Some;    
         $ret['Forward_all'] = $this->gosaMailForwardingAddress;    
-        if(in_array('kolabFolderType',$this->multi_boxes)){
+        if(in_array_strict('kolabFolderType',$this->multi_boxes)){
             $ret['kolabFolderTypeType'] = $this->kolabFolderTypeType;
             $ret['kolabFolderTypeSubType'] = $this->kolabFolderTypeSubType;
         }
-        if(in_array("acl",$this->multi_boxes)){
+        if(in_array_strict("acl",$this->multi_boxes)){
             $ret['imapacl'] = $this->imapacl;
         }
         return($ret);
@@ -1110,7 +1110,7 @@ class mailgroup extends plugin
     {
         $forward = array();
         foreach($attrs['Forward_some'] as $addr){
-            if(in_array($addr,$this->gosaMailForwardingAddress)){
+            if(in_array_strict($addr,$this->gosaMailForwardingAddress)){
                 $forward[] = $addr;
             }
         }
@@ -1183,7 +1183,7 @@ class mailgroup extends plugin
         }
 
         /* Add to list of alternates */
-        if (!in_array($address, $this->gosaMailAlternateAddress)){
+        if (!in_array_strict($address, $this->gosaMailAlternateAddress)){
             $this->gosaMailAlternateAddress[]= $address;
         }
 

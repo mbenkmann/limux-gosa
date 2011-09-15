@@ -65,8 +65,8 @@ class termgroup extends plugin
                 $ldap->cat($member, array('objectClass', 'macAddress', 'cn'));
                 if ($ldap->success()){
                     $attrs = $ldap->fetch();
-                    if (in_array("gotoTerminal", $attrs['objectClass']) ||
-                            in_array("gotoWorkstation", $attrs['objectClass'])){
+                    if (in_array_strict("gotoTerminal", $attrs['objectClass']) ||
+                            in_array_strict("gotoWorkstation", $attrs['objectClass'])){
                         if (isset($attrs['macAddress'])){
                             $this->members[$attrs['cn'][0]]= $attrs['macAddress'][0];
                         } else {
@@ -118,7 +118,7 @@ class termgroup extends plugin
         $this->nfsservers= $tmp2;
 
         /* Set inherit checkbox state */
-        if(in_array("default",$this->gotoNtpServer)){
+        if(in_array_strict("default",$this->gotoNtpServer)){
             $this->inheritTimeServer = true;
             $this->gotoNtpServer=array();
         }
@@ -272,7 +272,7 @@ class termgroup extends plugin
 
         $tmp = array();
         foreach($this->gotoNtpServers as $server){
-            if(!in_array($server,$this->gotoNtpServer)){
+            if(!in_array_strict($server,$this->gotoNtpServer)){
                 $tmp[$server] = $server;
             }
         }
@@ -426,7 +426,7 @@ class termgroup extends plugin
         }
 
         /* Set inherit checkbox state */
-        if(in_array("default",$this->gotoNtpServer)){
+        if(in_array_strict("default",$this->gotoNtpServer)){
             $this->inheritTimeServer = true;
             $this->gotoNtpServer=array();
         }

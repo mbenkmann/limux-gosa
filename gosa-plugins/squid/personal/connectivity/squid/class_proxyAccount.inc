@@ -141,7 +141,7 @@ class proxyAccount extends plugin
     /* Assign filter settings */
     $smarty->assign("changeB",$changeB);
     foreach(array("T","B","F") as $attr){
-      if(in_array("filter".$attr,$this->multi_boxes)){
+      if(in_array_strict("filter".$attr,$this->multi_boxes)){
         $smarty->assign("use_filter".$attr,TRUE);
       }else{
         $smarty->assign("use_filter".$attr,FALSE);
@@ -156,7 +156,7 @@ class proxyAccount extends plugin
       $smarty->assign('proxyAccountACL', $this->getacl("",$this->ReadOnly));
     }
 
-    $smarty->assign("use_proxy",in_array("proxy",$this->multi_boxes));
+    $smarty->assign("use_proxy",in_array_strict("proxy",$this->multi_boxes));
     $smarty->assign("multiple_support",$this->multiple_support_active);
     $display.= $smarty->fetch(get_template_path('proxy.tpl', TRUE, dirname(__FILE__)));
     return($display);
@@ -376,22 +376,22 @@ class proxyAccount extends plugin
   public function get_multi_edit_values()
   {
     $ret = plugin::get_multi_edit_values();
-    if(in_array("proxy",$this->multi_boxes)){
+    if(in_array_strict("proxy",$this->multi_boxes)){
       $ret['is_account'] = $this->is_account;
     }
 
-    if(in_array("filterT",$this->multi_boxes)){
+    if(in_array_strict("filterT",$this->multi_boxes)){
       $ret['gosaProxyWorkingStart']  = $this->gosaProxyWorkingStart;
       $ret['gosaProxyWorkingStop']   = $this->gosaProxyWorkingStop;
     }
-    if(in_array("filterB",$this->multi_boxes)){
+    if(in_array_strict("filterB",$this->multi_boxes)){
       $ret['gosaProxyQuota']        = $this->gosaProxyQuota;
       $ret['gosaProxyQuotaPeriod']  = $this->gosaProxyQuotaPeriod;
     }
 
     foreach(array("B","T","F") as $attr){
       $name = "filter".$attr;
-      if(in_array($name,$this->multi_boxes)){
+      if(in_array_strict($name,$this->multi_boxes)){
         $ret[$name] = preg_match("/".$attr."/",$this->gosaProxyAcctFlags);
       }
     }
@@ -432,7 +432,7 @@ class proxyAccount extends plugin
   public function init_multiple_support($attrs,$all)
   {
     plugin::init_multiple_support($attrs,$all);
-    if(isset($attrs['objectClass']) && in_array("gosaProxyAccount",$attrs['objectClass'])){
+    if(isset($attrs['objectClass']) && in_array_strict("gosaProxyAccount",$attrs['objectClass'])){
       $this->is_account = TRUE;
     }
   }

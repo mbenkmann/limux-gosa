@@ -675,7 +675,7 @@ class passwordMethodMIT extends passwordMethod
 
             /* Save principal changes */
             $o = new gosaSupportDaemon();
-            if(in_array($principal,$this->server_list[$server_name]['principals'])){
+            if(in_array_strict($principal,$this->server_list[$server_name]['principals'])){
                 $this->is_new = FALSE;
             }
 

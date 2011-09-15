@@ -275,7 +275,7 @@ class faiPartition extends plugin
     // Check which of the available disks are unused. 
     $ret = array();
     foreach($may as $val){
-      if(!in_array($val,$used)){
+      if(!in_array_strict($val,$used)){
         $ret[$val] = $val;
       }
     }

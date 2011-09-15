@@ -111,7 +111,7 @@ class faiHookEntry extends plugin
     $used_tasks = $this->parent->getUsedFAItask($this->cn);
     $tasks = $this->tasks;
     foreach($this->tasks as $id => $task){
-      if(in_array($task,$used_tasks)){
+      if(in_array_strict($task,$used_tasks)){
         unset($tasks[$id]);
       }
     }

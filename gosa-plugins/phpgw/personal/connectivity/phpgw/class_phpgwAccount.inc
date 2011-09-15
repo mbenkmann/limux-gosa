@@ -59,7 +59,7 @@ class phpgwAccount extends plugin
 
     $smarty->assign('phpgwAccountACL', $this->getacl("",$this->ReadOnly));
     $smarty->assign("multiple_support",$this->multiple_support_active);
-    $smarty->assign("use_phpgw",in_array("phpgw",$this->multi_boxes));
+    $smarty->assign("use_phpgw",in_array_strict("phpgw",$this->multi_boxes));
     $display.= $smarty->fetch (get_template_path('phpgw.tpl', TRUE, dirname(__FILE__)));
     return ($display);
   }
@@ -203,7 +203,7 @@ class phpgwAccount extends plugin
   function get_multi_edit_values()
   {
     $ret = plugin::get_multi_edit_values();
-    if(in_array("phpgw",$this->multi_boxes)){
+    if(in_array_strict("phpgw",$this->multi_boxes)){
       $ret['is_account'] = $this->is_account;
     }
     return($ret);
@@ -220,7 +220,7 @@ class phpgwAccount extends plugin
   function init_multiple_support($attrs,$all)
   {
     plugin::init_multiple_support($attrs,$all);
-    if(isset($attrs['objectClass']) && in_array("phpgwAccount",$attrs['objectClass'])){
+    if(isset($attrs['objectClass']) && in_array_strict("phpgwAccount",$attrs['objectClass'])){
       $this->is_account = TRUE;
     }
   }

@@ -351,7 +351,7 @@ class servdhcp extends goService
         foreach($this->dhcpSections as $section => $values ){
 
             // Ensure that we've a valid id for this section.
-            if(!in_array($section,$this->dhcpDNtoID)){
+            if(!in_array_strict($section,$this->dhcpDNtoID)){
                 $this->dhcpDNtoID[] = $section;
             }
 
@@ -481,7 +481,7 @@ class servdhcp extends goService
             if($this->dn != $this->orig_dn){
                 $fixed = FALSE;
                 foreach(array("dhcpHost","dhcpSubnet","dhcpGroup","dhcpSharedNetwork") as $object){
-                    if(in_array($object,$data['objectClass']) && isset($data['dhcpOption'])){
+                    if(in_array_strict($object,$data['objectClass']) && isset($data['dhcpOption'])){
                         foreach($data['dhcpOption'] as $key => $option){
                             if(preg_match("/^server-name /",$option)){
                                 $data['dhcpOption'][$key] = "server-name ".$this->cn;
@@ -514,7 +514,7 @@ class servdhcp extends goService
                         continue;
                     }
 
-                    if(in_array($attribute,array("dhcpPrimaryDN","dhcpSecondaryDN","dhcpServerDN","dhcpFailOverPeerDN"))){
+                    if(in_array_strict($attribute,array("dhcpPrimaryDN","dhcpSecondaryDN","dhcpServerDN","dhcpFailOverPeerDN"))){
                         foreach($values as $v_key => $value){
                             $values[$v_key] = preg_replace("/".preg_quote($this->orig_dn, '/')."$/i",$this->dn,$value);
                         }
@@ -526,7 +526,7 @@ class servdhcp extends goService
                             foreach($values as $key => $value){
                                 $option_name = trim(preg_replace("/[^ ]*$/","",$value));
                                 $option_value= trim(preg_replace("/^[^ ]*/","",$value));
-                                if(in_array($option_name,$this->quote_option)){
+                                if(in_array_strict($option_name,$this->quote_option)){
                                     $values[$key] = $option_name." \"".$option_value."\"";
                                 }
                             }
@@ -645,7 +645,7 @@ class servdhcp extends goService
                         foreach($values as $key => $value){
                             $value_name = trim(preg_replace("/[^ ]*$/","",$value));
                             $value_value= trim(preg_replace("/^[^ ]*/","",$value));
-                            if(in_array($value_name,$this->quote_option)){
+                            if(in_array_strict($value_name,$this->quote_option)){
                                 $value_value = preg_replace("/^\"/","",$value_value);
                                 $value_value = preg_replace("/\"$/","",$value_value);
                                 $sattrs[$name][$key] = $value_name." ".$value_value;
@@ -663,7 +663,7 @@ class servdhcp extends goService
                 }
 
                 foreach ($this->types as $key => $val){
-                    if (in_array("$key", $attrs['objectClass'])){
+                    if (in_array_strict("$key", $attrs['objectClass'])){
                         $type= $val;
                         break;
                     }
@@ -698,7 +698,7 @@ class servdhcp extends goService
                 "dhcpTSigKey", "dhcpDnsZone");
 
         foreach ($this->dhcpObjectCache[$dn]['objectClass'] as $oc){
-            if (in_array($oc, $types)){
+            if (in_array_strict($oc, $types)){
                 $type= $oc;
                 break;
             }

@@ -185,8 +185,8 @@ class licenseGeneric extends plugin
             if(isset($_POST['addLicenseUsage']) && isset($_POST['selectedHostToAdd'])){
                 $host = get_post('selectedHostToAdd');
                 if(!empty($host) && 
-                        in_array($host,$this->getHosts()) && 
-                        !in_array($host, $this->usedByHost)){
+                        in_array_strict($host,$this->getHosts()) && 
+                        !in_array_strict($host, $this->usedByHost)){
                     $this->usedByHost[] = $host;
                 }
             }

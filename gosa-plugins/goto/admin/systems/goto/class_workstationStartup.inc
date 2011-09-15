@@ -447,7 +447,7 @@ class workstartup extends plugin
                 isset($_POST['ldap_server_to_add'])){
             if(isset($this->gotoLdapServerList[get_post('ldap_server_to_add')])){
                 $to_add = $this->gotoLdapServerList[get_post('ldap_server_to_add')];
-                if(!in_array($to_add,$this->gotoLdapServers)){
+                if(!in_array_strict($to_add,$this->gotoLdapServers)){
                     $this->gotoLdapServers[] = $to_add;
                 }
             }
@@ -471,7 +471,7 @@ class workstartup extends plugin
             $data[$key]=$server;
 
             /* Announce missing entries */
-            if(!in_array($server,$this->gotoLdapServerList)){
+            if(!in_array_strict($server,$this->gotoLdapServerList)){
                 $server = $server."&nbsp;<font style='color:red'>(missing)</font>";
             }
 
@@ -495,7 +495,7 @@ class workstartup extends plugin
 
         $list = array();
         foreach($this->gotoLdapServerList as $key => $entry){
-            if(!in_array($entry,$this->gotoLdapServers)){
+            if(!in_array_strict($entry,$this->gotoLdapServers)){
 
                 /* Convert old style entry */
                 if (!preg_match('%:ldap[s]*://%', $entry)){
@@ -868,7 +868,7 @@ another location! */
     {
         $tmp= array();
         foreach ($array as $mod){
-            if (!in_array($mod, $list)){
+            if (!in_array_strict($mod, $list)){
                 $tmp[]= $mod;
             }
         }
@@ -1149,7 +1149,7 @@ another location! */
         $Abbr ="";
         $ret= array();
         foreach($classes as $class_name => $class_types){
-            if(!in_array($class_name,$this->FAIclass)){
+            if(!in_array_strict($class_name,$this->FAIclass)){
                 $Abbr = "";
                 foreach($class_types as $type){
                     if(!preg_match("/".$type['Abbr']."/",$Abbr)){

@@ -353,7 +353,7 @@ class goKrbServer extends goService{
     /* Send remove policy event  
      */
     foreach($actions['del'] as $policy){
-      if(!in_array($policy['NAME'],$policies)) continue;
+      if(!in_array_strict($policy['NAME'],$policies)) continue;
       if(!$o->krb5_del_policy($this->macAddress,$policy['NAME'])){
         msg_dialog::display(_("Service infrastructure"),msgPool::siError($o->get_error()),ERROR_DIALOG);
       }
@@ -362,7 +362,7 @@ class goKrbServer extends goService{
     /* Send add new/edit policy event
      */
     foreach($actions['add_edit'] as $policy){
-      if(in_array($policy['NAME'],$policies)){
+      if(in_array_strict($policy['NAME'],$policies)){
         if(!$o->krb5_set_policy($this->macAddress,$policy['NAME'],$policy['DATA'])){
           msg_dialog::display(_("Service infrastructure"),msgPool::siError($o->get_error()),ERROR_DIALOG);
         }

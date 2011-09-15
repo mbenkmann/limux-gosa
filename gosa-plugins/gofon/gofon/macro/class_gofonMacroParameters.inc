@@ -345,7 +345,7 @@ class macroParameter extends plugin
             }
             switch($val['type']){
                 case 'bool'   :   $possible = array("","0","1");
-                                  if(!in_array($val['default'],$possible)) {
+                                  if(!in_array_strict($val['default'],$possible)) {
                                       $message[] = sprintf(_("Parameter %s is invalid!"),$val['name']);
                                   };break;
                 case 'string' :

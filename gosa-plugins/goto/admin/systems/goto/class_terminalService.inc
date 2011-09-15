@@ -333,7 +333,7 @@ class termservice extends plugin
         }
 
         if(isset($_POST['gotoXdmcpServer_add']) && isset($_POST['XdmcpAddServer'])){
-            if(!in_array($_POST['gotoXdmcpServer_add'],$this->selected_xdmcp_servers)){
+            if(!in_array_strict($_POST['gotoXdmcpServer_add'],$this->selected_xdmcp_servers)){
                 $this->selected_xdmcp_servers[] =get_post('gotoXdmcpServer_add');
             }
         }
@@ -341,7 +341,7 @@ class termservice extends plugin
         if(isset($_POST['selected_xdmcp_servers']) && isset($_POST['XdmcpDelServer'])){
             $tmp = array();
             foreach($this->selected_xdmcp_servers as $name){
-                if(!in_array($name,$_POST['selected_xdmcp_servers'])){
+                if(!in_array_strict($name,$_POST['selected_xdmcp_servers'])){
                     $tmp[] =  $name;
                 }
             }
@@ -364,7 +364,7 @@ class termservice extends plugin
         $xdmcp_types =  $this->config->data['SERVERS']['TERMINAL_SESSION_TYPES'];
         $available_servers = array();
         foreach($xdmcp_types as $servername =>$supported_types){
-            if(in_array(strtoupper($this->gotoXMethod),$supported_types)){
+            if(in_array_strict(strtoupper($this->gotoXMethod),$supported_types)){
                 $available_servers[]  = $servername;
             }
         }
@@ -373,7 +373,7 @@ class termservice extends plugin
          */
         $tmp = array();
         foreach($this->selected_xdmcp_servers as $server){
-            if(in_array($server,$available_servers)){
+            if(in_array_strict($server,$available_servers)){
                 $tmp[$server] = $server;
             }else{
                 $tmp[$server] = $server."&nbsp;-&nbsp;"._("Unsupported");
@@ -536,12 +536,12 @@ class termservice extends plugin
             $xdmcp_types =  $this->config->data['SERVERS']['TERMINAL_SESSION_TYPES'];
             $available_servers = array();
             foreach($xdmcp_types as $servername =>$supported_types){
-                if(in_array(strtoupper($this->gotoXMethod),$supported_types)){
+                if(in_array_strict(strtoupper($this->gotoXMethod),$supported_types)){
                     $available_servers[]  = $servername;
                 }
             }
             foreach($this->selected_xdmcp_servers as $server){
-                if(!in_array($server,$available_servers)){
+                if(!in_array_strict($server,$available_servers)){
                     $message[] = _("Remote desktop settings contains servers that do not support the selected connection method.");
                     break;
                 }

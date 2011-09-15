@@ -187,7 +187,7 @@ class mailAccount extends plugin
         if($this->mailMethod->domainSelectionEnabled()){
           $this->mailDomainPart = preg_replace("/^[^@]*+@/","",$this->mail);
           $this->mail = preg_replace("/@.*$/","\\1",$this->mail);
-          if(!in_array($this->mailDomainPart,$this->mailDomainParts)){
+          if(!in_array_strict($this->mailDomainPart,$this->mailDomainParts)){
             $this->mailDomainParts[] = $this->mailDomainPart;
           }
         }
@@ -351,7 +351,7 @@ class mailAccount extends plugin
             }
           }
         } elseif ($address == $this->mail
-            || in_array($address, $this->gosaMailAlternateAddress)) {
+            || in_array_strict($address, $this->gosaMailAlternateAddress)) {
           msg_dialog::display(_("Error"),_("Cannot add primary address to the list of forwarders!") , ERROR_DIALOG);
         } else {
           $valid= TRUE;
@@ -440,11 +440,11 @@ class mailAccount extends plugin
     /* _Multiple users vars_ */
     foreach($this->attributes as $attr){
       $u_attr = "use_".$attr;
-      $smarty->assign($u_attr,in_array($attr,$this->multi_boxes));
+      $smarty->assign($u_attr,in_array_strict($attr,$this->multi_boxes));
     }
     foreach(array("only_local","gosaMailForwardingAddress","use_mailsize_limit","drop_own_mails","use_vacation","use_spam_filter") as $attr){
       $u_attr = "use_".$attr;
-      $smarty->assign($u_attr,in_array($attr,$this->multi_boxes));
+      $smarty->assign($u_attr,in_array_strict($attr,$this->multi_boxes));
     }
 
 
@@ -525,7 +525,7 @@ class mailAccount extends plugin
         /* Get posted mail domain part, if necessary  
          */
         if($this->mailMethod->domainSelectionEnabled() && isset($_POST['MailDomain'])){
-          if(in_array(get_post('MailDomain'), $this->mailDomainParts)){
+          if(in_array_strict(get_post('MailDomain'), $this->mailDomainParts)){
             $this->mailDomainPart = get_post('MailDomain');
           }
         }
@@ -701,7 +701,7 @@ class mailAccount extends plugin
         }
         return ($attrs["uid"][0]);
       }
-      if (!in_array($address, $this->gosaMailAlternateAddress)){
+      if (!in_array_strict($address, $this->gosaMailAlternateAddress)){
         $this->gosaMailAlternateAddress[]= $address;
         $this->is_modified= TRUE;
       }
@@ -1119,7 +1119,7 @@ class mailAccount extends plugin
 
     foreach (array("gosaMailAlternateAddress", "gosaMailForwardingAddress") as $val){
 
-      if (in_array($val, $skip)){
+      if (in_array_strict($val, $skip)){
         continue;
       }
 
@@ -1156,7 +1156,7 @@ class mailAccount extends plugin
     if($this->is_account && $this->mailMethod->domainSelectionEnabled()){
       $this->mailDomainPart = preg_replace("/^[^@]*+@/","",$this->mail);
       $this->mail = preg_replace("/@.*$/","\\1",$this->mail);
-      if(!in_array($this->mailDomainPart,$this->mailDomainParts)){
+      if(!in_array_strict($this->mailDomainPart,$this->mailDomainParts)){
         $this->mailDomainParts[] = $this->mailDomainPart;
       }
     }
@@ -1218,7 +1218,7 @@ class mailAccount extends plugin
       if($this->mailMethod->domainSelectionEnabled()){
           $this->mailDomainPart = preg_replace("/^[^@]*+@/","",$this->mail);
           $this->mail = preg_replace("/@.*$/","\\1",$this->mail);
-          if(!in_array($this->mailDomainPart,$this->mailDomainParts)){
+          if(!in_array_strict($this->mailDomainPart,$this->mailDomainParts)){
               $this->mailDomainParts[] = $this->mailDomainPart;
           }
       }
@@ -1238,7 +1238,7 @@ class mailAccount extends plugin
   function get_multi_edit_values()
   {
     $ret = plugin::get_multi_edit_values();
-    if(in_array("gosaMailQuota",$this->multi_boxes)){
+    if(in_array_strict("gosaMailQuota",$this->multi_boxes)){
       $ret['gosaMailQuota'] = $this->gosaMailQuota;
     }
     $flag_add = $flag_remove = array();
@@ -1251,7 +1251,7 @@ class mailAccount extends plugin
         "C"   => "own_script",
         "I"   => "drop_own_mails");
     foreach($opts as $flag => $post){
-      if(in_array($post, $this->multi_boxes)){
+      if(in_array_strict($post, $this->multi_boxes)){
         if(preg_match("/".$flag."/",$tmp)){
           $flag_add[] = $flag;
         }else{
@@ -1263,7 +1263,7 @@ class mailAccount extends plugin
     $ret['flag_remove'] = $flag_remove;
 
     if($this->mailMethod->vacationRangeEnabled()){
-      if(in_array("V",$flag_add)){
+      if(in_array_strict("V",$flag_add)){
         $ret['gosaVacationStart'] =  $this->gosaVacationStart = get_post('gosaVacationStart');
         $ret['gosaVacationStop'] =  $this->gosaVacationStop = get_post('gosaVacationStop');
       }
@@ -1278,12 +1278,12 @@ class mailAccount extends plugin
   {
     $message = plugin::multiple_check();
 
-    if(empty($this->gosaMailServer) && in_array("gosaMailServer",$this->multi_boxes)){
+    if(empty($this->gosaMailServer) && in_array_strict("gosaMailServer",$this->multi_boxes)){
       $message[]= msgPool::noserver(_("Mail"));
     }
 
     /* Check quota */
-    if ($this->gosaMailQuota != ''  && in_array("gosaMailQuota",$this->multi_boxes)){
+    if ($this->gosaMailQuota != ''  && in_array_strict("gosaMailQuota",$this->multi_boxes)){
       if (!is_numeric($this->gosaMailQuota)) {
         $message[]= msgPool::invalid(_("Quota size"),$this->gosaMailQuota,"/^[0-9]*/");
       } else {
@@ -1292,7 +1292,7 @@ class mailAccount extends plugin
     }
 
     /* Check rejectsize for integer */
-    if ($this->gosaMailMaxSize != '' && in_array("gosaMailMaxSize",$this->multi_boxes)){
+    if ($this->gosaMailMaxSize != '' && in_array_strict("gosaMailMaxSize",$this->multi_boxes)){
       if (!is_numeric($this->gosaMailMaxSize)){
         $message[]= msgPool::invalid(_("Mail reject size"),$this->gosaMailMaxSize,"/^[0-9]*/");
       } else {
@@ -1300,7 +1300,7 @@ class mailAccount extends plugin
       }
     }
 
-    if(empty($this->gosaSpamMailbox) && in_array("gosaSpamMailbox",$this->multi_boxes)){
+    if(empty($this->gosaSpamMailbox) && in_array_strict("gosaSpamMailbox",$this->multi_boxes)){
       $message[]= msgPool::required(_("Spam folder"));
     }
 

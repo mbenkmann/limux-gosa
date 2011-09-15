@@ -271,7 +271,7 @@ class printgeneric extends plugin
 
             if($ldap->count()){
                 $attrs = $ldap->fetch();
-                if(in_array("gotoPrinter",$attrs['objectClass'])){
+                if(in_array_strict("gotoPrinter",$attrs['objectClass'])){
                     $this->initially_was_account = true;
                     $this->is_account             = true;
                 }else{
@@ -512,7 +512,7 @@ class printgeneric extends plugin
                 $add = 'Admin';
             }
             foreach($users as $user){
-                if(in_array('gosaAccount', $user['objectClass'])){
+                if(in_array_strict('gosaAccount', $user['objectClass'])){
                     $type = 'Add'.$add.'User';  
                 }else{
                     $type = 'Add'.$add.'Group';  
@@ -643,7 +643,7 @@ class printgeneric extends plugin
 
             /* Check if obejct is a printer */
             $CheckPrinter = $ldap->fetch();
-            if(!in_array("gotoPrinter",$CheckPrinter['objectClass'])){
+            if(!in_array_strict("gotoPrinter",$CheckPrinter['objectClass'])){
                 msg_dialog::display(_("Error"), _("Object is no printer!"), ERROR_DIALOG);
                 return;
             }

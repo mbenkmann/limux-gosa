@@ -21,7 +21,7 @@ class TemplateWidget_fixedList extends TemplateWidget
     {
         $tmp = array();
         foreach($this->values as $key => $name){
-            if(!in_array($key, $this->value)){
+            if(!in_array_strict($key, $this->value)){
                 $tmp[$key]=$name;
             }
         }

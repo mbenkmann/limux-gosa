@@ -129,7 +129,7 @@ class servDNSeditZoneEntries extends plugin
                 /* Check if there is at least one visible record. Else remove complete entry */
                 $visible = false;
                 foreach($this->Devices[$Name]['RECORDS'] as $rec){
-                    if(in_array($rec['type'],$this->RecordTypes)){
+                    if(in_array_strict($rec['type'],$this->RecordTypes)){
                         $visible = true;  
                         break;
                     }
@@ -301,7 +301,7 @@ class servDNSeditZoneEntries extends plugin
 
                 /* Check for multiple use of unique record types
                  */
-                if(in_array($Rec['type'],$singleEntries)){
+                if(in_array_strict($Rec['type'],$singleEntries)){
                     if(!isset($tmp[$Rec['type']])){
                         $tmp[$Rec['type']] = "";
                     }else{

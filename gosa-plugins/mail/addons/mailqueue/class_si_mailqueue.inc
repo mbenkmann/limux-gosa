@@ -131,7 +131,7 @@ class si_mailqueue extends gosaSupportDaemon
     /* Check triggered action 
      */
     $allowed_actions = array("hold","unhold","requeue","del");
-    if(!in_array($action,$allowed_actions)){
+    if(!in_array_strict($action,$allowed_actions)){
       trigger_error("Unknown queue action triggered '".$action."'. Request aborted.");  
       return(FALSE);
     }    

@@ -66,7 +66,7 @@ class My_Tree extends Tree
 
         $end = $this->get_block_end($key,false);
         $end2 = $this->get_block_end($key);
-        if($end != $key && in_array(get_class($object),array("sieve_if"))){
+        if($end != $key && in_array_strict(get_class($object),array("sieve_if"))){
           $ends_complete_block[$end2] = $end2;
           $this->dump_ .= "<div style='height:10px;'></div>";
           $this->dump_ .= "<div class='container_'>";
@@ -75,7 +75,7 @@ class My_Tree extends Tree
           $this->dump_  .= $block_indent_stop;
         }
         $this->dump_ .= preg_replace("/>/",">\n",$object->execute()); 
-        if($end != $key && in_array(get_class($object),array("sieve_if","sieve_else","sieve_elsif"))) {
+        if($end != $key && in_array_strict(get_class($object),array("sieve_if","sieve_else","sieve_elsif"))) {
           $ends[$end] = $end;  
           $this->dump_  .= $block_indent_start;
         }
@@ -164,7 +164,7 @@ class My_Tree extends Tree
 
     /* Handle identifiers */
     $identifiers = array("else","if","elsif","end","reject","redirect","vacation","keep","discard","fileinto","require","stop");
-    if($node['class'] == "identifier" && in_array($node['text'],$identifiers)){
+    if($node['class'] == "identifier" && in_array_strict($node['text'],$identifiers)){
       $this->mode_stack[] = array("TYPE" => $node['text']); 
     }
 
@@ -220,7 +220,7 @@ class My_Tree extends Tree
     reset($this->pap);
     foreach($this->pap as $key => $obj){
 
-      if(in_array(get_class($obj),array("sieve_if",
+      if(in_array_strict(get_class($obj),array("sieve_if",
                                         "sieve_elsif",
                                         "sieve_vacation",
                                         "sieve_comment",
@@ -252,7 +252,7 @@ class My_Tree extends Tree
     }
 
     $class = get_class($this->pap[$key_id]);
-    if(in_array($class,array("sieve_if","sieve_elsif","sieve_else"))){
+    if(in_array_strict($class,array("sieve_if","sieve_elsif","sieve_else"))){
       $block_start= $key_id;
       $block_end  = $this->get_block_end($key_id);
 
@@ -283,7 +283,7 @@ class My_Tree extends Tree
     /* Get the current element to decide what to move. */ 
     $e_class = get_class($this->pap[$key_id]);
       
-    if(in_array($e_class,array("sieve_if"))){
+    if(in_array_strict($e_class,array("sieve_if"))){
       $block_start= $key_id;
       $block_end  = $this->get_block_end($key_id);
 
@@ -298,7 +298,7 @@ class My_Tree extends Tree
       $this->move_multiple_elements($block_start,$block_end,$next_free);
     }
 
-    if(in_array($e_class,array( "sieve_stop",
+    if(in_array_strict($e_class,array( "sieve_stop",
                                 "sieve_keep",
                                 "sieve_require",
                                 "sieve_comment",
@@ -393,7 +393,7 @@ class My_Tree extends Tree
     /* Only execute if this is a really a block element. 
      * Block elements is only sieve_if
      */
-    if(in_array(get_class($this->pap[$start]),array("sieve_if","sieve_elsif","sieve_else"))){
+    if(in_array_strict(get_class($this->pap[$start]),array("sieve_if","sieve_elsif","sieve_else"))){
 
       $class      = get_class($this->pap[$start]);
       $next_class = get_class($this->pap[$start+1]);
@@ -414,7 +414,7 @@ class My_Tree extends Tree
         if($complete){
           if( $block_depth == 0 && 
               $class == "sieve_block_end" && 
-              !in_array($next_class,array("sieve_else","sieve_elsif"))){
+              !in_array_strict($next_class,array("sieve_else","sieve_elsif"))){
             $end = TRUE;
             $start --;
           }
@@ -564,7 +564,7 @@ class My_Tree extends Tree
         }
         $include_self = FALSE;
         $current_class  = get_class($test[$key_id]);
-        if(in_array($current_class, $allowed_to_add_after)){
+        if(in_array_strict($current_class, $allowed_to_add_after)){
           return($key_id);
         } 
       } 
@@ -579,7 +579,7 @@ class My_Tree extends Tree
       }
       while($key_id >=0 ){
         $current_class  = get_class($test[$key_id]);
-        if(in_array($current_class, $allowed_to_add_before)){
+        if(in_array_strict($current_class, $allowed_to_add_before)){
           return($key_id);
         } 
         $key_id --;
@@ -650,7 +650,7 @@ class My_Tree extends Tree
     }
     foreach($this->pap as $key => $obj){
       if($key == $last_found_at) break;  
-      if(!in_array(get_class($obj),array("sieve_comment","sieve_require"))){
+      if(!in_array_strict(get_class($obj),array("sieve_comment","sieve_require"))){
         $objs[] = get_class($obj);
       }
     }

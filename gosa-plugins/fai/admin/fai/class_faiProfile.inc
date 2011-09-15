@@ -68,7 +68,7 @@ class faiProfile extends plugin
 
             /* Sort by categorie */
             foreach($categories as $cat){
-                if(in_array($cat,$attrs['objectClass'])){
+                if(in_array_strict($cat,$attrs['objectClass'])){
 
                     /* Append entry */
                     $this->FAIAllclasses[$attrs['cn'][0]][$cat]=$attrs;

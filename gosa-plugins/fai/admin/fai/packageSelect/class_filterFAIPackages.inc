@@ -44,7 +44,7 @@ class filterFAIPackages {
             if(isset($entry[$attr_name])){
               $test = $entry[$attr_name];
               if(!is_array($test)) $test = array($test);
-              if(in_array($match, $test)) unset($entries[$id]);
+              if(in_array_strict($match, $test)) unset($entries[$id]);
             }
           }
         }

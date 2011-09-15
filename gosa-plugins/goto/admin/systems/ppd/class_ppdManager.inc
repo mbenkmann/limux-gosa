@@ -211,7 +211,7 @@ class ppdManager
                     trigger_error(_('Nested groups are not supported!'), E_USER_WARNING);
                     continue;
                 }
-                if (in_array($group, $properties)){
+                if (in_array_strict($group, $properties)){
                     trigger_error(_('Group name not unique!'), E_USER_WARNING);
                     continue;
                 }

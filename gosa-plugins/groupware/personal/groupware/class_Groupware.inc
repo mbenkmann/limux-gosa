@@ -456,7 +456,7 @@ class Groupware extends plugin
                                         "","","your-address@your-domain.com"),ERROR_DIALOG);
                         }
                     }
-                } elseif ($address == $this->mailAddress || in_array($address, $this->alternateAddresses)) {
+                } elseif ($address == $this->mailAddress || in_array_strict($address, $this->alternateAddresses)) {
                     msg_dialog::display(_("Error"),_("Cannot add primary address to the list of forwarders!") , ERROR_DIALOG);
                 } else {
                     $valid= TRUE;
@@ -709,7 +709,7 @@ class Groupware extends plugin
                 }
                 return ($attrs["uid"][0]);
             }
-            if (!in_array($address, $this->alternateAddresses)){
+            if (!in_array_strict($address, $this->alternateAddresses)){
                 $this->alternateAddresses[]= $address;
                 $this->is_modified= TRUE;
             }

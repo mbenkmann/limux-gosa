@@ -37,7 +37,7 @@ class sieve_vacation
       $node = $data['ELEMENTS'][$i];
 
       /* Check if tag is in the specified list of attributes */
-      if($node['class'] == "tag" && in_array($node['text'],$known_attrs)){
+      if($node['class'] == "tag" && in_array_strict($node['text'],$known_attrs)){
 
         $var = preg_replace("/\:/","",$node['text']);
         $this->$var = $data['ELEMENTS'][$i+1]['text'];
@@ -63,7 +63,7 @@ class sieve_vacation
       }
 
       /* Add the vacation message */
-      if(in_array($node['class'],array("quoted-string","multi-line"))){
+      if(in_array_strict($node['class'],array("quoted-string","multi-line"))){
 
         $tmp = sieve_get_strings($data['ELEMENTS'],$i);
         $strs= $tmp['STRINGS'];

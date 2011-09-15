@@ -93,7 +93,7 @@ class ogw{
 
   function Perform($option)
   {
-    if(!in_array($option,array("ADD","EDIT","REMOVE"))){
+    if(!in_array_strict($option,array("ADD","EDIT","REMOVE"))){
       $this->LastError = sprintf("Option '%s' is not allowed, possible options are 'ADD' 'EDIT' 'REMOVE'.",$option);
       return(false);
     }else{
@@ -203,7 +203,7 @@ class ogw{
     foreach($this->validLocationTeam as $id){
       $tmp[]= $id['company_id'];
     }
-    if(!in_array($this->info['LocationTeamID'],$tmp)){
+    if(!in_array_strict($this->info['LocationTeamID'],$tmp)){
       $this->LastError = "Given 'Location Team' is invalid.";
       return(false);
     }
@@ -212,7 +212,7 @@ class ogw{
     foreach($this->validTemplateUser as $id){
       $tmp[]= $id['company_id'];
     }
-    if(!in_array($this->info['template_user_id'],$tmp)){
+    if(!in_array_strict($this->info['template_user_id'],$tmp)){
       $this->LastError = "Given 'Template User ID' is invalid.";
       return(false);
     }
@@ -224,7 +224,7 @@ class ogw{
     }
     if(is_array($this->info['TeamIDis'])){
       foreach($this->info['TeamIDis'] as $id){
-        if(!in_array($id,$tmp)){
+        if(!in_array_strict($id,$tmp)){
           $this->LastError = sprintf("Given 'Team ID':%s is invalid.",$id);
           return(false);
         }

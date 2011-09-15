@@ -275,7 +275,7 @@ class faiPartitionTable extends plugin
       if(isset($this->disks[$s_entry]['FAIdiskType'])){
         $type = $this->disks[$s_entry]['FAIdiskType'];
       }
-      if(in_array($type,array('raid','lvm','disk'))){
+      if(in_array_strict($type,array('raid','lvm','disk'))){
         $this->dialog = new faiDiskEntry(
             $this->config,$this->dn,$this,$this->disks[$s_entry], 
             $this->disks[$s_entry]['FAIdiskType']); 

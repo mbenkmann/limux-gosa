@@ -37,7 +37,7 @@ class filterGotoEvents extends  filterLDAP {
 
             /* If WAITING add priority action
              */
-            if(in_array($entry['STATUS'],array("waiting")) && $acl_is_writeable){
+            if(in_array_strict($entry['STATUS'],array("waiting")) && $acl_is_writeable){
                 $entry['objectClass'][] = "FAKE_OC__prioUp";
                 $entry['objectClass'][] = "FAKE_OC__prioDown";
                 $entry['objectClass'][] = "FAKE_OC__prioPause";
@@ -45,13 +45,13 @@ class filterGotoEvents extends  filterLDAP {
 
             /* If PAUSED add resume action
              */
-            if(in_array($entry['STATUS'],array("paused")) && $acl_is_writeable){
+            if(in_array_strict($entry['STATUS'],array("paused")) && $acl_is_writeable){
                 $entry['objectClass'][] = "FAKE_OC__prioResume";
             }
 
             /* If PAUSED or WAITING add execution action
              */
-            if(in_array($entry['STATUS'],array("paused","waiting")) && $acl_is_writeable){
+            if(in_array_strict($entry['STATUS'],array("paused","waiting")) && $acl_is_writeable){
                 $entry['objectClass'][] = "FAKE_OC__processNow";
             }
 
@@ -63,23 +63,23 @@ class filterGotoEvents extends  filterLDAP {
 
             /* If PAUSED or WAITING add edit action
              */
-            if(in_array($entry['STATUS'],array("waiting")) && $acl_is_writeable){
+            if(in_array_strict($entry['STATUS'],array("waiting")) && $acl_is_writeable){
                 $entry['objectClass'][] = "FAKE_OC__edit";
             }
 
 
             /* If PROCESSING add abort action
              */
-            if(in_array($entry['STATUS'],array("processing")) && preg_match("/install/",$entry['HEADERTAG']) && $acl_is_writeable){
+            if(in_array_strict($entry['STATUS'],array("processing")) && preg_match("/install/",$entry['HEADERTAG']) && $acl_is_writeable){
                 $entry['objectClass'][] = "FAKE_OC__abort";
             }
 
             /* If WAITING or ERROR add remove action
              */
-            if( $acl_is_removeable && in_array($entry['STATUS'],array("waiting","error","processed"))){
+            if( $acl_is_removeable && in_array_strict($entry['STATUS'],array("waiting","error","processed"))){
                 $entry['objectClass'][] = "FAKE_OC__remove";
             }
-            if($acl_is_writeable && in_array($entry['STATUS'],array("processing")) && !preg_match("/install/",$entry['HEADERTAG'])){
+            if($acl_is_writeable && in_array_strict($entry['STATUS'],array("processing")) && !preg_match("/install/",$entry['HEADERTAG'])){
                 $entry['objectClass'][] = "FAKE_OC__remove";
             }
 
@@ -101,7 +101,7 @@ class filterGotoEvents extends  filterLDAP {
 
 
 #     /* Skip entries which will be removed within the next seconds */
-#     if(isset($entry['MACADDRESS']) && in_array($entry['MACADDRESS'],$recently_removed)){
+#     if(isset($entry['MACADDRESS']) && in_array_strict($entry['MACADDRESS'],$recently_removed)){
 #       continue;
 #     }
             $data[] = $item;

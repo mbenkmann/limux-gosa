@@ -68,10 +68,10 @@ class EventAddUserDialog extends management
         $entries = $this->save();
         $a_targets = array("USERS" => array(),"GROUPS" => array());
         foreach($entries as $entry){
-            if(in_array("posixGroup",$entry['objectClass'])){
+            if(in_array_strict("posixGroup",$entry['objectClass'])){
                 $a_targets['GROUPS'][] = $entry['cn'][0];
             }
-            if(in_array("gosaAccount",$entry['objectClass'])){
+            if(in_array_strict("gosaAccount",$entry['objectClass'])){
                 $a_targets['USERS'][] = $entry['uid'][0];
             }
         }

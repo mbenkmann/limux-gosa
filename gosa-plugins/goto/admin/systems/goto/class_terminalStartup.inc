@@ -255,7 +255,7 @@ class termstartup extends plugin
         if(!$this->gotoLdap_inherit && isset($_POST['add_ldap_server']) && isset($_POST['ldap_server_to_add'])){
             if(isset($this->gotoLdapServerList[$_POST['ldap_server_to_add']])){
                 $to_add = $this->gotoLdapServerList[$_POST['ldap_server_to_add']];
-                if(!in_array($to_add,$this->gotoLdapServers)){
+                if(!in_array_strict($to_add,$this->gotoLdapServers)){
                     $this->gotoLdapServers[] = $to_add;
                 }
             }
@@ -282,7 +282,7 @@ class termstartup extends plugin
             $data[$key]=$server;
 
             /* Announce missing entries */
-            if(!in_array($server,$this->gotoLdapServerList)){
+            if(!in_array_strict($server,$this->gotoLdapServerList)){
                 $server = $server."&nbsp;<font style='color:red'>(missing)</font>";
             }
 
@@ -308,7 +308,7 @@ class termstartup extends plugin
 
         $list = array();
         foreach($this->gotoLdapServerList as $key => $entry){
-            if(!in_array($entry,$this->gotoLdapServers)){
+            if(!in_array_strict($entry,$this->gotoLdapServers)){
                 $list[$key] = $entry;
             }
         }
@@ -442,7 +442,7 @@ class termstartup extends plugin
     {
         $tmp= array();
         foreach ($array as $mod){
-            if (!in_array($mod, $list)){
+            if (!in_array_strict($mod, $list)){
                 $tmp[]= $mod;
             }
         }

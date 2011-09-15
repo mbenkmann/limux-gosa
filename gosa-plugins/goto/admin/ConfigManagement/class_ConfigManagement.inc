@@ -510,7 +510,7 @@ class ConfigManagement extends management
         // Add sub-module requested.
         if(isset($_POST['addSubModule']) && isset($_POST['subModule'])){
             $sub = get_post('subModule');
-            if(in_array($sub, $this->currentItemDescriptor['container'])){
+            if(in_array_strict($sub, $this->currentItemDescriptor['container'])){
 
                 // Check if this is a valid item
                 if(!isset($this->itemConfig[$sub])) {

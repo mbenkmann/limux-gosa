@@ -573,7 +573,7 @@ class DaemonEvent
     public function set_value($name,$value)
     {
         $name = strtolower($name);
-        if(isset($this->$name) && in_array($name,$this->attributes)){
+        if(isset($this->$name) && in_array_strict($name,$this->attributes)){
             $this->$name = $value;
         }
     }

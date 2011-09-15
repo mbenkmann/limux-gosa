@@ -77,7 +77,7 @@ class Scanner
 
 		if (is_array($class))
 		{
-			return in_array($next, $class);
+			return in_array_strict($next, $class);
 		}
 		else if (is_string($class))
 		{

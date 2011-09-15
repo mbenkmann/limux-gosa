@@ -171,7 +171,7 @@ class dhcpPool extends dhcpPlugin
                 "dhcpGroup", "dhcpPool", "dhcpSubnet", "dhcpSharedNetwork");
 
         foreach ($cache[$dn]['objectClass'] as $oc){
-            if (in_array($oc, $types)){
+            if (in_array_strict($oc, $types)){
                 $type= $oc;
                 break;
             }

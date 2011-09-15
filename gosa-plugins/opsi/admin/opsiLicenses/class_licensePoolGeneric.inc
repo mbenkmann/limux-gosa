@@ -343,7 +343,7 @@ class licensePoolGeneric extends plugin
             if(preg_match("/w/",$this->getacl("productIds"))){
                 if(isset($_POST['availableProduct']) && isset($_POST['addProduct'])){
                     $pro = get_post('availableProduct');
-                    if(isset($this->availableProductIds[$pro]) && !in_array($this->availableProductIds[$pro], $this->productIds)){
+                    if(isset($this->availableProductIds[$pro]) && !in_array_strict($this->availableProductIds[$pro], $this->productIds)){
                         $this->productIds[] =$this->availableProductIds[$pro];
                     }
                 }
@@ -364,7 +364,7 @@ class licensePoolGeneric extends plugin
             if(preg_match("/w/",$this->getacl("windowsSoftwareIds"))){
                 if(isset($_POST['newSoftwareId']) && isset($_POST['addSoftware'])){
                     $soft = trim(get_post('newSoftwareId'));
-                    if(!empty($soft) && !in_array($soft, $this->softwareIds)){
+                    if(!empty($soft) && !in_array_strict($soft, $this->softwareIds)){
                         $this->softwareIds[] = $soft;
                     }
                 }

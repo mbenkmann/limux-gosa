@@ -166,7 +166,7 @@ class sudoOption extends plugin
                     Some attributes like (BOOL_INTEGER) can be TRUE/FALSE and INTEGER.
                     This means, if the value is empty it is BOOL and $negation defines its boolean value.
                  */
-                if(in_array($this->options[$opt]['TYPE'],array("BOOL_INTEGER","STRING_BOOL"))){
+                if(in_array_strict($this->options[$opt]['TYPE'],array("BOOL_INTEGER","STRING_BOOL"))){
                     if(empty($value)){
                         $option['NEGATE'] = FALSE;
                         if($negation){
@@ -178,7 +178,7 @@ class sudoOption extends plugin
                 }
 
                 /* Special handling for BOOLEAN values */
-                if(in_array($this->options[$opt]['TYPE'],array("BOOLEAN"))){
+                if(in_array_strict($this->options[$opt]['TYPE'],array("BOOLEAN"))){
                     $option['NEGATE'] = FALSE;
                     if($negation){
                         $option['VALUE'] = "FALSE";
@@ -223,8 +223,8 @@ class sudoOption extends plugin
                         /*****
                           Negate STRING_BOOL && BOOL_INTEGER
                          *****/
-                        if(in_array($this->options[$opt]['TYPE'],array('STRING_BOOL','BOOL_INTEGER'))){
-                            if(in_array($val, array("TRUE","FALSE"))){
+                        if(in_array_strict($this->options[$opt]['TYPE'],array('STRING_BOOL','BOOL_INTEGER'))){
+                            if(in_array_strict($val, array("TRUE","FALSE"))){
                                 if($val == "TRUE"){
                                     $this->sudoOption[$opt][$id]["VALUE"] = "FALSE";
                                 }else{
@@ -238,14 +238,14 @@ class sudoOption extends plugin
                         /*****
                           Negate STRING / INTEGER
                          *****/
-                        if(in_array($this->options[$opt]['TYPE'],array('STRING','INTEGER','LISTS'))){
+                        if(in_array_strict($this->options[$opt]['TYPE'],array('STRING','INTEGER','LISTS'))){
                             $this->sudoOption[$opt][$id]['NEGATE'] = !$this->sudoOption[$opt][$id]['NEGATE']; 
                         }
 
                         /*****
                           Negate BOOLEAN
                          *****/
-                        if(in_array($this->options[$opt]['TYPE'],array('BOOLEAN'))){
+                        if(in_array_strict($this->options[$opt]['TYPE'],array('BOOLEAN'))){
                             if($val == "TRUE"){
                                 $this->sudoOption[$opt][$id]["VALUE"] = "FALSE";
                             }else{
@@ -337,7 +337,7 @@ class sudoOption extends plugin
                     /****
                       Get posted value for BOOLEAN
                      ****/
-                    if(in_array($this->options[$name]['TYPE'],array("BOOLEAN"))){
+                    if(in_array_strict($this->options[$name]['TYPE'],array("BOOLEAN"))){
                         if(isset($_POST['option_value__'.$name.'_'.$id])){
                             $this->sudoOption[$name][$id]["VALUE"] = get_post('option_value__'.$name.'_'.$id);
                         }
@@ -346,7 +346,7 @@ class sudoOption extends plugin
                     /****
                       Get posted value for STRING / INTEGER
                      ****/
-                    if(in_array($this->options[$name]['TYPE'],array("STRING","INTEGER"))){
+                    if(in_array_strict($this->options[$name]['TYPE'],array("STRING","INTEGER"))){
                         if(isset($_POST['option_value__'.$name.'_'.$id])){
                             $this->sudoOption[$name][$id]["VALUE"] = get_post('option_value__'.$name.'_'.$id);
                         }
@@ -355,7 +355,7 @@ class sudoOption extends plugin
                     /****
                       Get posted value for STRING_BOOL / BOOL_INTEGER
                      ****/
-                    if(in_array($this->options[$name]['TYPE'],array("BOOL_INTEGER","STRING_BOOL"))){
+                    if(in_array_strict($this->options[$name]['TYPE'],array("BOOL_INTEGER","STRING_BOOL"))){
                         if(isset($_POST['option_selection__'.$name.'_'.$id])){
                             $sel = get_post('option_selection__'.$name.'_'.$id);
                             $val = "";
@@ -375,7 +375,7 @@ class sudoOption extends plugin
                     /****
                       Get posted value for LISTS
                      ****/
-                    if(in_array($this->options[$name]['TYPE'],array("LISTS"))){
+                    if(in_array_strict($this->options[$name]['TYPE'],array("LISTS"))){
                         foreach($this->sudoOption[$name] as $entry_key => $entry){
                             if(isset($_POST['list_value__'.$name.'_'.$entry_key])){
                                 $val = get_post('list_value__'.$name.'_'.$entry_key);
@@ -424,7 +424,7 @@ class sudoOption extends plugin
                 /****
                   Save BOOLEAN
                  ****/
-                if(in_array($type,array("BOOLEAN"))){ 
+                if(in_array_strict($type,array("BOOLEAN"))){ 
                     $option = $name;
                     if($value == "FALSE"){
                         $option = "!".$option;
@@ -434,7 +434,7 @@ class sudoOption extends plugin
                 /****
                   Save STRING / INTEGER
                  ****/
-                if(in_array($type,array("STRING","INTEGER"))){ 
+                if(in_array_strict($type,array("STRING","INTEGER"))){ 
                     if($value != ""){
                         $option = $name."=".$value;
                     }else{
@@ -448,7 +448,7 @@ class sudoOption extends plugin
                 /****
                   Save STRING_BOOL / BOOL_INTEGER
                  ****/
-                if(in_array($type,array("STRING_BOOL","BOOL_INTEGER"))){
+                if(in_array_strict($type,array("STRING_BOOL","BOOL_INTEGER"))){
                     if($value == "FALSE"){
                         $option = "!".$name;
                     }elseif($value == "TRUE"){

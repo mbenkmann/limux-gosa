@@ -10,7 +10,7 @@ class faiGroupHandle{
 
   public function __construct($FAI_group, $Action)
   {
-    if(in_array($Action,array("edit","remove","copy","cut"))){
+    if(in_array_strict($Action,array("edit","remove","copy","cut"))){
       $this->mode = $Action;
     }else{
       trigger_error("Wrong action type '".$Action."'.");
@@ -42,7 +42,7 @@ class faiGroupHandle{
   function save_object()
   {
     if(isset($_POST['faiGroupHandle'])){
-      if(in_array($this->mode,array("copy","cut","remove"))){
+      if(in_array_strict($this->mode,array("copy","cut","remove"))){
         foreach($this->FAI_group as $key => $group){
           if(isset($_POST[$this->mode."_".$key])){
             $this->FAI_group[$key]['selected'] = TRUE;

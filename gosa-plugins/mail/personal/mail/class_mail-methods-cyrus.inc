@@ -507,7 +507,7 @@ class mailMethodCyrus extends mailMethod{
      */
     $script= "";
     if($sieve->sieve_listscripts()){
-      if (in_array("gosa", $sieve->response)){
+      if (in_array_strict("gosa", $sieve->response)){
         if(!$sieve->sieve_getscript("gosa")){
           $this->error = sprintf(_("Cannot retrieve SIEVE script: %s"),to_string($sieve->error_raw));
           @DEBUG (DEBUG_MAIL, __LINE__, __FUNCTION__, __FILE__,$sieve->error_raw ,

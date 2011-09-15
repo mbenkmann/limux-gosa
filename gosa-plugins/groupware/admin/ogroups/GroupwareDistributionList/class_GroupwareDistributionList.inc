@@ -341,7 +341,7 @@ class GroupwareDistributionList extends plugin
                 }
                 return ($attrs["uid"][0]);
             }
-            if (!in_array($address, $this->alternateAddresses)){
+            if (!in_array_strict($address, $this->alternateAddresses)){
                 $this->alternateAddresses[]= $address;
                 $this->is_modified= TRUE;
             }
@@ -470,14 +470,14 @@ class GroupwareDistributionList extends plugin
         // Check for added or removed distribution list members now.
         $all = array_merge($hasExt, $this->saved_attributes['memberList']);
         foreach($all as $member){
-            if(!in_array($member,$hasExt)){
+            if(!in_array_strict($member,$hasExt)){
                 $rpc->gwDistDelMember($this->cn, $member);
                 if(!$rpc->success()){
                     $message = sprintf(_("Failed to remove member '%s' from distribution list '%s'! Error was: '%s'."), 
                             $member, $this->cn, $rpc->get_error());
                     msg_dialog::display(_("Error"),msgPool::rpcError($message), ERROR_DIALOG);
                 }
-            }elseif(!in_array($member,$this->saved_attributes['memberList'])){
+            }elseif(!in_array_strict($member,$this->saved_attributes['memberList'])){
                 $rpc->gwDistAddMember($this->cn, $member);
                 if(!$rpc->success()){
                     $message = sprintf(_("Failed to add member '%s' to distribution list '%s'! Error was: '%s'."), 

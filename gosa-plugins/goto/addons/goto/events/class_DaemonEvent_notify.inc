@@ -143,7 +143,7 @@ class DaemonEvent_notify extends DaemonEvent
             $add = array($add);
         }
         foreach($add as $target){
-            if(!in_array($target,$this->user)){
+            if(!in_array_strict($target,$this->user)){
                 $this->user[] = $target;
             }
         }
@@ -157,7 +157,7 @@ class DaemonEvent_notify extends DaemonEvent
             $add = array($add);
         }
         foreach($add as $target){
-            if(!in_array($target,$this->group)){
+            if(!in_array_strict($target,$this->group)){
                 $this->group[] = $target;
             }
         }

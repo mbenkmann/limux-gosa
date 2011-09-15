@@ -236,7 +236,7 @@ class sieve_if
           $script .= $data['Match_type']." ";
 
           /* Add special match type for count and value */
-          if(in_array($data['Match_type'], array(":value",":count")) && !empty($data['Match_type_value'])) {
+          if(in_array_strict($data['Match_type'], array(":value",":count")) && !empty($data['Match_type_value'])) {
             $script .= sieve_create_strings($data['Match_type_value'])." ";
           }
 
@@ -281,7 +281,7 @@ class sieve_if
           $script .= $data['Match_type']." ";
 
           /* Add special match type for count and value */
-          if(in_array($data['Match_type'], array(":value",":count")) && !empty($data['Match_type_value'])) {
+          if(in_array_strict($data['Match_type'], array(":value",":count")) && !empty($data['Match_type_value'])) {
             $script .= sieve_create_strings($data['Match_type_value'])." ";
           }
 
@@ -327,7 +327,7 @@ class sieve_if
           $script .= $data['Match_type']." ";
 
           /* Add special match type for count and value */
-          if(in_array($data['Match_type'], array(":value",":count")) && !empty($data['Match_type_value'])) {
+          if(in_array_strict($data['Match_type'], array(":value",":count")) && !empty($data['Match_type_value'])) {
             $script .= sieve_create_strings($data['Match_type_value'])." ";
           }
 
@@ -630,7 +630,7 @@ class sieve_if
           /* In case of :count and :value match types 
            *  we have a special match operator we should save.
            */
-          if(in_array($parsed[$key]['Match_type'],array(":value",":count"))){
+          if(in_array_strict($parsed[$key]['Match_type'],array(":value",":count"))){
             if(isset($_POST['operator_'.$element_id])){
               $op = $_POST['operator_'.$element_id];
 
@@ -1266,7 +1266,7 @@ class sieve_if
             $Match_type = $node['text'];
 
             /* Get value operator */
-            if(in_array($Match_type,array(":value",":count"))){
+            if(in_array_strict($Match_type,array(":value",":count"))){
               $i ++;        
               $node = $data[$i];
 
@@ -1380,7 +1380,7 @@ class sieve_if
         
         /* Skip first values, [if,not,exists] */
         $node = $data[$id];
-        while(in_array($node['text'],array("if","not","exists"))){
+        while(in_array_strict($node['text'],array("if","not","exists"))){
           $id ++;
           $node = $data[$id];
         }
@@ -1448,16 +1448,16 @@ class sieve_if
     $next = NULL;
     $num = 0;
     for($i = $id ; $i < count($data) ; $i++ ){
-      if(in_array($data[$i]['class'],array("left-parant","left-bracket"))){
+      if(in_array_strict($data[$i]['class'],array("left-parant","left-bracket"))){
         $open_brakets ++;
       }
       if($data[$i]['class'] == "comma" && $open_brakets == 1){
         $num ++;
       }
-      if(!in_array($data[$i]['class'],array("comma","left-parant","right-parant")) || $open_brakets >1 ){
+      if(!in_array_strict($data[$i]['class'],array("comma","left-parant","right-parant")) || $open_brakets >1 ){
         $par[$num][] = $data[$i];
       }
-      if(in_array($data[$i]['class'],array("right-parant","right-bracket"))){
+      if(in_array_strict($data[$i]['class'],array("right-parant","right-bracket"))){
         $open_brakets --;
       }
     }

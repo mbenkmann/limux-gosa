@@ -93,7 +93,7 @@ class mailqueue extends plugin
     }
 
     /* Send action for given mail id */
-    if(in_array($action,array("del","hold","unhold","requeue"))){
+    if(in_array_strict($action,array("del","hold","unhold","requeue"))){
       foreach($entry as $server => $entries){
         $this->si_queue->send_queue_action($entries,$server,$action);
       }

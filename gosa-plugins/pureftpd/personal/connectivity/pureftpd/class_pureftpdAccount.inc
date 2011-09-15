@@ -103,13 +103,13 @@ class pureftpdAccount extends plugin
     }
 
     foreach($this->attributes as $attr){
-      if(in_array($attr,$this->multi_boxes)){
+      if(in_array_strict($attr,$this->multi_boxes)){
         $smarty->assign("use_".$attr,TRUE);
       }else{
         $smarty->assign("use_".$attr,FALSE);
       }
     }
-    $smarty->assign("use_pureftpd",in_array("pureftpd",$this->multi_boxes)); 
+    $smarty->assign("use_pureftpd",in_array_strict("pureftpd",$this->multi_boxes)); 
     $smarty->assign("multiple_support",$this->multiple_support_active);
     $smarty->assign("FTPStatus", ($this->FTPStatus == "disabled") ? "checked" : "");
     $smarty->assign('pureftpdACL', $this->getacl("",$this->ReadOnly));
@@ -307,7 +307,7 @@ class pureftpdAccount extends plugin
   function get_multi_edit_values()
   {
     $ret = plugin::get_multi_edit_values();
-    if(in_array("pureftpd",$this->multi_boxes)){
+    if(in_array_strict("pureftpd",$this->multi_boxes)){
       $ret['is_account'] = $this->is_account;
     }
     return($ret);

@@ -43,14 +43,14 @@ class blocklistGeneric extends plugin
       $this->readonly = TRUE;
   
       /* Get blocklist type and defined numbers */
-      if (in_array("goFaxSBlock",$this->attrs['objectClass'])){
+      if (in_array_strict("goFaxSBlock",$this->attrs['objectClass'])){
         if(isset($this->attrs["goFaxSBlocklist"])){
           for ($i= 0; $i<$this->attrs["goFaxSBlocklist"]["count"]; $i++){
             $this->goFaxBlocklist[]= $this->attrs["goFaxSBlocklist"][$i];
           }
         }
         $this->type= BLOCK_LIST_SEND;
-      } elseif (in_array("goFaxRBlock",$this->attrs['objectClass'])){
+      } elseif (in_array_strict("goFaxRBlock",$this->attrs['objectClass'])){
         if(isset($this->attrs["goFaxRBlocklist"])){
           for ($i= 0; $i<$this->attrs["goFaxRBlocklist"]["count"]; $i++){
             $this->goFaxBlocklist[]= $this->attrs["goFaxRBlocklist"][$i];
@@ -179,7 +179,7 @@ class blocklistGeneric extends plugin
       $tmp = $this->attributes;
       $tmp[] = "type";
       foreach($tmp as $attr){
-        if(in_array($attr,array("cn","type")) && $this->readonly){
+        if(in_array_strict($attr,array("cn","type")) && $this->readonly){
           continue;
         }elseif(isset($_POST[$attr]) && $this->acl_is_writeable($attr)){
           $this->$attr = get_post($attr);
@@ -289,7 +289,7 @@ class blocklistGeneric extends plugin
   /* Add number */
   function addNumber($number)
   {
-    if (!in_array($number, $this->goFaxBlocklist)){
+    if (!in_array_strict($number, $this->goFaxBlocklist)){
       $this->goFaxBlocklist[]= $number;
       sort($this->goFaxBlocklist);
     }
@@ -301,7 +301,7 @@ class blocklistGeneric extends plugin
   {
     $tmp= array();
     foreach ($this->goFaxBlocklist as $val){
-      if (!in_array($val, $numbers)){
+      if (!in_array_strict($val, $numbers)){
         $tmp[]= $val;
       }
     }
@@ -336,14 +336,14 @@ class blocklistGeneric extends plugin
     $this->readonly = TRUE;
 
     /* Get blocklist type and defined numbers */
-    if (in_array("goFaxSBlock",$source['objectClass'])){
+    if (in_array_strict("goFaxSBlock",$source['objectClass'])){
       if(isset($source["goFaxSBlocklist"])){
         for ($i= 0; $i<$source["goFaxSBlocklist"]["count"]; $i++){
           $this->goFaxBlocklist[]= $source["goFaxSBlocklist"][$i];
         }
       }
       $this->type= BLOCK_LIST_SEND;
-    } elseif (in_array("goFaxRBlock",$source['objectClass'])){
+    } elseif (in_array_strict("goFaxRBlock",$source['objectClass'])){
       if(isset($source["goFaxRBlocklist"])){
         for ($i= 0; $i<$source["goFaxRBlocklist"]["count"]; $i++){
           $this->goFaxBlocklist[]= $source["goFaxRBlocklist"][$i];

@@ -160,7 +160,7 @@ class sambaMungedDial
   	$result_tmp= "";
   	foreach ($params as $paramName => $paramValue) {
   		/* String parameter? */
-  		if (in_array($paramName, $this->stringParams)){
+  		if (in_array_strict($paramName, $this->stringParams)){
   			$isString= TRUE;
   			$paramValue= sambaMungedDial::strhex($paramValue.chr(0).chr(0));
   		} else {
@@ -168,7 +168,7 @@ class sambaMungedDial
   		}
   
   		/* Time parameter? */
-  		if (in_array($paramName, $this->timeParams)){
+  		if (in_array_strict($paramName, $this->timeParams)){
   			$paramValue= sambaMungedDial::genTime($paramValue);
   		}
   
@@ -260,11 +260,11 @@ class sambaMungedDial
   		$ctxParm= substr($ctxField, 0, $ctxParmLength);
   				
   		/* If string parameter, convert */
-  		if (in_array($ctxParmName, $this->stringParams)){
+  		if (in_array_strict($ctxParmName, $this->stringParams)){
   				$ctxParm= sambaMungedDial::hexstr($ctxParm);
   		}
   		/* If time parameter, convert */
-  		if (in_array($ctxParmName, $this->timeParams)){
+  		if (in_array_strict($ctxParmName, $this->timeParams)){
   			$ctxParm= sambaMungedDial::readTime($ctxParm);
   		}
   

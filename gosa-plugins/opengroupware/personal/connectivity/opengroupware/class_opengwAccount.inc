@@ -211,7 +211,7 @@ class opengwAccount extends plugin
 
                         if($this->acl_is_readable("Teams")){
                             foreach($this->handle->validTeams as $id){
-                                if(in_array($id['company_id'],$this->info['TeamIDis'])){
+                                if(in_array_strict($id['company_id'],$this->info['TeamIDis'])){
                                     $str .= "<input ".$dis." type='checkbox' value='".$id['company_id']."' 
                                         checked name='team_".base64_encode($id['description'])."'>".$id['description']."<br>";
                                 }else{
@@ -270,7 +270,7 @@ class opengwAccount extends plugin
             if($this->acl_is_writeable("Teams")) {
                 foreach($_POST as $name => $value ){
                     if(preg_match("/team_/i",$name)){
-                        if(!in_array($value,$this->info['TeamIDis'])){
+                        if(!in_array_strict($value,$this->info['TeamIDis'])){
                             $this->info['TeamIDis'][]=$value;
                         }
                     }

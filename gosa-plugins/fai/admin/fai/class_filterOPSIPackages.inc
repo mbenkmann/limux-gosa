@@ -61,7 +61,7 @@ class filterOPSIPackages extends filterLDAP{
         $data = array_pop($data);
 
         // Display only requested object types
-        if(!in_array($data['type'], $types)) continue;
+        if(!in_array_strict($data['type'], $types)) continue;
 
         // Filter out those entries that doesn't match the filter.
         if(!preg_match("/".$filter."/i",  $data['cn'])){

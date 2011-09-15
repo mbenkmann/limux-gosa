@@ -78,7 +78,7 @@ class gofaxAccount extends plugin
       }
 
       /* Set up has_mailAccount */
-      if (in_array("gosaMailAccount", $this->attrs['objectClass'])){
+      if (in_array_strict("gosaMailAccount", $this->attrs['objectClass'])){
         $this->has_mailAccount= TRUE;
       }
     }
@@ -286,7 +286,7 @@ class gofaxAccount extends plugin
     if (isset($_POST['delete_blocklist_number']) && isset($_POST['block_list'])){
       $tmp= array();
       foreach($this->current_blocklist as $val){
-        if (!in_array($val, $_POST['block_list'])){
+        if (!in_array_strict($val, $_POST['block_list'])){
           $tmp[]= $val;
         }
       }
@@ -559,14 +559,14 @@ class gofaxAccount extends plugin
     }
 
     foreach($this->attributes as $attr){
-      if(in_array($attr,$this->multi_boxes)) {
+      if(in_array_strict($attr,$this->multi_boxes)) {
         $smarty->assign("use_".$attr,TRUE);
       }else{
         $smarty->assign("use_".$attr,FALSE);
       }
     }
     foreach(array("goFaxIsEnabled","edit_outgoing","edit_incoming","faxtomail","faxtoprinter") as $attr){
-      if(in_array($attr,$this->multi_boxes)) {
+      if(in_array_strict($attr,$this->multi_boxes)) {
         $smarty->assign("use_".$attr,TRUE);
       }else{
         $smarty->assign("use_".$attr,FALSE);
@@ -754,7 +754,7 @@ class gofaxAccount extends plugin
     foreach (array("goFaxRBlocklist", "goFaxRBlockgroups", "goFaxSBlocklist",
           "goFaxSBlockgroups", "facsimileAlternateTelephoneNumber") as $val){
 
-      if (in_array($val, $skip)){
+      if (in_array_strict($val, $skip)){
         continue;
       }
 
@@ -852,14 +852,14 @@ class gofaxAccount extends plugin
       }
 
       $tmp = 0+$this->goFaxDeliveryMode;
-      if(in_array("faxtomail",$this->multi_boxes)){
+      if(in_array_strict("faxtomail",$this->multi_boxes)){
         if (isset($_POST["faxtomail"]) && $_POST["faxtomail"] == 1){
           $tmp |= 32;
         }elseif($tmp & 32){
           $tmp &= (!32);
         }
       }
-      if(in_array("faxtoprinter",$this->multi_boxes)){
+      if(in_array_strict("faxtoprinter",$this->multi_boxes)){
         if (isset($_POST["faxtoprinter"]) && $_POST["faxtoprinter"] == 1){
           $tmp |= 64;
         }elseif($tmp & 64){
@@ -873,7 +873,7 @@ class gofaxAccount extends plugin
         } else {
           $this->goFaxIsEnabled= "1";
         }
-      if (isset($_POST['mail']) && in_array("mail",$this->multi_boxes)){
+      if (isset($_POST['mail']) && in_array_strict("mail",$this->multi_boxes)){
         $this->mail= get_post('mail');
       }
     }
@@ -882,21 +882,21 @@ class gofaxAccount extends plugin
   function get_multi_edit_values()
   {
     $ret = plugin::get_multi_edit_values();
-    if(in_array("goFaxIsEnabled",$this->multi_boxes)){
+    if(in_array_strict("goFaxIsEnabled",$this->multi_boxes)){
       $ret['goFaxIsEnabled'] = $this->goFaxIsEnabled;
     }
-    if(in_array("faxtoprinter",$this->multi_boxes)){
+    if(in_array_strict("faxtoprinter",$this->multi_boxes)){
       $ret['faxtoprinter'] = $this->goFaxDeliveryMode & 64;
     }
-    if(in_array("faxtomail",$this->multi_boxes)){
+    if(in_array_strict("faxtomail",$this->multi_boxes)){
       $ret['faxtomail'] = $this->goFaxDeliveryMode & 32;
     }
 
-    if(in_array("edit_incoming",$this->multi_boxes)){
+    if(in_array_strict("edit_incoming",$this->multi_boxes)){
       $ret['goFaxRBlocklist'] = $this->goFaxRBlocklist;
       $ret['goFaxRBlockgroups'] = $this->goFaxRBlockgroups;
     }
-    if(in_array("edit_outgoing",$this->multi_boxes)){
+    if(in_array_strict("edit_outgoing",$this->multi_boxes)){
       $ret['goFaxSBlocklist'] = $this->goFaxSBlocklist;
       $ret['goFaxSBlockgroups'] = $this->goFaxSBlockgroups;
     }

@@ -109,7 +109,7 @@ class faiPackage extends plugin
         $tmp['Type']  = $attr['FAIvariableType'][0];
 
         if (isset($attr['FAIvariableContent'][0])){
-          if(!in_array($attr['FAIvariableType'],array("multiselect"))){
+          if(!in_array_strict($attr['FAIvariableType'],array("multiselect"))){
             $tmp['Value'] = $attr['FAIvariableContent'][0];
           }else{
             $content = array();        
@@ -646,7 +646,7 @@ class faiPackage extends plugin
         /* Tag object */
         $this->tag_attrs($pkgattrs, $pkgdn, $this->gosaUnitTag);
 
-        if(in_array($pkgattrs['FAIvariableType'],array("boolean","multiselect","password","select","string","text"))){
+        if(in_array_strict($pkgattrs['FAIvariableType'],array("boolean","multiselect","password","select","string","text"))){
 
           if($pkgattrs['FAIvariableType'] == "text" && $pkgattrs['FAIvariableContent'] == ""){
             gosa_log("Skipped saving FAIvariable '$name' empty string can't be saved.");
@@ -755,7 +755,7 @@ class faiPackage extends plugin
       $tmp['Type']  = $attr['FAIvariableType'][0];
 
       if (isset($attr['FAIvariableContent'][0])){
-        if(!in_array($attr['FAIvariableType'],array("multiselect"))){
+        if(!in_array_strict($attr['FAIvariableType'],array("multiselect"))){
           $tmp['Value'] = $attr['FAIvariableContent'][0];
         }else{
           $content = array();        

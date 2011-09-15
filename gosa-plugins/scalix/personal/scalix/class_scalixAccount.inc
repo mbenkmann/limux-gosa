@@ -396,7 +396,7 @@ class scalixAccount extends plugin
 
     foreach (array("scalixEmailAddress") as $val){
 
-      if (in_array($val, $skip)){
+      if (in_array_strict($val, $skip)){
         continue;
       }
 
@@ -433,7 +433,7 @@ class scalixAccount extends plugin
     }
 
     /* Add to list of alternates */
-    if (!in_array($address, $this->scalixEmailAddress)){
+    if (!in_array_strict($address, $this->scalixEmailAddress)){
       $this->scalixEmailAddress[]= $address;
       $this->is_modified= TRUE;
     }

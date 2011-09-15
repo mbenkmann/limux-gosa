@@ -524,7 +524,7 @@ class sieveManagement extends plugin
 
         /* Element selected */
         if(isset($_POST['element_type']) && isset($element_types[$_POST['element_type']]) 
-           || isset($_POST['element_type']) &&in_array($_POST['element_type'],array("sieve_else","sieve_elsif"))){
+           || isset($_POST['element_type']) &&in_array_strict($_POST['element_type'],array("sieve_else","sieve_elsif"))){
           $this->add_element_type = $_POST['element_type'];
         }
 
@@ -555,7 +555,7 @@ class sieveManagement extends plugin
            */
           foreach($this->current_handler->tree_->pap as $key => $obj){
         
-            if($obj->object_id == $this->add_new_id && in_array(get_class($obj),array("sieve_if","sieve_elsif"))){
+            if($obj->object_id == $this->add_new_id && in_array_strict(get_class($obj),array("sieve_if","sieve_elsif"))){
   
               /* Get block start/end */
               $end_id = $this->current_handler->tree_->get_block_end($key);
@@ -729,7 +729,7 @@ class sieveManagement extends plugin
      */
     foreach($this->current_handler->tree_->pap as $key => $obj){
 
-      if($obj->object_id == $id && in_array(get_class($obj),array("sieve_if","sieve_elsif"))){
+      if($obj->object_id == $id && in_array_strict(get_class($obj),array("sieve_if","sieve_elsif"))){
 
         /* Get block start/end */
         $end_id = $this->current_handler->tree_->get_block_end($key);
@@ -760,7 +760,7 @@ class sieveManagement extends plugin
         }else{
          
           /* Allow adding elsif above elsif */ 
-          if(in_array(get_class($obj),array("sieve_elsif"))){
+          if(in_array_strict(get_class($obj),array("sieve_elsif"))){
             $element_types['sieve_elsif'] = _("Else If");
           }
         }
@@ -960,7 +960,7 @@ class sieveManagement extends plugin
       $this->current_handler->save_object();
       $Mode = $this->scripts[$this->current_script]['MODE'];
       $skip_mode_change = false;
-      if(in_array($Mode,array("Source-Only","Source"))){
+      if(in_array_strict($Mode,array("Source-Only","Source"))){
         if(isset($_POST['script_contents'])){
           $sc = stripslashes($_POST['script_contents']);
           $this->scripts[$this->current_script]['SCRIPT'] = $sc;
@@ -973,7 +973,7 @@ class sieveManagement extends plugin
           }
         }
       }
-      if(in_array($Mode,array("Structured"))){
+      if(in_array_strict($Mode,array("Structured"))){
         $sc = $this->current_handler->get_sieve_script();
         $this->scripts[$this->current_script]['SCRIPT'] = $sc;
         $p = new My_Parser($this);

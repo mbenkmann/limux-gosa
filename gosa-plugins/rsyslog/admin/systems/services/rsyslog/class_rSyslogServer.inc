@@ -28,7 +28,7 @@ class rSyslogServer extends goService{
         goService::goService($config,$dn);
         $this->DisplayName = _("Logging");
         $this->initial_use_database = $this->use_database = 
-            isset($this->attrs['objectClass']) &&in_array("goLogDBServer", $this->attrs['objectClass']);
+            isset($this->attrs['objectClass']) &&in_array_strict("goLogDBServer", $this->attrs['objectClass']);
 
         if($this->use_database){
             foreach($this->db_attributes as $attr){

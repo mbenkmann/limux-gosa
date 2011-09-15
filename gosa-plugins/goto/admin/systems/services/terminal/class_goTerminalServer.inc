@@ -58,7 +58,7 @@ class goTerminalServer extends goService{
 
         $tmp = array();
         foreach($this->gotoSessionTypes as $type){
-            if(in_array($type,$this->gotoSessionType)){
+            if(in_array_strict($type,$this->gotoSessionType)){
                 $tmp[$type] = TRUE;
             }else{
                 $tmp[$type] = FALSE;

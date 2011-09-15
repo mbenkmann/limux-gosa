@@ -142,7 +142,7 @@ class goto_import_file extends plugin
         $evts = $this->events;
         foreach($this->events as $id => $evt){
             foreach($evt as $key => $val){
-                if(in_array($key,$this->csv_fields)){
+                if(in_array_strict($key,$this->csv_fields)){
                     $evts[$id][$key] = "<span style=\"white-space: nowrap;\">".strip_tags($val)."</span>"; 
                 }
             }

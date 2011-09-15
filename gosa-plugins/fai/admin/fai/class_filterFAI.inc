@@ -42,7 +42,7 @@ class filterFAI extends filterLDAP{
 
         $acl = $ui->get_permissions($object['dn'],"fai/".$rest ['ACL']);
 
-        if(in_array($type,$object['objectClass']) && preg_match("/r/",$acl)){
+        if(in_array_strict($type,$object['objectClass']) && preg_match("/r/",$acl)){
 
           /* Prepare object */
           unset($object['objectClass']['count']);

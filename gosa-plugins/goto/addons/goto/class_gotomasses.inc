@@ -246,7 +246,7 @@ class gotomasses extends management
                 }
 
                 /* Only remove WAITING or ERROR entries */
-                if(in_array($task['STATUS'],array("waiting","error","processed")) ||
+                if(in_array_strict($task['STATUS'],array("waiting","error","processed")) ||
                         ($task['STATUS'] == "processing" && !preg_match("/install/",$task['HEADERTAG'])) ){
                     $this->ids_to_remove[] = $task['ID'];
                     $deleteable_jobs[] = $j_name;
@@ -503,7 +503,7 @@ class gotomasses extends management
         foreach($ids as $id){
             $tmp = $headpage->getEntry($id);
             $entry = $tmp['EVENT'];
-            if(in_array($entry['STATUS'],array("paused","waiting"))){
+            if(in_array_strict($entry['STATUS'],array("paused","waiting"))){
                 $update_ids[] = $entry['ID'];
             }
         }

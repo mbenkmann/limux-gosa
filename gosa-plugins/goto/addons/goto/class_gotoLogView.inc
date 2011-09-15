@@ -166,7 +166,7 @@ class gotoLogView extends plugin
                 $this->$dest = $_GET[$attr];
             }
         }
-        if(isset($_GET['sort_by']) && in_array($_GET['sort_by'],array("file","time"))){
+        if(isset($_GET['sort_by']) && in_array_strict($_GET['sort_by'],array("file","time"))){
             if($_GET['sort_by'] == $this->sort_by){
                 $this->sort_dir = !$this->sort_dir;
             }

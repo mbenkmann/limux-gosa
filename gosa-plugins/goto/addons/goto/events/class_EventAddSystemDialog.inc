@@ -75,7 +75,7 @@ class EventAddSystemDialog extends management
     $member_dns = array();
     foreach($entries as $entry){
       $member_dns[] = $entry['dn'];
-      if(in_array("gosaGroupOfNames", $entry['objectClass'])){
+      if(in_array_strict("gosaGroupOfNames", $entry['objectClass'])){
         $ldap->cat($entry['dn']);
         if($ldap->count()){
           $attrs = $ldap->fetch();

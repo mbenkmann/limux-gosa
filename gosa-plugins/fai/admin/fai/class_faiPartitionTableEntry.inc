@@ -295,7 +295,7 @@ class faiPartitionTableEntry extends plugin
 
       foreach($this->partitions as $key => $part){
         foreach($this->UsedAttrs as $attrs){
-          if(in_array($attrs,array('cn','description'))) continue;
+          if(in_array_strict($attrs,array('cn','description'))) continue;
           
           if($this->acl_is_writeable($attrs)){
 
@@ -333,7 +333,7 @@ class faiPartitionTableEntry extends plugin
       $message[] = msgPool::invalid(_("Name"),$d,"/[a-z0-9_\-]/i");
     }
 
-    if($this->old_cn != $this->DISKcn && in_array($this->DISKcn,$this->parent->getUsedDiskNames())){
+    if($this->old_cn != $this->DISKcn && in_array_strict($this->DISKcn,$this->parent->getUsedDiskNames())){
       $message[] = msgPool::duplicated(_("Name"));
     }
        
@@ -356,7 +356,7 @@ class faiPartitionTableEntry extends plugin
         continue;
       }
  
-      if((in_array($part['FAImountPoint'],$alreadyUsed['FAImountPoint']))&&($part['FAIfsType']!="swap")){
+      if((in_array_strict($part['FAImountPoint'],$alreadyUsed['FAImountPoint']))&&($part['FAIfsType']!="swap")){
         $message[]=sprintf(_("please enter a unique mount point for partition %s"),($key));
       }
 
@@ -366,7 +366,7 @@ class faiPartitionTableEntry extends plugin
         }
       }
       if($part['FAIfsType'] == "swap"){
-        if(in_array($part['FAIfsType'],$alreadyUsed['FAIfsType'])){
+        if(in_array_strict($part['FAIfsType'],$alreadyUsed['FAIfsType'])){
           $message[]=sprintf(_("File system type 'swap' is already used, change file system type for partition %s."),$key);
         }
       }

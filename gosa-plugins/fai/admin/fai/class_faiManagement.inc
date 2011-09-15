@@ -159,7 +159,7 @@ class faiManagement extends management
           $entry = $headpage->getEntry($t);
 
           // Check for valid FAI objects
-          if(in_array('FAKE_OC_FAI', $entry['objectClass'])){
+          if(in_array_strict('FAKE_OC_FAI', $entry['objectClass'])){
             foreach($entry['GROUPS'] as $g){
               $type = $this->get_type($g);
               $this->cpHandler->add_to_queue($g['dn'],"copy",$type[0],$type[2],'fai',$this);
@@ -284,7 +284,7 @@ class faiManagement extends management
       if($entry){
 
         // Edit Opsi objects here 
-        if(in_array("opsi_local", $entry['TYPES']) || in_array("opsi_netboot", $entry['TYPES'])){ 
+        if(in_array_strict("opsi_local", $entry['TYPES']) || in_array_strict("opsi_netboot", $entry['TYPES'])){ 
           $name = $entry['cn'];
           $cfg = $this->opsi->get_product_properties($name);
 
@@ -351,7 +351,7 @@ class faiManagement extends management
       $to_delete = array();
       foreach($target as $id){
         $object = $headpage->getEntry($id);
-        if(in_array("FAKE_OC_FAI", $object['objectClass'])){
+        if(in_array_strict("FAKE_OC_FAI", $object['objectClass'])){
           foreach($object['GROUPS']  as $entry){
             array_push($to_delete, $entry);
           }
@@ -364,7 +364,7 @@ class faiManagement extends management
       $headpage = $this->getHeadpage();
       if(count($target) == 1){
         $entry = $headpage->getEntry($target[0]);
-        if($entry && in_array("FAKE_OC_FAI",$entry['objectClass'])){
+        if($entry && in_array_strict("FAKE_OC_FAI",$entry['objectClass'])){
           $this->dialogObject = new faiGroupHandle($entry['GROUPS'],"remove");
         }
       }
@@ -1039,25 +1039,25 @@ class faiManagement extends management
   function get_type($array)
   {
     if(!isset($array['objectClass'])) return(array());
-    if(in_array("FAIpartitionTable",$array['objectClass'])){
+    if(in_array_strict("FAIpartitionTable",$array['objectClass'])){
       return(array("tabsPartition","faiPartitionTable","FAIPARTITIONTABS"));
     }
-    if(in_array("FAIscript",$array['objectClass'])){
+    if(in_array_strict("FAIscript",$array['objectClass'])){
       return(array("tabsScript","faiScript","FAISCRIPTTABS"));
     }
-    if(in_array("FAItemplate",$array['objectClass'])){
+    if(in_array_strict("FAItemplate",$array['objectClass'])){
       return(array("tabsTemplate","faiTemplate","FAITEMPLATETABS"));
     }
-    if(in_array("FAIhook",$array['objectClass'])){
+    if(in_array_strict("FAIhook",$array['objectClass'])){
       return(array("tabsHook","faiHook","FAIHOOKTABS"));
     }
-    if(in_array("FAIvariable",$array['objectClass'])){
+    if(in_array_strict("FAIvariable",$array['objectClass'])){
       return(array("tabsVariable","faiVariable","FAIVARIABLETABS"));
     }
-    if(in_array("FAIprofile",$array['objectClass'])){
+    if(in_array_strict("FAIprofile",$array['objectClass'])){
       return(array("tabsProfile","faiProfile","FAIPROFILETABS"));
     }
-    if(in_array("FAIpackageList",$array['objectClass'])){
+    if(in_array_strict("FAIpackageList",$array['objectClass'])){
       return(array("tabsPackage","faiPackage","FAIPACKAGETABS"));
     }
     return(array());
@@ -1096,7 +1096,7 @@ class faiManagement extends management
     $f = $this->fai_release;
     if($name == ""){
       return(false);
-    }elseif(in_array($name,$this->getBranches($f))) {
+    }elseif(in_array_strict($name,$this->getBranches($f))) {
       return(false);
     }elseif(tests::is_department_name_reserved($name,$base)){
       return(false);
@@ -1132,7 +1132,7 @@ class faiManagement extends management
 
     $icon_list = "";
     foreach($objects as $type => $type_data){
-      if(in_array($type, $classes)){
+      if(in_array_strict($type, $classes)){
         $icon_list .= image($type_data['IMG'],'edit_'.$row.'_'.$type,$type_data['NAME']);
       }else{
         $icon_list .= image('images/empty.png');
@@ -1203,7 +1203,7 @@ class faiManagement extends management
         $headpage = $this->getHeadpage();
         $entry = $headpage->entries[$id];
 
-        if(in_array('FAKE_OC_FAI', $entry['objectClass'])){
+        if(in_array_strict('FAKE_OC_FAI', $entry['objectClass'])){
           unset($_POST[$name]);
           if(isset($headpage->entries[$id]['GROUPS'][$tab])){
             $data =$headpage->entries[$id]['GROUPS'][$tab];

@@ -226,7 +226,7 @@ class newConfigManagement extends plugin
     function __recurseItem($item, $types, $parent = "")
     {
         $res = array();
-        if(in_array($item['type'], $types)){
+        if(in_array_strict($item['type'], $types)){
             $path = preg_replace("/".preg_quote($parent,'/')."/","",$item['path']);
             $res[$path] = array('name' => $item['name'],'desc'=>$item['type']);
         }
@@ -331,9 +331,9 @@ class newConfigManagement extends plugin
         $id = $ids[0];
         $item = $this->dataModel->getItemById($id);
         if($item){
-            if(in_array($item['type'], array('Distribution', 'Release'))){
+            if(in_array_strict($item['type'], array('Distribution', 'Release'))){
                 $this->setCurrentContainer($item['path'], $this->selectedItem);
-            }elseif(in_array($item['type'], array('Component'))){
+            }elseif(in_array_strict($item['type'], array('Component'))){
                 $next = preg_replace("/".preg_quote($this->selectedContainer,'/')."/","", $item['path']);
                 $this->setCurrentContainer($this->selectedContainer, $next);
             }else{

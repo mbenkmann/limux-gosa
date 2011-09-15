@@ -106,7 +106,7 @@ class mailMethod{
       trigger_error("mailMethod with invalid parent object initialized.");
     }
 
-    if(!in_array($this->type,array("user","group"))){
+    if(!in_array_strict($this->type,array("user","group"))){
       trigger_error("Unknown mail class type used '".$type."'.");
     }else{
       $this->type = $type;
@@ -133,7 +133,7 @@ class mailMethod{
      */
     if($this->config->get_cfg_value("core","mailAttribute") != ""){
       $new_uattrib= strtolower($this->config->get_cfg_value("core","mailAttribute"));
-      if(in_array($new_uattrib,array("mail","uid"))){
+      if(in_array_strict($new_uattrib,array("mail","uid"))){
         $this->uattrib = $new_uattrib;
       }else{
         @DEBUG (DEBUG_MAIL, __LINE__, __FUNCTION__, __FILE__, "<b>".$new_uattrib."</b>",
@@ -231,7 +231,7 @@ class mailMethod{
       $ocs = $this->shareObjectClasses;
     }
     foreach($ocs as $oc){
-      if(!in_array($oc, $this->parent->attrs['objectClass'])){
+      if(!in_array_strict($oc, $this->parent->attrs['objectClass'])){
         $this->parent->attrs['objectClass'][] = $oc;
       }
     }

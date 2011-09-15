@@ -94,7 +94,7 @@ class intranetAccount extends plugin
       $smarty->assign('gosaIntranetACL', $this->getacl("",$this->ReadOnly));
     }
 
-    $smarty->assign("use_intranet",in_array("intranet",$this->multi_boxes));
+    $smarty->assign("use_intranet",in_array_strict("intranet",$this->multi_boxes));
     $smarty->assign("multiple_support",$this->multiple_support_active);
     $display.= $smarty->fetch (get_template_path('intranet.tpl', TRUE, dirname(__FILE__)));
     return ($display);
@@ -246,7 +246,7 @@ class intranetAccount extends plugin
   function get_multi_edit_values()
   {
     $ret = plugin::get_multi_edit_values();
-    if(in_array("intranet",$this->multi_boxes)){
+    if(in_array_strict("intranet",$this->multi_boxes)){
       $ret['is_account'] = $this->is_account;
     }
     return($ret);
@@ -263,7 +263,7 @@ class intranetAccount extends plugin
   function init_multiple_support($attrs,$all)
   {
     plugin::init_multiple_support($attrs,$all);
-    if(isset($attrs['objectClass']) && in_array("gosaIntranetAccount",$attrs['objectClass'])){
+    if(isset($attrs['objectClass']) && in_array_strict("gosaIntranetAccount",$attrs['objectClass'])){
       $this->is_account = TRUE;
     }
   }

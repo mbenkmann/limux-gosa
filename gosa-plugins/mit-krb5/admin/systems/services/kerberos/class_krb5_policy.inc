@@ -105,7 +105,7 @@ class krb5_policy extends plugin
     {
         $message = array();
         $names = $this->parent->getPolicyNames();
-        if($this->name != $this->init_name && in_array($this->name,$names)){
+        if($this->name != $this->init_name && in_array_strict($this->name,$names)){
             $message[] = msgPool::duplicated(_("Policy name"));
         }
         if(empty($this->name)){

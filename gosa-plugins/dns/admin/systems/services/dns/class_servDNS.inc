@@ -75,7 +75,7 @@ class servdns extends goService
                 continue;
             }
             $dn = preg_replace("/^zoneName=[^,]+,/","",$attrs['dn']);
-            if(preg_match("/^cn=/",$dn) && !in_array($dn,$dns)){
+            if(preg_match("/^cn=/",$dn) && !in_array_strict($dn,$dns)){
                 $dns[] = $dn;
             }
         }

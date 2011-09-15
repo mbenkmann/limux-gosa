@@ -116,7 +116,7 @@ class workgeneric extends plugin
         }
 
         /* Set inherit checkbox state */
-        if((in_array("default",$this->gotoNtpServer)) || (count($this->gotoNtpServer) == 0)){
+        if((in_array_strict("default",$this->gotoNtpServer)) || (count($this->gotoNtpServer) == 0)){
             $this->inheritTimeServer = true;
             $this->gotoNtpServer=array();
         }
@@ -263,7 +263,7 @@ class workgeneric extends plugin
 
         $tmp = array();
         foreach($this->gotoNtpServers as $server){
-            if(!in_array($server,$this->gotoNtpServer)){
+            if(!in_array_strict($server,$this->gotoNtpServer)){
                 $tmp[$server] = $server;
             }
         }
@@ -303,7 +303,7 @@ class workgeneric extends plugin
 
         $ntpser = array();
         foreach($this->gotoNtpServers as $server){
-            if(!in_array($server,$this->gotoNtpServer)){
+            if(!in_array_strict($server,$this->gotoNtpServer)){
                 $ntpser[$server] = set_post($server);
             }
         }
@@ -682,7 +682,7 @@ class workgeneric extends plugin
         }
 
         /* Set inherit checkbox state */
-        if((in_array("default",$this->gotoNtpServer)) || (count($this->gotoNtpServer)==0)){
+        if((in_array_strict("default",$this->gotoNtpServer)) || (count($this->gotoNtpServer)==0)){
             $this->inheritTimeServer = true;
             $this->gotoNtpServer=array();
         }

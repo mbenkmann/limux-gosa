@@ -130,7 +130,7 @@ class goFonServer extends goService{
         /* Update goFonAccounts if server was is renamed.
            Set attribute goFonHomeServer to current dn
          */
-        if(in_array("goFonServer",$this->objectclasses)){
+        if(in_array_strict("goFonServer",$this->objectclasses)){
             if($this->orig_dn != "new" && $this->orig_dn != $this->dn){
                 $ldap = $this->config->get_ldap_link();
                 $ldap->cd($this->config->current['BASE']);

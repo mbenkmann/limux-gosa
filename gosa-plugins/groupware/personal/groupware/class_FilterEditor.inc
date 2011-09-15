@@ -104,7 +104,7 @@ class FilterEditor extends plugin
                 $str.= "\n<option {$checked} value=\"".set_post($comparator)."\">".set_post($desc)."</option>";
             }
             $str .= "\n</select>&nbsp;";
-            if(!in_array($cond['COMPARATOR'], array('is in addressbook','is not in addressbook','is empty','is not empty'))){
+            if(!in_array_strict($cond['COMPARATOR'], array('is in addressbook','is not in addressbook','is empty','is not empty'))){
                 $str .= "<input style='width:400px;' type='text' name='cMatch_{$id}' value=\"".set_post($cond['MATCH'])."\">";
             }
             if(count($filter['CONDITIONS']) >= 2){
@@ -129,7 +129,7 @@ class FilterEditor extends plugin
                 $str.= "\n<option {$checked} value=\"".set_post($act)."\">".set_post($desc)."</option>";
             }
             $str .= "</select>&nbsp;";
-            if(!in_array($action['ACTION'], array('DROP'))){
+            if(!in_array_strict($action['ACTION'], array('DROP'))){
                 $str .= "<input style='width:500px;' type='text' name='cValue_{$id}' value=\"".set_post($action['VALUE'])."\">";
             }
 

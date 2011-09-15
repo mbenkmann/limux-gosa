@@ -168,7 +168,7 @@ class dhcpNetwork extends plugin
                 } else {
 
                     /* Only quote filename values */
-                    if(in_array($key,array("filename"))){
+                    if(in_array_strict($key,array("filename"))){
                         $this->statements->set($key,'"'.trim(get_post($val),"\"").'"');
                     }else{
                         $this->statements->set($key,get_post($val));

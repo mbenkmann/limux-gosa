@@ -398,7 +398,7 @@ class sambaAccount extends plugin
                 $smarty->assign("$attr", set_post($this->mungedObject->ctx[$attr]));
 
                 // Set field  to blank if value is 0
-                if(in_array($attr, array("CtxMaxConnectionTime", "CtxMaxDisconnectionTime", "CtxMaxIdleTime"))) {
+                if(in_array_strict($attr, array("CtxMaxConnectionTime", "CtxMaxDisconnectionTime", "CtxMaxIdleTime"))) {
                     if($this->mungedObject->ctx[$attr] == 0) {
                         $smarty->assign("$attr", "");
                     }
@@ -478,7 +478,7 @@ class sambaAccount extends plugin
 
         // Assign selected multi edit checkbox values.
         foreach($this->attributes as $attr){
-            if(in_array($attr,$this->multi_boxes)){
+            if(in_array_strict($attr,$this->multi_boxes)){
                 $smarty->assign("use_".$attr,TRUE);
             }else{
                 $smarty->assign("use_".$attr,FALSE);
@@ -494,7 +494,7 @@ class sambaAccount extends plugin
                     "enforcePasswordChange", "passwordNeverExpires", "noPasswordRequired",
                     "temporaryDisabled","cannotChangePassword") as $attr){
 
-            if(in_array($attr,$this->multi_boxes)){
+            if(in_array_strict($attr,$this->multi_boxes)){
                 $smarty->assign("use_".$attr,TRUE);
             }else{
                 $smarty->assign("use_".$attr,FALSE);
@@ -1146,7 +1146,7 @@ class sambaAccount extends plugin
         $this->sambaPrimaryGroupSID= "";
 
         /* Fill mungedDial field */
-        if (isset($this->attrs['sambaMungedDial']) && !in_array('sambaMungedDial', $skip)){
+        if (isset($this->attrs['sambaMungedDial']) && !in_array_strict('sambaMungedDial', $skip)){
             $this->mungedObject->load($this->sambaMungedDial);
         }
 
@@ -1237,7 +1237,7 @@ class sambaAccount extends plugin
         /* Strings */
         foreach (array( "sambaHomePath" => _("Home directory"),
                     "sambaProfilePath" => _("Profile path")) as $key => $val){
-            if (in_array($key,$this->multi_boxes) && !$this->mungedObject->is_samba_path($this->$key)){
+            if (in_array_strict($key,$this->multi_boxes) && !$this->mungedObject->is_samba_path($this->$key)){
                 $message[]= msgPool::invalid($val);
             }
         }
@@ -1246,7 +1246,7 @@ class sambaAccount extends plugin
         foreach (array( "CtxMaxConnectionTime"    => _("Connection"),
                     "CtxMaxDisconnectionTime" => _("Disconnection"),
                     "CtxMaxIdleTime"          => _("IDLE")) as $key => $val){
-            if (in_array($key,$this->multi_boxes) && 
+            if (in_array_strict($key,$this->multi_boxes) && 
                     isset($this->mungedObject->ctx[$key]) && 
                     !tests::is_id($this->mungedObject->ctx[$key]) && $val != 0){
                 $message[]=msgPool::invalid($val);
@@ -1259,7 +1259,7 @@ class sambaAccount extends plugin
         }
 
 
-        if(in_array("sambaKickoffTime", $this->multi_boxes) && $this->flag_sambaKickoffTime){
+        if(in_array_strict("sambaKickoffTime", $this->multi_boxes) && $this->flag_sambaKickoffTime){
             if(!preg_match("/^[0-3][0-9]\.[0-1][0-9]\.([0-9]){4}$/",$this->sambaKickoffTime)){
                 $message[] = msgPool::invalid(_("Account expires after"));
             }elseif(!strtotime($this->sambaKickoffTime) || strtotime($this->sambaKickoffTime) >= 2147483647){
@@ -1328,43 +1328,43 @@ class sambaAccount extends plugin
         $ret = plugin::get_multi_edit_values();
 
         /* Terminal Server  */
-        if(in_array("tslogin",$this->multi_boxes)){
+        if(in_array_strict("tslogin",$this->multi_boxes)){
             $ret['tslogin'] = $this->mungedObject->getTsLogin();
         }
-        if(in_array("CtxWFHomeDirDrive",$this->multi_boxes)){
+        if(in_array_strict("CtxWFHomeDirDrive",$this->multi_boxes)){
             $ret['CtxWFHomeDirDrive'] = $this->mungedObject->ctx['CtxWFHomeDirDrive'];
         }
-        if(in_array("CtxWFHomeDir",$this->multi_boxes)){
+        if(in_array_strict("CtxWFHomeDir",$this->multi_boxes)){
             $ret['CtxWFHomeDir'] = $this->mungedObject->ctx['CtxWFHomeDir'];
         }
-        if(in_array("CtxWFProfilePath",$this->multi_boxes)){
+        if(in_array_strict("CtxWFProfilePath",$this->multi_boxes)){
             $ret['CtxWFProfilePath'] = $this->mungedObject->ctx['CtxWFProfilePath'];
         }
 
-        if(in_array("inherit",$this->multi_boxes)){
+        if(in_array_strict("inherit",$this->multi_boxes)){
             $ret['inherit'] = $this->mungedObject->getInheritMode();
         }       
-        if(in_array("CtxInitialProgram",$this->multi_boxes)){
+        if(in_array_strict("CtxInitialProgram",$this->multi_boxes)){
             $ret['CtxInitialProgram'] = $this->mungedObject->ctx['CtxInitialProgram'];
         } 
-        if(in_array("CtxWorkDirectory",$this->multi_boxes)){
+        if(in_array_strict("CtxWorkDirectory",$this->multi_boxes)){
             $ret['CtxWorkDirectory'] = $this->mungedObject->ctx['CtxWorkDirectory'];
         } 
 
         /* Time Limits. Be careful here, there are some negations  */
-        if(in_array("CtxMaxConnectionTimeF",$this->multi_boxes)){
+        if(in_array_strict("CtxMaxConnectionTimeF",$this->multi_boxes)){
             $ret["CtxMaxConnectionTimeF"]   =  !$this->mungedObject->getCtxMaxConnectionTimeF();
             if(!$ret["CtxMaxConnectionTimeF"]){
                 $ret["CtxMaxConnectionTime"]   =  $this->mungedObject->ctx['CtxMaxConnectionTime'];
             }
         }
-        if(in_array("CtxMaxDisconnectionTimeF",$this->multi_boxes)){
+        if(in_array_strict("CtxMaxDisconnectionTimeF",$this->multi_boxes)){
             $ret["CtxMaxDisconnectionTimeF"]=  !$this->mungedObject->getCtxMaxDisconnectionTimeF();
             if(!$ret["CtxMaxDisconnectionTimeF"]){
                 $ret["CtxMaxDisconnectionTime"]=  $this->mungedObject->ctx['CtxMaxDisconnectionTime'];
             }
         }
-        if(in_array("CtxMaxIdleTimeF",$this->multi_boxes)){
+        if(in_array_strict("CtxMaxIdleTimeF",$this->multi_boxes)){
             $ret["CtxMaxIdleTimeF"]         =  !$this->mungedObject->getCtxMaxIdleTimeF();
             if(!$ret["CtxMaxIdleTimeF"]){
                 $ret["CtxMaxIdleTime"]         =  $this->mungedObject->ctx['CtxMaxIdleTime'];
@@ -1372,24 +1372,24 @@ class sambaAccount extends plugin
         }
 
         /* Client Devices */
-        if(in_array("connectclientdrives",$this->multi_boxes)){
+        if(in_array_strict("connectclientdrives",$this->multi_boxes)){
             $ret["connectclientdrives"]     =  $this->mungedObject->getConnectClientDrives();
         }
-        if(in_array("connectclientprinters",$this->multi_boxes)){
+        if(in_array_strict("connectclientprinters",$this->multi_boxes)){
             $ret["connectclientprinters"]   =  $this->mungedObject->getConnectClientPrinters();
         }
-        if(in_array("defaultprinter",$this->multi_boxes)){
+        if(in_array_strict("defaultprinter",$this->multi_boxes)){
             $ret["defaultprinter"]          =  $this->mungedObject->getDefaultPrinter();
         }
 
         /* Misc */
-        if(in_array("shadow",$this->multi_boxes)){
+        if(in_array_strict("shadow",$this->multi_boxes)){
             $ret["shadow"]    =$this->mungedObject->getShadow();
         }
-        if(in_array("brokenconn",$this->multi_boxes)){
+        if(in_array_strict("brokenconn",$this->multi_boxes)){
             $ret["brokenconn"]=$this->mungedObject->getBrokenConn();
         }
-        if(in_array("reconn",$this->multi_boxes)){
+        if(in_array_strict("reconn",$this->multi_boxes)){
             $ret["reconn"]    =$this->mungedObject->getReConn();
         }
 
@@ -1399,11 +1399,11 @@ class sambaAccount extends plugin
             $ret[$attr] = $this->$attr;
         }
 
-        if(in_array("SetSambaLogonHours",$this->multi_boxes)){
+        if(in_array_strict("SetSambaLogonHours",$this->multi_boxes)){
             $ret['sambaLogonHours'] = $this->sambaLogonHours;
         }
 
-        if(in_array("workstation_list",$this->multi_boxes)){
+        if(in_array_strict("workstation_list",$this->multi_boxes)){
             $ret['multiple_sambaUserWorkstations'] = $this->multiple_sambaUserWorkstations;
         }
 

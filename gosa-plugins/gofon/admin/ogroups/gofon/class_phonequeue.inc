@@ -220,7 +220,7 @@ class phonequeue extends plugin
 
             /* Add queue number */ 
             if(isset($_POST['add_phonenumber'])&&(isset($_POST['phonenumber']))&&(!empty($_POST['phonenumber']))){
-                if((!in_array($_POST['phonenumber'],$this->telephoneNumber))&&(is_numeric($_POST['phonenumber']))){
+                if((!in_array_strict($_POST['phonenumber'],$this->telephoneNumber))&&(is_numeric($_POST['phonenumber']))){
                     $this->telephoneNumber[]=get_post('phonenumber');
                 }
             }
@@ -549,7 +549,7 @@ class phonequeue extends plugin
                     $obj = $ldap->fetch();
 
                     /* Calculate server and account dependencies */
-                    $is_acc = in_array("goFonAccount",$obj['objectClass']);
+                    $is_acc = in_array_strict("goFonAccount",$obj['objectClass']);
                     $is_home= isset($obj['goFonHomeServer'][0]) && $obj['goFonHomeServer'][0] == $this->goFonHomeServer; 
 
                     /* Append user to list of queue member,

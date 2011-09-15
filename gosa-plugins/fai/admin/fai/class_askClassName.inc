@@ -57,7 +57,7 @@ class askClassName extends plugin
     foreach($res as $object){
 
       /* skip class names with this name */ 
-      if(in_array($this->objectClass,$object['objectClass']) || in_array("FAIprofile",$object['objectClass'])){
+      if(in_array_strict($this->objectClass,$object['objectClass']) || in_array_strict("FAIprofile",$object['objectClass'])){
         if(isset($object['FAIstate'][0]) && preg_match("/removed$/",$object['FAIstate'][0])){
           continue;
         }
@@ -65,7 +65,7 @@ class askClassName extends plugin
       }
 
       /* Skip profiles */
-      if(!in_array("FAIprofile",$object['objectClass'])){
+      if(!in_array_strict("FAIprofile",$object['objectClass'])){
         if(isset($object['cn'])){
           $used[$object['cn'][0]]= $object['cn'][0];
         }
@@ -150,7 +150,7 @@ class askClassName extends plugin
       $message[]= msgPool::required(_("Name"));
     }
 
-    if(in_array($this->ClassName,$this->forbidden)){
+    if(in_array_strict($this->ClassName,$this->forbidden)){
       $message[]= msgPool::duplicated(_("Name"));
     }
 

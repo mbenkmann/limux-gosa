@@ -339,14 +339,14 @@ class rsyslog extends plugin
     // Get Host
     if( isset($this->servers[$this->selected_server]['Hosts']) &&  isset($_POST['selected_host']) && 
         ($_POST['selected_host'] == "all" || 
-         in_array($_POST['selected_host'],$this->servers[$this->selected_server]['Hosts']))){
+         in_array_strict($_POST['selected_host'],$this->servers[$this->selected_server]['Hosts']))){
       $this->selected_host = get_post('selected_host');
     }
 
     // Get priority from post
     if( isset($this->servers[$this->selected_server]['Priorities']) &&  isset($_POST['selected_priority']) && 
         ($_POST['selected_priority'] == "all" || 
-         in_array($_POST['selected_priority'],$this->servers[$this->selected_server]['Priorities']))){
+         in_array_strict($_POST['selected_priority'],$this->servers[$this->selected_server]['Priorities']))){
       $this->selected_priority = get_post('selected_priority');
     }
       
@@ -362,7 +362,7 @@ class rsyslog extends plugin
     }
 
     // Get sorting attributes 
-    if(isset($_GET['sort_value']) && in_array($_GET['sort_value'], 
+    if(isset($_GET['sort_value']) && in_array_strict($_GET['sort_value'], 
           array("DeviceReportedTime","FromHost","Facility","Priority","Message","SysLogTag"))){
       $sort_value = $_GET['sort_value'];
       if($this->sort_value == $sort_value){

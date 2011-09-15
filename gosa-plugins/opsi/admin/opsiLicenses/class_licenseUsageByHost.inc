@@ -176,7 +176,7 @@ class licenseUsageByHost extends plugin
         // build up a available licenses list. 
         $licenses = array();
         foreach($this->availableLicenses as $key => $license){
-            if(!in_array($license['softwareLicenseId'][0], $this->reservedLicenses)){
+            if(!in_array_strict($license['softwareLicenseId'][0], $this->reservedLicenses)){
                 $licenses[$key] = $license['softwareLicenseId'][0]." [".$license['licensePoolId'][0]."]";
             }
         }
@@ -211,7 +211,7 @@ class licenseUsageByHost extends plugin
                 // Check if we've to add reservations
                 if(isset($_POST['availableLicense']) && isset($_POST['addReservation'])){
                     $id = get_post('availableLicense');
-                    if(isset($this->availableLicenses[$id]) && !in_array($this->availableLicenses[$id],$this->reservedLicenses)){
+                    if(isset($this->availableLicenses[$id]) && !in_array_strict($this->availableLicenses[$id],$this->reservedLicenses)){
                         $this->reservedLicenses[$id] =  $this->availableLicenses[$id]['softwareLicenseId'][0];
                     }
                 }

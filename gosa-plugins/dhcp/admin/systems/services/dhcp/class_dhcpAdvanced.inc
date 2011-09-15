@@ -61,7 +61,7 @@ class dhcpAdvanced extends plugin
         if ($acl_writeable && isset($_POST['delete_statement']) && isset($_POST['dhcpstatements'])){
             $name = preg_replace('/_[0-9]*$/', '', get_post('dhcpstatements'));
             $key  = preg_replace('/^.*_/', '', get_post('dhcpstatements'));
-            if (in_array($name, $this->autoStatements)){
+            if (in_array_strict($name, $this->autoStatements)){
                 msg_dialog::display(_("Error"), _("Cannot delete automatic statements!"), ERROR_DIALOG);
             } else {
                 $this->statements->remove($name,$key);	
@@ -75,7 +75,7 @@ class dhcpAdvanced extends plugin
         if ($acl_writeable && isset($_POST['delete_option']) && isset($_POST['dhcpoptions'])){
             $name = preg_replace('/_[0-9]*$/', '', get_post('dhcpoptions'));
             $key  = preg_replace('/^.*_/', '', get_post('dhcpoptions'));
-            if (in_array($name, $this->autoOptions)){
+            if (in_array_strict($name, $this->autoOptions)){
                 msg_dialog::display(_("Error"), _("Cannot delete automatic statements!"), ERROR_DIALOG);
             } else {
                 $this->options->remove($name,$key);	
@@ -90,7 +90,7 @@ class dhcpAdvanced extends plugin
         /* Assign statements  */
         $statements= array();
         foreach ($this->statements->getAll() as $key => $val){
-            if (in_array($key, $this->autoStatements)){
+            if (in_array_strict($key, $this->autoStatements)){
                 foreach($val as $id => $entry){
                     $statements[$key."_".$id]= "$key $entry ["._("automatic")."]";
                 }       
@@ -105,7 +105,7 @@ class dhcpAdvanced extends plugin
         /* Assign options  */
         $options= array();
         foreach ($this->options->getAll() as $key => $val){
-            if (in_array($key, $this->autoOptions)){
+            if (in_array_strict($key, $this->autoOptions)){
                 foreach($val as $id => $entry){
                     $options[$key."_".$id]= "$key $entry ["._("automatic")."]";
                 }       

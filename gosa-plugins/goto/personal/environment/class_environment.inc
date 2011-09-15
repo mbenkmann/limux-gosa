@@ -313,7 +313,7 @@ class environment extends plugin
     $error = false;
     if(!isset($this->gotoKioskProfiles['SERVERS'][$this->gotoKioskProfile_Server])){
       $error = true;
-    }elseif(!in_array($this->gotoKioskProfile_Profile, $this->gotoKioskProfiles['BY_SERVER'][$this->gotoKioskProfile_Server])){
+    }elseif(!in_array_strict($this->gotoKioskProfile_Profile, $this->gotoKioskProfiles['BY_SERVER'][$this->gotoKioskProfile_Server])){
       $error = true;
     }
     if($error && !empty($this->gotoKioskProfile)){
@@ -348,7 +348,7 @@ class environment extends plugin
     /* Log view */
     if($this->is_account && !$this->view_logged){
       $this->view_logged = TRUE;
-      if(isset($this->parent->by_object['user']) || (isset($this->attrs['objectClass']) &&in_array("gosaAccount",$this->attrs['objectClass']))){
+      if(isset($this->parent->by_object['user']) || (isset($this->attrs['objectClass']) &&in_array_strict("gosaAccount",$this->attrs['objectClass']))){
         new log("view","users/".get_class($this),$this->dn);
       }else{
         new log("view","groups/".get_class($this),$this->dn);
@@ -450,7 +450,7 @@ class environment extends plugin
            If theres is no posixAccount enabled, you won't be able to enable 
            environment extensions
          */
-        if((isset($this->parent->by_object['group']))||(isset($this->attrs['objectClass']))&&((in_array("posixAccount",$this->attrs['objectClass'])))){
+        if((isset($this->parent->by_object['group']))||(isset($this->attrs['objectClass']))&&((in_array_strict("posixAccount",$this->attrs['objectClass'])))){
           $display= $this->show_enable_header(msgPool::addFeaturesButton(_("Desktop")),
               msgPool::featuresDisabled(_("Desktop")));
           return $display;
@@ -1027,7 +1027,7 @@ class environment extends plugin
     foreach(array("gotoPrinter","kiosk_server","gotoProfileFlagL","gotoXResolution",
                   "useProfile","gotoProfileServer","gotoProfileQuota","gotoProfileFlagC") as $box){
       $ubox ="use_".$box;
-      if(in_array($box,$this->multi_boxes)){
+      if(in_array_strict($box,$this->multi_boxes)){
         $smarty->assign($ubox,TRUE);
       }else{
         $smarty->assign($ubox,FALSE);
@@ -1100,7 +1100,7 @@ class environment extends plugin
       }
       if(isset($_POST['kiosk_profile'])){
         $tmp = get_post('kiosk_profile');
-        if(in_array($tmp,$this->gotoKioskProfiles['BY_SERVER'][$this->gotoKioskProfile_Server])){
+        if(in_array_strict($tmp,$this->gotoKioskProfiles['BY_SERVER'][$this->gotoKioskProfile_Server])){
           $this->gotoKioskProfile_Profile = get_post('kiosk_profile');
         }
       }
@@ -1132,7 +1132,7 @@ class environment extends plugin
       plugin::save_object();
       foreach($this->attributes as $s_attr){
         if((!isset($_POST[$s_attr])) || 
-            in_array($s_attr,array("gosaDefaultPrinter","gotoShare","gotoHotplugDevices","gotoPrinter","gotoLogonScripts","uid"))) continue;
+            in_array_strict($s_attr,array("gosaDefaultPrinter","gotoShare","gotoHotplugDevices","gotoPrinter","gotoLogonScripts","uid"))) continue;
         if(!$this->acl_is_writeable($s_attr)){
           continue;
         }else{ 
@@ -1162,7 +1162,7 @@ class environment extends plugin
       $this->attrs['objectClass']=array();
     } 
     if(!$this->is_group){
-      if((!((in_array("posixAccount",$this->attrs['objectClass']))||($this->parent->by_object['posixAccount']->is_account==true)))&&(!$this->is_group)){
+      if((!((in_array_strict("posixAccount",$this->attrs['objectClass']))||($this->parent->by_object['posixAccount']->is_account==true)))&&(!$this->is_group)){
         $message[]= msgPool::featuresDisabled(_("environment"),_("POSIX"));  
       }
     }
@@ -1666,7 +1666,7 @@ class environment extends plugin
     $ret['gotoLogonScripts'] = $this->gotoLogonScripts;
     $ret['gotoHotplugDevices'] = $this->gotoHotplugDevices;
   
-    if(in_array("gotoPrinter",$this->multi_boxes)){
+    if(in_array_strict("gotoPrinter",$this->multi_boxes)){
       $ret['gotoPrinter'] = $this->gotoPrinter;
       $ret['gotoPrinterSel'] = $this->gotoPrinterSel;
       $ret['gosaDefaultPrinter'] = $this->gosaDefaultPrinter;
@@ -1675,26 +1675,26 @@ class environment extends plugin
       $ret['add_del_printer_member_was_called'] = TRUE;
     }
   
-    if(in_array("gotoProfileFlagL",$this->multi_boxes)){
+    if(in_array_strict("gotoProfileFlagL",$this->multi_boxes)){
       $ret['gotoProfileFlagL'] = $this->gotoProfileFlagL;
     }
 
-    if(in_array("useProfile",$this->multi_boxes)){
+    if(in_array_strict("useProfile",$this->multi_boxes)){
       $ret['useProfile']=$this->useProfile;
-      if(in_array("gotoProfileServer",$this->multi_boxes)){
+      if(in_array_strict("gotoProfileServer",$this->multi_boxes)){
         $ret['gotoProfileServer']=$this->gotoProfileServer;
       }
-      if(in_array("gotoProfileQuota",$this->multi_boxes)){
+      if(in_array_strict("gotoProfileQuota",$this->multi_boxes)){
         $ret['gotoProfileQuota']=$this->gotoProfileQuota;
       }
-      if(in_array("gotoProfileFlagC",$this->multi_boxes)){
+      if(in_array_strict("gotoProfileFlagC",$this->multi_boxes)){
         $ret['gotoProfileFlagC'] = $this->gotoProfileFlagC;
       }
     }
-    if(in_array("gotoXResolution",$this->multi_boxes)){
+    if(in_array_strict("gotoXResolution",$this->multi_boxes)){
       $ret['gotoXResolution'] = $this->gotoXResolution;
     }
-    if(in_array("kiosk_server",$this->multi_boxes)){
+    if(in_array_strict("kiosk_server",$this->multi_boxes)){
       $ret['gotoKioskProfile_Server'] = $this->gotoKioskProfile_Server;
       $ret['gotoKioskProfile_Profile'] = $this->gotoKioskProfile_Profile;
     }
@@ -1707,7 +1707,7 @@ class environment extends plugin
     $message = plugin::multiple_check();
     $this->detect_grouptype();
 
-    if(preg_match("/[^0-9]/",$this->gotoProfileQuota) && in_array("gotoProfileQuota",$this->multi_boxes)) {
+    if(preg_match("/[^0-9]/",$this->gotoProfileQuota) && in_array_strict("gotoProfileQuota",$this->multi_boxes)) {
       $message[] = msgPool::invalid(_("Profile quota"),$this->gotoProfileQuota,"/[0-9]/") ;
     }
     return($message);
@@ -1751,7 +1751,7 @@ class environment extends plugin
       }
       if(isset($_POST['kiosk_profile'])){
         $tmp = get_post('kiosk_profile');
-        if(in_array($tmp,$this->gotoKioskProfiles['BY_SERVER'][$this->gotoKioskProfile_Server])){
+        if(in_array_strict($tmp,$this->gotoKioskProfiles['BY_SERVER'][$this->gotoKioskProfile_Server])){
           $this->gotoKioskProfile_Profile = get_post('kiosk_profile');
         }
       }

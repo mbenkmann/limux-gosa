@@ -246,7 +246,7 @@ class faiSummaryTab extends plugin{
           "<b>".$this->objs[$key]['Name']."</b></a></td></tr>";
 
         /* Display FAItemplate FAIhook FAIscript entries */ 
-        if(in_array($key,array("FAItemplate","FAIhook","FAIscript"))){
+        if(in_array_strict($key,array("FAItemplate","FAIhook","FAIscript"))){
 
           $nums = array();          
           $tmp  = array();
@@ -305,7 +305,7 @@ class faiSummaryTab extends plugin{
         }
 
         /* Create variable entries */
-        if(in_array($key,array("FAIvariable"))) {
+        if(in_array_strict($key,array("FAIvariable"))) {
           foreach($entry['Entries'] as $cn => $data){
             $str .="<tr><td style='padding-left:20px;'>";
             $str .= $image."&nbsp;".$data['cn'][0];
@@ -322,7 +322,7 @@ class faiSummaryTab extends plugin{
         }
 
         /* Create packagelist entries */ 
-        if(in_array($key,array("FAIpackageList"))) {
+        if(in_array_strict($key,array("FAIpackageList"))) {
           ksort($entry['Entries']);
           foreach($entry['Entries'] as $data){
             $str .="<tr><td style='padding-left:20px;'>";
@@ -333,7 +333,7 @@ class faiSummaryTab extends plugin{
         }
 
         /* Create partition table entries */
-        if(in_array($key,array("FAIpartitionTable"))) {
+        if(in_array_strict($key,array("FAIpartitionTable"))) {
           foreach($entry['Entries'] as $cn => $data){
             $str .= "<tr><td style='padding-left:20px;'>";
             $str .= $image."&nbsp;".$data['name'];
@@ -407,7 +407,7 @@ class faiSummaryTab extends plugin{
       while($attrs = $ldap->fetch()){
 
         foreach($this-> objs as $key => $rest){
-          if(in_array($key,$attrs['objectClass'])){
+          if(in_array_strict($key,$attrs['objectClass'])){
 
             if(!isset($this->usedClasses[$key][$class])){
               $this->usedClasses[$key][$class] = true;

@@ -94,7 +94,7 @@ class ConfigManagementDataModel
     {
         $res = array();
         foreach($this->data['linear'] as $path => $item){
-            if(in_array($item['type'],$types)) $res[] = $item;
+            if(in_array_strict($item['type'],$types)) $res[] = $item;
         }
         return($res);
     }

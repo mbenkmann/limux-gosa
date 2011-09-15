@@ -366,7 +366,7 @@ class faiDiskEntry extends plugin
     // Check which of the available disks are unused.
     $ret = array();
     foreach($may as $val){
-      if(!in_array($val,$used)){
+      if(!in_array_strict($val,$used)){
         $ret[$val] = $val;
       }
     }
@@ -429,7 +429,7 @@ class faiDiskEntry extends plugin
       $used[$key] = $part['FAIpartitionNr'];
     }
     $id = 1;
-    while(in_array($id,$used) && $id < 16 ){
+    while(in_array_strict($id,$used) && $id < 16 ){
       $id++;
     }
     return($id);

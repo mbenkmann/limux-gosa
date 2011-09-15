@@ -59,7 +59,7 @@ class dhcpSharedNetwork extends dhcpPlugin
                     "unknown-clients" => "allow_unknown_state",
                     "bootp" => "allow_bootp_state",
                     "booting" => "allow_booting_state") as $state => $target){
-            if(in_array($state,$allow)){
+            if(in_array_strict($state,$allow)){
                 $smarty->assign($target,"checked");
             }else{
                 $smarty->assign($target,"");

@@ -62,7 +62,7 @@ class Parser
 		{
 			$prev = $this->tree_->getNode($childs[$i-1]);
 
-			if (in_array($prev['text'], array('{', '(', ',')))
+			if (in_array_strict($prev['text'], array('{', '(', ',')))
 			{
 				// use command owning a block or list
 				$prev = $this->tree_->getNode($parent_id);
@@ -92,7 +92,7 @@ class Parser
 
 	function isExtensionRegistered_($extension)
 	{
-		return (in_array($extension, $this->registeredExtensions_) ? true : false);
+		return (in_array_strict($extension, $this->registeredExtensions_) ? true : false);
 	}
 
 	function success_($text = null)

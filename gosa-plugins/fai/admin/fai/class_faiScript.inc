@@ -330,7 +330,7 @@ class faiScript extends plugin
     }
     
     /* Get sort order */
-    if(isset($_GET['sort']) && in_array($_GET['sort'],array("name","priority"))){
+    if(isset($_GET['sort']) && in_array_strict($_GET['sort'],array("name","priority"))){
       if($this->sort_by == $_GET['sort']){
         if($this->sort_order == "up"){
           $this->sort_order = "down";
