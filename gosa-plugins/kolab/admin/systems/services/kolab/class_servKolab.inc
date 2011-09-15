@@ -57,6 +57,8 @@ class servkolab extends goService
         /* Toggle relayhost */
         $this->postfix_mxrelayenabled = preg_match('/^\[/', $this->postfix_relayhost);
         $this->postfix_relayhost      = preg_replace("/[\[\]]/","",$this->postfix_relayhost);
+        
+        $this->postfix_mynetworksData = preg_split("/[ ,]/", $this->postfix_mynetworks,0, PREG_SPLIT_NO_EMPTY);
 
         /* Is this Server a member of the Kolab extension or not ?*/ 
         if(isset($this->attrs['kolabHost'])) {
@@ -91,6 +93,17 @@ class servkolab extends goService
         $this->postfix_mydestinationList->setColspecs(array('*','20px'));
         $this->postfix_mydestinationList->setHeader(array(_("Name")));
         $this->postfix_mydestinationList->setDefaultSortColumn(0);
+
+        // Prepare lists
+        $this->postfix_mynetworksList = new sortableListing();
+        $this->postfix_mynetworksList->setDeleteable(true);
+        $this->postfix_mynetworksList->setInstantDelete(true);
+        $this->postfix_mynetworksList->setEditable(false);
+        $this->postfix_mynetworksList->setWidth("100%");
+        $this->postfix_mynetworksList->setHeight("100px");
+        $this->postfix_mynetworksList->setColspecs(array('*','20px'));
+        $this->postfix_mynetworksList->setHeader(array(_("Name")));
+        $this->postfix_mynetworksList->setDefaultSortColumn(0);
     }
 
 
@@ -144,6 +157,25 @@ class servkolab extends goService
             }
         }
 
+
+        /* Domain name added/removed 
+         */
+        if($this->acl_is_writeable("postfixmynetworks")){
+            $this->postfix_mynetworksList->save_object();
+            $action = $this->postfix_mynetworksList->getAction();
+            if($action['action'] == 'delete'){
+                $this->postfix_mynetworksData = $this->postfix_mynetworksList->getMaintainedData();
+            }
+            if(isset($_POST['new_network_name']) && isset($_POST['add_network_name'])){
+                $new_domain = trim(get_post('new_network_name'));
+                if(!empty($new_domain)){
+                    $this->postfix_mynetworksData[] = $new_domain;
+                    $this->postfix_mynetworksData = array_unique($this->postfix_mynetworksData);
+                }
+            }
+        }
+
+
         /***************
           Assign informations to smarty 
          ***************/
@@ -180,6 +212,11 @@ class servkolab extends goService
         $this->postfix_mydestinationList->setListData($this->postfix_mydestination);
         $this->postfix_mydestinationList->update();
         $smarty->assign("mdDiv",$this->postfix_mydestinationList->render());
+
+        $this->postfix_mynetworksList->setAcl($this->getacl("postfixmynetworks"));
+        $this->postfix_mynetworksList->setListData($this->postfix_mynetworksData);
+        $this->postfix_mynetworksList->update();
+        $smarty->assign("networkDiv",$this->postfix_mynetworksList->render());
 
         /* Load Template */
         $display.=$smarty->fetch(get_template_path('servkolab.tpl', TRUE,dirname(__FILE__)));
@@ -352,6 +389,8 @@ class servkolab extends goService
         if ($this->postfix_mxrelayenabled && $this->postfix_relayhost != ""){
             $this->postfix_relayhost= "[".$this->postfix_relayhost."]";
         }
+
+        $this->postfix_mynetworks = implode($this->postfix_mynetworksData, ',');
 
         /* Check if this server was renamed, in this case we have to remove old cn first*/
         if($this->hostname != $this->cn){

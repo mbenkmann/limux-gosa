@@ -175,18 +175,17 @@
    <hr>
 
    <h3>{t}SMTP privileged networks{/t}</h3>
-   <table summary="{t}SMTP privileged networks{/t}">
-    <tr>
-     <td>
       <label for="postfix_mynetworks">
       {t}Hosts/networks allowed to relay{/t}</label>
       {render acl=$postfixmynetworksACL}
-      <input id="postfix_mynetworks" name="postfix_mynetworks" size="60" maxlength="220" value="{$postfix_mynetworks}" type="text">
+          {$networkDiv}
       {/render}
-      ( {t}Enter multiple values, separated with{/t} <b>,</b> )
-     </td>
-    </tr>
-   </table>
+      {render acl=$postfixmynetworksACL}
+          <input size="30" type='text' name='new_network_name' value=''>
+      {/render}
+      {render acl=$postfixmynetworksACL}
+        <button type='submit' name='add_network_name'>{msgPool type=addButton}</button>
+      {/render}
 
    <hr>
 
