@@ -381,6 +381,34 @@ class netatalk extends plugin {
           ));
   }
 
+  function adapt_from_template($dn, $skip= array())
+  {
+    /* As the 'apple-user-homeDirectory' LDAP attribute is stored as
+     * 'apple_user_homeDirectory' internally by GOsa (to avoid problem with
+     * dashes as variable names), we need to add the dashed version to
+     * $this->attributes so that the adapt_from_template function in the plugin
+     * class will find the dashed LDAP attribute and substitute possibly
+     * placeholders like %uid. We remove the dashed version of
+     * 'apple_user_homeDirectory' from the attributes again afterwards. */
+    array_push($this->attributes, "apple-user-homeDirectory");
+    plugin::adapt_from_template($dn, $skip);
+    array_pop($this->attributes);
+  
+    /* Loop through the available shares and find out which is the share from
+     * 'apple-user-homeDirectory'. Remove its host and directory (as well as
+     * the default 'mountDirectory' prefix) to get 'apple_user_homepath_raw'
+     * and store that share as 'selectedshare' so that it gets displayed by
+     * default in the netatalk tab. */
+    foreach($this->shares as $share) {
+      $apple_user_homepath = $this->mountDirectory."/".
+			$this->shares_settings[$share]["host"].
+			$this->shares_settings[$share]["dir"]."/";
+      if (preg_match("#$apple_user_homepath#", $this->{'apple-user-homeDirectory'})) {
+        $this->apple_user_homepath_raw =  preg_replace("#$apple_user_homepath#", "", $this->{'apple-user-homeDirectory'});
+        $this->selectedshare = $share;
+      }
+    }
+  }   
 }
 
 // vim:tabstop=2:expandtab:shiftwidth=2:filetype=php:syntax:ruler:
