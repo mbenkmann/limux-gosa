@@ -165,7 +165,7 @@ class faxreport extends plugin
             // Query for the requested fay entry 
             $query = "SELECT id,uid,date_format(queuing_time, '%Y%m%d%H%i%s') ".
                 "as queuing_time,status,sender_id,sender_msn,receiver_id,".
-                "receiver_msn,pages,status_message,transfer_time FROM faxlog WHERE id=".$detail.";";
+                "receiver_msn,pages,status_message,transfer_time FROM faxlog WHERE id='".$detail."';";
 
             $cfg= $this->config->data['SERVERS']['FAX'];
             $result = @mysql_query($query);
@@ -208,8 +208,10 @@ class faxreport extends plugin
             }
             $format= _("Y-M-D");
             $queuing_time= $line['queuing_time'];
-            $smarty->assign("plug", "?plug=".get_post('plug'));
-            $smarty->assign("detail", set_post(get_post($detail)));
+
+            $plug = (isset($_GET['plug'])) ? '?plug='.$_GET['plug'] : '';
+            $smarty->assign("plug", $plug);
+            $smarty->assign("detail", set_post($detail));
             $date= preg_replace("/Y/", substr($queuing_time,0,4), $format);
             $date= preg_replace("/M/", substr($queuing_time,4,2), $date);
             $date= preg_replace("/D/", substr($queuing_time,6,2), $date);
@@ -455,6 +457,7 @@ class viewFaxEntries extends plugin {
             "plProvidedAcls" => array(
                 "detailedView"   => _("Detailed view and download"),
                 "id"             => _("Fax ID"),
+                "uid"            => _("The username"),
                 "queuingtime"    => _("Date")."&nbsp;/&nbsp;"._("Time"),
                 "status"         => _("Status"),
                 "senderid"       => _("Sender ID"),
