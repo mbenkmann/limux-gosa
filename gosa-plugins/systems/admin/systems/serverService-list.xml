@@ -8,6 +8,7 @@
     <template>serverService-list.tpl</template>
     <label>List of services</label>
     <defaultSortColumn>1</defaultSortColumn>
+    <noAclChecks>true</noAclChecks>
 
     <objectType>
       <label>Service</label>

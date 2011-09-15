@@ -661,7 +661,7 @@ class systemManagement extends management
                     // Delete the object
                     $this->dn = $dn;
                     if($info['tabClass'] == "phonetabs"){
-                        $this->tabObject= new $tabtype($this->config, $this->config->data['TABS'][$tabobj], $dn,$type);
+                        $this->tabObject= new $info['tabClass']($this->config, $this->config->data['TABS'][$info['tabDesc']], $dn,$type);
                         $this->tabObject->set_acl_base($dn);
                         $this->tabObject->by_object['phoneGeneric']->remove_from_parent ();
                     }else{
@@ -701,6 +701,12 @@ class systemManagement extends management
             $headpage = $this->getHeadpage();
             $dn = $target[0];
             $type =$headpage->getType($dn);
+
+            if(!isset($tInfo[$type])){
+                msg_dialog::display(_("Information"),sprintf(_("The object-type '%s' cannot be managed with your setup of GOsa, please install the required  plugins!"), $type), ERROR_DIALOG);
+                return;
+            }
+
             $tData = $tInfo[$type];
 
             if($type == "FAKE_OC_ArpNewDevice"){
@@ -1274,7 +1280,7 @@ class systemManagement extends management
     {
         $tabs = array(
                 "device" => array(
-                    "ou"          => get_ou('Device','DeviceRDN'),
+                    "ou"          => get_ou('Device','GOsaDeviceRDN'),
                     "plugClass"   => "Device",
                     "tabClass"    => "DeviceTab",
                     "tabDesc"     => "NEWDEVICETABS",
