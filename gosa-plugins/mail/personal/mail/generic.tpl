@@ -9,7 +9,7 @@
     <tr>
      <td><label for="mail">{t}Primary address{/t}</label>{$must}</td>
      <td>
-      {if !$isModifyableMail && $initially_was_account}
+      {if !$isModifyableMail && $initially_was_account && !$is_template}
       <input type='text' disabled size=30 value="{$mail}">
       {else}
       {if $domainSelectionEnabled}
@@ -30,7 +30,7 @@
     <tr>
      <td><label for="gosaMailServer">{t}Server{/t}</label></td>
      <td>
-      {if !$isModifyableServer && $initially_was_account}
+      {if !$isModifyableServer && $initially_was_account && !$is_template}
       <input type='text' disabled size=30 value="{$gosaMailServer}">
       {else}
       

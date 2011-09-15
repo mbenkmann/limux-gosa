@@ -154,7 +154,7 @@ class mailAccount extends plugin
 
     /* Initialize configured values 
      */ 
-    if($this->is_account){
+    if($this->is_account && !$this->is_template){
 
       if($this->mailMethod->connect() && $this->mailMethod->account_exists()){
 
@@ -314,7 +314,7 @@ class mailAccount extends plugin
         $list = $this->mailAddressSelect->save();
         foreach ($list as $entry){
           $val = $entry['mail'][0];
-          if (!in_array ($val, $this->gosaMailAlternateAddress) && $val != $this->mail){
+          if (!in_array_strict($val, $this->gosaMailAlternateAddress) && $val != $this->mail){
             $this->addForwarder($val);
             $this->is_modified= TRUE;
           }
@@ -337,8 +337,8 @@ class mailAccount extends plugin
       return($this->mailAddressSelect->execute());
     }
 
-    if (isset($_POST['add_forwarder'])){
-      if ($_POST['forward_address'] != ""){
+    if (isset($_POST['add_forwarder']) && isset($_POST['forward_address'])){
+      if (!empty($_POST['forward_address'])){
         $address= get_post('forward_address');
         $valid= FALSE;
         if (!tests::is_email($address)){
@@ -364,7 +364,7 @@ class mailAccount extends plugin
         }
       }
     }
-    if (isset($_POST['delete_forwarder'])){
+    if (isset($_POST['delete_forwarder']) && isset($_POST['forwarder_list'])){
       $this->delForwarder ($_POST['forwarder_list']);
     }
     if ($this->mailAddressSelect instanceOf mailAddressSelect){
@@ -497,7 +497,7 @@ class mailAccount extends plugin
      */
     $smarty->assign("spamlevel", $this->SpamLevels);
     $smarty->assign("spambox"  , $this->MailBoxes);
-
+    $smarty->assign("is_template", $this->is_template);
     $smarty->assign("multiple_support",$this->multiple_support_active);  
     return($display.$smarty->fetch(get_template_path("generic.tpl",TRUE,dirname(__FILE__))));
   }
@@ -514,11 +514,11 @@ class mailAccount extends plugin
       $server = $this->gosaMailServer;
       plugin::save_object();
 
-      if(!$this->mailMethod->isModifyableServer() && $this->initially_was_account){
+      if(!$this->mailMethod->isModifyableServer() && $this->initially_was_account && !$this->is_template){
         $this->gosaMailServer = $server;
       }
 
-      if(!$this->mailMethod->isModifyableMail() && $this->initially_was_account){
+      if(!$this->mailMethod->isModifyableMail() && $this->initially_was_account && !$this->is_template){
         $this->mail = $mail;
       }else{
 

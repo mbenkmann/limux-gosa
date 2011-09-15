@@ -805,7 +805,7 @@ class mailMethod{
       return("&nbsp;&nbsp;"._("Unlimited"));
     }else{
       $usage =round(($use/$quota) * 100);
-      return("<img src='progress.php?x=100&amp;y=17&amp;p=$usage'>");
+      return(progressbar($usage,100,15,true));
     }
   }
 

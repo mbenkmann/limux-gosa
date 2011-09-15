@@ -21,7 +21,7 @@
     <tag>default</tag>
     <label>Default filter</label>
     <query>
-      <backend>LDAPBlacklist</backend>
+      <backend>NOACL</backend>
       <filter>(&amp;(objectClass=gosaMailAccount)(mail=$))</filter>
     </query>
     <autocomplete>

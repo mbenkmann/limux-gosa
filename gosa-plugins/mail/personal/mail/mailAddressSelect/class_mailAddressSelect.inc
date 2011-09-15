@@ -47,8 +47,18 @@ class mailAddressSelect extends management
     // Build headpage
     $headpage = new listing(get_template_path("selectMailAddress-list.xml", true, dirname(__FILE__)));
     $headpage->setFilter($filter);
+    $headpage->registerElementFilter("objectName", "mailAddressSelect::objectNameFilter");
     parent::__construct($config, $ui, "mail", $headpage);
   }
+
+    static function objectNameFilter($id,$dn,$cn,$sn=NULL,$givenName=NULL)
+    {
+        if($sn){
+            return("{$sn[0]}, {$givenName[0]}");
+        }else{
+            return("{$cn[0]}");
+        }
+    }
 
   function save()
   {
