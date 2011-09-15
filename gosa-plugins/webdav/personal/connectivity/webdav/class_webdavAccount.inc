@@ -8,7 +8,7 @@ class webdavAccount extends plugin
 
   /* attribute list for save action */
   var $attributes= array();
-  var $objectclasses= array("gosaWebdavAccount");
+  var $objectclasses= array("gosaWebDAVAccount");
   var $ReadOnly = false;
   var $view_logged = FALSE;
   var $uid ="";
@@ -167,7 +167,7 @@ class webdavAccount extends plugin
           "plSelfModify"    => TRUE,
           "plDepends"       => array("user"),
           "plRequirements"=> array(
-              'ldapSchema' => array('gosaWebdavAccount' => '>=2.7'),
+              'ldapSchema' => array('gosaWebDAVAccount' => '>=2.7'),
               'onFailureDisablePlugin' => array(get_class())
               ),
           "plPriority"      => 23,                                 // Position in tabs
@@ -221,7 +221,7 @@ class webdavAccount extends plugin
   function init_multiple_support($attrs,$all)
   {
     plugin::init_multiple_support($attrs,$all);
-    if(isset($attrs['objectClass']) && in_array_strict("gosaWebdavAccount",$attrs['objectClass'])){
+    if(isset($attrs['objectClass']) && in_array_strict("gosaWebDAVAccount",$attrs['objectClass'])){
       $this->is_account = TRUE;
     }
   }
