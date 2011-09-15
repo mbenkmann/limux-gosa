@@ -51,7 +51,7 @@ class passwordMethodMIT extends passwordMethod
     var $MASK                     = 0;
 
     var $flags = array(
-            "DISALLOW_POSTDATED"    =>0x00000001 ,  // Pohibit postdated tickets
+            "DISALLOW_POSTDATED"    =>0x00000001 ,  // Prohibit postdated tickets
             "DISALLOW_FORWARDABLE"  =>0x00000002 ,  // Prohibit forwardable tickets
             "DISALLOW_TGT_BASED"    =>0x00000004 ,  // Disallow Ticket-Granting Service
             "DISALLOW_RENEWABLE"    =>0x00000008 ,  // Prohibit renewable tickets

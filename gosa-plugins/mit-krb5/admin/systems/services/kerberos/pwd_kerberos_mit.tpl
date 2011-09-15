@@ -206,7 +206,7 @@
          name="DISALLOW_RENEWABLE" value="1" type="checkbox">{t}Prohibit renewable tickets{/t}
         <br>
         <input {if $DISALLOW_POSTDATED} checked {/if}class="center" 		
-         name="DISALLOW_POSTDATED" value="1" type="checkbox">{t}Pohibit postdated tickets{/t}
+         name="DISALLOW_POSTDATED" value="1" type="checkbox">{t}Prohibit postdated tickets{/t}
         <br>
         <input {if $DISALLOW_TGT_BASED} checked {/if}class="center" 		
          name="DISALLOW_TGT_BASED" value="1" type="checkbox">{t}Disallow Ticket-Granting Service{/t}
