@@ -418,7 +418,7 @@ class Groupware extends plugin
                 $list = $this->mailAddressSelectDialog->save();
                 foreach ($list as $entry){
                     $val = $entry['mail'][0];
-                    if (!in_array ($val, $this->alternateAddresses) && $val != $this->mailAddress){
+                    if (!in_array_strict($val, $this->alternateAddresses) && $val != $this->mailAddress){
                         $this->addForwarder($val);
                         $this->is_modified= TRUE;
                     }

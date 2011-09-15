@@ -284,6 +284,12 @@ class GroupwareSharedFolder extends plugin
      */  
     function save()
     {
+
+        if(!$this->initialized){
+            echo "Nothing to save, plugin init failed!";
+            return;
+        }
+
         $this->folderList = $this->FolderWidget->save();
         $rpc = $this->config->getRpcHandle();
 
