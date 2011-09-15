@@ -424,6 +424,37 @@
         </tr>            
     </table>
 
+    <table>
+        <tr>
+            <td colspan=2>
+                {render acl=$sambaKickoffTimeACL  checkbox=$multiple_support checked=$use_sambaKickoffTime}
+                    <input id="flag_sambaKickoffTime" type=checkbox name="flag_sambaKickoffTime" value="1"
+                        {if $flag_sambaKickoffTime} checked {/if} class="center">
+                {/render}
+                <label for="flag_sambaKickoffTime">{t}Account expires after{/t}</label>
+            </td>
+            <td style='width:200px;'>
+                {render acl=$sambaKickoffTimeACL}
+                    <input type="text" id="sambaKickoffTime" name="sambaKickoffTime" 
+                        class="date" style='width:100px' value="{$sambaKickoffTime}">
+                    {if $sambaKickoffTimeACL|regex_replace:"/[cdmr]/":"" == "w"}
+                        <script type="text/javascript">
+                            {literal}
+                               var datepicker2 = new DatePicker({
+                                    relative : 'sambaKickoffTime',
+                                    language : '{/literal}{$lang}{literal}',
+                                    keepFieldEmpty : true,
+                                    enableCloseEffect : false,
+                                    enableShowEffect : false });
+                            {/literal}
+                        </script>
+                    {/if}
+                {/render}
+            </td>
+        </tr>
+    </table>
+
+
     <hr>
 
     {render acl=$sambaLogonHoursACL mode=read_active  checkbox=$multiple_support checked=$use_SetSambaLogonHours}

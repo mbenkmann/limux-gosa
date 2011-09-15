@@ -42,7 +42,7 @@ class wingeneric extends plugin
                             "shadowInactive","uid","cn","sn","givenName","homeDirectory","sambaSID",
                             "sambaPrimaryGroupSID","displayName", "sambaPwdMustChange",
                             "sambaNTPassword","sambaPwdLastSet","sambaAcctFlags");
-  var $objectclasses= array("posixAccount","person","organizationalPerson","inetOrgPerson","gosaAccount","shadowAccount","sambaSamAccount","top");
+  var $objectclasses= array("posixAccount","person","organizationalPerson","inetOrgPerson","shadowAccount","sambaSamAccount","top");
 
   var $view_logged = FALSE;
 
@@ -53,6 +53,14 @@ class wingeneric extends plugin
     $this->netConfigDNS->cn =  preg_replace("/\\\$\$/","",$this->uid);
     $this->netConfigDNS->MACisMust = FALSE;
     $this->netConfigDNS->IPisMust = FALSE;
+
+    // The combination of the used objectClasses may differ, remember the initial ones.
+    if(isset($this->attrs['objectClass'])){
+        $this->objectclasses = array();
+        for($i=0; $i < $this->attrs['objectClass']['count'] ;  $i++ ){
+            $this->objectclasses[] = $this->attrs['objectClass'][$i];
+        }
+    }
 
     /* Set base */
     if ($this->dn == "new"){

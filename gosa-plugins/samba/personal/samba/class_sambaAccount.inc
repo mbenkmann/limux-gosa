@@ -514,7 +514,7 @@ class sambaAccount extends plugin
         if(isset($this->attrs['sambaPwdLastSet'][0])){
             $last = $this->attrs['sambaPwdLastSet'][0];
             $sid = $this->get_domain_info();
-            if(isset($sid['sambaMaxPwdAge'][0])){
+            if(isset($sid['sambaMaxPwdAge'][0]) && $sid['sambaMaxPwdAge'][0] != -1){
                 $d = ($last + $sid['sambaMaxPwdAge'][0]) - time();
 
                 // A negative value means the password is outdated 
