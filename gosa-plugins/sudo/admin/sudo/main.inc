@@ -34,6 +34,10 @@ if ($remove_lock){
 if ( $cleanup ){
     session::un_set('sudoManagement');
 }else{
+    /* Reset requested? */
+    if (isset($_GET['reset']) && $_GET['reset'] == 1){
+        session::un_set ('sudoManagement');
+    }
 
     /* Create rolemanagement object on demand */
     if (!session::is_set('sudoManagement')){
@@ -43,10 +47,6 @@ if ( $cleanup ){
     $sudoManagement = session::get('sudoManagement');
     $display= $sudoManagement->execute();
 
-    /* Reset requested? */
-    if (isset($_GET['reset']) && $_GET['reset'] == 1){
-        session::un_set ('sudoManagement');
-    }
 
     /* Show and save dialog */
     session::set('sudoManagement',$sudoManagement);

@@ -5,6 +5,10 @@
 if ( $cleanup ){
   session::un_set('faxreport');
 }else{
+    /* Reset requested? */
+    if (isset($_GET['reset']) && $_GET['reset'] == 1){
+       session::un_set ('faxreport');
+    }
 
 	/* Create faxreport object on demand */
 	if (!session::is_set('faxreport')){

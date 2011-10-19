@@ -34,6 +34,10 @@ if ($remove_lock){
 if ( $cleanup ){
     session::un_set('userManagement');
 }else{
+    /* Reset requested? */
+    if (isset($_GET['reset']) && $_GET['reset'] == 1){
+        session::un_set ('userManagement');
+    }
 
     /* Create usermanagement object on demand */
     if (!session::is_set('userManagement')){
@@ -42,11 +46,6 @@ if ( $cleanup ){
     }
     $userManagement = session::get('userManagement');
     $display= $userManagement->execute();
-
-    /* Reset requested? */
-    if (isset($_GET['reset']) && $_GET['reset'] == 1){
-        session::un_set ('userManagement');
-    }
 
     /* Show and save dialog */
     session::set('userManagement',$userManagement);

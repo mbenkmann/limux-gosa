@@ -35,6 +35,11 @@ if ( $cleanup ){
     session::un_set('faiManagement');
 }else{
 
+    /* Reset requested? */
+    if (isset($_GET['reset']) && $_GET['reset'] == 1){
+        session::un_set ('faiManagement');
+    } 
+
     /* Create faiManagement object on demand */
     if (!session::is_set('faiManagement')){
         $faiManagement= new faiManagement ($config, $ui);
@@ -42,11 +47,6 @@ if ( $cleanup ){
     }
     $faiManagement = session::get('faiManagement');
     $display= $faiManagement->execute();
-
-    /* Reset requested? */
-    if (isset($_GET['reset']) && $_GET['reset'] == 1){
-        session::un_set ('faiManagement');
-    }
 
     /* Show and save dialog */
     session::set('faiManagement',$faiManagement);

@@ -34,6 +34,10 @@ if ($remove_lock){
 if ( $cleanup ){
     session::un_set('applicationManagement');
 }else{
+    /* Reset requested? */
+    if (isset($_GET['reset']) && $_GET['reset'] == 1){
+        session::un_set ('applicationManagement');
+    }
 
     /* Create applicationmanagement object on demand */
     if (!session::is_set('applicationManagement')){
@@ -42,11 +46,6 @@ if ( $cleanup ){
     }
     $applicationManagement = session::get('applicationManagement');
     $display= $applicationManagement->execute();
-
-    /* Reset requested? */
-    if (isset($_GET['reset']) && $_GET['reset'] == 1){
-        session::un_set ('applicationManagement');
-    }
 
     /* Show and save dialog */
     session::set('applicationManagement',$applicationManagement);

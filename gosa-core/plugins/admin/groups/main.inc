@@ -34,6 +34,10 @@ if ($remove_lock){
 if ( $cleanup ){
     session::un_set('groupManagement');
 }else{
+    /* Reset requested? */
+    if (isset($_GET['reset']) && $_GET['reset'] == 1){
+        session::un_set ('groupManagement');
+    }
 
     /* Create groupmanagement object on demand */
     if (!session::is_set('groupManagement')){
@@ -42,11 +46,6 @@ if ( $cleanup ){
     }
     $groupManagement = session::get('groupManagement');
     $display= $groupManagement->execute();
-
-    /* Reset requested? */
-    if (isset($_GET['reset']) && $_GET['reset'] == 1){
-        session::un_set ('groupManagement');
-    }
 
     /* Show and save dialog */
     session::set('groupManagement',$groupManagement);

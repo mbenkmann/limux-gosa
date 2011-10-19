@@ -35,6 +35,11 @@ if ( $cleanup ){
     session::un_set('goFonMacro');
 }else{
 
+    /* Reset requested? */
+    if (isset($_GET['reset']) && $_GET['reset'] == 1){
+        session::un_set ('goFonMacro');
+    }
+
     /* Create goFonMacro object on demand */
     if (!session::is_set('goFonMacro')){
         $goFonMacro= new goFonMacro ($config, $ui);
@@ -42,11 +47,6 @@ if ( $cleanup ){
     }
     $goFonMacro = session::get('goFonMacro');
     $display= $goFonMacro->execute();
-
-    /* Reset requested? */
-    if (isset($_GET['reset']) && $_GET['reset'] == 1){
-        session::un_set ('goFonMacro');
-    }
 
     /* Show and save dialog */
     session::set('goFonMacro',$goFonMacro);

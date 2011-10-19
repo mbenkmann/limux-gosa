@@ -35,6 +35,11 @@ if ( $cleanup ){
     session::un_set('systemManagement');
 }else{
 
+    /* Reset requested? */
+    if (isset($_GET['reset']) && $_GET['reset'] == 1){
+        session::un_set ('systemManagement');
+    }
+
     /* Create systemManagement object on demand */
     if (!session::is_set('systemManagement')){
         $systemManagement= new systemManagement ($config, $ui);
@@ -42,11 +47,6 @@ if ( $cleanup ){
     }
     $systemManagement = session::get('systemManagement');
     $display= $systemManagement->execute();
-
-    /* Reset requested? */
-    if (isset($_GET['reset']) && $_GET['reset'] == 1){
-        session::un_set ('systemManagement');
-    }
 
     /* Show and save dialog */
     session::set('systemManagement',$systemManagement);

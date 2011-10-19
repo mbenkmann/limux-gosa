@@ -34,6 +34,10 @@ if ($remove_lock){
 if ( $cleanup ){
     session::un_set('ogroupManagement');
 }else{
+    /* Reset requested? */
+    if (isset($_GET['reset']) && $_GET['reset'] == 1){
+        session::un_set ('ogroupManagement');
+    }
 
     /* Create ogroupmanagement object on demand */
     if (!session::is_set('ogroupManagement')){
@@ -42,11 +46,6 @@ if ( $cleanup ){
     }
     $ogroupManagement = session::get('ogroupManagement');
     $display= $ogroupManagement->execute();
-
-    /* Reset requested? */
-    if (isset($_GET['reset']) && $_GET['reset'] == 1){
-        session::un_set ('ogroupManagement');
-    }
 
     /* Show and save dialog */
     session::set('ogroupManagement',$ogroupManagement);

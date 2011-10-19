@@ -32,6 +32,10 @@ if ($remove_lock){
 if ( $cleanup ){
   session::un_set('dashBoard');
 }else{
+    /* Reset requested? */
+    if (isset($_GET['reset']) && $_GET['reset'] == 1){
+        session::un_set ('dak_plug');
+    }
 
 
 	/* Create logview object on demand */
