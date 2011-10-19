@@ -13,6 +13,9 @@ class filterGotoEvents extends  filterLDAP {
             $event_tags[] = $evt['s_Queued_Action'];
         }
 
+        /* Sleep a second to avoid timing issues when adding new items */
+        sleep(1);
+
         $entries = $o_queue->get_queued_entries($event_tags,0,9999999,"id");
         if ($o_queue->is_error()){
             msg_dialog::display(_("Error"), sprintf(_("Cannot load queue entries: %s"), "<br><br>".$o_queue->get_error()), ERROR_DIALOG);
