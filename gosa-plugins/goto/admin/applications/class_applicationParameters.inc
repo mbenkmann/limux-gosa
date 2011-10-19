@@ -186,7 +186,12 @@ class applicationParameters extends plugin
 
     /* Check for valid option names */
     for ($i= 0; $i<count($this->option_name); $i++){
-      if (!preg_match ("/^[a-z0-9_]+$/i", $this->option_name[$i])){
+      /* Check for empty option names */
+      if (!$this->option_name[$i]) {
+        $message[]= msgPool::required(_("Name"));
+      }
+      /* Check for valid option names */
+      elseif (!preg_match ("/^[a-z0-9_]+$/i", $this->option_name[$i])){
         $message[]= msgPool::invalid(_("Name"), $this->option_name[$i],"/^[a-z0-9_]+$/i");
       }
     }
