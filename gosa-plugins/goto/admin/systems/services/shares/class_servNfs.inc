@@ -222,17 +222,24 @@ class servnfs extends plugin
             $this->path=substr($this->path, 0, -1);
         }
 
+        $this_cn = preg_replace("/,ou=.*$/","",$this->dn);
+        $this_cn = preg_replace("/cn=/","",$this_cn);
         $ldap= $this->config->get_ldap_link();
         $ldap->cd($this->config->current['BASE']);
-        $ldap->search("(objectClass=goShareServer)", array("goExportEntry"));
+        $ldap->search("(objectClass=goShareServer)", array("goExportEntry", "cn", "gosaUnitTag"));
         while($test = $ldap->fetch()){
             if($test['dn']==$this->dn)
                 continue;
             if(isset($test['goExportEntry'])){
                 foreach($test['goExportEntry'] as $entry){
                     $tmp = explode("|",$entry);
-                    if($tmp[0] == $this->name){
-                        $message[]= msgPool::duplicated(_("Name"));
+                    if($tmp[0] == $this->name && $test['cn'][0] == $this_cn){
+                      /* The selected share name is identical to another share name.  Furthermore, that other share is
+                         on a server with the same name. Reject this unless the other server is in a different
+                         administrative domain. */
+                        if (!isset($test['gosaUnitTag']) || $test['gosaUnitTag'][0] == $this->gosaUnitTag){
+                          $message[]= sprintf(_("The share '%s' on another server '%s' already exists."), $this->name, $this_cn);
+                        }
                     }
                 }
             }
