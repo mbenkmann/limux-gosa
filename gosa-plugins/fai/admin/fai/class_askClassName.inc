@@ -38,7 +38,7 @@ class askClassName extends plugin
 
     $type_acl_mapping = array(
         "FAIpartitionTable"  => "faiPartitionTable",
-        "FAIpackageList"     => "faiPackage",
+        "FAIpackageList"     => "faiPackageList",
         "FAIscript"          => "faiScript",
         "FAIvariable"        => "faiVariable",
         "FAIhook"            => "faiHook",
