@@ -61,19 +61,29 @@
 <hr>
 <table width="99%" summary="{t}Package settings{/t}">
  <tr>
-  <td>
+  <td colspan="2">
    <h3>{t}Used packages{/t}
    </h3>
    {$listing}
   </td>
  </tr>
+ </table>
+ <table width="99%" summary="">
  {render acl=$FAIpackageACL}
   <tr>
-   <td>
+   <td style="width:60px;">
+{if $direct_packages_add}
     <input type="text" size="25" name="addPpkgsText" value="" />
     <button type='submit' name='AddManualpkg'>
     {msgPool type=addButton}</button>&nbsp;
-    <button type='submit' name='Addpkg'>{t}Add from list{/t}</button>
+       <button type='submit' name='Addpkg'>{t}Add from list{/t}</button>
+{/if}
+   </td>
+   <td style="text-align: right; ">
+{if $debconf_configurations}
+   <button type="submit" name="EditConfigurations">{t}Edit package configurations{/t}</button>
+{/if}                                                                           
+   </td>
    </td>
   </tr>
  {/render}

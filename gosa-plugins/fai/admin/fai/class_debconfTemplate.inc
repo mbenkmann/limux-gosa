@@ -137,7 +137,7 @@ class debconf
         /* special handling for arrays */
         if(is_array($_POST[$entry['post_name']])){
           $str = "";
-          foreach($_POST[$entry['post_name']] as $val){
+          foreach(get_post($entry['post_name']) as $val){
             $str.= $val.", ";
           }
           $str = preg_replace("/\,\ $/","",$str);
@@ -152,6 +152,9 @@ class debconf
       if(isset($_POST["multi-".$entry['post_name']])){ 
         $this->template[$post_name]['Default']= "";
         foreach($_POST as $name => $value){
+          if (get_magic_quotes_gpc()) {
+              $value = stripcslashes($value);
+          }
           if(preg_match("/".$entry['post_name']."-multi-/",$name)){
             $this->template[$post_name]['Default'] .= $value.", ";
           }
@@ -222,9 +225,9 @@ class debconf
 
     foreach(array("true","false") as $value){
       if($data['Default'] == $value){
-        $result.="<input type='radio' name='".$data['post_name']."' value='".$value."' checked>"._($value);
+        $result.="<input type='radio' name='".$data['post_name']."' value=\"".$value."\" checked>"._($value);
       }else{
-        $result.="<input type='radio' name='".$data['post_name']."' value='".$value."' >"._($value);
+        $result.="<input type='radio' name='".$data['post_name']."' value=\"".$value."\" >"._($value);
       }
       $result.="<br>";
     }
@@ -346,7 +349,7 @@ class debconf
                     <h3>".$data['Topic']."</h3>".$data['Description']."
                   </td>
                   <td  style=\"white-space:nowrap; border-left: 1px solid rgb(160, 160, 160);\" valign='top'>
-                    <input type='text' name='".$data['post_name']."' value='".$data['Default']."' style='width:300px;'>
+                    <input type='text' name='".$data['post_name']."' value=\"".$data['Default']."\" style='width:300px;'>
                   </td>
                 </tr>
               ";

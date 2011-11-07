@@ -23,6 +23,7 @@ class faiPackage extends plugin
   var $sub64coded       = array();
 
   var $ConfiguredPackages = array();
+  var $ConfigurationsToRemove = array();
 
   /* Specific attributes */
   var $cn               = "";       // The class name for this object
@@ -54,6 +55,9 @@ class faiPackage extends plugin
       "hold", "clean", "aptitude", "aptitude-r",
       "pending", "dpkgc" );
 
+  var $direct_packages_add = FALSE;
+  var $configure_dialog_shown = FALSE;
+  var $debconf_configurations = FALSE;
 
   function faiPackage (&$config, $dn= NULL)
   {
@@ -85,6 +89,9 @@ class faiPackage extends plugin
       foreach($this->usedPackages as $name => $value){
         $PackageFilter .= "(FAIpackage=".$name.")";
       }
+      /* Also fetch d-i */
+      $PackageFilter .= "(FAIpackage=d-i)";
+
       $PackageFilter = "(&(objectClass=FAIdebconfInfo)(|".$PackageFilter."))";
 
       /* Search for configuration objects */ 
@@ -118,6 +125,10 @@ class faiPackage extends plugin
               $tmp['Value'][] = $attr;
             }
           }
+          $this->ConfiguredPackages[$attr['FAIpackage'][0]][$attr['FAIvariable'][0]]=$tmp;
+        }
+        else {
+          $tmp['Value'] = "";
           $this->ConfiguredPackages[$attr['FAIpackage'][0]][$attr['FAIvariable'][0]]=$tmp;
         }
       }
@@ -252,7 +263,6 @@ class faiPackage extends plugin
 
 
           foreach ($valid_packages as $value) {
-            
             if( $do_si_query == true ) {
               $res = $daemon->FAI_get_packages($this->FAIdebianRelease,$query_attrs,array($value),0,1);
               if( ! $daemon->is_error()){
@@ -283,6 +293,14 @@ class faiPackage extends plugin
         }
       }
     }
+    
+    if(isset($_POST['EditConfigurations']) &&
+      $this->acl_is_writeable("FAIdebconfInfo")) {
+        $this->dialog = new faiDebconfConfigurations($this->config, $this->dn, $this);
+        $this->dialog->set_acl_base($this->acl_base);
+        $this->is_dialog = true;
+    }
+
 
     // Open the packageSelect dialog to allow adding packages out of a list.
     if(isset($_POST['Addpkg']) && $this->acl_is_writeable("FAIpackage") && !preg_match("/freeze/",$this->FAIstate)){
@@ -373,6 +391,7 @@ class faiPackage extends plugin
           if(isset($this->ConfiguredPackages[$pkg])){
             $pkg_config = $this->ConfiguredPackages[$pkg];
           }
+          $this->configure_dialog_shown = TRUE;
           $this->dialog = new faiPackageConfiguration($this->config, $this->dn,$pkg, $this->FAIdebianRelease , $pkg_config);
           $this->is_dialog =true;
         }
@@ -387,18 +406,37 @@ class faiPackage extends plugin
     }
 
     /* Save Configuration */
-    if(isset($_POST['SaveObjectConfig'])){
+    if(isset($_POST['SaveObjectConfig']) && $this->configure_dialog_shown){
       if(!preg_match("/^freeze/", $this->FAIstate)){
         $this->ConfiguredPackages= array_merge($this->ConfiguredPackages,$this->dialog->save());
       }
       $this->dialog = false;
       $this->is_dialog=false;
+      $this->configure_dialog_shown=false;
+    }
+
+    if (isset($_POST['SaveDebconfConfig'])){
+      $this->dialog->save_object();
+      $msgs = $this->dialog->check();
+      if(count($msgs)>0) {
+        foreach($msgs as $msg){
+          msg_dialog::display(_("Error"), $msg, ERROR_DIALOG);
+        }
+      } else {
+        if(!preg_match("/^freeze/", $this->FAIstate)){
+          $this->ConfiguredPackages= $this->dialog->save();
+          $this->ConfigurationsToRemove = $this->dialog->to_remove;
+        }
+        $this->dialog = false;
+        $this->is_dialog = false;
+      }
     }
 
     /* cancel configuration */     
-    if(isset($_POST['CancelObjectConfig'])){
+    if(isset($_POST['CancelObjectConfig']) && $this->configure_dialog_shown){
       $this->dialog = false;
       $this->is_dialog=false;
+      $this->configure_dialog_shown=false;
     }
 
     /* Display dialog */ 
@@ -415,6 +453,9 @@ class faiPackage extends plugin
     /* Create list to display a list of all currently used packages
      */
     $data = $lData = array();
+    $this->packageList->setHeight(600);
+
+    ksort($this->usedPackages);
     if(is_array($this->usedPackages)){
         foreach($this->usedPackages as $usedName => $name){
 
@@ -484,12 +525,18 @@ class faiPackage extends plugin
     foreach($tmp['plProvidedAcls'] as $name => $translated){
       $smarty->assign($name."ACL",$this->getacl($name,preg_match("/freeze/",$this->FAIstate)));
     }
+
+    if ($this->acl_is_writeable("FAIdebconfInfo")) {
+      $this->debconf_configurations = TRUE;
+    }
  
     $smarty->assign("freeze", preg_match("/freeze/",$this->FAIstate));
     $smarty->assign("listing",$this->packageList->render());
     $smarty->assign("release" ,$this->FAIdebianRelease);
     $smarty->assign("sections",$this->sections);
     $smarty->assign("section" ,$strsec);
+    $smarty->assign("direct_packages_add", $this->direct_packages_add);
+    $smarty->assign("debconf_configurations", $this->debconf_configurations);
     $display.= $smarty->fetch(get_template_path('faiPackage.tpl', TRUE));
     return($display);
   }
@@ -627,7 +674,6 @@ class faiPackage extends plugin
     /* Save Package configurations */
     foreach($this->ConfiguredPackages as $pkgname => $attrs){
       foreach($attrs as $name => $attr){
-      
         $pkgattrs = array();
 
         foreach($attr as $n=>$v){
@@ -643,6 +689,16 @@ class faiPackage extends plugin
         $pkgattrs['FAIvariableContent']   = $attr['Value'];
         $pkgdn =  "FAIvariable=".$name.",".$this->dn;
 
+        if (is_array($pkgattrs['FAIvariableContent'])) {
+          $ldap = $this->config->get_ldap_link();
+          $ldap->cat($pkgdn);
+          if (!$ldap->count()) {
+            /* Do not try to set FAIvariableContent to empty array if this
+             * debconfInfo object is new */
+            unset($pkgattrs['FAIvariableContent']);
+          }
+        }
+
         /* Tag object */
         $this->tag_attrs($pkgattrs, $pkgdn, $this->gosaUnitTag);
 
@@ -654,6 +710,16 @@ class faiPackage extends plugin
             FAI::prepare_to_save_FAI_object($pkgdn,$pkgattrs);
           }
         }
+      }
+    }
+
+    /* Remove obsolete configurations */
+    foreach($this->ConfigurationsToRemove as $package => $attr) {
+      foreach($attr as $name => $attr) {
+        $dn = "FAIvariable=".$name.",".$this->dn;
+        $ldap = $this->config->get_ldap_link();
+        $ldap->cd($dn);
+        $ldap->rmdir($dn);
       }
     }
   }
@@ -733,7 +799,6 @@ class faiPackage extends plugin
     foreach($this->usedPackages as $name){
       $PackageFilter .= "(FAIpackage=".$name.")";
     }
-    $PackageFilter = "(&(objectClass=FAIdebconfInfo)(|".$PackageFilter."))";
 
     /* Search for configuration objects */ 
     $ldap = $this->config->get_ldap_link();

@@ -48,6 +48,9 @@ class faiPackageConfiguration extends plugin
     $this->Debconf_handle->load_from_string($tpl);
     if($this->Debconf_handle->has_template()){
       foreach($this->pkg_config as $var){
+        if (is_array($var['Value'])) {
+          $var['Value'] = "";
+        }
         $this->Debconf_handle->SetDefault($var['Name'],$var['Value']);
       }
     }
