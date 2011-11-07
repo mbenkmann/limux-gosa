@@ -387,8 +387,61 @@ class printerPPDDialog extends plugin
                 $tmp3['link']   =$file;
                 $tmp3['ppd']    =$ppd;
                 $this->ppdListHeader[$ppd['manufacturer']]++;
-                $this->ppdList[$ppd['manufacturer']][$ppd['name']]=$tmp3;
-            }
+
+                if (isset($this->ppdList[$ppd['manufacturer']][$ppd['name']])) {
+
+                  # Printer exists already, add directory/nickname to identify it
+                  
+                  $tmp4 = $this->ppdList[$ppd['manufacturer']][$ppd['name']]['link'];
+
+                  # Remove the default path (e.g. /srv/www/ppd) plus a possible debian/ directory
+                  $extension = preg_replace("#".$this->pathToPPD."/(debian/)?#", "", $tmp3['link']);
+
+                  # Remove all further directories, just keep the first level (e.g. foomatic-rip, hpijs)
+                  $extension = preg_replace("#/.*#", "", $extension);
+
+                  # Add the nickname as well to distinguish between two drivers for the same model in one directory
+                  $extension = $extension." / ".$ppd['nickname'];
+
+                  # Generate the updated extension from the original path and nickname, same way as above
+                  $updated_nickname = $this->ppdList[$ppd['manufacturer']][$ppd['name']]['ppd']['nickname'];
+                  $updated_extension = preg_replace("#".$this->pathToPPD."/(debian/)?#", "", $tmp4);
+                  $updated_extension = preg_replace("#/.*#", "", $updated_extension);
+                  $updated_extension = $updated_extension." / ".$updated_nickname;
+                  $updated_name = $ppd['name']." ($updated_extension)";
+
+                  if (!isset($this->ppdList[$ppd['manufacturer']][$updated_name]['name'])) {
+                    $old_ppd = array_keys($this->ppdList[$ppd['manufacturer']][$ppd['name']]);
+                    # Copy old printer attributes to new name
+                    foreach($old_ppd as $entry){ 
+                       $this->ppdList[$ppd['manufacturer']][$updated_name][$entry] = $this->ppdList[$ppd['manufacturer']][$ppd['name']][$entry];
+                    }  
+
+                    # Add old printer under updated name
+                    $this->ppdList[$ppd['manufacturer']][$updated_name]['name'] = $updated_name;
+                    $this->ppdList[$ppd['manufacturer']][$updated_name]['ppd']['name'] = $ppd['name']." ($updated_extension)";
+                    $this->ppdList[$ppd['manufacturer']][$updated_name]['ppd']['model'] = $ppd['model']." ($updated_extension)";
+                  }
+                  
+                  # Now generate name/model including extension for new printer
+                  $tmp3['ppd']['name'] = $tmp3['name']." ($extension)";
+                  $tmp3['ppd']['model'] = $tmp3['ppd']['model']." ($extension)";
+                  $tmp3['name'] = $tmp3['name']." ($extension)";
+                  $myname = $tmp3['name'];
+                }
+                $this->ppdList[$ppd['manufacturer']][$tmp3['name']]=$tmp3;
+              }
+
+              # Remove all non-nicknamed/directorized printers from list who have a
+              # nicknamed counterpart already, those are dupes.
+              foreach($this->ppdList as $manufacturer => $printers) {
+                foreach($printers as $ppd) {
+                  $to_remove = preg_replace("/ \(.*\)$/", "", $ppd['name']); 
+                  if ($to_remove != $ppd['name'] && isset($this->ppdList[$manufacturer][$to_remove])) {
+                    unset($this->ppdList[$manufacturer][$to_remove]);
+                  }
+                }
+              }
         }
     }
 
