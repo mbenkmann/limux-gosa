@@ -491,8 +491,16 @@ class DaemonEvent
         foreach($this->attributes as $attr){
             $ret[$attr] = $this->$attr;
         }
+
+        if (!isset($ret['timestamp'])) {
+          $ret['timestamp'] = time();
+        }
+
         if($this->mode == SCHEDULED_EVENT){
-            $ret['timestamp'] = $this->_timestamp_to_event($this->timestamp);
+            # Check if timestamp is in gosa-si-time-format
+            if(!tests::is_gosa_si_time($ret['timestamp'])){
+              $ret['timestamp'] = $this->_timestamp_to_event($this->timestamp);
+            }
         }elseif(isset($ret['timestamp'])){
             unset($ret['timestamp']);
         }

@@ -334,6 +334,11 @@ class tests {
 
     return ($ad >= $from && $ad <= $to);
   }
+
+  /* Check if given timestamp is in gosa-si time-format */ 
+  public static function is_gosa_si_time($time){ 
+    return preg_match ("/^20\d\d[0-1]\d[0-3]\d[0-2]\d[0-5]\d[0-5]\d$/i", $time); 
+  } 
 }
 
 // vim:tabstop=2:expandtab:shiftwidth=2:filetype=php:syntax:ruler:
