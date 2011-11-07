@@ -50,6 +50,19 @@ class logonManagementDialog extends plugin
       @unlink($filename);
     }
 
+    if(isset($_GET['getLogonData'])){
+      send_binary_content($this->LogonData, $this->real_LogonName);
+    }
+
+    /* Create download button*/
+    if($this->dn != "new" && $this->LogonData != ""){
+      $smarty->assign("DownMe","<a href='?plug=".$_GET['plug']."&getLogonData'>
+          <img src='images/save.png' alt='"._("Download")."' title='"._("Download")."' border=0 class='center'>
+        </a>");
+    }else{
+      $smarty->assign("DownMe","");
+    }
+
     foreach($this->attributes as $attr){
       $smarty->assign($attr,$this->$attr);
       if($this->$attr){

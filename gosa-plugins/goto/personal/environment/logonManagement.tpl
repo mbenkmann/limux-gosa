@@ -1,4 +1,4 @@
-<h3>{t}Log on script management{/t}</h3>
+
 
     <input type="hidden" name="dialogissubmitted" value="1">
 
@@ -63,7 +63,8 @@
 		<tr>
 			<td>
 				<input type="file" name="importFile" id="importFile">
-				<button type='submit' name='StartImport'>{t}Import{/t}</button>
+				<button type='submit' name='StartImport'>{t}Import script{/t}</button>
+				{$DownMe}
 			</td>
 		</tr>
 	</table>
