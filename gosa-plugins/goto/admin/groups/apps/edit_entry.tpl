@@ -63,6 +63,23 @@
 {/foreach}
 </table>
 {/if}
+
+<hr>
+{render acl=$placeOnDesktopACL}
+      <input type=checkbox name="placeOnDesktop" value="1" {$placeOnDesktop}>
+{/render}
+      {t}Place icon on members desktop{/t}
+      <br>
+{render acl=$placeInStartmenuACL}
+      <input type=checkbox name="placeInStartmenu" value="1" {$placeInStartmenu}>
+{/render}
+      {t}Place entry in members startmenu{/t}
+      <br>
+{render acl=$placeOnKickerACL}
+      <input type=checkbox name="placeOnKicker" value="1" {$placeOnKicker}>
+{/render}
+      {t}Place entry in members launch bar{/t}
+
 <p class="seperator">
 </p>
 <div style="width:100%; text-align:right; padding:3px;">
