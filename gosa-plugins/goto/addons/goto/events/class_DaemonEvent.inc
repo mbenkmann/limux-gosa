@@ -51,7 +51,9 @@ class DaemonEvent
     protected $s_Schedule_Action = "";       // The deamon command name when newly created. (e.g. job_trigger_action_halt)
     protected $s_Trigger_Action= "";       // The deamon command name when edited. (e.g. trigger_action_halt)
     protected $s_Queued_Action= "";       // The deamon command name when edited. (e.g. trigger_action_halt)
-    protected $timestamp    = 0;        // Event execution time; 
+    public $timestamp    = 0;        // Event execution time; 
+    public $time_offset = 0;    // An offset when an event should start (normally not used)
+    public $concurrent_operations = 1; // Number of concurrent operations when a timestamp offset is used
     protected $id           = -1;       // The Table ID
     protected $status       = "unknown";// The current event status
     protected $is_new       = TRUE;     // Is TRUE if this is a new event
@@ -74,7 +76,11 @@ class DaemonEvent
     protected $activate_periodical_job = FALSE;
 
     protected $attributes           = array("timestamp");
+    
+    protected $time_offset_used = FALSE;
+    public $multiple_events = FALSE;
 
+    /* Indicate that multiple events have to be created from this event */
     function set_type($type)
     {
         $this->mode = $type;
@@ -148,6 +154,7 @@ class DaemonEvent
         return($str);
     }
 
+
     /*! \brief  Returns the plugin header, displayed in the template.
       @return String  HTML header part.
      */
@@ -177,12 +184,32 @@ class DaemonEvent
         return($str);
     }
 
+   public function get_time_offset_select()
+   {
+     $this->time_offset_used = TRUE;
+     $smarty = get_smarty();
+
+     $opts_minutes = array();
+     $opts_operations = array();
+     foreach(range(0,120) as $i) {
+       $opts_minutes[$i] = $i;
+     }
+     foreach(range(1,100) as $i) {
+       $opts_operations[$i] = $i;
+     }
+     $smarty->assign('offset_minutes', $opts_minutes);
+     $smarty->assign('offset_operations', $opts_operations);
+     $smarty->assign('time_offset', $this->time_offset);
+     $smarty->assign('concurrent_operations', $this->concurrent_operations);
+     return($smarty->fetch(get_template_path('time_offset.tpl', TRUE, dirname(__FILE__))));
+   }
 
     /*! \brief  Returns HTML representation of a timestamp using <select> boxes. 
       @return Returns HTML content.
      */
     public function get_time_select()
     {
+        timezone::get_default_timezone();
         $this->time_select_used = TRUE;
 
         $smarty = get_smarty();
@@ -312,12 +339,32 @@ class DaemonEvent
             }
         }
 
+        if (isset($_POST['concurrent_operations'])) {
+           $this->concurrent_operations = $_POST['concurrent_operations'];
+        }
+        if (isset($_POST['time_offset'])) {
+           $this->time_offset = $_POST['time_offset'];
+        }
+
+        if ($this->time_offset_used){
+            /* Check that multiple events makes sense at all (e.g. there are more targets
+             * then allowed concurrent operations */
+            if ($this->concurrent_operations != 0 && count($this->a_targets) > $this->concurrent_operations) {
+                if ($this->time_offset > 0) {
+                    $this->multiple_events = TRUE;
+                }
+            }
+        }
+
         if($this->time_select_used){
             $time_stamp_values_found = TRUE;
             foreach(array("time_year","time_month","time_day","time_hour","time_minute","time_second") as $attr){
                 $time_stamp_values_found &= isset($_POST[$attr]);
             }
             if($time_stamp_values_found){
+                /* Make sure the following conversion happens with the right timezone */
+                timezone::get_default_timezone();
+
                 $this->timestamp = mktime(
                         get_post('time_hour'),
                         get_post('time_minute'),        

@@ -70,6 +70,7 @@ class DaemonEvent_notify extends DaemonEvent
         $smarty->assign("data"        , $this->data);
         $smarty->assign("is_new"      , $this->is_new);
         $smarty->assign("timestamp"   , $this->get_time_select());
+        $smarty->assign("time_offset"   , $this->get_time_offset_select());
 
         $smarty->assign("user" , $this->user);
         $smarty->assign("group", $this->group);

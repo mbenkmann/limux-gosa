@@ -53,6 +53,7 @@ class DaemonEvent_activate extends DaemonEvent
         $smarty->assign("target_list" , $this->get_target_list());
         $smarty->assign("is_new"      , $this->is_new);
         $smarty->assign("timestamp"   , $this->get_time_select());
+        $smarty->assign("time_offset",  $this->get_time_offset_select());
         $display.= $smarty->fetch(get_template_path('DaemonEvent_activate.tpl', TRUE, dirname(__FILE__)));
         $display.= $this->get_footer();
         return($display);

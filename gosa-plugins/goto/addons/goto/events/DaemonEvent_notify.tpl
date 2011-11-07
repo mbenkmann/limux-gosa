@@ -33,6 +33,11 @@
           <td colspan="2">{$timestamp}
 <br><br></td>
         </tr>
+        <tr>
+          <td style="vertical-align:top">
+          {$time_offset}
+          </td>
+        </tr>
 	  </table>
       <table style='width:100%;' summary="{t}Recipient{/t}">
         <tr>
