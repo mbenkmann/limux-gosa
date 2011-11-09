@@ -185,7 +185,7 @@ class servnfs extends plugin
             }
         } else {
             if (!tests::is_path($this->path)){
-                $message[]= _("'Path / Volume' must contain at least one '/'!");
+                $message[]= _("'Path / Volume' must contain at least one '/' and no special characters!");
             }
         }
 
