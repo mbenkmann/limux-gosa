@@ -29,7 +29,6 @@ class faiProfile extends plugin
     {
         /* Load Attributes */
         plugin::plugin ($config, $dn);
-        $ldap=$this->config->get_ldap_link();
 
         $this->ui = get_userinfo();
 
@@ -49,47 +48,6 @@ class faiProfile extends plugin
             }
         }
 
-        $categories = array("FAIscript","FAItemplate","FAIhook","FAIvariable","FAIpartitionTable","FAIpackageList");
-
-        /* Build filter */
-        $filter= "";
-        foreach ($categories as $cat){
-            $filter.= "(objectClass=$cat)";
-        }
-
-        /* Get ldap connection */ 
-        $base  = session::get('CurrentMainBase');
-        $ldap->cd($base);
-        $sort = array();
-
-        /* search all FAI classes */
-        $ldap->search("(|$filter)",array("*"));
-        while($attrs = $ldap->fetch()){
-
-            /* Sort by categorie */
-            foreach($categories as $cat){
-                if(in_array_strict($cat,$attrs['objectClass'])){
-
-                    /* Append entry */
-                    $this->FAIAllclasses[$attrs['cn'][0]][$cat]=$attrs;
-
-                    /* Create sort array, because the array above is a multidimensional array, and can't be sorted by php sorting functions*/
-                    $sort[strtolower($attrs['cn'][0])] = $attrs['cn'][0];
-                }
-            }
-        } 
-
-        /* Sort the sort array */
-        //ksort($sort);
-
-        /* Reorder the FAIclasses array */
-        foreach($sort as $name){
-            $tmp[$name] =$this->FAIAllclasses[$name];
-        }
-
-        /* Assign sorted classes */
-        $this->FAIAllclasses = array();
-        $this->FAIAllclasses = $tmp;
 
         if($dn != "new"){
             $this->dn =$dn;
@@ -106,6 +64,56 @@ class faiProfile extends plugin
         $this->classList->setDefaultSortColumn(0);
     }
 
+    function get_all_fai_classes()
+    {
+      if (count($this->FAIAllclasses)) {
+        return;
+      }
+
+      $ldap = $this->config->get_ldap_link();
+      $categories = array("FAIscript","FAItemplate","FAIhook","FAIvariable","FAIpartitionTable","FAIpackageList");
+
+      /* Build filter */
+      $filter= "";
+      foreach ($categories as $cat){
+          $filter.= "(objectClass=$cat)";
+      }
+
+      /* Get ldap connection */ 
+      $base  = session::get('CurrentMainBase');
+      $ldap->cd($base);
+      $sort = array();
+
+      /* search all FAI classes */
+      $res = FAI::get_all_objects_for_given_base($this->parent->parent->fai_release, "(|$filter)", true);
+      foreach($res as $attrs){
+
+          /* Sort by categorie */
+          foreach($categories as $cat){
+              if(in_array_strict($cat,$attrs['objectClass'])){
+
+                  /* Append entry */
+                  $this->FAIAllclasses[$attrs['cn'][0]][$cat]=$attrs;
+
+                  /* Create sort array, because the array above is a multidimensional array, and can't be sorted by php sorting functions*/
+                  $sort[strtolower($attrs['cn'][0])] = $attrs['cn'][0];
+              }
+          }
+      } 
+
+      /* Sort the sort array */
+      //ksort($sort);
+
+      /* Reorder the FAIclasses array */
+      foreach($sort as $name){
+          $tmp[$name] =$this->FAIAllclasses[$name];
+      }
+
+      /* Assign sorted classes */
+      $this->FAIAllclasses = array();
+      $this->FAIAllclasses = $tmp;
+
+    }
 
     function acl_base_for_current_object($dn)
     {
@@ -192,6 +200,9 @@ class faiProfile extends plugin
         $data = $lData = array();
         foreach($this->FAIclasses as $usedClass){
             $str = "";
+
+            $this->get_all_fai_classes();
+
             if(isset($this->FAIAllclasses[$usedClass])){
                 foreach($this->FAIAllclasses[$usedClass] as $class => $obj){
                     $str.= $objTypes[$class]; 
