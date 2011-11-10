@@ -632,6 +632,54 @@ class DaemonEvent
             $this->$name = $value;
         }
     }
+
+    /*! \brief Save an event dialog and check if multiple events needs to be created */
+    static function save_event_dialog($dialog, $current, $o_queue, $config)
+    {
+        if(is_object($dialog)){
+            $dialog->save_object();
+            if($dialog->multiple_events) {
+              $event_type = get_class($dialog);
+              $targets = $dialog->get_targets();
+              $timestamp = $dialog->timestamp;
+
+              $i = 1;
+              $count = count($targets); 
+              while($i <= $count) {
+                $operations = $dialog->concurrent_operations;
+                $event = new $event_type($config);
+                $event->set_timestamp($timestamp);
+                $event->set_type(SCHEDULED_EVENT);
+
+                while($operations > 0) {
+                  $i++;
+                  $target = array_shift($targets);
+                  $event->add_targets(array($target));
+                  $operations--;
+                }
+                $event->save_object();
+                $event->get_targets();
+                if(!$o_queue->append($event)){
+                  msg_dialog::display(_("Service infrastructure"),msgPool::siError($o_queue->get_error()),ERROR_DIALOG);
+                }
+                # Calculate start time for the next run
+                $timestamp = $timestamp + ($dialog->time_offset*60);
+              }
+
+              return -1;
+            }
+            else {
+              $dialog->save_object();
+              if(!$o_queue->append($dialog)){
+                msg_dialog::display(_("Service infrastructure"),msgPool::siError($o_queue->get_error()),ERROR_DIALOG);
+                return($current);
+              }else{
+                return -1;
+              } 
+           }
+          return -1;
+      }
+    }
 }
 
 // vim:tabstop=2:expandtab:shiftwidth=2:filetype=php:syntax:ruler:

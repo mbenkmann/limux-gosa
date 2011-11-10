@@ -377,47 +377,9 @@ class gotomasses extends management
 
     function saveEventDialog()
     {
-        if(is_object($this->dialogObject)){
-            $this->dialogObject->save_object();
-            if($this->dialogObject->multiple_events) {
-              $event_type = get_class($this->dialogObject);
-              $targets = $this->dialogObject->get_targets();
-              $timestamp = $this->dialogObject->timestamp;
-
-              $i = 1;
-              $count = count($targets); 
-              while($i <= $count) {
-                $operations = $this->dialogObject->concurrent_operations;
-                $event = new $event_type($this->config);
-                $event->set_timestamp($timestamp);
-                $event->set_type(SCHEDULED_EVENT);
-
-                while($operations > 0) {
-                  $i++;
-                  $target = array_shift($targets);
-                  $event->add_targets(array($target));
-                  $operations--;
-                }
-                $event->save_object();
-                $event->get_targets();
-                if(!$this->o_queue->append($event)){
-                  msg_dialog::display(_("Service infrastructure"),msgPool::siError($this->o_queue->get_error()),ERROR_DIALOG);
-                }
-                # Calculate start time for the next run
-                $timestamp = $timestamp + ($this->dialogObject->time_offset*60);
-              }
-
-              $this->current = -1;
-            }
-            else {
-              $this->dialogObject->save_object();
-              if(!$this->o_queue->append($this->dialogObject)){
-                msg_dialog::display(_("Service infrastructure"),msgPool::siError($this->o_queue->get_error()),ERROR_DIALOG);
-              }else{
-                $this->current = -1;
-              } 
-           }
-            $this->closeDialogs();
+      $this->current = DaemonEvent::save_event_dialog($this->dialogObject, $this->current, $this->o_queue, $this->config);
+      if ($this->current == -1) {
+        $this->closeDialogs();
       }
     }
 
