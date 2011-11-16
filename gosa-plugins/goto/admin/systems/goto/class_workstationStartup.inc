@@ -580,19 +580,28 @@ class workstartup extends plugin
                     $desc = ""; 
 
                     $objects = array(
-                            "Pl"  => array("IMG"=> "plugins/fai/images/fai_partitionTable.png"),
-                            "Pt"     => array("IMG"=> "plugins/fai/images/fai_packages.png"),
-                            "S"          => array("IMG"=> "plugins/fai/images/fai_script.png"),
-                            "V"        => array("IMG"=> "plugins/fai/images/fai_variable.png"),
-                            "H"            => array("IMG"=> "plugins/fai/images/fai_hook.png"),
-                            "P"         => array("IMG"=> "plugins/fai/images/fai_profile.png"),
-                            "T"        => array("IMG"=> "plugins/fai/images/fai_template.png"));
+                            "Pl"  => array("IMG"=> "plugins/fai/images/fai_partitionTable.png",
+                                        "TITLE" => _('Partition table')),
+                            "Pt"     => array("IMG"=> "plugins/fai/images/fai_packages.png",
+                                        "TITLE" => _('Packages')),
+                            "S"          => array("IMG"=> "plugins/fai/images/fai_script.png",
+                                        "TITLE" => _('Scripts')
+                            ),
+                            "V"        => array("IMG"=> "plugins/fai/images/fai_variable.png",
+                                        "TITLE" => _('Variables')),
+                            "H"            => array("IMG"=> "plugins/fai/images/fai_hook.png",
+                                        "TITLE" => _('Hooks')),
+                            "P"         => array("IMG"=> "plugins/fai/images/fai_profile.png",
+                                        "TITLE" => _('Profiles')),
+                            "T"        => array("IMG"=> "plugins/fai/images/fai_template.png",
+                                        "TITLE" => _('Templates')));
 
                     if(isset($this->cache['CLASSES'][$this->FAIrelease][$class])){
                         $desc ="";
                         foreach($this->cache['CLASSES'][$this->FAIrelease][$class] as $types ){
                             if(isset($types['Abbr'])){
-                                $desc.= image($objects[$types['Abbr']]['IMG']);
+                                $desc.= image($objects[$types['Abbr']]['IMG'],
+                                  "", $objects[$types['Abbr']]['TITLE']);
                                 if($types['Type'] == "FAIprofile"){
                                     break;
                                 }
