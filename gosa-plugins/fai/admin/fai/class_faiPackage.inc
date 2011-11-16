@@ -83,55 +83,8 @@ class faiPackage extends plugin
         ksort($this->usedPackages);
       }  
 
-      /* Fetch all package configurations from ldap 
-       */
-      $PackageFilter = "";
-      foreach($this->usedPackages as $name => $value){
-        $PackageFilter .= "(FAIpackage=".$name.")";
-      }
-      /* Also fetch d-i */
-      $PackageFilter .= "(FAIpackage=d-i)";
-
-      $PackageFilter = "(&(objectClass=FAIdebconfInfo)(|".$PackageFilter."))";
-
-      /* Search for configuration objects */ 
-      $ldap = $this->config->get_ldap_link();
-      $ldap->cd($this->dn);
-      $ldap->search($PackageFilter,array("FAIvariable","FAIvariableType",
-            "FAIvariableContent","FAIpackage","FAIdebianSection","FAIstate"));
-
-      /* Walk through configurations and append them to our list of ConfiguredPackages 
-       */
-      while($attr = $ldap->fetch()){
-
-        /* Skip objects, that are tagged as removed */
-        if(isset($object['FAIstate'][0])){
-          if(preg_match("/removed$/",$attr['FAIstate'][0])){
-            continue;
-          }
-        }
-
-        $tmp =array(); 
-        $tmp['Name']  = $attr['FAIvariable'][0];
-        $tmp['Type']  = $attr['FAIvariableType'][0];
-
-        if (isset($attr['FAIvariableContent'][0])){
-          if(!in_array_strict($attr['FAIvariableType'],array("multiselect"))){
-            $tmp['Value'] = $attr['FAIvariableContent'][0];
-          }else{
-            $content = array();        
-            unset($attr['FAIvariableContent']['count']);
-            foreach($attr['FAIvariableContent'] as $attr){
-              $tmp['Value'][] = $attr;
-            }
-          }
-          $this->ConfiguredPackages[$attr['FAIpackage'][0]][$attr['FAIvariable'][0]]=$tmp;
-        }
-        else {
-          $tmp['Value'] = "";
-          $this->ConfiguredPackages[$attr['FAIpackage'][0]][$attr['FAIvariable'][0]]=$tmp;
-        }
-      }
+      /* Fetch package configurations from LDAP */
+      $this->ConfiguredPackages = $this->get_configured_packages($this->usedPackages, $this->dn);
 
       $this->FAIdebianSection = array();
       if(isset($this->attrs['FAIdebianSection'])){
@@ -171,6 +124,64 @@ class faiPackage extends plugin
     $this->packageList->setColspecs(array('20px','*','*','100px','60px'));
     $this->packageList->setHeader(array(_("Status"),_("Name"),_("Description"),_("Version")));
     $this->packageList->setDefaultSortColumn(1);
+  }
+
+  function get_configured_packages($packages, $base)
+  {
+    /* Fetch all package configurations from ldap 
+     */
+    $PackageFilter = "";
+    foreach($packages as $name => $value){
+      $PackageFilter .= "(FAIpackage=".$name.")";
+    }
+    /* Also fetch d-i */
+    $PackageFilter .= "(FAIpackage=d-i)";
+
+    $PackageFilter = "(&(objectClass=FAIdebconfInfo)(|".$PackageFilter."))";
+
+    /* Search for configuration objects */ 
+    $ldap = $this->config->get_ldap_link();
+    $ldap->cd($base);
+    $ldap->search($PackageFilter,array("FAIvariable","FAIvariableType",
+          "FAIvariableContent","FAIpackage","FAIdebianSection","FAIstate"));
+
+    $configured_packages = array();
+
+    /* Walk through configurations and append them to our list of ConfiguredPackages 
+     */
+    while($attr = $ldap->fetch()){
+
+      /* Skip objects, that are tagged as removed */
+      if(isset($object['FAIstate'][0])){
+        if(preg_match("/removed$/",$attr['FAIstate'][0])){
+          continue;
+        }
+      }
+
+      $tmp =array(); 
+      $tmp['Name']  = $attr['FAIvariable'][0];
+      $tmp['Type']  = $attr['FAIvariableType'][0];
+      $tmp['Save']  = TRUE;
+
+      if (isset($attr['FAIvariableContent'][0])){
+        if(!in_array($attr['FAIvariableType'],array("multiselect"))){
+          $tmp['Value'] = $attr['FAIvariableContent'][0];
+        }else{
+          $content = array();        
+          unset($attr['FAIvariableContent']['count']);
+          foreach($attr['FAIvariableContent'] as $attr){
+            $tmp['Value'][] = $attr;
+          }
+        }
+        $configured_packages[$attr['FAIpackage'][0]][$attr['FAIvariable'][0]]=$tmp;
+      }
+      else {
+        $tmp['Value'] = "";
+        $configured_packages[$attr['FAIpackage'][0]][$attr['FAIvariable'][0]]=$tmp;
+      }
+    }
+  
+    return $configured_packages;
   }
 
 
@@ -791,47 +802,7 @@ class faiPackage extends plugin
         $this->FAIdebianSection[$source['FAIdebianSection'][$i]]=$source['FAIdebianSection'][$i];
       }
     }
-
-    /* Create one filter with all package names, 
-       instead of calling $ldap->search for every single package 
-     */
-    $PackageFilter = "";
-    foreach($this->usedPackages as $name){
-      $PackageFilter .= "(FAIpackage=".$name.")";
-    }
-
-    /* Search for configuration objects */ 
-    $ldap = $this->config->get_ldap_link();
-    $ldap->cd($source['dn']);
-    $ldap->search($PackageFilter,array("FAIvariable","FAIvariableType","FAIvariableContent","FAIpackage","FAIdebianSection","FAIstate"));
-
-    /* Walk through configurations and append them to our list of ConfiguredPackages */
-    while($attr = $ldap->fetch()){
-
-      /* Skip objects, that are tagged as removed */
-      if(isset($object['FAIstate'][0])){
-        if(preg_match("/removed$/",$attr['FAIstate'][0])){
-          continue;
-        }
-      }
-
-      $tmp =array(); 
-      $tmp['Name']  = $attr['FAIvariable'][0];
-      $tmp['Type']  = $attr['FAIvariableType'][0];
-
-      if (isset($attr['FAIvariableContent'][0])){
-        if(!in_array_strict($attr['FAIvariableType'],array("multiselect"))){
-          $tmp['Value'] = $attr['FAIvariableContent'][0];
-        }else{
-          $content = array();        
-          unset($attr['FAIvariableContent']['count']);
-          foreach($attr['FAIvariableContent'] as $attr){
-            $tmp['Value'][] = $attr;
-          }
-        }
-        $this->ConfiguredPackages[$attr['FAIpackage'][0]][$attr['FAIvariable'][0]]=$tmp;
-      }
-    }
+    $this->ConfiguredPackages = $this->get_configured_packages($this->usedPackages, $source['dn']);
   }
 
 
