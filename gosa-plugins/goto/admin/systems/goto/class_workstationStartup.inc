@@ -1082,7 +1082,7 @@ another location! */
             /* Get the list of available servers and their releases.
              */
             $o_queue = new gosaSupportDaemon();
-            $tmp = $o_queue->FAI_get_classes($release);
+            $classes = $o_queue->FAI_get_classes($release);
 
             $this->cache['CLASSES'][$release] = array();
             if($o_queue->is_error()){
