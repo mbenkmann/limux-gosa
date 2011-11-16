@@ -95,10 +95,10 @@ class deviceGeneric extends plugin
         $message = plugin::check();
 
         if($this->cn == "" ||(preg_match("/[^a-z0-9]/i",$this->cn))){
-            $message[]= msgPool::invalid(_("Name"),$this->cn,"/^[a-z0-9]*$/i");
+            $message[]= msgPool::invalid(_("Device name"),$this->cn,"/^[a-z0-9]*$/i");
         }
         if(preg_match("/[^a-z0-9!\"?.,;:-_\(\) ]/i",$this->description)){
-            $message[]= msgPool::invalid(_("Description"),$this->cn,"/^[a-z0-9!\"?.,;:-_\(\) ]*$/i");
+            $message[]= msgPool::invalid(_("Description"),$this->description,"/^[a-z0-9!\"?.,;:-_\(\) ]*$/i");
         }
 
         /* Skip serial check if vendor and product id are given */
