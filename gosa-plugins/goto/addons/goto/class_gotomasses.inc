@@ -245,6 +245,11 @@ class gotomasses extends management
                     $j_name = $task['ID']." - ".$task['HEADERTAG']."&nbsp;".$task['MACADDRESS'];
                 }
 
+                 /* If system name is available show it in parantheses next to each entry */
+                if(isset($task['PLAINNAME']) && $task['PLAINNAME'] != 'none') {
+                  $j_name .= sprintf(" (%s) ", $task['PLAINNAME']);
+                }
+
                 /* Only remove WAITING or ERROR entries */
                 if(in_array_strict($task['STATUS'],array("waiting","error","processed")) ||
                         ($task['STATUS'] == "processing" && !preg_match("/install/",$task['HEADERTAG'])) ){
