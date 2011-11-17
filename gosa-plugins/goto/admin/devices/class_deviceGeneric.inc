@@ -19,7 +19,7 @@ class deviceGeneric extends plugin
     public $attributes      = array("cn","description","devID","serial","vendor", "type");
     public $objectclasses   = array("top","gotoDevice");
 
-    public $CopyPasteVars   = array("orig_cn","description","vendor","devID","serial","base");
+    public $CopyPasteVars   = array("orig_cn","description","vendor","devID","serial","base","type");
 
     public function deviceGeneric(&$config,$dn = NULL)
     {
