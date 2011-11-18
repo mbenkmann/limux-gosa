@@ -606,14 +606,22 @@ class FAI
     /* Collect some basic informations and initialize some variables */ 
     $base_release       = FAI::get_release_dn($Current_DN);
     $previous_releases  = array_reverse(FAI::             get_previous_releases_of_this_release($base_release,true));
+    $sub_releases       = array_keys(FAI::get_sub_releases_of_this_release($base_release,false));
     $Kill = array();
     $Skip = array();
 
     /* We must also include the given release dn */
     $previous_releases[] = $base_release;
 
+    /* Merge parent, current and child releases into one big release to 
+       iterate over */
+    $all_releases = $previous_releases;
+    foreach($sub_releases as $sub_release){
+      $all_releases[] = $sub_release;
+    }
+
     /* Walk through all releases */
-    foreach($previous_releases as $release){
+    foreach($all_releases as $release){
 
       /* Get fai departments */
       $deps_to_search = FAI::get_FAI_departments($release); 
