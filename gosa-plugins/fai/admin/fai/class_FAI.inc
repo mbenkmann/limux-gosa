@@ -210,10 +210,12 @@ class FAI
     if(!$removed){
       $ldap = $config->get_ldap_link();
       $ldap->cd($config->current['BASE']);
+      $parent_dn = FAI::get_parent_object($Current_DN);
 
       /* Get some basic informations */
       $parent_obj   = FAI::get_parent_release_object($Current_DN);
-      if(!empty($parent_obj)){
+      /* Check whether parent object is removed, do not create object in this case */
+      if(!empty($parent_obj) && !FAI::parent_is_removed($Current_DN)){
         $ldap->cat($parent_obj,array("*"));
         $attrs = FAI::                           prepare_ldap_fetch_to_be_saved($ldap->fetch());
 
@@ -527,11 +529,15 @@ class FAI
             }
 
             foreach($r as $key ){
-              if(DEBUG_FAI_FUNC) { 
-                echo "<b>Create an empty placeholder in follwing release</b> ".$key; 
-                print_a($objectAttrs);
+              /* Only save removed parent objects, not their children, unless
+                 they are a child of a copy-on-write parent in a subrelease */
+              if (FAI::is_parent_object($Current_DN) || FAI::is_child_of_cow_parent($key)){
+                if(DEBUG_FAI_FUNC) {
+                  echo "<b>Create an empty placeholder in follwing release</b> ".$key;
+                  print_a($objectAttrs);
+                }
+                FAI::save_FAI_object($key,$objectAttrs);
               }
-              FAI::save_FAI_object($key,$objectAttrs);
             }
           }
         }else{
@@ -540,23 +546,25 @@ class FAI
           if(!empty($r)){
 
             foreach($r as $key ){
-              if(DEBUG_FAI_FUNC) { 
-                echo "<b>Copy current objects original attributes to next release</b> ".$key;
-                print_a($parent_attrs);
-              }
-             
-              /* Append FAIstate tag to ensure that freezed objects stay freezed
-               */ 
-              $rTag = FAI::get_release_tag(FAI::get_release_dn($key));
-              $parent_attrs['FAIstate'] = $rTag;
-
               /* FAItemplateFile can be binary, therefore it needs to be fetched with
                * $ldap->get_attribute */
               if (isset($parent_attrs['FAItemplateFile'])) {
                 $parent_attrs['FAItemplateFile'] = $ldap->get_attribute($parent_obj, 'FAItemplateFile');
               }
 
-              FAI::save_FAI_object($key,$parent_attrs);
+              /* Append FAIstate tag to ensure that freezed objects stay freezed
+               */ 
+              $rTag = FAI::get_release_tag(FAI::get_release_dn($key));
+              $parent_attrs['FAIstate'] = $rTag;
+
+              /* Don't copy over subobjects in subreleases if their parent is in "removed" state */
+              if(!FAI::parent_is_removed($key)){
+                if(DEBUG_FAI_FUNC) {
+                  echo "<b>Copy current objects original attributes to next release</b> ".$key;
+                  print_a($parent_attrs);
+                }
+                FAI::save_FAI_object($key,$parent_attrs);
+              }
             }
           }
 
@@ -594,10 +602,10 @@ class FAI
     session::set('FAI_objects_to_save',array());
   }
 
-
   /* this function will remove all unused (deleted) objects,
-     that have no parent object */
-  static function clean_up_releases($Current_DN)
+     that have no parent object. If $recursive is set to true,
+     also check sub releases. */
+  static function clean_up_releases($Current_DN, $recursive=true)
   {
     global $config;
     $ldap = $config->get_ldap_link();
@@ -613,11 +621,14 @@ class FAI
     /* We must also include the given release dn */
     $previous_releases[] = $base_release;
 
-    /* Merge parent, current and child releases into one big release to 
-       iterate over */
     $all_releases = $previous_releases;
-    foreach($sub_releases as $sub_release){
-      $all_releases[] = $sub_release;
+
+    if ($recursive) {
+      /* Merge parent, current and child releases into one big release to 
+         iterate over */
+      foreach($sub_releases as $sub_release){
+        $all_releases[] = $sub_release;
+      }
     }
 
     /* Walk through all releases */
@@ -657,7 +668,6 @@ class FAI
     }
     return($Kill);
   }
-
 
   /* Remove numeric index and 'count' from ldap->fetch result */
   static function prepare_ldap_fetch_to_be_saved($attrs)
@@ -1276,6 +1286,164 @@ class FAI
     }
     return("");
   }
+
+  static function tag_attrs(&$at, $dn= "", $tag= "", $show= false)
+  {                                                        
+    /* Remove tags that may already be here... */                         
+    remove_objectClass("gosaAdministrativeUnitTag", $at);                 
+    if (isset($at['gosaUnitTag'])){                                       
+        unset($at['gosaUnitTag']);                                        
+    }                                                                     
+
+    /* Set tag? */
+    if ($tag != ""){
+      add_objectClass("gosaAdministrativeUnitTag", $at);
+      $at['gosaUnitTag']= $tag;                         
+    }                                                   
+
+    /* Initially this object was tagged. 
+       - But now, it is no longer inside a tagged department. 
+       So force the remove of the tag.                        
+       (objectClass was already removed obove)                
+     */                                                       
+    if($tag == ""){                     
+      $at['gosaUnitTag'] = array();                           
+    }                                                         
+  }                                                           
+
+  /* Returns true if this is a parent object, e.g. FAIpartitionTable, not FAIpartitionDisk */
+  static function is_parent_object($dn)
+  {
+    global $config;
+    $Current_DN = $dn;
+
+    /* special case partitions and debconf variables, as they don't start with cn= in their DN */
+    if (preg_match('/^(FAIpartitionNr|FAIvariable)=/', $Current_DN)){
+      return false;
+    }
+
+    $parent_dn = preg_replace('/^cn=[^,.]*,/', '', $Current_DN);
+    if (preg_match('/^cn=/', $parent_dn)) {
+      $ldap = $config->get_ldap_link();
+      $ldap->cd($config->current['BASE']);
+      $ldap->cat($parent_dn);
+      if($ldap->count()){
+        return false;
+      }
+    }else{
+      return true;
+    }
+  }
+
+  /* Return child objects, if there are any */
+  static function get_child_objects($dn)
+  {
+    global $config;
+    $Current_DN = $dn;
+    $children= array();
+
+    if (FAI::is_parent_object($Current_DN)){
+      $ldap = $config->get_ldap_link();
+      $ldap->cd($dn);
+      $ldap->search("(objectClass=FAIclass)",array("dn"));
+      while($attrs = $ldap->fetch()){
+        if(preg_match("/".preg_quote($Current_DN, '/')."/",$attrs['dn']) && $attrs['dn'] != $Current_DN){
+          $children[] = $attrs['dn'];
+        }
+      }
+    }
+    return $children;
+  }
+
+  /* Get the DN of the parent object; e.g. the FAIpartitionTable of a FAIpartitionDisk.
+     If $check is false, do not check whether the parent actually exists in LDAP */
+  static function get_parent_object($dn, $check=true)
+  {
+    global $config;
+    $Current_DN = $dn;
+    $i = 0;
+
+    $tmp_dn = $Current_DN;
+    $parent_dn = array();
+
+    /* special case partitions and debconf variables, as they don't start with cn= in their DN */
+    $tmp_dn = preg_replace('/^(FAIpartitionNr|FAIvariable)=/', 'cn=', $tmp_dn);
+
+    $tmp_dn = gosa_ldap_explode_dn($tmp_dn);
+    while(preg_match('/^cn=/', $tmp_dn[$i])) {
+      $i++;
+    }
+    /* DN part does not start with cn= anymore, remove one from the counter to get the
+       last CN element */
+    $i--;
+
+    for ($i;$i<$tmp_dn['count'];$i++) {
+      $parent_dn[] = trim($tmp_dn[$i]);
+    }
+    $parent_dn = join($parent_dn, ',');
+
+    if ($parent_dn != $Current_DN){
+      if($check){
+        $ldap = $config->get_ldap_link();
+        $ldap->cd($config->current['BASE']);
+        $ldap->cat($parent_dn);
+        if(!$ldap->count()){
+          return "";
+        }
+      }
+      return $parent_dn;
+    }
+    return "";
+  }
+  /* Check whether parent object is removed */
+  static function parent_is_removed($dn)
+  {
+    global $config;
+    $Current_DN = $dn;
+
+    $ldap = $config->get_ldap_link();
+    $parent_dn = FAI::get_parent_object($Current_DN);
+    if ($parent_dn) { 
+      $ldap->cd($config->current['BASE']);
+      $ldap->cat($parent_dn);
+      $parentObjectAttrs = FAI::prepare_ldap_fetch_to_be_saved($ldap->fetch());
+      if(isset($parentObjectAttrs['FAIstate'][0])){
+        if(preg_match("/removed$/",$parentObjectAttrs['FAIstate'][0])){
+          return true;
+        }
+      }
+    } 
+    return false;
+  }
+
+  /* Check whether this is a child object of a Copy-on-Write parent */
+  static function is_child_of_cow_parent($dn)
+  { 
+    global $config;
+    $Current_DN = $dn;
+    $parent_dn = "";
+
+    if (!FAI::is_parent_object($Current_DN)){
+
+      /* This is a child object; check that the parent object is not 
+         marked as removed */
+      $cow_parent_dn = FAI::get_parent_object($Current_DN, false);
+      if ($cow_parent_dn && !FAI::parent_is_removed($Current_DN)){
+
+        /* This is a child object, check whether the parent object in 
+           the main release exists */
+        $main_parent_dn = FAI::get_parent_release_object($cow_parent_dn);
+        $ldap = $config->get_ldap_link();
+        $ldap->cd($config->current['BASE']);
+        $ldap->cat($main_parent_dn);
+        if($ldap->count()){
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
 }
 
 

@@ -465,6 +465,11 @@ class faiManagement extends management
 
           FAI::save_release_changes_now();
           $to_del = FAI::clean_up_releases($dn);
+          /* Remove sub-objects (e.g. the variable key/value of a FAIvariable) from LDAP entirely */
+          $children = FAI::get_child_objects($dn);
+          if ($children) {
+            $to_del += $children;
+          }
           foreach($to_del as $dn){
             $ldap->rmdir_recursive($dn);
           }
@@ -523,6 +528,24 @@ class faiManagement extends management
   }
 
 
+  protected function handle_release_cleanup($dn) {
+    $to_del = FAI::clean_up_releases($dn, false);
+    $ldap = $this->config->get_ldap_link();
+    $ldap->cd($dn);
+    foreach($to_del as $dn) {
+      /* Only delete subobjects of the current FAI class */
+      $cn = $ldap->getCn($dn);
+      $ldap->search("cn=$cn", array('dn'));
+      if ($ldap->count()){
+        while($attrs = $ldap->fetch()){
+          if ($attrs['dn'] == $dn) {
+            $ldap->rmdir_recursive($dn);
+          }
+        }
+      }
+    }
+  }
+
   /*! \brief   Save dialog/object modifications
    */
   protected function saveChanges()
@@ -532,11 +555,9 @@ class faiManagement extends management
 
     // Now save changes
     FAI::save_release_changes_now();
-    $to_del = FAI::clean_up_releases($this->last_dn);
-    $ldap= $this->config->get_ldap_link();
-    foreach($to_del as $dn){
-      $ldap->rmdir_recursive($dn);
-    }
+
+    // Cleanup
+    $this->handle_release_cleanup($this->last_dn);
   }
 
 
@@ -549,10 +570,9 @@ class faiManagement extends management
 
     // Now save changes
     FAI::save_release_changes_now();
-    $to_del = FAI::clean_up_releases($this->dn);
-    foreach($to_del as $dn){
-      $ldap->rmdir_recursive($dn);
-    }
+
+    // Cleanup
+    $this->handle_release_cleanup($this->dn);
   }
 
 
