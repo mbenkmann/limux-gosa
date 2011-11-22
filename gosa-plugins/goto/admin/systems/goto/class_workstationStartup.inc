@@ -362,7 +362,14 @@ class workstartup extends plugin
             if($action['action'] == 'delete'){
                 $id = $this->faiList->getKey($action['targets'][0]);
                 unset($this->FAIclass[$id]);
-            }
+                if($this->FAIclass == array()) {
+                  /* class list is emtpy. Check whether the system is part of an object group and set
+                    the FAI mirror to "inherited" in this case. */
+                  if ($this->member_of_ogroup) {
+                    $this->FAIdebianMirror = "inherited";
+                  }
+                }
+             }
             if($action['action'] == 'reorder'){
                 $this->FAIclass= $this->faiList->getMaintainedData();
             }
@@ -375,7 +382,7 @@ class workstartup extends plugin
                     if(preg_match("/fai_remove/i",$name)){
                         $value = postDecode(preg_replace("/fai_remove_/i","",$name));
                         unset($this->FAIclass[$value]);
-                    }
+                   }
                 }
             }
 
@@ -649,6 +656,11 @@ class workstartup extends plugin
             if(!isset($this->cache['SERVERS'][$this->FAIdebianMirror][$this->FAIrelease])){
                 $this->FAIrelease      = key($this->cache['SERVERS'][$this->FAIdebianMirror]);
             }
+        }
+
+        /* Clear FAI class list if FAI mirror has been set to inherited */
+        if($this->FAIdebianMirror == "inherited"){
+          $this->FAIclass = array();
         }
 
         if(isset($_POST['WorkstationStarttabPosted'])){
