@@ -71,7 +71,7 @@
  <table width="99%" summary="">
  {render acl=$FAIpackageACL}
   <tr>
-   <td style="width:60px;">
+   <td>
 {if $direct_packages_add}
     <input type="text" size="25" name="addPpkgsText" value="" />
     <button type='submit' name='AddManualpkg'>

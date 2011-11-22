@@ -42,6 +42,7 @@ class faiPackage extends plugin
   var $usedPackages     = array();
   var $buffer           = NULL; 
   var $newDialogShown   = false;
+  var $direct_packages_add = FALSE;
 
   var $FAIstate         = "";
   var $view_logged      = FALSE;
@@ -55,7 +56,6 @@ class faiPackage extends plugin
       "hold", "clean", "aptitude", "aptitude-r",
       "pending", "dpkgc" );
 
-  var $direct_packages_add = FALSE;
   var $configure_dialog_shown = FALSE;
   var $debconf_configurations = FALSE;
 
@@ -112,6 +112,12 @@ class faiPackage extends plugin
       $this->is_new =TRUE;
     }
 
+    /* Check weither its allowed to directly add packages */
+    $direct_packages_add = $config->search("faiManagement","direct_packages_add",array("menu"));
+    if (preg_match("/^true$/i", $direct_packages_add) || preg_match("/yes/i", $direct_packages_add)) {
+      $this->direct_packages_add = TRUE;
+    }
+    
     /* Generate package list */
     $this->list= $this->genPkgs(TRUE);
 
