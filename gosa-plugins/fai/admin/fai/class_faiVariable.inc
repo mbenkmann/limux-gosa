@@ -43,7 +43,7 @@ class faiVariable extends plugin
 
       /* Read all leaf objects of this object (For FAIscript this would be FAIscriptEntry)
        */
-      $res = FAI::get_all_objects_for_given_object($this->dn,"(&(objectClass=FAIclass)(objectClass=".$this->subClass."))");
+      $res = FAI::get_leaf_objects($this->dn, $this->cn, $this->subClass, get_ou('faiVariable', 'faiVariableRDN'));
       foreach($res as $obj){
         $objects = array();
         $objects['description'] = "";

@@ -73,7 +73,7 @@ class FAI
           $name = preg_replace("/".preg_quote($release, '/')."/i","",$attr['dn']);
 
           if(isset($attr['FAIstate'][0])){
-            if(preg_match("/removed$/",$attr['FAIstate'][0])){
+            if(preg_match("/removed/",$attr['FAIstate'][0])){
               if(isset($res[$name])){
                 unset($res[$name]);
               }
@@ -1444,6 +1444,31 @@ class FAI
     return false;
   }
 
+  static function get_leaf_objects($dn, $cn, $subclass, $rdn) {
+    $valid_releases = FAI::get_previous_releases_of_this_release(FAI::get_release_dn($dn), true);
+    /* Remove the last release DN */
+    array_pop($valid_releases);
+    $valid_releases[] = FAI::get_release_dn($dn);
+
+    $objects = FAI::get_all_objects_for_given_base($dn,"(&(objectClass=FAIclass)(objectClass=".$subclass."))");
+    $res = array();
+    /* Strip elements which are not a leaf object of the current dn */
+    foreach($objects as $obj){
+      $keep = FALSE;
+      foreach($valid_releases as $valid_release) {
+        if (preg_match("/cn=".$cn.",".$rdn.$valid_release."$/", $obj['dn'])) {
+          $keep = TRUE;
+          break;
+        }
+      }
+
+      if ($keep) {
+        $res[] = $obj;
+      }
+    }
+
+    return $res;
+  }
 }
 
 

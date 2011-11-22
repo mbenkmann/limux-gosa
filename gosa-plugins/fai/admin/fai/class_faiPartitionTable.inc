@@ -39,11 +39,8 @@ class faiPartitionTable extends plugin
 
       /* Read all leaf objects of this object (For FAIscript this would be FAIscriptEntry)
        */
-      $res = FAI::get_all_objects_for_given_base($this->dn,"(&(objectClass=FAIclass)(objectClass=FAIpartitionDisk))");
+      $res = FAI::get_leaf_objects($this->dn, $this->cn, "FAIpartitionDisk", get_ou('faiPartitionTable', 'faiPartitionRDN'));
       foreach($res as $obj){
-
-        /* Skip not relevant objects */
-        if(!preg_match("/".preg_quote($this->dn, '/')."$/i",$obj['dn'])) continue;
         $objects = array();
         $objects['description']  = "";
 
@@ -79,12 +76,9 @@ class faiPartitionTable extends plugin
       /* read all partitions for each disk 
        */
       foreach($this->disks as $name => $disk){
-        $res = FAI::get_all_objects_for_given_base($disk['dn'],"(&(objectClass=FAIclass)(objectClass=FAIpartitionEntry))");
+
+        $res = FAI::get_leaf_objects($disk['dn'], $name, "FAIpartitionEntry", "cn=".$this->cn.",".get_ou('faiPartitionTable', 'faiPartitionRDN'));
         foreach($res as $obj){
-
-          /* Skip not relevant objects */
-          if(!preg_match("/".preg_quote($disk['dn'], '/')."$/i",$obj['dn'])) continue;
-
           $objects = array();
           $objects['dn']          = $obj['dn'];
           $objects                = $this->get_object_attributes($objects,$this->subPartAttributes);
