@@ -519,7 +519,7 @@ class config  {
 
         /* Get kerberos server. FIXME: only one is supported currently */
         $ldap->cd ($this->current['BASE']);
-        $ldap->search ("(objectClass=goKrbServer)(goKrbRealm=*)(goKrbAdmin=*))");
+        $ldap->search ("(&(objectClass=goKrbServer)(goKrbRealm=*)(goKrbAdmin=*))");
         if ($ldap->count()){
             $attrs= $ldap->fetch();
             $this->data['SERVERS']['KERBEROS']= array( 'SERVER' => $attrs['cn'][0],
