@@ -83,6 +83,7 @@ class gotomasses extends management
         $this->registerAction('abort',      "abortEvent");
         $this->registerAction('saveEventDialog',   "saveEventDialog");
         $this->registerAction('halt', 'newEntry');
+        $this->registerAction('localboot', 'newEntry');
         $this->registerAction('reboot', 'newEntry');
         $this->registerAction('wakeup', 'newEntry');
         $this->registerAction('update', 'newEntry');

@@ -85,6 +85,13 @@
      </action>
 
      <action>
+      <name>localboot</name>
+      <type>entry</type>
+      <image>plugins/systems/images/select_workstation.png</image>
+      <label>Force local boot</label>
+     </action>
+
+     <action>
       <name>reboot</name>
       <type>entry</type>
       <image>images/lists/reload.png</image>

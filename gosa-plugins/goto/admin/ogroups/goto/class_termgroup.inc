@@ -24,6 +24,7 @@ class termgroup extends plugin
             "reinstall"       => "reinstall",
             "rescan"          => "rescan",
             "wake"            => "wakeup",
+            "localboot"       => "localboot"
             );
 
     var $attributes     = array("gotoMode","gotoSyslogServer", "gotoNtpServer", "gotoTerminalPath", "gotoSwapServer");
@@ -259,12 +260,11 @@ class termgroup extends plugin
                 set_post(array(
                         "halt" => _("Switch off"), 
                         "reboot" => _("Reboot"),
+                        "localboot" => _("Force local boot"),
+                        "update" => _("Software update"),
                         "wake" => _("Wake"),
                         "reinstall" => _("Reinstall"),
-                        "rescan" => _("Rescan hardware"),
-#                        "memcheck" => _("Memory test"),
-#                        "sysinfo"  => _("System analysis")
-                )));
+                        "rescan" => _("Rescan hardware"))));
 
         $smarty->assign("inheritTimeServer",$this->inheritTimeServer);
         $smarty->assign("modes", set_post($this->modes));

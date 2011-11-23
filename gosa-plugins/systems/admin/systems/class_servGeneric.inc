@@ -59,7 +59,7 @@ class servgeneric extends plugin
     var $mapActions   = array("reboot"          => "",
             "instant_update"  => "softupdate",
             "localboot"       => "localboot",
-            "update"          => "sceduledupdate",
+            "update"          => "scheduledupdate",
             "reinstall"       => "install",
             "rescan"          => "",
             "wakeup"            => "",
@@ -205,12 +205,10 @@ class servgeneric extends plugin
                         array(
                             "halt" => _("Switch off"), 
                             "reboot" => _("Reboot"),
-                            "update" => _("System update"),
+                            "update" => _("Software update"),
                             "reinstall" => _("Reinstall"),
                             "rescan" => _("Rescan hardware"),
-                            "memcheck" => _("Memory test"),
-                            "localboot" => _("Force local boot"),
-                            "sysinfo"  => _("System analysis"))));
+                            "localboot" => _("Force local boot"))));
         } else {
             $smarty->assign("actions", 
                     set_post(
@@ -218,9 +216,7 @@ class servgeneric extends plugin
                             "wakeup" => _("Wake up"),
                             "reinstall" => _("Reinstall"),
                             "update" => _("System update"),
-                            "memcheck" => _("Memory test"),
-                            "localboot" => _("Force local boot"),
-                            "sysinfo"  => _("System analysis"))));
+                            "localboot" => _("Force local boot"))));
         }
 
         /* Show main page */

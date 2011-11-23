@@ -295,6 +295,14 @@
       </action>
 
       <action>
+	<name>T_DaemonEvent_localboot</name>
+  	<depends>DaemonEvent_localboot</depends>
+	<type>entry</type>
+	<label>Force local boot</label>
+	<image>plugins/systems/images/select_workstation.png</image>
+      </action>
+
+      <action>
         <name>T_DaemonEvent_reboot</name>
         <depends>DaemonEvent_reboot</depends>
         <type>entry</type>
@@ -358,6 +366,14 @@
         <type>entry</type>
         <image>images/lists/off.png</image>
         <label>Halt</label>
+      </action>
+
+      <action>
+	<name>S_DaemonEvent_localboot</name>
+  	<depends>DaemonEvent_localboot</depends>
+	<type>entry</type>
+	<label>Force local boot</label>
+	<image>plugins/systems/images/select_workstation.png</image>
       </action>
 
       <action>
