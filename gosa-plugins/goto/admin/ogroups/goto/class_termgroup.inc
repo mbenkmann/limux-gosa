@@ -259,13 +259,12 @@ class termgroup extends plugin
                 set_post(array(
                         "halt" => _("Switch off"), 
                         "reboot" => _("Reboot"),
-                        "instant_update" => _("Instant update"),
-                        "update" => _("Scheduled update"),
                         "wake" => _("Wake"),
                         "reinstall" => _("Reinstall"),
                         "rescan" => _("Rescan hardware"),
-                        "memcheck" => _("Memory test"),
-                        "sysinfo"  => _("System analysis"))));
+#                        "memcheck" => _("Memory test"),
+#                        "sysinfo"  => _("System analysis")
+                )));
 
         $smarty->assign("inheritTimeServer",$this->inheritTimeServer);
         $smarty->assign("modes", set_post($this->modes));
