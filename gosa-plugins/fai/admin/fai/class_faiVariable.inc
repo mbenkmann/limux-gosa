@@ -343,7 +343,8 @@ class faiVariable extends plugin
       }
 
       /* Tag object */
-      $this->tag_attrs($tmp, $sub_dn, $this->gosaUnitTag);
+      $ui= get_userinfo();
+      $this->tag_attrs($tmp, $sub_dn, $ui->gosaUnitTag);
       
       if($obj['status'] == "delete"){
         FAI::prepare_to_save_FAI_object($sub_dn,array(),true);

@@ -561,7 +561,8 @@ class faiPartitionTable extends plugin
 
 
       /* Tag object */
-      $this->tag_attrs($disk_attrs, $disk_dn, $this->gosaUnitTag);
+      $ui= get_userinfo();
+      $this->tag_attrs($disk_attrs, $disk_dn, $ui->gosaUnitTag);
 
       if($disk['status'] == "delete"){
         @DEBUG (DEBUG_FAI, __LINE__, __FUNCTION__, __FILE__,$short_dn , "Removing disk: ");
@@ -612,7 +613,8 @@ class faiPartitionTable extends plugin
         }
 
         /* Tag object */
-        $this->tag_attrs($partition_attrs, $partition_dn, $this->gosaUnitTag);
+       $ui= get_userinfo();
+        $this->tag_attrs($partition_attrs, $partition_dn, $ui->gosaUnitTag);
 
         
         if($partition['status'] == "delete"){

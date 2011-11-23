@@ -717,7 +717,8 @@ class faiPackage extends plugin
         }
 
         /* Tag object */
-        $this->tag_attrs($pkgattrs, $pkgdn, $this->gosaUnitTag);
+       $ui= get_userinfo();
+        $this->tag_attrs($pkgattrs, $pkgdn, $ui->gosaUnitTag);
 
         if(in_array_strict($pkgattrs['FAIvariableType'],array("boolean","multiselect","password","select","string","text"))){
 

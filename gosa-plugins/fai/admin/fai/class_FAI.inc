@@ -693,6 +693,9 @@ class FAI
     $ldap->create_missing_trees(preg_replace('/^[^,]+,/', '', $dn));
     $ldap->cd($dn);
 
+    $ui= get_userinfo();
+    FAI::tag_attrs($attrs, $dn, $ui->gosaUnitTag);
+
     $ldap->cat($dn,array("dn"));
     if($ldap->count()){
 
