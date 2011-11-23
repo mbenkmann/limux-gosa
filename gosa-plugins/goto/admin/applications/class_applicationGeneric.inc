@@ -474,6 +474,11 @@ class application extends plugin
 
     $this->gosaApplicationFlags ="[{$this->gosaApplicationFlags}]";
     plugin::save();
+
+    /* Handle tagging */
+    $ui= get_userinfo();
+    $this->tag_attrs($this->attrs, $this->dn, $ui->gosaUnitTag);
+
     $this->attrs["gosaApplicationIcon"]= $this->gosaApplicationIcon;
 
     /* Write back to ldap */
