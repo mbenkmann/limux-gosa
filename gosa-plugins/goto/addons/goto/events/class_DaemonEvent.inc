@@ -1,24 +1,24 @@
 <?php
 /*
- * This code is part of GOsa (http://www.gosa-project.org)
- * Copyright (C) 2003-2008 GONICUS GmbH
- *
- * ID: $$Id$$
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+* This code is part of GOsa (http://www.gosa-project.org)
+* Copyright (C) 2003-2008 GONICUS GmbH
+*
+* ID: $$Id$$
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
 
 define("SCHEDULED_EVENT",1);
 define("TRIGGERED_EVENT",2);
@@ -29,156 +29,156 @@ define("USER_EVENT"  ,4);
 
 
 /*! \brief    This is the event base class 
-  \author   Fabian Hickert <hickert@gonicus.de>
-  \version  1.00
-  \date     26.02.2008
+\author   Fabian Hickert <hickert@gonicus.de>
+\version  1.00
+\date     26.02.2008
 
-  This is the base class for all new daemon events.
-  It implements most of the required functionality.
- */
+This is the base class for all new daemon events.
+It implements most of the required functionality.
+*/
 class DaemonEvent 
 {
-    /* Menu Strings */
-    protected $s_Menu_Name  = "s_Menu_Name not set";  // Diplayed in the ActionsMenu->CreateNew
-    protected $s_Event_Name = "s_Event_Name not set"; // Will be displayed in the Management list.
-    protected $s_Menu_Image = "images/empty.png";     // Image displayed in Actions->New
-    protected $s_List_Image = "";                     // Image displayed in event listing
+  /* Menu Strings */
+  protected $s_Menu_Name  = "s_Menu_Name not set";  // Diplayed in the ActionsMenu->CreateNew
+  protected $s_Event_Name = "s_Event_Name not set"; // Will be displayed in the Management list.
+  protected $s_Menu_Image = "images/empty.png";     // Image displayed in Actions->New
+  protected $s_List_Image = "";                     // Image displayed in event listing
 
-    public $config;          // GOsa configuration object 
-    protected $data;            // The event data, when edited
+  public $config;          // GOsa configuration object 
+  protected $data;            // The event data, when edited
 
-    protected $a_targets    = array();  // The list of assigned Targets (When newly created)
-    protected $s_Schedule_Action = "";       // The deamon command name when newly created. (e.g. job_trigger_action_halt)
-    protected $s_Trigger_Action= "";       // The deamon command name when edited. (e.g. trigger_action_halt)
-    protected $s_Queued_Action= "";       // The deamon command name when edited. (e.g. trigger_action_halt)
-    public $timestamp    = 0;        // Event execution time; 
-    public $time_offset = 0;    // An offset when an event should start (normally not used)
-    public $concurrent_operations = 1; // Number of concurrent operations when a timestamp offset is used
-    protected $id           = -1;       // The Table ID
-    protected $status       = "unknown";// The current event status
-    protected $is_new       = TRUE;     // Is TRUE if this is a new event
+  protected $a_targets    = array();  // The list of assigned Targets (When newly created)
+  protected $s_Schedule_Action = "";       // The deamon command name when newly created. (e.g. job_trigger_action_halt)
+  protected $s_Trigger_Action= "";       // The deamon command name when edited. (e.g. trigger_action_halt)
+  protected $s_Queued_Action= "";       // The deamon command name when edited. (e.g. trigger_action_halt)
+  public $timestamp    = 0;        // Event execution time; 
+  public $time_offset = 0;    // An offset when an event should start (normally not used)
+  public $concurrent_operations = 1; // Number of concurrent operations when a timestamp offset is used
+  protected $id           = -1;       // The Table ID
+  protected $status       = "unknown";// The current event status
+  protected $is_new       = TRUE;     // Is TRUE if this is a new event
 
-    protected $mode         = SCHEDULED_EVENT; // Default action is sheduled.
+  protected $mode         = SCHEDULED_EVENT; // Default action is sheduled.
 
-    /* Sub dialog hanlding */
-    protected $target_listing       = NULL;     // The listing used by the target add dialog
-    protected $target_add_list_used = FALSE;    // Indicates that the target add list was used.
-    protected $time_select_used     = FALSE;    // Indicates that we have used the timestamp select boxes.
-    protected $target_list_used     = FALSE;    // Target list was diaplayed?
-    protected $_target_list         = array();  // Object Cache of those objects displayed in the target add dialog
-    protected $workstation_list     = array();  // Used as cache in the target list.
-    protected $server_list          = array();  // Used as cache in the target list.
+  /* Sub dialog hanlding */
+  protected $target_listing       = NULL;     // The listing used by the target add dialog
+  protected $target_add_list_used = FALSE;    // Indicates that the target add list was used.
+  protected $time_select_used     = FALSE;    // Indicates that we have used the timestamp select boxes.
+  protected $target_list_used     = FALSE;    // Target list was diaplayed?
+  protected $_target_list         = array();  // Object Cache of those objects displayed in the target add dialog
+  protected $workstation_list     = array();  // Used as cache in the target list.
+  protected $server_list          = array();  // Used as cache in the target list.
 
-    protected $visible_for          = HIDDEN_EVENT;
+  protected $visible_for          = HIDDEN_EVENT;
 
-    protected $periodType           = "days";
-    protected $periodValue          = 7;
-    protected $activate_periodical_job = FALSE;
+  protected $periodType           = "days";
+  protected $periodValue          = 7;
+  protected $activate_periodical_job = FALSE;
 
-    protected $attributes           = array("timestamp");
-    
-    protected $time_offset_used = FALSE;
-    public $multiple_events = FALSE;
+  protected $attributes           = array("timestamp");
+  
+  protected $time_offset_used = FALSE;
+  public $multiple_events = FALSE;
 
-    /* Indicate that multiple events have to be created from this event */
-    function set_type($type)
-    {
-        $this->mode = $type;
-    }
-
-
-    function get_type()
-    {
-        return($this->mode);
-    }
-
-    /*! \brief  Class contructor.
-      @param  Array   GOsa configuration object.
-      @param  Array   Event data, only given when edited.
-     */
-    public function __construct($config,$data = array())
-    {
-        $this->data   = $data;
-        $this->config = $config;
-        timezone::get_default_timezone();
-        $this->timestamp = time();
-
-        /* Load values from given data */
-        if(count($data)){
-            $this->is_new = FALSE;
-
-            $attrs = array("id" => "ID");
-            foreach($attrs as $to => $from){
-                $this->$to = $data[$from];
-            }
-            if(isset($data['TIMESTAMP'])){
-                $this->timestamp = $this->_event_to_timestamp($data['TIMESTAMP']);
-            }
-        }
-
-        if(isset($data['PERIODIC']) && !preg_match("/none/i",$data['PERIODIC'])){
-            $tmp = explode("_",$data['PERIODIC']);
-            if(count($tmp) == 2){
-                $this->activate_periodical_job = TRUE;
-                $this->periodValue = $tmp[0];
-                $this->periodType = $tmp[1];
-            }
-        }
-
-        // Prepare lists
-        $this->targetList = new sortableListing();
-        $this->targetList->setDeleteable(true);
-        $this->targetList->setInstantDelete(false);
-        $this->targetList->setEditable(false);
-        $this->targetList->setWidth("100%");
-        $this->targetList->setHeight("200px");
-        $this->targetList->setColspecs(array('*'));
-        $this->targetList->setHeader(array(_("Mac")));
-        $this->targetList->setDefaultSortColumn(0);
-        $this->targetList->setAcl('rwcdm');
-    }
+  /* Indicate that multiple events have to be created from this event */
+  function set_type($type)
+  {
+      $this->mode = $type;
+  }
 
 
-    /*! \brief  Create the HTML output for the plugin. 
-      @return String  The generated HTML output.
-     */
-    public function execute()
-    {
-        $this->time_select_used = FALSE;
-        $this->target_list_used = FALSE;
+  function get_type()
+  {
+      return($this->mode);
+  }
 
-        $str = "<h3>"._("This job has no template!")."</h3>";
-        $str.= "<hr>";
-        $str.= "<div class='plugin-actions'>
-            <button type='submit' name='abort_event_dialog'>".msgPool::cancelButton()."</button> </div>";
-        return($str);
-    }
+  /*! \brief  Class contructor.
+    @param  Array   GOsa configuration object.
+    @param  Array   Event data, only given when edited.
+   */
+  public function __construct($config,$data = array())
+  {
+      $this->data   = $data;
+      $this->config = $config;
+      timezone::get_default_timezone();
+      $this->timestamp = time();
+
+      /* Load values from given data */
+      if(count($data)){
+          $this->is_new = FALSE;
+
+          $attrs = array("id" => "ID");
+          foreach($attrs as $to => $from){
+              $this->$to = $data[$from];
+          }
+          if(isset($data['TIMESTAMP'])){
+              $this->timestamp = $this->_event_to_timestamp($data['TIMESTAMP']);
+          }
+      }
+
+      if(isset($data['PERIODIC']) && !preg_match("/none/i",$data['PERIODIC'])){
+          $tmp = explode("_",$data['PERIODIC']);
+          if(count($tmp) == 2){
+              $this->activate_periodical_job = TRUE;
+              $this->periodValue = $tmp[0];
+              $this->periodType = $tmp[1];
+          }
+      }
+
+      // Prepare lists
+      $this->targetList = new sortableListing();
+      $this->targetList->setDeleteable(true);
+      $this->targetList->setInstantDelete(false);
+      $this->targetList->setEditable(false);
+      $this->targetList->setWidth("100%");
+      $this->targetList->setHeight("200px");
+      $this->targetList->setColspecs(array('100px', '*', '20px'));
+      $this->targetList->setHeader(array(_("Name"), _("Mac"), ""));
+      $this->targetList->setDefaultSortColumn(0);
+      $this->targetList->setAcl('rwcdm');
+  }
 
 
-    /*! \brief  Returns the plugin header, displayed in the template.
-      @return String  HTML header part.
-     */
-    public function get_header()
-    {
-        if($this->target_add_list_used){
-            return("");
-        }
-        $str = "<h3>".sprintf(_("Create '%s' job"),$this->s_Event_Name)."</h3>";
-        return($str);
-    }
+  /*! \brief  Create the HTML output for the plugin. 
+    @return String  The generated HTML output.
+   */
+  public function execute()
+  {
+      $this->time_select_used = FALSE;
+      $this->target_list_used = FALSE;
+
+      $str = "<h3>"._("This job has no template!")."</h3>";
+      $str.= "<hr>";
+      $str.= "<div class='plugin-actions'>
+          <button type='submit' name='abort_event_dialog'>".msgPool::cancelButton()."</button> </div>";
+      return($str);
+  }
 
 
-    /*! \brief  Returns the plugin footer (save cancel), displayed in the template.
-      @return String  HTML footer part.
-     */
-    public function get_footer()
-    {
-        if($this->target_add_list_used){
-            return("");
-        }
-        $str = "<hr>";
-        $str.= "<div class='plugin-actions'>
-            <button type='submit' name='save_event_dialog'>".msgPool::saveButton()."</button>&nbsp;
+  /*! \brief  Returns the plugin header, displayed in the template.
+    @return String  HTML header part.
+   */
+  public function get_header()
+  {
+      if($this->target_add_list_used){
+          return("");
+      }
+      $str = "<h3>".sprintf(_("Create '%s' job"),$this->s_Event_Name)."</h3>";
+      return($str);
+  }
+
+
+  /*! \brief  Returns the plugin footer (save cancel), displayed in the template.
+    @return String  HTML footer part.
+   */
+  public function get_footer()
+  {
+      if($this->target_add_list_used){
+          return("");
+      }
+      $str = "<hr>";
+      $str.= "<div class='plugin-actions'>
+          <button type='submit' name='save_event_dialog'>".msgPool::saveButton()."</button>&nbsp;
         <button type='submit' name='abort_event_dialog'>".msgPool::cancelButton()."</button>
             </div>";
         return($str);
@@ -291,7 +291,12 @@ class DaemonEvent
         $this->target_list_used = TRUE;
         foreach($this->a_targets as $key => $target){
             $data[$key] = $target;
-            $lData[$key] = array('data' => array($target));
+            $ogroup_img = '';
+            if (isset($target['ogroup'])) {
+              $title = sprintf(_("Added via object group \"%s\""), $target['ogroup']);
+              $ogroup_img = image('plugins/ogroups/images/select_ogroup.png', '', $title);
+            }
+            $lData[$key] = array('data' => array($target['cn'], $target['mac'], $ogroup_img ));
         }
         $this->targetList->setListData($data, $lData);
         $this->targetList->update();
@@ -641,6 +646,17 @@ class DaemonEvent
             if($dialog->multiple_events) {
               $event_type = get_class($dialog);
               $targets = $dialog->get_targets();
+              $tmp_array[0] = $targets[0];
+              foreach ($targets as $current) {
+                $add_flag = 1;
+                foreach ($tmp_array as $tmp) {
+                  if ($current["mac"]==$tmp["mac"]) {
+                    $add_flag = 0; break;
+                  }
+                }
+                if ($add_flag) $tmp_array[] = $current;
+              }
+              $targets = $tmp_array;
               $timestamp = $dialog->timestamp;
 
               $i = 1;

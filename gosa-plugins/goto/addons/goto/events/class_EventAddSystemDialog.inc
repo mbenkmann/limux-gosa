@@ -67,36 +67,48 @@ class EventAddSystemDialog extends management
 
   function get_selected_targets()
   {
-    // Collect mac addresses 
+    // Collect targets
     $entries = $this->save();
-    $macs = array();
+    $targets = array();
+    $result = array();
     $ldap = $this->config->get_ldap_link();
     $ldap->cd($this->config->current['BASE']);
-    $member_dns = array();
     foreach($entries as $entry){
-      $member_dns[] = $entry['dn'];
       if(in_array_strict("gosaGroupOfNames", $entry['objectClass'])){
+        $ogroup = $entry['cn'][0];
         $ldap->cat($entry['dn']);
         if($ldap->count()){
           $attrs = $ldap->fetch();
           if(isset($attrs['member'])){
             for($i =0 ; $i< $attrs['member']['count']; $i++){
-              $member_dns[] = $attrs['member'][$i];
+              $targets[] = array( "dn" => $attrs['member'][$i], "ogroup" =>
+                $ogroup );
             }
           }
         }
+      } else {
+        $targets[] = array ( "dn" => $entry['dn'], "cn" => $entry['cn'][0] );
       }
     }
-    foreach($member_dns as $dn){
-      $ldap->cat($dn, array('macAddress')); 
-      if($ldap->count()){
+
+    // Add missing information to targets array (macAddress and cn)
+    for($i=0; $i < count($targets); $i++) {
+      $dn = $targets[$i]["dn"];
+      $ldap->cat($dn, array('cn', 'macAddress'));
+      if($ldap->count()) {
         $attrs = $ldap->fetch();
-        if(isset($attrs['macAddress'])){
-          $macs[] = $attrs['macAddress'][0];
+        if (!isset($targets[$i]["cn"])) {
+          $targets[$i]["cn"] = $attrs['cn'][0];
+        }
+        if (isset($attrs["macAddress"][0])) {
+          $targets[$i]["mac"] = $attrs["macAddress"][0];
+          $result[] = $targets[$i];
+
         }
       }
     }
-    return($macs);
+
+    return($result);
   }
 }
 // vim:tabstop=2:expandtab:shiftwidth=2:filetype=php:syntax:ruler:
