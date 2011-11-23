@@ -10,7 +10,7 @@ class apptabs extends tabs
     tabs::tabs($config, $data, $dn,$category,$hide_refs, $hide_acls);
 
     /* Add references/acls/snapshots */
-    $this->addSpecialTabs();
+    #$this->addSpecialTabs();
   }
 
   function set_FAIstate($state)
