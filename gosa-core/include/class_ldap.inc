@@ -476,7 +476,7 @@ class LDAP
         if($this->hascon){
             if($this->hasres[$srp]){
 
-                if(!$this->re[$srp])
+                if((!isset($this->re[$srp])) || (!$this->re[$srp]))
                 {
                     $this->error = "Perform a Fetch with no valid Result";
                 }
