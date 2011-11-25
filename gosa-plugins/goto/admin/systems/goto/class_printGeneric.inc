@@ -14,6 +14,7 @@ class printgeneric extends plugin
     var $labeledURI       = "";
     var $gotoPrinterPPD   = "";
     var $initial_PPD      = "";
+    var $initial_PPD_URL  = "";
     var $orig_dn          = "";
     var $orig_cn          = "";
     var $orig_base        = "";
@@ -139,6 +140,7 @@ class printgeneric extends plugin
             $this->ppdServerPart  = $method.str_replace("//","/",$server_name."/ppd");
         }
 
+        $this->initial_PPD_URL = $this->gotoPrinterPPD;
         /* Extract selected ppd */
         if(isset($this->gotoPrinterPPD)){
             $this->gotoPrinterPPD = preg_replace("/^http.*ppd\//i","",$this->gotoPrinterPPD);
@@ -406,7 +408,7 @@ class printgeneric extends plugin
             if($this->PPDdialogToSave && is_object($this->PPDdialogToSave)){
                 $this->dialog = $this->PPDdialogToSave;
             }else{
-
+                $this->initial_PPD_URL = "";
                 if(is_array($this->gotoPrinterPPD)){
                     $this->dialog = new printerPPDDialog($this->config, $this->dn,"");
                 }else{
@@ -550,6 +552,23 @@ class printgeneric extends plugin
             return $display;
         }
 
+      /* Get servername */
+      $server = $_SERVER['SERVER_NAME'];
+      if(tests::is_ip($server)){
+        $server_name = gethostbyaddr($server);
+      }else{
+        $server_name = gethostbyaddr(gethostbyname($server));
+      }
+      $orig_server_name = "";
+      if ($this->initial_PPD_URL != "") {
+        $ppd_server = preg_replace("/^http.*:../i","",$this->initial_PPD_URL);
+        $ppd_server = preg_replace("/\/.*/i","",$ppd_server);
+        if(tests::is_ip($ppd_server)){
+          $orig_server_name = gethostbyaddr($ppd_server);
+        }else{
+          $orig_server_name = $ppd_server;
+        }
+       }
         /* Parse selected ppd file */
         $config = session::get('config');
         if ($config->get_cfg_value("core","ppdPath") != ""){
@@ -561,12 +580,16 @@ class printgeneric extends plugin
             $ppdManager= new ppdManager($path);
             $smarty->assign("displayServerPath",true);
             if(!empty($this->gotoPrinterPPD)){
+                if($orig_server_name != "" && $server_name != $orig_server_name) {
+                  $smarty->assign("driverInfo", "<b>".sprintf(_("Printer got configured on remote server '%s', Editing Driver will overwrite settings."),$orig_server_name)."</b>");
+            }else {
                 if((!file_exists($path.$this->gotoPrinterPPD))){
                     $smarty->assign("driverInfo", "<b>".sprintf(_("Your currently selected PPD file '%s' doesn't exist."),$path.$this->gotoPrinterPPD)."</b>");
                 }else{
                     $ppdDesc = $ppdManager->loadDescription($path.$this->gotoPrinterPPD);
                     $smarty->assign("driverInfo", set_post($ppdDesc['name']));
                 }
+             }
             }else{
                 $smarty->assign("driverInfo", _("Not defined"));
                 $smarty->assign("displayServerPath",false);
@@ -858,9 +881,32 @@ class printgeneric extends plugin
             }
         }
 
+        if(preg_match("/https/i",$_SERVER['HTTP_REFERER'])){
+          $method="https://";
+        }else{
+          $method="http://";
+        }
+     
+        /* Get servername */
+        $server = $_SERVER['SERVER_NAME'];
+        if(tests::is_ip($server)){  
+          $server_name = gethostbyaddr($server);
+        }else{
+          $server_name = gethostbyaddr(gethostbyname($server));
+        }
+   
         /* If no ppd is selected, remove this attribute */
         if(!empty($this->gotoPrinterPPD)) {
-            $this->gotoPrinterPPD = $this->ppdServerPart.'/'.$this->gotoPrinterPPD;
+            if (($this->gotoPrinterPPD != $this->initial_PPD) || ($this->initial_PPD_URL == "")) {
+             /* PPD has changed, update it */
+             if (!preg_match('/^http[s]+:\/\/.*/', $this->gotoPrinterPPD)) {
+              /* ppd is not an url */
+              $this->gotoPrinterPPD = $method.str_replace("//","/",$server_name."/ppd/".$this->gotoPrinterPPD);
+             }
+            } else {
+              /* Restore original PPD URL */
+              $this->gotoPrinterPPD = $this->initial_PPD_URL;
+            }
         }else{
             $this->gotoPrinterPPD = array();
         }
