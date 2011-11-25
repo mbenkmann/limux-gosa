@@ -535,7 +535,8 @@ class faiManagement extends management
     foreach($to_del as $dn) {
       /* Only delete subobjects of the current FAI class */
       $cn = $ldap->getCn($dn);
-      $ldap->search("cn=$cn", array('dn'));
+      $ldap->cd($this->dn);
+      $ldap->search("(|(objectClass=FAIclass)(objectClass=FAIdebconfInfo))", array('dn'));
       if ($ldap->count()){
         while($attrs = $ldap->fetch()){
           if ($attrs['dn'] == $dn) {

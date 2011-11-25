@@ -40,6 +40,7 @@ class debconf
         $name= trim(preg_replace("/^Template: (.*)$/", "\\1", $line));
         $this->template[$post_name]['Name'] = $name;
         $this->template[$post_name]['Default'] ="";
+        $this->template[$post_name]['Save'] = FALSE;
 
         $got_local_description= FALSE;
         continue;
@@ -133,6 +134,12 @@ class debconf
 
       /* Check if this var is set*/
       if(isset($_POST[$entry['post_name']])){
+        $checkbox_key = sprintf("save_%s", $entry['post_name']);
+        if (!isset($_POST[$checkbox_key])) {
+          $this->template[$post_name]['Save'] = FALSE;
+        }else {
+          $this->template[$post_name]['Save'] = TRUE;
+        }
 
         /* special handling for arrays */
         if(is_array($_POST[$entry['post_name']])){
@@ -165,13 +172,14 @@ class debconf
   }
 
 
-  /* This funtion sets the defualt value */
-  function SetDefault($var,$val)
+  /* This funtion sets the default value and the default save flag*/
+  function SetDefault($var,$val, $save_flag)
   {
     if ($this->loaded_template) {
       foreach($this->template as $key => $tmp){
         if($tmp['Name'] == $var ){
           $this->template[$key]['Default'] = $val;
+          $this->template[$key]['Save'] = $save_flag;
         }
       }
     }
@@ -196,7 +204,7 @@ class debconf
           $fn= "render_".$entry['Type'];
           $str = $this->$fn($entry);
           if(!empty($str)){
-            $result.=$str."<tr><td colspan='2'><hr></td></tr>";
+            $result.=$str."<tr><td colspan='3'><p class='seperator'>&nbsp;</p></td></tr>";
           }
         } else {
           //php_error(E_WARNING, "An unknown type has been specified in the debconf template. Please fix.");
@@ -213,72 +221,70 @@ class debconf
   }
 
 
+  function render_checkbox($data) {
+    $postname = $data['post_name'];
+    if (isset($data['Save'])) {
+      $save = $data['Save'];
+    } else {
+      $save = 0;
+    }
+
+    $checked="";
+    if ($save) {
+      $checked = "checked";
+    }
+    
+    $template = "<img src='images/save.png'><br><input type=checkbox name='save_%s' value='%s' %s>";
+    return(sprintf($template, $postname, $save, $checked));
+  }
+
   function render_boolean($data)
   {
     $post_name= $data['post_name'];
-    $result="
-      <tr>
-      <td valign='top' style='width:100%'>
-      <h3>".$data['Topic']."</h3>".$data['Description']."
-      </td>
-      <td style=\"white-space:nowrap; vertical-align:top; border-left: 1px solid rgb(160, 160, 160);\">";
+    $result = "";
+    $template = "<input type='radio' name=\"%s\" value=\"%s\" %s onChange='javascript:document.getElementsByName(\"save_%s\")[0].checked = true;'>%s";
 
     foreach(array("true","false") as $value){
       if($data['Default'] == $value){
-        $result.="<input type='radio' name='".$data['post_name']."' value=\"".$value."\" checked>"._($value);
+        $result.= sprintf($template, $data['post_name'], $value, "checked",  $data['post_name'], _($value));
       }else{
-        $result.="<input type='radio' name='".$data['post_name']."' value=\"".$value."\" >"._($value);
+        $result.= sprintf($template, $data['post_name'], $value, "", $data['post_name'], _($value));
       }
       $result.="<br>";
     }
-
-    $result.= "
-      </td>
-      </tr>
-      ";
-
-    return ($result);
+    return ($this->render_entry($data, $result));
   }
 
 
   function render_multiselect($data)
   {
     $post_name= $data['post_name'];
+    $input = "";
+       
     if (preg_match('/\$\{/', $data['Choices'])){
-       $data['Description'].= '<br><br><b>'._('This debconf question is dynamically generated during package installation and requires choosing between specific options which cannot be presented here. The entered text needs to be one of the valid choices in order to take effect.').'</b>';
-      $result= $this->render_string($data);
+        $data['Description'] .= '<br><br><b>' . _('This debconf question is dynamically generated during package installation and requires choosing between specific options which cannot be presented here. The entered text needs to be one of the valid choices in order to take effect.') . '</b>';
+        return($this->render_string($data));
     } else {
-      $choices= "";
-      foreach (explode(", ", $data['Choices']) as $choice){
-        $choices[]= $choice;
-      }
-
-
-      $result="
-        <tr>
-        <td valign='top'>
-        <h3>".$data['Topic']."</h3>".$data['Description']."
-        </td>
-        <td valign='top'  style=\"white-space:nowrap; border-left: 1px solid rgb(160, 160, 160);\">
-          <input type='hidden' name='multi-".$post_name."' value='1'>
-        ";
-        
-      $defs = explode(", ",$data['Default']);
-      foreach($choices as $value){
-        if(in_array_strict($value,$defs)){
-          $result.="\n<input name='".$post_name."-multi-".$value."' type='checkbox' value='".set_post($value)."' checked>".$value."<br>";
-        }else{
-          $result.="\n<input name='".$post_name."-multi-".$value."' type='checkbox' value='".set_post($value)."'>".$value."<br>";
+        $choices= "";
+        foreach (split(", ", $data['Choices']) as $choice){
+            $choices[]= $choice;
         }
-      }
+      
+        $input="<input type='hidden' name='multi-".$post_name."' value='1'>";
+        $template = "\n<input name='%s-multi-%s' type='checkbox' value=\"%s\" %s onChange='javascript:document.getElementsByName(\"save_%s\")[0].checked = true;'>%s";
 
-    $result .=    "</td>
-        </tr>
-        ";
+        $defs = split(", ",$data['Default']);
+        foreach($choices as $value){
+            if(in_array($value,$defs)){
+                $input .= sprintf($template, $post_name, $value, htmlentities($value), "checked", $post_name, _($value));
+            }else{
+                $input .= sprintf($template, $post_name, $value, htmlentities($value), "", $post_name, _($value));
+            }
+        }
+
     }    
-
-    return ($result);
-  }
+    return ($this->render_entry($data, $input));
+}
 
 
   function render_note($data)
@@ -291,70 +297,45 @@ class debconf
 
   function render_password($data)
   {
-    $result=  "";
-    $result.= "<tr><td valign='top'>";
-    $result.= "<h3>".$data['Topic']."</h3>".$data['Description']."</td><td style=\"white-space:nowrap; border-left: 1px solid rgb(160, 160, 160);\">&nbsp;<input type='text' name='".$data['post_name']."' value='".$data['Default']."'></b><br><br>";
-    $result.= $data['Description'];
-    $result.= "</td>";
-
-    return ($result);
+    $result =  "";
+    $template = "&nbsp;<input type='text' name='%s' value=\"%s\" onChange='javascript:document.getElementsByName(\"save_%s\")[0].checked = true;'><br><br>";
+    $result .= sprintf($template, $data['post_name'], $data['Default'], $data['post_name']);
+    return ($this->render_entry($data, $result));
   }
 
 
   function render_select($data)
   {
     $post_name= $data['post_name'];
-
+    
+    $result = "";
     if (preg_match('/\$\{/', $data['Choices'])){
-      $result = $this->render_multiselect($data);
+        return($this->render_multiselect($data));
     } else {
-      $choices= "";
-      foreach (explode(", ", $data['Choices']) as $choice){
-        $choices[]= $choice;
-      }
-
-      $result="
-        
-        <tr>
-        <td valign='top'>
-        <h3>".$data['Topic']."</h3>".$data['Description']."
-        </td>
-        <td  valign='top'  style=\"white-space:nowrap; border-left: 1px solid rgb(160, 160, 160);\">
-        ";
-
-      foreach($choices as $value){
-        if($data['Default'] == $value){
-          $result.="\n<input type='radio' name='".$post_name."' value='".set_post($value)."' checked >".set_post($value)."<br>";
-        }else{
-          $result.="\n<input type='radio' name='".$post_name."' value='".set_post($value)."'>".set_post($value)."<br>";
+        $choices= "";
+        foreach (preg_split("/,\s?/", $data['Choices']) as $choice){
+            $choices[]= $choice;
         }
-      }
 
-      $result.= "
-        
-        </td>
-        </tr>
-        ";
+        $template = "\n<input type='radio' name='%s' value=\"%s\" %s onChange='javascript:document.getElementsByName(\"save_%s\")[0].checked = true;'>%s<br>";;
+        foreach($choices as $value){
+            if($data['Default'] == $value){
+                $result.= sprintf($template, $post_name, htmlentities($value), "checked", $post_name, htmlentities($value));
+            }else{
+                $result.= sprintf($template, $post_name, htmlentities($value), "", $post_name, htmlentities($value));
+            }
+        }
     }
 
-    return ($result);
+    return ($this->render_entry($data, $result));
   }
 
 
   function render_string($data)
   {
-    $result=  "
-                <tr>
-                  <td valign='top'>
-                    <h3>".$data['Topic']."</h3>".$data['Description']."
-                  </td>
-                  <td  style=\"white-space:nowrap; border-left: 1px solid rgb(160, 160, 160);\" valign='top'>
-                    <input type='text' name='".$data['post_name']."' value=\"".$data['Default']."\" style='width:300px;'>
-                  </td>
-                </tr>
-              ";
-
-    return ($result);
+    $template = "<input type='text' name='%s' value=\"%s\" style='width:300px' onChange='javascript:document.getElementsByName(\"save_%s\")[0].checked = true;'>";
+    $result=  sprintf($template, $data['post_name'], $data['Default'], $data['post_name']);
+    return ($this->render_entry($data, $result));
   }
 
 
@@ -371,6 +352,14 @@ class debconf
     return ("");
   }
 
+  function render_entry($data, $input) {
+    $smarty = get_smarty();
+    $smarty->assign('chkbox', $this->render_checkbox($data));
+    $smarty->assign('topic', $data['Topic']);
+    $smarty->assign('description', $data['Description']);
+    $smarty->assign('input', $input);
+    return($smarty->fetch (get_template_path('debconfTemplate_entry.tpl', TRUE)));
+  }
 }
 
 

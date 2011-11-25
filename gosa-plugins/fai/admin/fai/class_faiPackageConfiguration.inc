@@ -51,7 +51,7 @@ class faiPackageConfiguration extends plugin
         if (is_array($var['Value'])) {
           $var['Value'] = "";
         }
-        $this->Debconf_handle->SetDefault($var['Name'],$var['Value']);
+        $this->Debconf_handle->SetDefault($var['Name'],$var['Value'], $var['Save']);
       }
     }
   }
@@ -101,6 +101,7 @@ class faiPackageConfiguration extends plugin
       $tmp[$this->obj][$pkg['Name']]['Value']= $pkg['Default'];
       $tmp[$this->obj][$pkg['Name']]['Name'] = $pkg['Name'];
       $tmp[$this->obj][$pkg['Name']]['Type'] = $pkg['Type'];
+      $tmp[$this->obj][$pkg['Name']]['Save'] = $pkg['Save'];
     }
     return($tmp);
   }

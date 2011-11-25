@@ -41,7 +41,7 @@ class faiDebconfConfigurations extends plugin
 
       /* Get the list of configurations from the parent object */
       $this->DebconfConfigurations = $this->parent->ConfiguredPackages;
-      
+
       /* Load packages */
       foreach(array_keys($this->parent->usedPackages) as $package) {
           $this->packages[$package] = $package;
@@ -80,6 +80,7 @@ class faiDebconfConfigurations extends plugin
               $templates = $debconf_handle->template;
               unset($debconf_handle);
               foreach($templates as $template) {
+                $template['Save'] = FALSE;
                 if (!isset($this->DebconfDefaults[$package][$template['Name']])) {
                   $this->DebconfDefaults[$package][$template['Name']] = $template;
                 }
@@ -101,6 +102,30 @@ class faiDebconfConfigurations extends plugin
     }
 
 
+    /*! \brief Return a save toggle */
+    function getSaveToggle ($identifier) {
+      list($package, $name) = $this->getIdentifierComponents(base64_decode($identifier));
+
+      /* We do not need a save toggle for manually entered parameters */
+      if (isset($this->DebconfDefaults[$package][$name])) {
+        $template = "
+          <input type='hidden' name='save_%s' value='%s'>
+          <input type='image' src='%s' width='18' name='toggle_%s_%s' value='%s' title='%s'>
+          ";
+        if (isset($this->DebconfConfigurations[$package][$name])) {
+          if ($this->DebconfConfigurations[$package][$name]['Save'] == TRUE) {
+            return(sprintf($template, $identifier, '0', 'images/save.png', 'nosave', $identifier, '0', _("Currently saved")));
+          }
+          else {
+            return(sprintf($template, $identifier, '1', 'images/empty.png', 'save', $identifier, '1', _("Currently not saved")));
+          };
+        } else {
+            /* Defaults w/o corresponding configuration entry are not saved by default
+            * so give the user the chance to change that */
+            return(sprintf($template, $identifier, '1', 'images/empty.png', 'save', $identifier, '1', _("Currently not saved")));
+        }
+      }
+    } 
     /*! \brief  Returns a html interface, that allow to modify 
                  the package attributes.
         @return String  HTML content/ui for this plugin
@@ -132,7 +157,12 @@ class faiDebconfConfigurations extends plugin
             if(!in_array($type,array("boolean","multiselect","password","select","string","text"))){
               continue;
             }
-            $defaults[$package][$name] = array( 'Name' => $name, 'Value' => $value, 'Type' => $type);
+            $defaults[$package][$name] = array( 
+                                                 'Name' => $name,
+                                                 'Value' => $value, 
+                                                 'Type' => $type,
+                                                 'Save' => FALSE
+                                         );
         }
       }
       $this->DebconfAll = $this->DebconfConfigurations;
@@ -207,7 +237,7 @@ class faiDebconfConfigurations extends plugin
             if ($show_reset) {
                 $actions .= image('images/lists/reload.png', "reset_".postEncode($name), _("Reset"));
             } elseif ($show_blank) {
-                $actions .= "<img src='images/empty.png' width=18>";
+                $actions .= $this->getSaveToggle($identifier);
             } else {
                 $actions .= image('images/lists/trash.png', "reset_".postEncode($name), _("Delete"));
             }
@@ -268,8 +298,19 @@ class faiDebconfConfigurations extends plugin
   function DeleteEntry($identifier) {
     list($package, $name) = $this->getIdentifierComponents($identifier);
     if (isset($this->DebconfConfigurations[$package][$name])) {
-      $this->to_remove[$package][$name] = $this->DebconfConfigurations[$package][$name];
-      unset($this->DebconfConfigurations[$package][$name]);
+      $this->DebconfConfigurations[$package][$name]['Save'] = FALSE;
+      if (!isset($this->DebconfDefaults[$package][$name])) {
+        $this->DebconfConfigurations[$package][$name]['Status'] = "removed";
+      } else {
+        $this->DebconfConfigurations[$package][$name]['Value'] = $this->DebconfDefaults[$package][$name]['Default'];
+      }
+    }
+
+    /* Check if the package entry is still justified */
+    if (is_array($this->DebconfConfigurations[$package])) {
+      if (!count($this->DebconfConfigurations[$package]) > 0) {
+        unset($this->DebconfConfigurations[$package]);
+      }
     }
   }
 
@@ -284,44 +325,42 @@ class faiDebconfConfigurations extends plugin
       $newval = $this->normalize_bool($newval);
     }
 
-    $this->DebconfConfigurations[$package][$name]['Value'] = $newval;
-
-    if (isset($this->DebconfDefaults[$package][$name])) {
-      $default_value = $this->DebconfDefaults[$package][$name]['Default'];
-
-      if ($default_value == $newval) {
-        $dn = "FAIvariable=".$name.",".$this->parent->dn;
-        $ldap = $this->config->get_ldap_link();
-        $ldap->cat($dn);
-        if ($ldap->count()) {
-          $attrs = $ldap->fetch();
-          if (isset($attrs['FAIvariableContent']) && $attrs['FAIvariableContent'][0] == $newval) {
-            /* Do not store default values unless its still a change compared to the LDAP */
-            unset($this->DebconfConfigurations[$package][$name]);
-          } else {
-            /* Values different from the default reset removal status */
-            unset($this->to_remove[$package][$name]);
-          }
-        } else {
-          unset($this->DebconfConfigurations[$package][$name]);
-        }
-      }
-      else {
-        /* Values different from the default reset removal status */
-        unset($this->to_remove[$package][$name]);
-      }
+    /* If the value changed, toggle the save flag */
+    $previous_value = "";
+    if (isset($this->DebconfConfigurations[$package][$name]['Value'])) {
+      $previous_value = $this->DebconfConfigurations[$package][$name]['Value'];
     }
     else {
-      /* This is no entry with a default value setting, so a new value removes
-       * the removal status */
-      if (isset($this->to_remove[$package][$name])) {
-        unset($this->to_remove[$package][$name]);
-      }
+      $previous_value = $this->DebconfConfigurations[$package][$name]['Default'];
+    }
+    if (is_array($previous_value)) {
+      $previous_value = "";
     }
 
+    if ($previous_value != $newval) {
+      $this->DebconfConfigurations[$package][$name]['Save'] = TRUE;
+    }
+
+    $this->DebconfConfigurations[$package][$name]['Value'] = $newval;
+
+
+    /* Set empty values to an array */
     if (isset($this->DebconfConfigurations[$package][$name]) && !$this->DebconfConfigurations[$package][$name]['Value']) {
         $this->DebconfConfigurations[$package][$name]['Value'] = array();
     }
+  }
+
+  /*!\brief Toggle the save status of a given identifier */
+  function ToggleSave($identifier, $value) {
+    list($package, $name) = $this->getIdentifierComponents($identifier);
+
+    $save = ($value == 1) ? TRUE : FALSE;
+
+    if (!isset($this->DebconfConfigurations[$package][$name])) {
+      $this->DebconfConfigurations[$package][$name] = $this->DebconfDefaults[$package];
+    }
+
+    $this->DebconfConfigurations[$package][$name]['Save'] = $save;
   }
 
   /* Save data to object */
@@ -344,6 +383,16 @@ class faiDebconfConfigurations extends plugin
     }
 
     foreach($_POST as $key => $value) {
+      if (preg_match("/^toggle_save_/", $key)) {
+        $identifier = base64_decode(str_replace("toggle_save_", "", $key));
+        $this->ToggleSave($identifier, 1);
+      }
+
+      if(preg_match("/^toggle_nosave_/", $key)) {
+        $identifier = base64_decode(str_replace("toggle_nosave_", "", $key));
+        $this->ToggleSave($identifier, 0);
+      }
+
       if (preg_match("/^reset_/", $key)) {
         $identifier = base64_decode(str_replace("reset_", "", $key));
         $this->DeleteEntry($identifier);
@@ -386,6 +435,7 @@ class faiDebconfConfigurations extends plugin
                         'Name' => $name,
                         'Value' => $new_config['FAIvariableContent'],
                         'Type' => $new_config['FAIvariableType'],
+                        'Save' => TRUE,
                         'Status' => 'manually_added',
                        );
           $this->DebconfConfigurations[$package][$name] = $data;
@@ -408,6 +458,7 @@ class faiDebconfConfigurations extends plugin
             foreach($result[$package] as $attr => $data) {
                 $identifier = sprintf("%s/%s", $package, $attr);
                 $this->UpdateEntry($identifier, $data['Value']);
+                $this->ToggleSave($identifier, $data['Save']);
             }
           }
         }
@@ -415,6 +466,7 @@ class faiDebconfConfigurations extends plugin
       $this->dialog = false;
       $this->is_dialog=false;
     }
+
   }
 
   /* Check supplied data */
@@ -426,6 +478,10 @@ class faiDebconfConfigurations extends plugin
 
     foreach($this->DebconfConfigurations as $package => $package_data) {
       foreach($package_data as $debconf_info) {
+        /* Do not show errors for values which are not saved to LDAP */
+        if (!$debconf_info['Save'] or (isset($debconf_info['Status']) && $debconf_info['Status']=='removed')) {
+          continue;
+        }
         if ($debconf_info['Type'] == 'boolean') {
           if (!empty($debconf_info['Value'])) {
             $value = strtolower($debconf_info['Value']);

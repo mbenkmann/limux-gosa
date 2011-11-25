@@ -24,6 +24,7 @@ class faiPackage extends plugin
 
   var $ConfiguredPackages = array();
   var $ConfigurationsToRemove = array();
+  var $Removal = array();
 
   /* Specific attributes */
   var $cn               = "";       // The class name for this object
@@ -365,6 +366,17 @@ class faiPackage extends plugin
     /* Check image Posts 
      */
     foreach($_POST as $name => $value){
+      /******
+       * Remove configuration
+       *****/
+      if(!preg_match('/freeze/i', $this->FAIstate) && preg_match('/^remove_configuration_/', $name)){
+        $id = @postDecode(preg_replace("/^remove_configuration_(.*)$/","\\1",$name));
+        print "Going to remove configuration for $id (was: $name)<br>";
+        if(isset($this->ConfiguredPackages[$id])) {
+          $this->Removal[$id] = $this->ConfiguredPackages[$id];
+          unset($this->ConfiguredPackages[$id]);
+        }
+      }
 
       /******
        * Mark as removed  
@@ -442,7 +454,23 @@ class faiPackage extends plugin
       } else {
         if(!preg_match("/^freeze/", $this->FAIstate)){
           $this->ConfiguredPackages= $this->dialog->save();
-          $this->ConfigurationsToRemove = $this->dialog->to_remove;
+          foreach($this->ConfiguredPackages as $package => $attrs) {
+            foreach($attrs as $name => $data) {
+              if (isset($data['Save']) && !($data['Save'])) {
+                $dn = "FAIvariable=".$name.",".$this->dn;
+                $ldap = $this->config->get_ldap_link();
+                $ldap->cat($dn);
+                if (!$ldap->count()) {
+                  unset($this->ConfiguredPackages[$package][$name]);
+                }
+              }
+            }
+            if (is_array($this->ConfiguredPackages[$package])) {
+              if (count($this->ConfiguredPackages[$package]) == 0) {
+                unset($this->ConfiguredPackages[$package]);
+              }
+            }
+          }
         }
         $this->dialog = false;
         $this->is_dialog = false;
@@ -479,7 +507,8 @@ class faiPackage extends plugin
             /* Append message if package is configured */
             $configured = image('images/empty.png');
             if(isset($this->ConfiguredPackages[$usedName])){
-                $configured = image('plugins/fai/images/package_configure.png','',_("Configured"));
+              $configured = image('plugins/fai/images/package_configure.png', "remove_configuration_".base64_encode($usedName),
+                _("Remove configuration"));
             }
 
             /* Adapt used name if we're marked for removal */
@@ -689,6 +718,21 @@ class faiPackage extends plugin
     $ldap->cd($this->dn);
 
     /* Save Package configurations */
+    foreach($this->Removal as $pkgname => $attrs){
+      /* Skip entries which are back in the ConfiguredPackages array */
+      if (isset($this->ConfiguredPackages[$pkgname])) {
+        continue;
+      }
+      foreach($attrs as $name => $attr){
+        $dn = "FAIvariable=".$name.",".$this->dn;
+        $ldap = $this->config->get_ldap_link();
+        $ldap->cat($dn);
+        if ($ldap->count()) {
+          FAI::prepare_to_save_FAI_object($dn,array(),true);
+        }
+      }
+    }
+
     foreach($this->ConfiguredPackages as $pkgname => $attrs){
       foreach($attrs as $name => $attr){
         $pkgattrs = array();
@@ -705,6 +749,28 @@ class faiPackage extends plugin
         $pkgattrs['FAIvariableType']      = $attr['Type'];
         $pkgattrs['FAIvariableContent']   = $attr['Value'];
         $pkgdn =  "FAIvariable=".$name.",".$this->dn;
+
+        if (!$attr['Save']) {
+          $ldap = $this->config->get_ldap_link();
+          $ldap->cat($pkgdn);
+          if ($ldap->count()) {
+            FAI::prepare_to_save_FAI_object($pkgdn,array(),true);
+          }
+          else {
+            unset($this->ConfiguredPackages[$pkgname][$name]);
+          }
+          if (is_array($this->ConfiguredPackages[$pkgname]) && count($this->ConfiguredPackages[$pkgname]) == 0) {
+            unset($this->ConfiguredPackages[$pkgname]);
+          }
+
+
+          continue;
+
+        }
+
+        if (empty($pkgattrs['FAIvariableContent'])) {
+          $pkgattrs['FAIvariableContent'] = array();
+        }
 
         if (is_array($pkgattrs['FAIvariableContent'])) {
           $ldap = $this->config->get_ldap_link();
@@ -731,15 +797,6 @@ class faiPackage extends plugin
       }
     }
 
-    /* Remove obsolete configurations */
-    foreach($this->ConfigurationsToRemove as $package => $attr) {
-      foreach($attr as $name => $attr) {
-        $dn = "FAIvariable=".$name.",".$this->dn;
-        $ldap = $this->config->get_ldap_link();
-        $ldap->cd($dn);
-        $ldap->rmdir($dn);
-      }
-    }
   }
 
 

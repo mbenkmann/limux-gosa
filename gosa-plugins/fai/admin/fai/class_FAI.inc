@@ -642,7 +642,7 @@ class FAI
 
         /* Ldap search for fai classes specified in this release */
         $ldap->cd($fai_base);
-        $ldap->search("(objectClass=FAIclass)",array("dn","objectClass","FAIstate"));
+        $ldap->search("(|(objectClass=FAIclass)(objectClass=FAIdebconfInfo))",array("dn","objectClass","FAIstate"));
 
         /* check the returned objects, and add/replace them in our return variable */
         while($attr = $ldap->fetch()){
