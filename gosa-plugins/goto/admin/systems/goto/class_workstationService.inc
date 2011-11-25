@@ -82,7 +82,12 @@ class workservice extends plugin
         /* Get list of available xdrivers */
         $this->XDrivers = $this->getListOfXDrivers();
 
-        array_unshift($this->XDrivers, "["._("unknown")."]");
+        if (isset($this->attrs['gosaGroupObjects'])) {
+          array_unshift($this->XDrivers, "["._("manual/auto")."]");
+        }
+        else {
+          array_unshift($this->XDrivers, "["._("unknown")."]");
+        }
 
         $this->XColordepths= array( 
                 "8"        => "8 " ._("bit"), 
@@ -194,7 +199,10 @@ class workservice extends plugin
 
                 switch ($name){
                     case 'gotoXDriver':
-                        $this->XDrivers= array('default' => _("inherited").' ['.$attrs[$name][0].']' ) + $this->XDrivers;
+                        $ogroup_driver = $attrs['gotoXDriver'][0];
+                        if (in_array($ogroup_driver, $this->XDrivers) && (!empty($this->attrs['gotoXDriver']))) {
+                          $this->XDrivers= array('default' => _("inherited").' ['.$attrs[$name][0].']' ) + $this->XDrivers;
+                        }
                         break;
                     case 'gotoXResolution':
                         $this->XResolutions= array('default' => _("inherited").' ['.$attrs[$name][0].']' ) + $this->XResolutions;

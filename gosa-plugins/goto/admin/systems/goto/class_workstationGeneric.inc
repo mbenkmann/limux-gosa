@@ -748,14 +748,32 @@ class workgeneric extends plugin
     {
         $this->gotoSyslogServer  = "default";
         $this->inheritTimeServer = TRUE;
+        /* Find out what is set in the object group as XDriver */
+        $inherit_xdriver = 0;
+        if ($this->dn != 'new') {
+            $ldap = $this->config->get_ldap_link();
+            $ldap->search ("(&(objectClass=gosaGroupOfNames)(member=".LDAP::prepare4filter($this->dn)."))", array("gotoXDriver"));
+            if ($ldap->count() == 1) {
+              $entry = $ldap->fetch();
+              /* Get list of valid XDrivers */
+              $xdrivers = $this->parent->by_object['workservice']->getListOfXDrivers();
+              /* Only inherit if driver in object group is set to something in the list of
+               * valid XDrivers */
+              if (in_array($entry['gotoXDriver'][0], $xdrivers)) {
+                $inherit_xdriver = 1;
+              }
+            }
+        }
 
         /* Set workstation service attributes to inherited */
         if($this->member_of_ogroup && isset($this->parent->by_object['workservice'])){
-            foreach(array("gotoXKbLayout","gotoXKbModel","gotoXKbVariant","gotoXDriver",
-                        "gotoXResolution","gotoXColordepth","gotoXMouseType","gotoXMouseport") as $name){
-                if($this->parent->by_object['workservice']->acl_is_writeable($name)){
-                    $this->parent->by_object['workservice']->$name = "default"; 
-                }
+            foreach(array("gotoXKbLayout","gotoXKbModel","gotoXKbVariant", "gotoXDriver",
+                "gotoXResolution","gotoXColordepth","gotoXMouseType","gotoXMouseport") as $name){
+                  if(!(($name == 'gotoXDriver') && ($inherit_xdriver == 0))) {
+                    if($this->parent->by_object['workservice']->acl_is_writeable($name)){
+                      $this->parent->by_object['workservice']->$name = "default";
+                    }
+                  }
             }
         }
 
