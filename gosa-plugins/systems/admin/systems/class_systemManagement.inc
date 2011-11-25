@@ -117,11 +117,12 @@ class systemManagement extends management
         $this->registerAction("initiateISOcreation","initiateISOcreation");
         $this->registerAction("performIsoCreation","performIsoCreation");
         $this->registerAction("systemTypeChosen","systemTypeChosen");
+        $this->registerAction("OgroupChosen","OgroupChosen");
         $this->registerAction("handleActivationQueue","handleActivationQueue");
 
         $this->registerAction("new_device",           "newEntry");
         $this->registerAction("new_goServer",         "newEntry");
-        $this->registerAction("new_gotoWorkstation",  "newEntry");
+        $this->registerAction("new_gotoWorkstation",  "newWorkstation");
         $this->registerAction("new_gotoTerminal",     "newEntry");
         $this->registerAction("new_gotoPrinter",      "newEntry");
         $this->registerAction("new_goFonHardware",    "newEntry");
@@ -744,11 +745,24 @@ class systemManagement extends management
         if(!isset($tInfo[$info])){
             trigger_error("Unknown action type '".$action."' cant create a new system!");
         }else{
+          print "Creating new entry<br>";
+          print_a($tInfo);
             return(management::newEntry($action,$target,$all, 
                         $tInfo[$info]['tabClass'],
                         $tInfo[$info]['tabDesc'],
                         $tInfo[$info]['aclCategory']));
         }
+    }
+
+    /* Action to handle adding of new workstations */
+    function newWorkstation($action="",$target=array(),$all=array(), $altTabClass ="", $altTabType = "", $altAclCategory="")
+    {
+        $tInfo = $this->getObjectDefinitions();
+        $info = preg_replace("/^new_/","",$action);
+        $ui = get_userinfo();
+        $tabclass = $tInfo[$info]['tabClass'];
+
+        $this->dialogObject = new askObjectGroup($this->config, $this->dn, $ui, $tabclass, $info);
     }
 
 
@@ -769,6 +783,31 @@ class systemManagement extends management
         }
     }
 
+    /*! \brief  The ask object group dialog was closed.
+     *          We will now open the normal workstation dialog.
+     */
+    function OgroupChosen($action="",$target=array(), $all=array(), $altTabClass="", $altTabType="", $altAclCategory="") {
+      $this->dialogObject->save_object();
+
+      if (count($this->dialogObject->check()) != 0) {
+        foreach($this->dialogObject->check() as $msg) {
+          msg_dialog::display(_("Error"), $msg, ERROR_DIALOG);
+        }
+      }elseif(isset($this->dialogObject->objectClass) && isset($this->dialogObject->sw)) {
+        $this->dn = "new";
+        $info = $this->dialogObject->sw;
+        $tInfo = $this->getObjectDefinitions();
+        $tabclass = $tInfo[$info]['tabClass'];
+        $tabname = $tInfo[$info]['plugClass'];
+        $tabtype = $tInfo[$info]['tabDesc'];
+        $acl_cat = $tInfo[$info]['aclCategory'];
+        $ogroup = $this->dialogObject->save();
+
+        $this->closeDialogs();
+        management::newEntry($action,$target,$all,$tabclass,$tabtype,$acl_cat);
+        $this->tabObject->by_object[$tabname]->ogroup = $ogroup;
+      }
+    }
 
     /*! \brief  The system selection dialog was closed. 
      *          We will now queue the given entry to be activated.
@@ -1250,6 +1289,7 @@ class systemManagement extends management
         }
 
         if(isset($_POST['systemTypeChosen']))  $action['action'] = "systemTypeChosen";
+        if(isset($_POST['edit_continue']))  $action['action'] = "OgroupChosen";
 
         return($action);
     }

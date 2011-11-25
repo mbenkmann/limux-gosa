@@ -771,7 +771,7 @@ another location! */
             }
         }
 
-        if ($this->attrs['gotoBootKernel'] == "default-inherited"){
+        if ($this->gotoBootKernel == "default-inherited"){
             $this->attrs['gotoBootKernel']= array();
         }
 

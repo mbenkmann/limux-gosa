@@ -33,6 +33,7 @@ class workgeneric extends plugin
     var $orig_dn= "";
     var $orig_cn= "";
     var $orig_base= "";
+    var $ogroup=FALSE;
 
     /* Plugin side filled */
     var $modes= array();
@@ -189,6 +190,12 @@ class workgeneric extends plugin
     {
         /* Call parent execute */
         plugin::execute();
+
+        if ($this->ogroup) {
+          $this->member_of_ogroup = TRUE;
+          $this->parent->by_object['workservice']->ogroup = $this->ogroup;
+          $this->set_everything_to_inherited();
+        }
 
         if($this->is_account && !$this->view_logged){
             $this->view_logged = TRUE;
@@ -635,6 +642,13 @@ class workgeneric extends plugin
                 }
             }
         }
+
+        /* If $this->ogroup is set add the new system to the requested ogroup */
+        if ($this->ogroup) {
+          $og = new ogroup($this->config, $this->ogroup);
+          $og->AddDelMembership($this->dn);
+          $og->save();
+        }
     }
 
 
@@ -750,11 +764,20 @@ class workgeneric extends plugin
         $this->inheritTimeServer = TRUE;
         /* Find out what is set in the object group as XDriver */
         $inherit_xdriver = 0;
-        if ($this->dn != 'new') {
+        if ($this->dn != 'new' || $this->ogroup) {
             $ldap = $this->config->get_ldap_link();
-            $ldap->search ("(&(objectClass=gosaGroupOfNames)(member=".LDAP::prepare4filter($this->dn)."))", array("gotoXDriver"));
-            if ($ldap->count() == 1) {
-              $entry = $ldap->fetch();
+            $entry = NULL;
+            /* If initialized with an object group we need to use this instead of
+             * an object group we'll become a member in */
+            if ($this->ogroup) {
+              $entry = $ldap->cat($this->ogroup, array("gotoXDriver"));
+            }else {
+              $ldap->search ("(&(objectClass=gosaGroupOfNames)(member=".LDAP::prepare4filter($this->dn)."))", array("gotoXDriver"));
+              if ($ldap->count() == 1) {
+                $entry = $ldap->fetch();
+              }
+            }
+            if ($entry) {
               /* Get list of valid XDrivers */
               $xdrivers = $this->parent->by_object['workservice']->getListOfXDrivers();
               /* Only inherit if driver in object group is set to something in the list of

@@ -34,6 +34,7 @@ class workservice extends plugin
     var $hardware_list= array();
     var $used_hardware= array();
 
+    var $ogroup = FALSE;
 
     /* attribute list for save action */
     var $attributes= array("gotoXMonitor", "gotoXDriver", "gotoXResolution", "gotoXColordepth",
@@ -183,54 +184,6 @@ class workservice extends plugin
             $this->gotoXVsync = preg_replace("/\+/","-",$this->gotoXVsync);
         }
 
-        /* Load hardware list */
-        $ldap= $this->config->get_ldap_link();
-        $ldap->cd($this->config->current['BASE']);
-        $ldap->search("(&(objectClass=gotoWorkstationTemplate)(member=".LDAP::prepare4filter($this->dn)."))");
-        if ($ldap->count() == 1){
-            $map= array("gotoXResolution", "gotoXColordepth", "gotoXKbModel", "gotoXKbLayout",
-                    "gotoXKbVariant", "gotoXMouseType", "gotoXMouseport", "gotoXDriver");
-            $attrs= $ldap->fetch();
-
-            foreach ($map as $name){
-                if (!isset($attrs[$name][0])){
-                    continue;
-                }
-
-                switch ($name){
-                    case 'gotoXDriver':
-                        $ogroup_driver = $attrs['gotoXDriver'][0];
-                        if (in_array($ogroup_driver, $this->XDrivers) && (empty($this->attrs['gotoXDriver']))) {
-                          $this->XDrivers= array('default' => _("inherited").' ['.$attrs[$name][0].']' ) + $this->XDrivers;
-                        }
-                        break;
-                    case 'gotoXResolution':
-                        $this->XResolutions= array('default' => _("inherited").' ['.$attrs[$name][0].']' ) + $this->XResolutions;
-                        break;
-                    case 'gotoXColordepth':
-                        $this->XColordepths= array('default' => _("inherited").' ['.$attrs[$name][0].' '._('Bit').']') + $this->XColordepths;
-                        break;
-                    case 'gotoXKbModel':
-                        $this->XKbModels= array('default' => _("inherited").' ['.$attrs[$name][0].']') + $this->XKbModels;
-                        break;
-                    case 'gotoXKbLayout':
-                        $this->XKbLayouts= array('default' => _("inherited").' ['.$attrs[$name][0].']' ) + $this->XKbLayouts;
-                        break;
-                    case 'gotoXKbVariant':
-                        $this->XKbVariants= array('default' => _("inherited").' ['.$attrs[$name][0].']' ) + $this->XKbVariants;
-                        break;
-                    case 'gotoXMouseType':
-                        $this->MouseTypes= array('default' => _("inherited").' ['.$attrs[$name][0].']' ) + $this->MouseTypes;
-                        break;
-                    case 'gotoXMouseport':
-                        $this->MousePorts= array('default' => _("inherited").' ['.$attrs[$name][0].']' ) + $this->MousePorts;
-                        break;
-                }
-
-            }
-
-        }
-
         /* Workaround to fill in inherited values if we've specified an objectclass */
         $SelectedSystemType = session::get("SelectedSystemType");
         if (isset($SelectedSystemType['ogroup']) && $SelectedSystemType['ogroup'] != 'none'){
@@ -248,6 +201,9 @@ class workservice extends plugin
     {
         /* Call parent execute */
         plugin::execute();
+
+        /* Load hardware list */
+        $this->loadHardwareList();
 
         if($this->is_account && !$this->view_logged){
             $this->view_logged = TRUE;
@@ -474,6 +430,61 @@ class workservice extends plugin
 
     }
 
+    function loadHardwareList()
+    {
+        $ldap= $this->config->get_ldap_link();
+
+        if ($this->ogroup) {
+          $ldap->cat($this->ogroup);
+        } else {
+          $ldap->cd($this->config->current['BASE']);
+          $ldap->search("(&(objectClass=gotoWorkstationTemplate)(member=".LDAP::prepare4filter($this->dn)."))");
+        }
+
+        if ($ldap->count() == 1){
+            $map= array("gotoXResolution", "gotoXColordepth", "gotoXKbModel", "gotoXKbLayout",
+                    "gotoXKbVariant", "gotoXMouseType", "gotoXMouseport", "gotoXDriver");
+            $attrs= $ldap->fetch();
+
+            foreach ($map as $name){
+                if (!isset($attrs[$name][0])){
+                    continue;
+                }
+
+                switch ($name){
+                    case 'gotoXDriver':
+                        $ogroup_driver = $attrs['gotoXDriver'][0];
+                        if (in_array($ogroup_driver, $this->XDrivers) && (empty($this->attrs['gotoXDriver']))) {
+                          $this->XDrivers= array('default' => _("inherited").' ['.$attrs[$name][0].']' ) + $this->XDrivers;
+                        }
+                        break;
+                    case 'gotoXResolution':
+                        $this->XResolutions= array('default' => _("inherited").' ['.$attrs[$name][0].']' ) + $this->XResolutions;
+                        break;
+                    case 'gotoXColordepth':
+                        $this->XColordepths= array('default' => _("inherited").' ['.$attrs[$name][0].' '._('Bit').']') + $this->XColordepths;
+                        break;
+                    case 'gotoXKbModel':
+                        $this->XKbModels= array('default' => _("inherited").' ['.$attrs[$name][0].']') + $this->XKbModels;
+                        break;
+                    case 'gotoXKbLayout':
+                        $this->XKbLayouts= array('default' => _("inherited").' ['.$attrs[$name][0].']' ) + $this->XKbLayouts;
+                        break;
+                    case 'gotoXKbVariant':
+                        $this->XKbVariants= array('default' => _("inherited").' ['.$attrs[$name][0].']' ) + $this->XKbVariants;
+                        break;
+                    case 'gotoXMouseType':
+                        $this->MouseTypes= array('default' => _("inherited").' ['.$attrs[$name][0].']' ) + $this->MouseTypes;
+                        break;
+                    case 'gotoXMouseport':
+                        $this->MousePorts= array('default' => _("inherited").' ['.$attrs[$name][0].']' ) + $this->MousePorts;
+                        break;
+                }
+
+            }
+
+        }
+    }
 
     function getListOfXDrivers()
     {
