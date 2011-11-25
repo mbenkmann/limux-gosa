@@ -437,12 +437,8 @@ class faiHook extends plugin
 
     /* Read all leaf objects of this object (For FAIscript this would be FAIscriptEntry)
      */
-    $res = FAI::get_all_objects_for_given_base($source['dn'],"(&(objectClass=FAIclass)(objectClass=".$this->subClass."))");
+    $res = FAI::get_leaf_objects($source['dn'], $source['cn'][0], $this->subClass, get_ou('faiHook','faiHookRDN'));
     foreach($res as $obj){
-
-      /* Skip not relevant objects */
-      if(!preg_match("/".preg_quote($source['dn'], '/')."$/i",$obj['dn'])) continue;
-
       $objects = array();
       $objects['status']      = "edited";
       $objects['dn']          = $obj['dn'];
