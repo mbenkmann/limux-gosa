@@ -1129,6 +1129,42 @@ class plugin
     }
   }
 
+  function get_gosaUnitTag($dn = "") {
+    if ($dn == "") {
+      $dn = $this->dn;
+    }
+    $len= strlen($dn);
+
+    @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__, "No tag for $dn - looking for one...", "Tagging");
+    $relevant= array();
+    foreach ($this->config->adepartments as $key => $ntag){
+
+      /* This one is bigger than our dn, its not relevant... */
+      if ($len < strlen($key)){
+        continue;
+      }
+
+      /* This one matches with the latter part. Break and don't fix this entry */
+      if (preg_match('/(^|,)'.preg_quote($key, '/').'$/', $dn)){
+        @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__, "DEBUG: Possibly relevant: $key", "Tagging");
+        $relevant[strlen($key)]= $ntag;
+        continue;
+      }
+    }
+    /* If we've some relevant tags to set, just get the longest one */
+    if (count($relevant)){
+      ksort($relevant);
+      $tmp= array_keys($relevant);
+      $idx= end($tmp);
+      $tag= $relevant[$idx];
+      return $tag;
+    } else {
+      "relevant is empty<br>";
+    }
+  }
+
+
+
   /*! \brief Get gosaUnitTag for the given DN
        If this is called from departmentGeneric, we have to skip this
         tagging procedure. 
@@ -1146,34 +1182,7 @@ class plugin
 
       /* No tag? Find it yourself... */
       if ($tag == ""){
-        $len= strlen($dn);
-
-        @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__, "No tag for $dn - looking for one...", "Tagging");
-        $relevant= array();
-        foreach ($this->config->adepartments as $key => $ntag){
-
-          /* This one is bigger than our dn, its not relevant... */
-          if ($len < strlen($key)){
-            continue;
-          }
-
-          /* This one matches with the latter part. Break and don't fix this entry */
-          if (preg_match('/(^|,)'.preg_quote($key, '/').'$/', $dn)){
-            @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__, "DEBUG: Possibly relevant: $key", "Tagging");
-            $relevant[strlen($key)]= $ntag;
-            continue;
-          }
-
-        }
-
-        /* If we've some relevant tags to set, just get the longest one */
-        if (count($relevant)){
-          ksort($relevant);
-          $tmp= array_keys($relevant);
-          $idx= end($tmp);
-          $tag= $relevant[$idx];
-          $this->gosaUnitTag= $tag;
-        }
+        $tag = $this->get_gosaUnitTag();
       }
     }
 
