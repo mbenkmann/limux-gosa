@@ -462,12 +462,13 @@ class workgeneric extends plugin
 
         if ($this->orig_dn != $this->dn){
             $ldap= $this->config->get_ldap_link();
-            $ldap->cd ($this->base);
+            # Do not allow objects with the same name in other departments, either
+            $ldap->cd ($this->config->current['BASE']);
 
             if($this->cn == "wdefault"){
                 $ldap->cat($this->dn);
             }else{
-                $ldap->search ("(&(cn=".$this->cn.")(objectClass=gotoWorkstation))", array("cn"));
+                $ldap->search ("(&(cn=".$this->cn.")(objectClass=gotoWorkstation))", array("cn", "gosaUnitTag"));
             }
             if ($ldap->count() != 0){
                 while ($attrs= $ldap->fetch()){
@@ -481,9 +482,16 @@ class workgeneric extends plugin
                     if (preg_match("/cn=dhcp,/",$attrs['dn']) || $matchArp){
                         continue;
                     } else {
-                        if ($attrs['dn'] != $this->orig_dn){
+                        if ($attrs['dn'] != $this->orig_dn) {
+                          if (isset($this->config->current['HONOURUNITTAGS']) &&
+                              preg_match('/true/i', $this->config->current['HONOURUNITTAGS']) &&
+                              $attrs['gosaUnitTag'][0] != $this->get_gosaUnitTag()) {
+                            # the new/moved object is in a different administrative unit, this is not a duplicate 
+                            continue;
+                          } else {
                             $message[]= msgPool::duplicated(_("Name"));
                             break;
+                          }
                         }
                     }
                 }

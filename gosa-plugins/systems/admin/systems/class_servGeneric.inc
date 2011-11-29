@@ -336,8 +336,9 @@ class servgeneric extends plugin
 
         if ($this->orig_dn != $this->dn){
             $ldap= $this->config->get_ldap_link();
-            $ldap->cd ($this->base);
-            $ldap->search ("(cn=".$this->cn.")", array("cn"));
+            # Do not allow objects with the same name in other departments, either
+            $ldap->cd ($this->config->current['BASE']);
+            $ldap->search ("(cn=".$this->cn.")", array("cn", "gosaUnitTag"));
             if ($ldap->count() != 0){
                 while ($attrs= $ldap->fetch()){
                     if ($attrs['dn'] != $this->orig_dn){
@@ -349,8 +350,15 @@ class servgeneric extends plugin
                         $matchesServer = preg_match("/,".preg_quote(get_ou("servgeneric", "serverRDN"), '/')."/i",$attrs['dn']);
 
                         if(!preg_match("/cn=dhcp,/",$attrs['dn']) && !$matchesArp && $matchesServer){
-                            $message[]= msgPool::duplicated(_("Server name"));
+                            if (isset($this->config->current['HONOURUNITTAGS']) &&
+                            preg_match('/true/i', $this->config->current['HONOURUNITTAGS']) &&
+                            $attrs['gosaUnitTag'][0] != $this->get_gosaUnitTag()) {
+                            # the new/moved object is in a different administrative unit, this is not a duplicate
+                            continue;
+                         } else {
+                            $message[]= msgPool::duplicated(_("Server Name"));
                             break;
+                         }
                         }
                     }
                 }
