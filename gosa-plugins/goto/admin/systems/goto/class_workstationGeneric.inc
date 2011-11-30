@@ -87,7 +87,10 @@ class workgeneric extends plugin
         if(class_available("gosaSupportDaemon") && class_available("DaemonEvent")){
             $o = new gosaSupportDaemon();
             $e_types = DaemonEvent::get_event_types(USER_EVENT | SYSTEM_EVENT | HIDDEN_EVENT);
-            $evts = $o->get_entries_by_mac(array($this->netConfigDNS->macAddress));
+            $evts = array();
+            if (tests::is_mac($this->netConfigDNS->macAddress)) {
+              $evts = $o->get_entries_by_mac(array($this->netConfigDNS->macAddress));
+            }
             foreach($evts as $evt){
                 if(isset($e_types['QUEUED'][$evt['HEADERTAG']]) && $evt['STATUS'] == "processing" &&
                         $e_types['QUEUED'][$evt['HEADERTAG']] == "DaemonEvent_reinstall"){
