@@ -23,7 +23,12 @@ class askObjectGroup extends plugin
     /* Get a list of object groups */
     $ldap = $this->config->get_ldap_link();
     $ldap->cd($this->config->current['BASE']);
-    $ldap->search('(objectClass=gosaGroupOfNames)', array("cn"));
+    if (isset($this->config->current['HONOURUNITTAGS']) &&
+        preg_match('/true/i', $this->config->current['HONOURUNITTAGS'])) {
+      $ldap->search('(&(objectClass=gosaGroupOfNames)(gosaUnitTag='.$ui->gosaUnitTag.'))', array("cn"));
+    } else {
+      $ldap->search('(objectClass=gosaGroupOfNames)', array("cn"));
+    }
     $tmp = array();
     while($attrs = $ldap->fetch()) {
       $tmp[$attrs['dn']] = $attrs['cn'][0];
