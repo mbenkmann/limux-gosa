@@ -1,3 +1,21 @@
+{literal}
+<script type="text/javascript">
+function toggleInherit() {
+    if (document.getElementById("InheritXYSync").checked) {
+        document.getElementById("AutoSync").disabled = true;
+        document.getElementById("gotoXHsync").disabled = true;
+        document.getElementById("gotoXVsync").disabled = true;
+    }else{
+        document.getElementById("AutoSync").disabled = false;
+        if(! document.getElementById("AutoSync").checked) {
+            changeState("gotoXHsync");
+            changeState("gotoXVsync");
+        }
+    }
+}
+</script>
+{/literal}
+
 <table style="width:100%;" summary="{t}Workstation service{/t}">
  <tr>
   <td style='width:33%; '>
@@ -159,6 +177,16 @@
 
    <h3>{t}Display device{/t}</h3>
    <table summary="{t}Display device{/t}">
+    {if $member_of_ogroup}
+    <tr>
+    <td>
+        <input type="checkbox" id="InheritXYSync" name="InheritXYSync" {$InheritXYSync} onChange="toggleInherit();" value="1">
+    </td>
+    <td>
+     {t}Inherit display attributes{/t}
+    </td>
+    </tr>
+    {/if}
     <tr>
      <td>{t}Type{/t}</td>
      <td>{if $gotoXMonitor==""}{t}unknown{/t}{/if}{$gotoXMonitor}</td>
@@ -167,7 +195,7 @@
     	<td>
 
 {render acl=$AutoSyncACL}
-	 <input type="checkbox" name="AutoSync" value="1" {$AutoSyncCHK} onChange="changeState('gotoXHsync');changeState('gotoXVsync');">
+     <input type="checkbox" id="AutoSync" name="AutoSync" value="1" {$AutoSyncCHK} {$AutoSynchiddenState} onChange="changeState('gotoXHsync');changeState('gotoXVsync');">
 {/render}
 
         </td>

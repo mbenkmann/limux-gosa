@@ -35,6 +35,7 @@ class workservice extends plugin
     var $used_hardware= array();
 
     var $ogroup = FALSE;
+    var $member_of_ogroup = FALSE;
 
     /* attribute list for save action */
     var $attributes= array("gotoXMonitor", "gotoXDriver", "gotoXResolution", "gotoXColordepth",
@@ -48,6 +49,8 @@ class workservice extends plugin
     var $XKbModels        =array();
     var $XKbLayouts       =array();
     var $XKbVariants      =array();
+
+    var $InheritXYSync = TRUE;
 
     function workservice (&$config, $dn= NULL, $parent= NULL)
     {
@@ -179,9 +182,19 @@ class workservice extends plugin
         }
 
         if(preg_match("/\+/",$this->gotoXHsync)){
-            $this->AutoSync = true;
-            $this->gotoXHsync = preg_replace("/\+/","-",$this->gotoXHsync);
-            $this->gotoXVsync = preg_replace("/\+/","-",$this->gotoXVsync);
+          $this->AutoSync = true;
+          $this->gotoXHsync = preg_replace("/\+/","-",$this->gotoXHsync);
+          $this->gotoXVsync = preg_replace("/\+/","-",$this->gotoXVsync);
+        }
+
+        if (isset($this->attrs['gotoXHsync']) && isset($this->attrs['gotoXVsync'])) {
+          if(!empty($this->attrs['gotoXHsync'][0]) && !empty($this->attrs['gotoXVsync'][0])) {
+            $this->InheritXYSync = FALSE;
+          }
+        } else {
+          if ($this->dn == "new") {
+            $this->InheritXYSync = FALSE;
+          }
         }
 
         /* Workaround to fill in inherited values if we've specified an objectclass */
@@ -194,6 +207,7 @@ class workservice extends plugin
             $this->XKbVariants= array('default' => _("inherited"));
             $this->MouseTypes= array('default' => _("inherited"));
             $this->MousePorts= array('default' => _("inherited"));
+            $this->member_of_ogroup = TRUE;
         }
     }
 
@@ -204,6 +218,13 @@ class workservice extends plugin
 
         /* Load hardware list */
         $this->loadHardwareList();
+
+        if (preg_match("/\+/",$this->gotoXHsync)){
+          $this->AutoSync = true;
+          $this->gotoXHsync = preg_replace("/\+/","-",$this->gotoXHsync);
+          $this->gotoXVsync = preg_replace("/\+/","-",$this->gotoXVsync);
+        }
+
 
         if($this->is_account && !$this->view_logged){
             $this->view_logged = TRUE;
@@ -232,6 +253,8 @@ class workservice extends plugin
         foreach($tmp['plProvidedAcls'] as $name => $translated){
             $smarty->assign($name."ACL",$this->getacl($name));
         }
+
+        $smarty->assign("member_of_ogroup", $this->member_of_ogroup);
 
         /* Arrays */ 
         foreach(array("XDrivers", "XResolutions", "XColordepths",
@@ -303,6 +326,15 @@ class workservice extends plugin
             $smarty->assign("hiddenState","");
         }
 
+        if ($this->InheritXYSync && !isset($this->parent->by_object['ogroup'])) {
+          $smarty->assign("InheritXYSync", " checked ");
+          $smarty->assign("hiddenState", " disabled ");
+          $smarty->assign("AutoSynchiddenState", " disabled ");
+        } else {
+          $smarty->assign("InheritXYSync", "");
+          $smarty->assign("AutoSynchiddenState", "");
+        }
+
         /* Show main page */
         return($smarty->fetch (get_template_path('workstationService.tpl',TRUE,dirname(__FILE__))));
     }
@@ -325,6 +357,14 @@ class workservice extends plugin
                 $this->AutoSync = false;
             }
         }
+        if(isset($_POST['workservicePosted'])) {
+          if(isset($_POST['InheritXYSync'])) {
+            $this->InheritXYSync = TRUE;
+          }else {
+            $this->InheritXYSync = FALSE;
+          }
+        }
+
     }
 
     /* Check supplied data */
@@ -337,14 +377,18 @@ class workservice extends plugin
         if ($this->dn != "" && $this->cn != "default" && $this->cn != "wdefault"){
 
             /* But only if no auto sync is enabled... */
-            if (!$this->AutoSync){
+            if (!$this->AutoSync && !$this->InheritXYSync){
+
+
+                $vsync_empty = FALSE;
+                $hsync_empty = FALSE;
 
                 /* Check vsync for correct usage */
                 $val= preg_replace ("/\s/", "", $this->gotoXVsync);
 
                 if($this->acl_is_writeable("gotoXVsync")){
                     if(empty($val)){
-                        $message[]= msgPool::required(_("Vertical synchronization"));
+                        $vsync_empty = TRUE;
                     }elseif (!preg_match ("/^\d+(\.\d+)?([+-]\d+(\.\d+)?)?$/", $val)){
                         $message[]= msgPool::invalid(_("Vertical synchronization"));
                     } else{
@@ -357,13 +401,14 @@ class workservice extends plugin
                             }
                         }
                     }
+
                 }
 
                 /* Check hsync for correct usage */
                 $val= preg_replace ("/\s/", "", $this->gotoXHsync);
                 if($this->acl_is_writeable("gotoXHsync")){
-                    if(empty($val)){
-                        $message[]= msgPool::required(_("Horizontal synchronization"));
+                  if(empty($val)){
+                        $hsync_empty = TRUE;
                     }elseif (!preg_match ("/^\d+(\.\d+)?([-]\d+(\.\d+)?)?$/", $val)){
                         $message[]= msgPool::invalid(_("Horizontal synchronization"));
                     } else{
@@ -377,6 +422,28 @@ class workservice extends plugin
                         }
                     }
                 }
+
+                /* Decide weither show empty value errors, if this is not an object group it
+                 * will always be shown... */
+                $show_errors = TRUE;
+                if ($vsync_empty || $hsync_empty) {
+
+                  if (isset($this->attrs['gosaGroupObjects'])) {
+                    /* ... but an object group can contain empty values if both values are empty */
+                    if ($vsync_empty != $hsync_empty) {
+                      $show_errors = TRUE;
+                    } else {
+                      $show_errors = FALSE;
+                    }
+                  }
+                  if ($show_errors && $vsync_empty) {
+                    $message[]= msgPool::required(_("Vertical synchronization"));
+                  }
+                  if ($show_errors && $hsync_empty) {
+                    $message[]= msgPool::required(_("Horizontal synchronization"));
+                  }
+                }
+
             }
         }
 
@@ -405,7 +472,10 @@ class workservice extends plugin
             }
         }
 
-        if($this->AutoSync){
+        if ($this->InheritXYSync) {
+          $this->attrs['gotoXHsync'] = array();
+          $this->attrs['gotoXVsync'] = array();
+        } elseif($this->AutoSync){
             $this->attrs['gotoXHsync'] = "30+55";
             $this->attrs['gotoXVsync'] = "50+70";
         }
@@ -442,8 +512,11 @@ class workservice extends plugin
         }
 
         if ($ldap->count() == 1){
+            $this->member_of_ogroup = TRUE;
             $map= array("gotoXResolution", "gotoXColordepth", "gotoXKbModel", "gotoXKbLayout",
-                    "gotoXKbVariant", "gotoXMouseType", "gotoXMouseport", "gotoXDriver");
+                        "gotoXKbVariant", "gotoXMouseType", "gotoXMouseport", "gotoXDriver",
+                        "gotoXVsync", "gotoXHsync"
+            );
             $attrs= $ldap->fetch();
 
             foreach ($map as $name){
@@ -452,6 +525,18 @@ class workservice extends plugin
                 }
 
                 switch ($name){
+                    case 'gotoXHsync':
+                        if (empty($this->$name) && !empty($attrs[$name])) {
+                          $this->$name = $attrs[$name][0];
+                          $this->InheritXYSync = TRUE;
+                        }
+                        break;
+                    case 'gotoXVsync':
+                        if (empty($this->$name) && !empty($attrs[$name])) {
+                          $this->$name = $attrs[$name][0];
+                          $this->InheritXYSync = TRUE;
+                        }
+                        break;
                     case 'gotoXDriver':
                         $ogroup_driver = $attrs['gotoXDriver'][0];
                         if (in_array($ogroup_driver, $this->XDrivers) && (empty($this->attrs['gotoXDriver']))) {
