@@ -220,7 +220,13 @@ class goShareServer extends goService{
         $ldap = $this->config->get_ldap_link();
         $ldap->cd($this->config->current['BASE']);
         $cn = $ldap->getCn($this->dn);
-        $ldap->search("(&(|(objectClass=posixGroup)(objectClass=posixAccount)(objectClass=gosaGroupOfNames))(gotoShare=$cn|*))", array("dn"));
+        if (isset($this->config->current['HONOURUNITTAGS']) &&
+          preg_match('/true/i', $this->config->current['HONOURUNITTAGS']) &&
+          $this->gosaUnitTag != "") {
+            $ldap->search("(&(&(|(objectClass=posixGroup)(objectClass=posixAccount)(objectClass=gosaGroupOfNames))(gotoShare=$cn|*))(gosaUnitTag=$this->gosaUnitTag))", array("dn"));
+        } else {
+            $ldap->search("(&(|(objectClass=posixGroup)(objectClass=posixAccount)(objectClass=gosaGroupOfNames))(gotoShare=$cn|*))", array("dn"));
+        }
 
         if($ldap->count()){
             /* Number of entries shown in warning */
@@ -248,7 +254,14 @@ class goShareServer extends goService{
         $ldap = $this->config->get_ldap_link();
         $ldap->cd($this->config->current['BASE']);
         $cn = $ldap->getCn($this->dn);
-        $ldap->search("(|(gotoProfileServer=*|$id)(gotoShare=$cn|$id|*))", array("cn"));
+        if (isset($this->config->current['HONOURUNITTAGS']) &&
+          preg_match('/true/i', $this->config->current['HONOURUNITTAGS']) &&
+          $this->gosaUnitTag != "") {
+            $ldap->search("(&(|(gotoProfileServer=*|$id)(gotoShare=$cn|$id|*))(gosaUnitTag=$this->gosaUnitTag))", array("cn"));
+        } else {
+            $ldap->search("(|(gotoProfileServer=*|$id)(gotoShare=$cn|$id|*))", array("cn"));
+        }
+
         if ($ldap->count() != 0){
             while ($attrs= $ldap->fetch()){
                 $obj[$ldap->getDN()]= $attrs['cn'][0];
