@@ -920,11 +920,14 @@ class plugin
       "ogroups", array(get_ou("group", "ogroupRDN")),$this->config->current['BASE'],array("dn"), GL_SUBSEARCH | GL_NO_ACL_CHECK);
 
     // Walk through all objectGroups
+    $src_dn=str_replace('\\,', '\\2C', LDAP::fix($src_dn));
     foreach($ogroups as $ogroup){
       // Migrate old to new dn
       $o_ogroup= new ogroup($this->config,$ogroup['dn']);
-      if (isset($o_ogroup->member[$src_dn])) {
-        unset($o_ogroup->member[$src_dn]);
+      if (isset($o_ogroup->member[LDAP::convert($src_dn)])) {
+        /* Members are stored with their converted names, so convert $c_mem as well
+         * to have it match in case of special characters in its name. */
+        unset($o_ogroup->member[LDAP::convert($src_dn)]);
       }
       $o_ogroup->member[$dst_dn]= $dst_dn;
       

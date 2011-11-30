@@ -217,7 +217,9 @@ class LDAP
     static function prepare4filter($dn)
     {
         $fixed= normalizeLdap(str_replace('\\\\', '\\\\\\', LDAP::fix($dn)));
-        return str_replace('\\,', '\\\\,', $fixed);
+        $fixed = str_replace('\\,', '\\\\,', $fixed);
+        $fixed = str_replace('\\2C', '\\\\2C', $fixed);
+        return $fixed;
     }
 
 
@@ -865,7 +867,6 @@ class LDAP
 
                 if (!$this->success()){
 
-                    print_a(array($cdn,$na));
 
                     msg_dialog::display(_("LDAP error"), msgPool::ldaperror($this->get_error(), $cdn, LDAP_ADD, get_class()));
                     return FALSE;
