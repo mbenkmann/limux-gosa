@@ -64,7 +64,31 @@ class environment extends plugin
   /* general settings */
   // Sets the attributes which will kept on page reload, which will be saved, ...
 
-  var $CopyPasteVars      = array("gotoHotplugDevices","gotoAvailableShares","gotoShareSelections","gotoPrinterSel","gotoProfileFlagL","gotoXResolutions","gotoProfileFlagC","gotoProfileServers","useProfile","is_group","in_dialog","OrigCn","gotoKioskProfile_Server","gotoKioskProfile_Profile", "gotoLogonScripts","gotoLogonScript","gotoShare","gotoShares");
+  var $CopyPasteVars      = array(
+                            "gotoProfileServer",
+                            "gotoProfileFlags",
+                            "gotoProfileFlagC",
+                            "gotoProfileFlagL",
+                            "useProfile",
+                            "gotoHotplugDeviceDN",
+                            "gotoXResolution",
+                            "gotoProfileQuota",
+                            "gotoLogonScripts",
+                            "gotoLogonScript",
+                            "gotoPrinter",
+                            "gotoPrinterSel",
+                            "gosaDefaultPrinter",
+                            "gotoHotplugDevices",
+                            "gotoShares",
+                            "gotoShare",
+                            "gotoShareSelections",
+                            "gotoAvailableShares",
+                            "gotoKioskProfile",
+                            "gotoKioskProfile_Server",
+                            "gotoKioskProfile_Profile",
+                            "is_group",
+                            "in_dialog",
+                            );
 
   var $attributes         = array("uid","gotoProfileServer","gotoProfileFlags","gotoHotplugDeviceDN",
       "gotoXResolution","gotoProfileQuota",
@@ -1383,6 +1407,11 @@ class environment extends plugin
     foreach($this->CopyPasteVars as $attr){
       $this->$attr = $o_source->$attr;  
     }
+
+    /* Force adding the new object to eventually
+     * existing printer objects */
+    $this->add_del_printer_member_was_called = TRUE;
+
   }
 
 
