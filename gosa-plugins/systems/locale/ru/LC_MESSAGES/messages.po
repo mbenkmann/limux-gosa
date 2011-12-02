@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: messages\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-11-04 15:25+0100\n"
+"POT-Creation-Date: 2011-12-02 10:42+0100\n"
 "PO-Revision-Date: 2005-04-18 14:35+0300\n"
 "Last-Translator: Igor Muratov <migor@altlinux.org>\n"
 "Language-Team: ALT Linux Team\n"
@@ -15,301 +15,40 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: poEdit 1.3.1\n"
 
-#: admin/systems/system-filter.xml:32
+#: admin/systems/class_filterSYSTEMS.inc:23 admin/systems/system-list.xml:31
+msgid "New workstation"
+msgstr "Новая рабочая станция"
+
+#: admin/systems/class_filterSYSTEMS.inc:26 admin/systems/system-list.xml:64
+msgid "New terminal"
+msgstr "Создать терминал"
+
+#: admin/systems/class_filterSYSTEMS.inc:31 admin/systems/system-list.xml:72
+#, fuzzy
+msgid "New unknown device"
+msgstr "состояние неизвестно"
+
+#: admin/systems/class_filterSYSTEMS.inc:34 admin/systems/system-list.xml:80
+#, fuzzy
+msgid "New device"
+msgstr "Сетевые устройства"
+
 #: admin/systems/systemSelect/selectSystem-filter.xml:19
 #: admin/systems/serverService-filter.xml:17
+#: admin/systems/system-filter.xml:32
 #, fuzzy
 msgid "Default filter"
 msgstr "Параметры загрузки"
 
-#: admin/systems/system-filter.xml:58
+#: admin/systems/systemSelect/class_systemSelect.inc:29
 #, fuzzy
-msgid "All systems"
-msgstr "пользователи"
-
-#: admin/systems/system-filter.xml:89
-#, fuzzy
-msgid "Opsi"
-msgstr "Тонкий клиент"
-
-#: admin/systems/system-filter.xml:103
-#: admin/systems/class_systemManagement.inc:1483
-#: admin/systems/class_systemManagement.inc:1484
-#, fuzzy
-msgid "Incoming objects"
-msgstr "Включаемые объекты"
-
-#: admin/systems/class_systemManagement.inc:60
-msgid "Systems"
-msgstr "Системы"
-
-#: admin/systems/class_systemManagement.inc:61
-msgid "Manage systems, their services and prepare them for use with GOsa"
-msgstr ""
-
-#: admin/systems/class_systemManagement.inc:176
-#: admin/systems/class_systemManagement.inc:283
-#, fuzzy
-msgid "Permission error"
-msgstr "Права для членов группы"
-
-#: admin/systems/class_systemManagement.inc:176
-#: admin/systems/class_systemManagement.inc:283
-#, fuzzy
-msgid "You have no permission to change this password!"
-msgstr "Вам не разрешено менять пароль."
-
-#: admin/systems/class_systemManagement.inc:274
-#: admin/systems/class_systemManagement.inc:708
-#: admin/systems/class_systemManagement.inc:714
-#: admin/systems/class_systemManagement.inc:834
-#: admin/systems/class_systemManagement.inc:849
-#: admin/systems/class_serverService.inc:232
-#: admin/systems/class_serverService.inc:277
-#: admin/systems/class_serverService.inc:485
-#: admin/systems/class_servGeneric.inc:302
-#: admin/systems/class_filterOPSIHOSTS.inc:30
-#: admin/systems/class_termDNS.inc:315 admin/systems/class_termDNS.inc:362
-#: admin/systems/class_componentGeneric.inc:166
-msgid "Error"
-msgstr ""
-
-#: admin/systems/class_systemManagement.inc:275
-#, fuzzy
-msgid ""
-"The passwords you've entered as 'New password' and 'Repeated password' do "
-"not   match!"
-msgstr "Введенные пароли не совпадают!"
-
-#: admin/systems/class_systemManagement.inc:321
-#, fuzzy
-msgid "Password method"
-msgstr "Хэширование паролей"
-
-#: admin/systems/class_systemManagement.inc:321
-msgid "Password method crypt is missing. Cannot set system password."
-msgstr ""
-
-#: admin/systems/class_systemManagement.inc:327
-#: admin/systems/class_systemManagement.inc:1086
-#: admin/systems/services/class_goService.inc:124
-#: admin/systems/services/class_goService.inc:152
-#: admin/systems/services/class_goService.inc:185
-#: admin/systems/class_servGeneric.inc:268
-#: admin/systems/class_servGeneric.inc:436 admin/systems/class_termDNS.inc:515
-#: admin/systems/class_termDNS.inc:823 admin/systems/class_termDNS.inc:842
-#: admin/systems/class_termDNS.inc:863 admin/systems/class_termDNS.inc:868
-#: admin/systems/class_termDNS.inc:886 admin/systems/class_termDNS.inc:962
-#: admin/systems/class_componentGeneric.inc:134
-#: admin/systems/class_componentGeneric.inc:284
-#, fuzzy
-msgid "LDAP error"
-msgstr "Ошибка LDAP:"
-
-#: admin/systems/class_systemManagement.inc:376
-msgid "Back"
-msgstr "Назад"
-
-#: admin/systems/class_systemManagement.inc:422
-msgid "Creating the image failed. Please see the report below."
-msgstr ""
-
-#: admin/systems/class_systemManagement.inc:427
-#, fuzzy, php-format
-msgid "Command '%s', specified for ISO creation doesn't seem to exist."
-msgstr ""
-"Не удается найти команду \"%s\", указанную в поле POSTREMOVE модуля \"%s\"."
-
-#: admin/systems/class_systemManagement.inc:519
-#: admin/systems/class_systemManagement.inc:548
-#: admin/systems/class_servGeneric.inc:175
-#: admin/systems/class_servGeneric.inc:456
-#, fuzzy
-msgid "Service infrastructure"
-msgstr "Имя сервера"
-
-#: admin/systems/class_systemManagement.inc:597
-#: admin/systems/class_systemManagement.inc:685
-#: admin/systems/class_systemManagement.inc:1131
-#: admin/systems/class_systemManagement.inc:1178
-#: admin/systems/class_systemManagement.inc:1199
-#, fuzzy
-msgid "Permission"
-msgstr "Права для членов группы"
-
-#: admin/systems/class_systemManagement.inc:901
-#, fuzzy
-msgid "Internal error"
-msgstr "Терминал-сервер"
-
-#: admin/systems/class_systemManagement.inc:901
-#, fuzzy
-msgid "Cannot set mode to 'active'!"
-msgstr "Список подразделений"
-
-#: admin/systems/class_systemManagement.inc:1131
-#, fuzzy, php-format
-msgid "You are not allowed to create a snapshot for %s."
-msgstr "Вам не разрешено менять пароль."
-
-#: admin/systems/class_systemManagement.inc:1178
-#: admin/systems/class_systemManagement.inc:1199
-#, fuzzy, php-format
-msgid "You are not allowed to restore a snapshot for %s."
-msgstr "Вам не разрешено менять пароль."
-
-#: admin/systems/class_systemManagement.inc:1469
-#, fuzzy, php-format
-msgid "Inherited from %s"
-msgstr "Объединения"
-
-#: admin/systems/class_systemManagement.inc:1496
-#, fuzzy
-msgid "RDN for system storage."
-msgstr "Хэширование паролей"
-
-#: admin/systems/class_systemManagement.inc:1505
-#, fuzzy
-msgid "Incoming"
-msgstr "Пиктограмма"
-
-#: admin/systems/services/class_goService.inc:44
-#: admin/systems/services/class_goService.inc:81
-#, fuzzy
-msgid "Empty service"
-msgstr "Служба печати"
-
-#: admin/systems/serverService-list.xml:9
-#, fuzzy
-msgid "List of services"
-msgstr "Список пользователей"
-
-#: admin/systems/serverService-list.xml:13
-#, fuzzy
-msgid "Service"
-msgstr "Сервисы"
-
-#: admin/systems/serverService-list.xml:26
-msgid "!"
-msgstr ""
-
-#: admin/systems/serverService-list.xml:34
-#: admin/systems/systemSelect/selectSystem-list.xml:65
-#: admin/systems/system-list.xml:186 admin/systems/class_servGeneric.inc:534
-#: admin/systems/server.tpl:16 admin/systems/class_componentGeneric.inc:317
-#: admin/systems/component.tpl:29
-msgid "Description"
-msgstr "Описание"
-
-#: admin/systems/serverService-list.xml:42 admin/systems/system-list.xml:202
-msgid "Actions"
-msgstr "Действия"
-
-#: admin/systems/serverService-list.xml:56 admin/systems/system-list.xml:429
-msgid "Remove"
-msgstr "Удалить"
-
-#: admin/systems/serverService-list.xml:67
-#: admin/systems/serverService-list.xml:101
-#: admin/systems/class_serverService.inc:28
-#, fuzzy
-msgid "Start"
-msgstr "Запуск"
-
-#: admin/systems/serverService-list.xml:74
-#: admin/systems/serverService-list.xml:109
-#: admin/systems/class_serverService.inc:27
-#, fuzzy
-msgid "Stop"
-msgstr "Отношение"
-
-#: admin/systems/serverService-list.xml:81
-#: admin/systems/serverService-list.xml:117
-#: admin/systems/class_serverService.inc:29
-#, fuzzy
-msgid "Restart"
-msgstr "Повторить"
-
-#: admin/systems/serverService-list.xml:125
-#, fuzzy
-msgid "Edit service"
-msgstr "Служба печати"
-
-#: admin/systems/serverService-list.xml:133
-#, fuzzy
-msgid "Remove service"
-msgstr "Удалить сервис DNS"
-
-#: admin/systems/class_serverService.inc:473
-#, fuzzy
-msgid "Information"
-msgstr "Рабочая станция"
-
-#: admin/systems/class_serverService.inc:473
-msgid "Cannot update service status until it has been saved!"
-msgstr ""
-
-#: admin/systems/class_serverService.inc:485
-#, fuzzy
-msgid "Cannot update service status!"
-msgstr "Невозможно выбрать базу данных!"
-
-#: admin/systems/paste_generic.tpl:2
-#, fuzzy
-msgid "Paste server"
-msgstr "Дата"
-
-#: admin/systems/paste_generic.tpl:4 admin/systems/class_servGeneric.inc:328
-#: admin/systems/class_servGeneric.inc:333
-#: admin/systems/class_servGeneric.inc:356 admin/systems/server.tpl:8
-msgid "Server name"
-msgstr "Имя сервера"
-
-#: admin/systems/paste_generic.tpl:12
-#, fuzzy
-msgid "Paste workstation"
-msgstr "Новая рабочая станция"
-
-#: admin/systems/paste_generic.tpl:14
-#, fuzzy
-msgid "workstation name"
-msgstr "Имя рабочий станции"
-
-#: admin/systems/paste_generic.tpl:22
-#, fuzzy
-msgid "Paste terminal"
-msgstr "Создать терминал"
-
-#: admin/systems/paste_generic.tpl:24
-msgid "Terminal name"
-msgstr "Терминал"
-
-#: admin/systems/paste_generic.tpl:32
-#, fuzzy
-msgid "Paste printer"
-msgstr "Принтер"
-
-#: admin/systems/paste_generic.tpl:34
-msgid "Printer name"
-msgstr "Имя принтера"
-
-#: admin/systems/paste_generic.tpl:42
-#, fuzzy
-msgid "Paste network component"
-msgstr "Прочие сетевые компоненты"
-
-#: admin/systems/paste_generic.tpl:44
-#: admin/systems/class_componentGeneric.inc:187
-#: admin/systems/class_componentGeneric.inc:192
-#: admin/systems/class_componentGeneric.inc:214
-#, fuzzy
-msgid "Component name"
-msgstr "Местоположение"
+msgid "System selection"
+msgstr "Настройки Samba"
 
 #: admin/systems/systemSelect/selectSystem-list.tpl:12
-#: admin/systems/class_servGeneric.inc:535 admin/systems/system-list.tpl:12
-#: admin/systems/server.tpl:34 admin/systems/class_componentGeneric.inc:316
-#: admin/systems/component.tpl:18
+#: admin/systems/component.tpl:18 admin/systems/class_componentGeneric.inc:316
+#: admin/systems/class_servGeneric.inc:539 admin/systems/system-list.tpl:12
+#: admin/systems/server.tpl:34
 msgid "Base"
 msgstr "Ветка"
 
@@ -319,8 +58,8 @@ msgid "Please select the desired entries"
 msgstr "Язык по умолчанию"
 
 #: admin/systems/systemSelect/selectSystem-list.xml:15
-#: admin/systems/system-list.xml:112 admin/systems/system-list.xml:227
-#: admin/systems/class_servGeneric.inc:516 admin/systems/server.tpl:1
+#: admin/systems/class_servGeneric.inc:520 admin/systems/system-list.xml:112
+#: admin/systems/system-list.xml:227 admin/systems/server.tpl:1
 msgid "Server"
 msgstr "Сервер"
 
@@ -336,15 +75,383 @@ msgid "Terminal"
 msgstr "Терминалы"
 
 #: admin/systems/systemSelect/selectSystem-list.xml:57
-#: admin/systems/system-list.xml:178 admin/systems/class_servGeneric.inc:533
 #: admin/systems/class_componentGeneric.inc:315
+#: admin/systems/class_servGeneric.inc:537 admin/systems/system-list.xml:178
 msgid "Name"
 msgstr "Фамилия"
 
-#: admin/systems/systemSelect/class_systemSelect.inc:29
+#: admin/systems/systemSelect/selectSystem-list.xml:65
+#: admin/systems/component.tpl:29 admin/systems/class_componentGeneric.inc:317
+#: admin/systems/serverService-list.xml:35
+#: admin/systems/class_servGeneric.inc:538 admin/systems/system-list.xml:186
+#: admin/systems/server.tpl:16
+msgid "Description"
+msgstr "Описание"
+
+#: admin/systems/askObjectGroup.tpl:6
+msgid ""
+"This dialog gives you the possibility to select an optional bundle of "
+"predefined settings to be inherited."
+msgstr ""
+
+#: admin/systems/askObjectGroup.tpl:13 admin/systems/askObjectGroup.tpl:24
 #, fuzzy
-msgid "System selection"
+msgid "Select object group"
+msgstr "серверы"
+
+#: admin/systems/askObjectGroup.tpl:23
+#, fuzzy
+msgid "Choose an object group as template"
+msgstr "Название группы"
+
+#: admin/systems/askObjectGroup.tpl:31
+msgid "Continue"
+msgstr "Продолжить"
+
+#: admin/systems/class_askOgroup.inc:37 admin/systems/class_askOgroup.inc:67
+#, fuzzy
+msgid "None"
+msgstr "нет"
+
+#: admin/systems/class_askOgroup.inc:52
+#, fuzzy
+msgid "Create workstation"
+msgstr "Новая рабочая станция"
+
+#: admin/systems/class_askOgroup.inc:53 admin/systems/system-list.xml:213
+msgid "Create"
+msgstr "Создать"
+
+#: admin/systems/services/class_goService.inc:44
+#: admin/systems/services/class_goService.inc:81
+#, fuzzy
+msgid "Empty service"
+msgstr "Служба печати"
+
+#: admin/systems/services/class_goService.inc:124
+#: admin/systems/services/class_goService.inc:152
+#: admin/systems/services/class_goService.inc:185
+#: admin/systems/class_termDNS.inc:515 admin/systems/class_termDNS.inc:823
+#: admin/systems/class_termDNS.inc:842 admin/systems/class_termDNS.inc:863
+#: admin/systems/class_termDNS.inc:868 admin/systems/class_termDNS.inc:886
+#: admin/systems/class_termDNS.inc:962
+#: admin/systems/class_componentGeneric.inc:134
+#: admin/systems/class_componentGeneric.inc:284
+#: admin/systems/class_servGeneric.inc:264
+#: admin/systems/class_servGeneric.inc:440
+#: admin/systems/class_systemManagement.inc:328
+#: admin/systems/class_systemManagement.inc:1129
+#, fuzzy
+msgid "LDAP error"
+msgstr "Ошибка LDAP:"
+
+#: admin/systems/component.tpl:1 admin/systems/system-list.xml:152
+#, fuzzy
+msgid "Component"
+msgstr "Прочие сетевые компоненты"
+
+#: admin/systems/component.tpl:5
+#, fuzzy
+msgid "Generic settings"
+msgstr "Общая информация о пользователе"
+
+#: admin/systems/component.tpl:7
+#, fuzzy
+msgid "Device name"
+msgstr "Имя сервера"
+
+#: admin/systems/class_termDNS.inc:315 admin/systems/class_termDNS.inc:362
+#: admin/systems/class_componentGeneric.inc:166
+#: admin/systems/class_servGeneric.inc:298
+#: admin/systems/class_filterOPSIHOSTS.inc:30
+#: admin/systems/class_systemManagement.inc:275
+#: admin/systems/class_systemManagement.inc:713
+#: admin/systems/class_systemManagement.inc:719
+#: admin/systems/class_systemManagement.inc:794
+#: admin/systems/class_systemManagement.inc:877
+#: admin/systems/class_systemManagement.inc:892
+#: admin/systems/class_serverService.inc:232
+#: admin/systems/class_serverService.inc:277
+#: admin/systems/class_serverService.inc:485
+msgid "Error"
+msgstr ""
+
+#: admin/systems/class_termDNS.inc:478
+#, fuzzy
+msgid "Not matching"
+msgstr "Показать совпадения объектов"
+
+#: admin/systems/class_termDNS.inc:631
+#, fuzzy, php-format
+msgid "IP address %s"
+msgstr "IP-адрес"
+
+#: admin/systems/class_termDNS.inc:640 admin/systems/class_termDNS.inc:652
+#: admin/systems/class_termDNS.inc:654 admin/systems/class_termDNS.inc:1033
+#: admin/systems/class_componentGeneric.inc:197
+#: admin/systems/class_componentGeneric.inc:200
+#, fuzzy
+msgid "IP address"
+msgstr "IP-адрес"
+
+#: admin/systems/class_termDNS.inc:645 admin/systems/class_termDNS.inc:662
+#: admin/systems/class_termDNS.inc:664 admin/systems/class_termDNS.inc:1034
+#, fuzzy
+msgid "MAC address"
+msgstr "MAC-адрес"
+
+#: admin/systems/class_termDNS.inc:679
+#, php-format
+msgid "The IP address '%s' is not part of the selected reverse zone '%s'!"
+msgstr ""
+
+#: admin/systems/class_termDNS.inc:691
+#, php-format
+msgid "Record type '%s' is duplicated!"
+msgstr ""
+
+#: admin/systems/class_termDNS.inc:699
+#, php-format
+msgid "Unique record type '%s' is duplicated!"
+msgstr ""
+
+#: admin/systems/class_termDNS.inc:711
+#, php-format
+msgid ""
+"The IP address '%s' will be added as 'A Record', this will be done "
+"automatically, please remove the record."
+msgstr ""
+
+#: admin/systems/class_termDNS.inc:719
+#, php-format
+msgid "Only lowercase records are allowed, please check your '%ss'."
+msgstr ""
+
+#: admin/systems/class_termDNS.inc:1024
+#, fuzzy
+msgid "DNS"
+msgstr "DNS"
+
+#: admin/systems/class_termDNS.inc:1025
+#, fuzzy
+msgid "DNS settings"
 msgstr "Настройки Samba"
+
+#: admin/systems/class_termDNS.inc:1040
+#, fuzzy
+msgid "DNS configuration"
+msgstr "Базы данных"
+
+#: admin/systems/class_termDNS.inc:1043
+#, fuzzy
+msgid "DHCP configuration"
+msgstr "Базы данных"
+
+#: admin/systems/class_componentGeneric.inc:84
+#, fuzzy
+msgid "component"
+msgstr "Прочие сетевые компоненты"
+
+#: admin/systems/class_componentGeneric.inc:187
+#: admin/systems/class_componentGeneric.inc:192
+#: admin/systems/class_componentGeneric.inc:214
+#: admin/systems/paste_generic.tpl:44
+#, fuzzy
+msgid "Component name"
+msgstr "Местоположение"
+
+#: admin/systems/class_componentGeneric.inc:292
+#: admin/systems/class_servGeneric.inc:510 admin/systems/server.tpl:5
+msgid "Generic"
+msgstr "Общее"
+
+#: admin/systems/class_componentGeneric.inc:293
+#, fuzzy
+msgid "Component generic"
+msgstr "Прочие сетевые компоненты"
+
+#: admin/systems/class_componentGeneric.inc:298
+#: admin/systems/system-list.xml:267
+#, fuzzy
+msgid "Network device"
+msgstr "Сетевые устройства"
+
+#: admin/systems/class_componentGeneric.inc:306
+#, fuzzy
+msgid "RDN for component storage."
+msgstr "Почтовые настройки пользователя"
+
+#: admin/systems/class_componentGeneric.inc:318
+#: admin/systems/class_servGeneric.inc:542
+#, fuzzy
+msgid "Root password"
+msgstr "Изменить пароль"
+
+#: admin/systems/serverService-list.xml:9
+#, fuzzy
+msgid "List of services"
+msgstr "Список пользователей"
+
+#: admin/systems/serverService-list.xml:14
+#, fuzzy
+msgid "Service"
+msgstr "Сервисы"
+
+#: admin/systems/serverService-list.xml:27
+msgid "!"
+msgstr ""
+
+#: admin/systems/serverService-list.xml:43 admin/systems/system-list.xml:202
+msgid "Actions"
+msgstr "Действия"
+
+#: admin/systems/serverService-list.xml:57 admin/systems/system-list.xml:445
+msgid "Remove"
+msgstr "Удалить"
+
+#: admin/systems/serverService-list.xml:68
+#: admin/systems/serverService-list.xml:102
+#: admin/systems/class_serverService.inc:28
+#, fuzzy
+msgid "Start"
+msgstr "Запуск"
+
+#: admin/systems/serverService-list.xml:75
+#: admin/systems/serverService-list.xml:110
+#: admin/systems/class_serverService.inc:27
+#, fuzzy
+msgid "Stop"
+msgstr "Отношение"
+
+#: admin/systems/serverService-list.xml:82
+#: admin/systems/serverService-list.xml:118
+#: admin/systems/class_serverService.inc:29
+#, fuzzy
+msgid "Restart"
+msgstr "Повторить"
+
+#: admin/systems/serverService-list.xml:126
+#, fuzzy
+msgid "Edit service"
+msgstr "Служба печати"
+
+#: admin/systems/serverService-list.xml:134
+#, fuzzy
+msgid "Remove service"
+msgstr "Удалить сервис DNS"
+
+#: admin/systems/class_servGeneric.inc:79
+#, fuzzy
+msgid "Activated"
+msgstr "Личный"
+
+#: admin/systems/class_servGeneric.inc:80
+#, fuzzy
+msgid "Locked"
+msgstr "Список пользователей"
+
+#: admin/systems/class_servGeneric.inc:158
+#, fuzzy
+msgid "server"
+msgstr "Сервер"
+
+#: admin/systems/class_servGeneric.inc:175
+#: admin/systems/class_servGeneric.inc:460
+#: admin/systems/class_systemManagement.inc:520
+#, fuzzy
+msgid "Service infrastructure"
+msgstr "Имя сервера"
+
+#: admin/systems/class_servGeneric.inc:179
+#, fuzzy
+msgid "Event error"
+msgstr "Состояние системы"
+
+#: admin/systems/class_servGeneric.inc:180
+#, fuzzy, php-format
+msgid "Event '%s' is not available!"
+msgstr "Сменить пароль"
+
+#: admin/systems/class_servGeneric.inc:206
+msgid "Switch off"
+msgstr "Выключить"
+
+#: admin/systems/class_servGeneric.inc:207 admin/systems/system-list.xml:310
+#: admin/systems/system-list.xml:384
+msgid "Reboot"
+msgstr "Перезагрузить"
+
+#: admin/systems/class_servGeneric.inc:208
+#, fuzzy
+msgid "Software update"
+msgstr "Подразделение"
+
+#: admin/systems/class_servGeneric.inc:209
+#: admin/systems/class_servGeneric.inc:217 admin/systems/system-list.xml:350
+#: admin/systems/system-list.xml:424
+msgid "Reinstall"
+msgstr ""
+
+#: admin/systems/class_servGeneric.inc:210
+#, fuzzy
+msgid "Rescan hardware"
+msgstr "Телефонное оборудование"
+
+#: admin/systems/class_servGeneric.inc:211
+#: admin/systems/class_servGeneric.inc:219 admin/systems/system-list.xml:301
+#: admin/systems/system-list.xml:375
+msgid "Force local boot"
+msgstr ""
+
+#: admin/systems/class_servGeneric.inc:216
+msgid "Wake up"
+msgstr "Вернуть в обычный режим"
+
+#: admin/systems/class_servGeneric.inc:218
+#, fuzzy
+msgid "System update"
+msgstr "Подразделение"
+
+#: admin/systems/class_servGeneric.inc:324
+#: admin/systems/class_servGeneric.inc:329 admin/systems/paste_generic.tpl:4
+#: admin/systems/server.tpl:8
+msgid "Server name"
+msgstr "Имя сервера"
+
+#: admin/systems/class_servGeneric.inc:359
+#, fuzzy
+msgid "Server Name"
+msgstr "Имя сервера"
+
+#: admin/systems/class_servGeneric.inc:376
+#, fuzzy
+msgid "Software deployment"
+msgstr "Управление системами"
+
+#: admin/systems/class_servGeneric.inc:377
+msgid ""
+"This host is currently installing, if you really want to save it, press 'OK'."
+msgstr ""
+
+#: admin/systems/class_servGeneric.inc:511
+#, fuzzy
+msgid "Server generic"
+msgstr "Имя сервера"
+
+#: admin/systems/class_servGeneric.inc:528
+#, fuzzy
+msgid "RDN for server storage."
+msgstr "Хэширование паролей"
+
+#: admin/systems/class_servGeneric.inc:541
+#, fuzzy
+msgid "Goto mode"
+msgstr "в папку"
+
+#: admin/systems/class_servGeneric.inc:543
+#, fuzzy
+msgid "Action flag"
+msgstr "Действие"
 
 #: admin/systems/network.tpl:1
 #, fuzzy
@@ -442,10 +549,6 @@ msgstr "Устройства"
 msgid "Opsi host"
 msgstr "Тонкий клиент"
 
-#: admin/systems/system-list.xml:31 admin/systems/class_filterSYSTEMS.inc:23
-msgid "New workstation"
-msgstr "Новая рабочая станция"
-
 #: admin/systems/system-list.xml:39
 #, fuzzy
 msgid "Locked server"
@@ -460,20 +563,6 @@ msgstr "Новая рабочая станция"
 #, fuzzy
 msgid "Locked terminal"
 msgstr "Создать терминал"
-
-#: admin/systems/system-list.xml:64 admin/systems/class_filterSYSTEMS.inc:26
-msgid "New terminal"
-msgstr "Создать терминал"
-
-#: admin/systems/system-list.xml:72 admin/systems/class_filterSYSTEMS.inc:31
-#, fuzzy
-msgid "New unknown device"
-msgstr "состояние неизвестно"
-
-#: admin/systems/system-list.xml:80 admin/systems/class_filterSYSTEMS.inc:34
-#, fuzzy
-msgid "New device"
-msgstr "Сетевые устройства"
 
 #: admin/systems/system-list.xml:88
 #, fuzzy
@@ -498,30 +587,15 @@ msgstr "Принтер"
 msgid "Phone"
 msgstr "Телефон"
 
-#: admin/systems/system-list.xml:152 admin/systems/component.tpl:1
-#, fuzzy
-msgid "Component"
-msgstr "Прочие сетевые компоненты"
-
 #: admin/systems/system-list.xml:194
 #, fuzzy
 msgid "Release"
 msgstr "Удалить"
 
-#: admin/systems/system-list.xml:213
-msgid "Create"
-msgstr "Создать"
-
 #: admin/systems/system-list.xml:251
 #, fuzzy
 msgid "Network printer"
 msgstr "Показать сетевые принтеры"
-
-#: admin/systems/system-list.xml:267
-#: admin/systems/class_componentGeneric.inc:298
-#, fuzzy
-msgid "Network device"
-msgstr "Сетевые устройства"
 
 #: admin/systems/system-list.xml:275
 #, fuzzy
@@ -537,67 +611,111 @@ msgstr "Личная информация"
 msgid "Halt "
 msgstr ""
 
-#: admin/systems/system-list.xml:302 admin/systems/system-list.xml:368
-#: admin/systems/class_servGeneric.inc:207
-msgid "Reboot"
-msgstr "Перезагрузить"
-
-#: admin/systems/system-list.xml:310 admin/systems/system-list.xml:376
+#: admin/systems/system-list.xml:318 admin/systems/system-list.xml:392
 #, fuzzy
 msgid "Wakeup"
 msgstr "Вернуть в обычный режим"
 
-#: admin/systems/system-list.xml:318 admin/systems/system-list.xml:384
+#: admin/systems/system-list.xml:326 admin/systems/system-list.xml:400
 msgid "Update"
 msgstr ""
 
-#: admin/systems/system-list.xml:326 admin/systems/system-list.xml:392
+#: admin/systems/system-list.xml:334 admin/systems/system-list.xml:408
 msgid "Lock"
 msgstr ""
 
-#: admin/systems/system-list.xml:334 admin/systems/system-list.xml:400
+#: admin/systems/system-list.xml:342 admin/systems/system-list.xml:416
 #, fuzzy
 msgid "Activate"
 msgstr "Личный"
 
-#: admin/systems/system-list.xml:342 admin/systems/system-list.xml:408
-#: admin/systems/class_servGeneric.inc:209
-#: admin/systems/class_servGeneric.inc:219
-msgid "Reinstall"
-msgstr ""
-
-#: admin/systems/system-list.xml:353
+#: admin/systems/system-list.xml:361
 #, fuzzy
 msgid "Schedule action"
 msgstr "Выберите режим терминала"
 
-#: admin/systems/system-list.xml:360
+#: admin/systems/system-list.xml:368
 msgid "Halt"
 msgstr ""
 
-#: admin/systems/system-list.xml:422
+#: admin/systems/system-list.xml:438
 #, fuzzy
 msgid "Activate systems"
 msgstr "Список систем"
 
-#: admin/systems/system-list.xml:457
+#: admin/systems/system-list.xml:473
 msgid "Change password"
 msgstr "Сменить пароль"
 
-#: admin/systems/system-list.xml:468
+#: admin/systems/system-list.xml:484
 #, fuzzy
 msgid "Create ISO"
 msgstr "Создать"
 
-#: admin/systems/system-list.xml:480
+#: admin/systems/system-list.xml:496
 #, fuzzy
 msgid "Edit role"
 msgstr "Пользователи домена"
 
-#: admin/systems/system-list.xml:493
+#: admin/systems/system-list.xml:509
 #, fuzzy
 msgid "Remove system"
 msgstr "Удалить изображение"
+
+#: admin/systems/system-filter.xml:58
+#, fuzzy
+msgid "All systems"
+msgstr "пользователи"
+
+#: admin/systems/system-filter.xml:89
+#, fuzzy
+msgid "Opsi"
+msgstr "Тонкий клиент"
+
+#: admin/systems/system-filter.xml:103
+#: admin/systems/class_systemManagement.inc:1527
+#: admin/systems/class_systemManagement.inc:1528
+#, fuzzy
+msgid "Incoming objects"
+msgstr "Включаемые объекты"
+
+#: admin/systems/paste_generic.tpl:2
+#, fuzzy
+msgid "Paste server"
+msgstr "Дата"
+
+#: admin/systems/paste_generic.tpl:12
+#, fuzzy
+msgid "Paste workstation"
+msgstr "Новая рабочая станция"
+
+#: admin/systems/paste_generic.tpl:14
+#, fuzzy
+msgid "workstation name"
+msgstr "Имя рабочий станции"
+
+#: admin/systems/paste_generic.tpl:22
+#, fuzzy
+msgid "Paste terminal"
+msgstr "Создать терминал"
+
+#: admin/systems/paste_generic.tpl:24
+msgid "Terminal name"
+msgstr "Терминал"
+
+#: admin/systems/paste_generic.tpl:32
+#, fuzzy
+msgid "Paste printer"
+msgstr "Принтер"
+
+#: admin/systems/paste_generic.tpl:34
+msgid "Printer name"
+msgstr "Имя принтера"
+
+#: admin/systems/paste_generic.tpl:42
+#, fuzzy
+msgid "Paste network component"
+msgstr "Прочие сетевые компоненты"
 
 #: admin/systems/password.tpl:3
 #, fuzzy
@@ -641,107 +759,113 @@ msgstr "Хэширование паролей"
 msgid "Set password"
 msgstr "Изменить пароль"
 
-#: admin/systems/class_servGeneric.inc:79
-#, fuzzy
-msgid "Activated"
-msgstr "Личный"
+#: admin/systems/class_systemManagement.inc:60
+msgid "Systems"
+msgstr "Системы"
 
-#: admin/systems/class_servGeneric.inc:80
-#, fuzzy
-msgid "Locked"
-msgstr "Список пользователей"
-
-#: admin/systems/class_servGeneric.inc:158
-#, fuzzy
-msgid "server"
-msgstr "Сервер"
-
-#: admin/systems/class_servGeneric.inc:179
-#, fuzzy
-msgid "Event error"
-msgstr "Состояние системы"
-
-#: admin/systems/class_servGeneric.inc:180
-#, fuzzy, php-format
-msgid "Event '%s' is not available!"
-msgstr "Сменить пароль"
-
-#: admin/systems/class_servGeneric.inc:206
-msgid "Switch off"
-msgstr "Выключить"
-
-#: admin/systems/class_servGeneric.inc:208
-#: admin/systems/class_servGeneric.inc:220
-#, fuzzy
-msgid "System update"
-msgstr "Подразделение"
-
-#: admin/systems/class_servGeneric.inc:210
-#, fuzzy
-msgid "Rescan hardware"
-msgstr "Телефонное оборудование"
-
-#: admin/systems/class_servGeneric.inc:211
-#: admin/systems/class_servGeneric.inc:221
-#, fuzzy
-msgid "Memory test"
-msgstr "Память"
-
-#: admin/systems/class_servGeneric.inc:212
-#: admin/systems/class_servGeneric.inc:222
-msgid "Force local boot"
+#: admin/systems/class_systemManagement.inc:61
+msgid "Manage systems, their services and prepare them for use with GOsa"
 msgstr ""
 
-#: admin/systems/class_servGeneric.inc:213
-#: admin/systems/class_servGeneric.inc:223
+#: admin/systems/class_systemManagement.inc:177
+#: admin/systems/class_systemManagement.inc:284
 #, fuzzy
-msgid "System analysis"
-msgstr "Системные журналы"
+msgid "Permission error"
+msgstr "Права для членов группы"
 
-#: admin/systems/class_servGeneric.inc:218
-msgid "Wake up"
-msgstr "Вернуть в обычный режим"
-
-#: admin/systems/class_servGeneric.inc:372
+#: admin/systems/class_systemManagement.inc:177
+#: admin/systems/class_systemManagement.inc:284
 #, fuzzy
-msgid "Software deployment"
-msgstr "Управление системами"
+msgid "You have no permission to change this password!"
+msgstr "Вам не разрешено менять пароль."
 
-#: admin/systems/class_servGeneric.inc:373
+#: admin/systems/class_systemManagement.inc:276
+#, fuzzy
 msgid ""
-"This host is currently installing, if you really want to save it, press 'OK'."
-msgstr ""
+"The passwords you've entered as 'New password' and 'Repeated password' do "
+"not   match!"
+msgstr "Введенные пароли не совпадают!"
 
-#: admin/systems/class_servGeneric.inc:506 admin/systems/server.tpl:5
-#: admin/systems/class_componentGeneric.inc:292
-msgid "Generic"
-msgstr "Общее"
-
-#: admin/systems/class_servGeneric.inc:507
+#: admin/systems/class_systemManagement.inc:322
 #, fuzzy
-msgid "Server generic"
-msgstr "Имя сервера"
-
-#: admin/systems/class_servGeneric.inc:524
-#, fuzzy
-msgid "RDN for server storage."
+msgid "Password method"
 msgstr "Хэширование паролей"
 
-#: admin/systems/class_servGeneric.inc:537
-#, fuzzy
-msgid "Goto mode"
-msgstr "в папку"
+#: admin/systems/class_systemManagement.inc:322
+msgid "Password method crypt is missing. Cannot set system password."
+msgstr ""
 
-#: admin/systems/class_servGeneric.inc:538
-#: admin/systems/class_componentGeneric.inc:318
-#, fuzzy
-msgid "Root password"
-msgstr "Изменить пароль"
+#: admin/systems/class_systemManagement.inc:377
+msgid "Back"
+msgstr "Назад"
 
-#: admin/systems/class_servGeneric.inc:539
+#: admin/systems/class_systemManagement.inc:423
+msgid "Creating the image failed. Please see the report below."
+msgstr ""
+
+#: admin/systems/class_systemManagement.inc:428
+#, fuzzy, php-format
+msgid "Command '%s', specified for ISO creation doesn't seem to exist."
+msgstr ""
+"Не удается найти команду \"%s\", указанную в поле POSTREMOVE модуля \"%s\"."
+
+#: admin/systems/class_systemManagement.inc:596
+#: admin/systems/class_systemManagement.inc:684
+#: admin/systems/class_systemManagement.inc:1174
+#: admin/systems/class_systemManagement.inc:1221
+#: admin/systems/class_systemManagement.inc:1242
 #, fuzzy
-msgid "Action flag"
-msgstr "Действие"
+msgid "Permission"
+msgstr "Права для членов группы"
+
+#: admin/systems/class_systemManagement.inc:705
+#: admin/systems/class_serverService.inc:473
+#, fuzzy
+msgid "Information"
+msgstr "Рабочая станция"
+
+#: admin/systems/class_systemManagement.inc:705
+#, php-format
+msgid ""
+"The object-type '%s' cannot be managed with your setup of GOsa, please "
+"install the required  plugins!"
+msgstr ""
+
+#: admin/systems/class_systemManagement.inc:944
+#, fuzzy
+msgid "Internal error"
+msgstr "Терминал-сервер"
+
+#: admin/systems/class_systemManagement.inc:944
+#, fuzzy
+msgid "Cannot set mode to 'active'!"
+msgstr "Список подразделений"
+
+#: admin/systems/class_systemManagement.inc:1174
+#, fuzzy, php-format
+msgid "You are not allowed to create a snapshot for %s."
+msgstr "Вам не разрешено менять пароль."
+
+#: admin/systems/class_systemManagement.inc:1221
+#: admin/systems/class_systemManagement.inc:1242
+#, fuzzy, php-format
+msgid "You are not allowed to restore a snapshot for %s."
+msgstr "Вам не разрешено менять пароль."
+
+#: admin/systems/class_systemManagement.inc:1513
+#, fuzzy, php-format
+msgid "Inherited from %s"
+msgstr "Объединения"
+
+#: admin/systems/class_systemManagement.inc:1540
+#, fuzzy
+msgid "RDN for system storage."
+msgstr "Хэширование паролей"
+
+#: admin/systems/class_systemManagement.inc:1549
+#, fuzzy
+msgid "Incoming"
+msgstr "Пиктограмма"
 
 #: admin/systems/server.tpl:6
 #, fuzzy
@@ -774,101 +898,22 @@ msgstr "Выберите действие, которое нужно выпол�
 msgid "Execute"
 msgstr "Выполнить"
 
-#: admin/systems/class_termDNS.inc:478
-#, fuzzy
-msgid "Not matching"
-msgstr "Показать совпадения объектов"
-
-#: admin/systems/class_termDNS.inc:631
-#, fuzzy, php-format
-msgid "IP address %s"
-msgstr "IP-адрес"
-
-#: admin/systems/class_termDNS.inc:640 admin/systems/class_termDNS.inc:652
-#: admin/systems/class_termDNS.inc:654 admin/systems/class_termDNS.inc:1033
-#: admin/systems/class_componentGeneric.inc:197
-#: admin/systems/class_componentGeneric.inc:200
-#, fuzzy
-msgid "IP address"
-msgstr "IP-адрес"
-
-#: admin/systems/class_termDNS.inc:645 admin/systems/class_termDNS.inc:662
-#: admin/systems/class_termDNS.inc:664 admin/systems/class_termDNS.inc:1034
-#, fuzzy
-msgid "MAC address"
-msgstr "MAC-адрес"
-
-#: admin/systems/class_termDNS.inc:679
-#, php-format
-msgid "The IP address '%s' is not part of the selected reverse zone '%s'!"
+#: admin/systems/class_serverService.inc:473
+msgid "Cannot update service status until it has been saved!"
 msgstr ""
 
-#: admin/systems/class_termDNS.inc:691
-#, php-format
-msgid "Record type '%s' is duplicated!"
-msgstr ""
-
-#: admin/systems/class_termDNS.inc:699
-#, php-format
-msgid "Unique record type '%s' is duplicated!"
-msgstr ""
-
-#: admin/systems/class_termDNS.inc:711
-#, php-format
-msgid ""
-"The IP address '%s' will be added as 'A Record', this will be done "
-"automatically, please remove the record."
-msgstr ""
-
-#: admin/systems/class_termDNS.inc:719
-#, php-format
-msgid "Only lowercase records are allowed, please check your '%ss'."
-msgstr ""
-
-#: admin/systems/class_termDNS.inc:1024
+#: admin/systems/class_serverService.inc:485
 #, fuzzy
-msgid "DNS"
-msgstr "DNS"
+msgid "Cannot update service status!"
+msgstr "Невозможно выбрать базу данных!"
 
-#: admin/systems/class_termDNS.inc:1025
 #, fuzzy
-msgid "DNS settings"
-msgstr "Настройки Samba"
+#~ msgid "Memory test"
+#~ msgstr "Память"
 
-#: admin/systems/class_termDNS.inc:1040
 #, fuzzy
-msgid "DNS configuration"
-msgstr "Базы данных"
-
-#: admin/systems/class_termDNS.inc:1043
-#, fuzzy
-msgid "DHCP configuration"
-msgstr "Базы данных"
-
-#: admin/systems/class_componentGeneric.inc:84
-#, fuzzy
-msgid "component"
-msgstr "Прочие сетевые компоненты"
-
-#: admin/systems/class_componentGeneric.inc:293
-#, fuzzy
-msgid "Component generic"
-msgstr "Прочие сетевые компоненты"
-
-#: admin/systems/class_componentGeneric.inc:306
-#, fuzzy
-msgid "RDN for component storage."
-msgstr "Почтовые настройки пользователя"
-
-#: admin/systems/component.tpl:5
-#, fuzzy
-msgid "Generic settings"
-msgstr "Общая информация о пользователе"
-
-#: admin/systems/component.tpl:7
-#, fuzzy
-msgid "Device name"
-msgstr "Имя сервера"
+#~ msgid "System analysis"
+#~ msgstr "Системные журналы"
 
 #, fuzzy
 #~ msgid "Dns records"
@@ -885,9 +930,6 @@ msgstr "Имя сервера"
 #, fuzzy
 #~ msgid "All available services are already in use."
 #~ msgstr "Указанное имя уже используется."
-
-#~ msgid "Continue"
-#~ msgstr "Продолжить"
 
 #~ msgid "Warning"
 #~ msgstr "Предупреждение"
