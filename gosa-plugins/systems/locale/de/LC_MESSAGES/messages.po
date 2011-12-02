@@ -95,16 +95,16 @@ msgid ""
 "This dialog gives you the possibility to select an optional bundle of "
 "predefined settings to be inherited."
 msgstr ""
+"Dieser Dialog ermöglicht Ihnen einen (optionalen) Satz von vordefinierten "
+"Einstellungen zu übernehmen."
 
 #: admin/systems/askObjectGroup.tpl:13 admin/systems/askObjectGroup.tpl:24
-#, fuzzy
 msgid "Select object group"
-msgstr "Objektgruppe löschen"
+msgstr "Wählen Sie eine Objektgruppe"
 
 #: admin/systems/askObjectGroup.tpl:23
-#, fuzzy
 msgid "Choose an object group as template"
-msgstr "RDN für die Ablage von Objekt-Gruppen."
+msgstr "Wählen Sie eine Objektgruppe als Vorlage"
 
 #: admin/systems/askObjectGroup.tpl:31
 msgid "Continue"
@@ -115,9 +115,8 @@ msgid "None"
 msgstr "Keine"
 
 #: admin/systems/class_askOgroup.inc:52
-#, fuzzy
 msgid "Create workstation"
-msgstr "Arbeitsstation einfügen"
+msgstr "Arbeitsstation anlegen"
 
 #: admin/systems/class_askOgroup.inc:53 admin/systems/system-list.xml:213
 msgid "Create"
@@ -356,7 +355,6 @@ msgid "Reboot"
 msgstr "Neustarten"
 
 #: admin/systems/class_servGeneric.inc:208
-#, fuzzy
 msgid "Software update"
 msgstr "Systemaktualisierung"
 
@@ -391,7 +389,6 @@ msgid "Server name"
 msgstr "Server-Name"
 
 #: admin/systems/class_servGeneric.inc:359
-#, fuzzy
 msgid "Server Name"
 msgstr "Server-Name"
 
