@@ -286,9 +286,8 @@ msgid "Add from list"
 msgstr "Aus Liste hinzufügen"
 
 #: admin/fai/faiPackage.tpl:84
-#, fuzzy
 msgid "Edit package configurations"
-msgstr "Paket-Konfiguration"
+msgstr "Bearbeite Paket-Konfigurationen"
 
 #: admin/fai/packageSelect/class_packageSelect.inc:29
 msgid "Package selection"
@@ -1065,9 +1064,8 @@ msgid "The following package names don't match the Debian policy: %s"
 msgstr "Der folgende Paketname erfüllt nicht die Debian-Richtlinie: %s"
 
 #: admin/fai/class_faiPackage.inc:511
-#, fuzzy
 msgid "Remove configuration"
-msgstr "PHP-Konfiguration"
+msgstr "Konfiguration löschen"
 
 #: admin/fai/class_faiPackage.inc:517
 msgid "Package marked for removal"
@@ -1156,6 +1154,8 @@ msgid ""
 "The specified value '%s' for the variable type boolean is invalid."
 "<br><i>Allowed values: true, false, 1, 0.</i>"
 msgstr ""
+"Der angegebene Wert '%s' für den Variablen-Typ Boolean ist unzulässig."
+"<br><i>Erlaubte Werte: true, false, 1, 0.</i>"
 
 #: admin/fai/faiSummary.tpl:2
 msgid "Summary of used FAI classes"
@@ -1234,6 +1234,8 @@ msgstr "Vorlagen-Gruppe"
 #, php-format
 msgid "This FAI class name is already in use by the administrative unit '%s'."
 msgstr ""
+"Dieser FAI-Klassen-Name wird bereits von der administrativen Einheit '%s' "
+"verwendet."
 
 #: admin/fai/class_faiManagement.inc:25
 msgid "Software deployment"
@@ -1421,29 +1423,26 @@ msgid "Value"
 msgstr "Wert"
 
 #: admin/fai/class_faiDebconfConfigurations.inc:117
-#, fuzzy
 msgid "Currently saved"
-msgstr "Momentaner Status"
+msgstr "Wird aktuell gespeichert"
 
 #: admin/fai/class_faiDebconfConfigurations.inc:120
 #: admin/fai/class_faiDebconfConfigurations.inc:125
-#, fuzzy
 msgid "Currently not saved"
-msgstr "Einstellung wird nicht verwendet"
+msgstr "Wird aktuell nicht gespeichert"
 
 #: admin/fai/class_faiDebconfConfigurations.inc:238
-#, fuzzy
 msgid "Reset"
-msgstr "ACL zurücksetzen"
+msgstr "Zurücksetzen"
 
 #: admin/fai/class_faiDebconfConfigurations.inc:242
 msgid "Delete"
 msgstr "Entfernen"
 
 #: admin/fai/class_faiDebconfConfigurations.inc:276
-#, fuzzy, php-format
+#, php-format
 msgid "Debconf information for package list '%s'"
-msgstr "Debconf-Information für Paket '%s'"
+msgstr "Debconf-Informationen für Paketliste '%s'"
 
 #: admin/fai/class_faiDebconfConfigurations.inc:493
 #, php-format
@@ -1451,6 +1450,9 @@ msgid ""
 "The specified value '%s' for variable '%s' is not valid with the specified "
 "boolean variable type.<br><i>Allowed values: true, false, 1, 0.</i>"
 msgstr ""
+"Der angegebene Wert '%s' in der Variable '%s' ist mit dem angegebenen "
+"Variablen-Typ boolean nicht zulässig.<br><i>Erlaubte Werte: true, false, 1, "
+"0.</i>"
 
 #: admin/fai/faiGroupHandle.tpl:3
 msgid "Please select the objects you want to remove:"
@@ -1546,23 +1548,20 @@ msgid "The storage position for FAI object has changed!"
 msgstr "Die Ablage für FAI Objekte hat sich geändert!"
 
 #: admin/fai/NewDebconfConfiguration.tpl:2
-#, fuzzy
 msgid "New debconf configuration"
-msgstr "Passwort-Konfiguration"
+msgstr "Neue Debconf-Konfiguration"
 
 #: admin/fai/NewDebconfConfiguration.tpl:6
 msgid "In this dialog you can add a new debconf configuration."
-msgstr ""
+msgstr "In diesem Dialog können Sie eine neue Debconf-Konfiguration festlegen."
 
 #: admin/fai/NewDebconfConfiguration.tpl:30
-#, fuzzy
 msgid "Select package"
-msgstr "Verwendete Pakete"
+msgstr "Wählen Sie ein Paket"
 
 #: admin/fai/NewDebconfConfiguration.tpl:38
-#, fuzzy
 msgid "Select type"
-msgstr "Wählen Sie einen Report-Typ"
+msgstr "Wählen Sie einen Typ"
 
 #: admin/fai/class_faiPartitionTableEntry.inc:142
 msgid "primary"
@@ -1748,83 +1747,92 @@ msgstr "Dienste"
 #~ msgstr "Konfiguriert"
 
 #~ msgid ""
-#~ "The 'faiBaseRDN' statement defines the location where new fai objects "
-#~ "will be created. The default is 'ou=fai,ou=configs,ou=systems,'."
+#~ "#~ \"The 'faiBaseRDN' statement defines the location where new fai "
+#~ "objects \"#~ \"will be created. The default is 'ou=fai,ou=configs,"
+#~ "ou=systems,'.\""
 #~ msgstr ""
-#~ "Die 'faiBaseRDN' Option legt die Position fest, an welcher FAI Objekte im "
-#~ "LDAP abgelegt werden. Der Standard-Wert ist 'ou=fai,ou=configs,"
-#~ "ou=systems,'."
+#~ "#~ \"Die 'faiBaseRDN' Option legt die Position fest, an welcher FAI "
+#~ "Objekte im \"#~ \"LDAP abgelegt werden. Der Standard-Wert ist 'ou=fai,"
+#~ "ou=configs,\"#~ \"ou=systems,'.\""
 
 #~ msgid ""
-#~ "The 'defaultFaiRelease' property sets the default release, which gets "
-#~ "selected in the fai management."
+#~ "#~ \"The 'defaultFaiRelease' property sets the default release, which "
+#~ "gets \"#~ \"selected in the fai management.\""
 #~ msgstr ""
-#~ "Die 'defaultFaiRelease' Option setzt die Standard-Release, welche in der "
-#~ "FAI Verwaltung ausgewählt wird."
+#~ "#~ \"Die 'defaultFaiRelease' Option setzt die Standard-Release, welche in "
+#~ "der \"#~ \"FAI Verwaltung ausgewählt wird.\""
 
 #~ msgid ""
-#~ "The 'faiTemplateRDN' statement defines the location where new fai-"
-#~ "templates will be created. The default is 'ou=templates,'."
+#~ "#~ \"The 'faiTemplateRDN' statement defines the location where new fai-"
+#~ "\"#~ \"templates will be created. The default is 'ou=templates,'.\""
 #~ msgstr ""
-#~ "Die 'faiTemplateRDN' Option legt fest, an welcher Position neue FAI-"
-#~ "Templates im LDAP erstellt werden. Der Standart-Wert ist 'ou=templates,'."
+#~ "#~ \"Die 'faiTemplateRDN' Option legt fest, an welcher Position neue FAI-"
+#~ "\"#~ \"Templates im LDAP erstellt werden. Der Standart-Wert ist "
+#~ "'ou=templates,'.\""
 
 #~ msgid ""
-#~ "The 'faiProfileRDN' statement defines the location where new fai-profiles "
-#~ "will be created. The default is 'ou=profiles,'."
+#~ "#~ \"The 'faiProfileRDN' statement defines the location where new fai-"
+#~ "profiles \"#~ \"will be created. The default is 'ou=profiles,'.\""
 #~ msgstr ""
-#~ "Die 'faiProfileRDN' Option legt fest, an welcher Position neue FAI-"
-#~ "Profile im LDAP erstellt werden. Der Standard-Wert ist 'ou=profiles,'."
+#~ "#~ \"Die 'faiProfileRDN' Option legt fest, an welcher Position neue FAI-"
+#~ "\"#~ \"Profile im LDAP erstellt werden. Der Standard-Wert ist "
+#~ "'ou=profiles,'.\""
 
 #~ msgid ""
-#~ "The 'faiScriptRDN' statement defines the location where new fai-scripts "
-#~ "will be created. The default is 'ou=scripts,'."
+#~ "#~ \"The 'faiScriptRDN' statement defines the location where new fai-"
+#~ "scripts \"#~ \"will be created. The default is 'ou=scripts,'.\""
 #~ msgstr ""
-#~ "Die 'faiScriptRDN' Option legt fest, an welcher Position neue FAI-Skripte "
-#~ "im LDAP erstellt werden. Der Standard-Wert ist 'ou=scripts,'."
+#~ "#~ \"Die 'faiScriptRDN' Option legt fest, an welcher Position neue FAI-"
+#~ "Skripte \"#~ \"im LDAP erstellt werden. Der Standard-Wert ist "
+#~ "'ou=scripts,'.\""
 
 #~ msgid ""
-#~ "The 'faiHookRDN' statement defines the location where new fai-hooks will "
-#~ "be created. The default is 'ou=hooks,'."
+#~ "#~ \"The 'faiHookRDN' statement defines the location where new fai-hooks "
+#~ "will \"#~ \"be created. The default is 'ou=hooks,'.\""
 #~ msgstr ""
-#~ "Die 'faiHookRDN' Option legt fest, an welcher Position neue FAI Hook-"
-#~ "Skripte im LDAP erstellt werden. Der Standard-Wert ist 'ou=hooks,'."
+#~ "#~ \"Die 'faiHookRDN' Option legt fest, an welcher Position neue FAI Hook-"
+#~ "\"#~ \"Skripte im LDAP erstellt werden. Der Standard-Wert ist 'ou=hooks,'."
+#~ "\""
 
 #~ msgid ""
-#~ "The 'faiVariableRDN' statement defines the location where new fai-"
-#~ "variables will be created. The default is 'ou=variables,'."
+#~ "#~ \"The 'faiVariableRDN' statement defines the location where new fai-"
+#~ "\"#~ \"variables will be created. The default is 'ou=variables,'.\""
 #~ msgstr ""
-#~ "Die 'faiVariableRDN' Option legt fest, an welcher Position neue FAI-"
-#~ "Variablen im LDAP erstellt werden. Der Standard-Wert ist 'ou=variables,'."
+#~ "#~ \"Die 'faiVariableRDN' Option legt fest, an welcher Position neue FAI-"
+#~ "\"#~ \"Variablen im LDAP erstellt werden. Der Standard-Wert ist "
+#~ "'ou=variables,'.\""
 
 #~ msgid ""
-#~ "The 'faiPackageRDN' statement defines the location where new fai-packages "
-#~ "will be created. The default is 'ou=packages,'."
+#~ "#~ \"The 'faiPackageRDN' statement defines the location where new fai-"
+#~ "packages \"#~ \"will be created. The default is 'ou=packages,'.\""
 #~ msgstr ""
-#~ "Die 'faiPackageRDN' Option legt fest, an welcher Position neue FAI Paket-"
-#~ "Listen im LDAP erstellt werden. Der Standard-Wert ist 'ou=packages,'."
+#~ "#~ \"Die 'faiPackageRDN' Option legt fest, an welcher Position neue FAI "
+#~ "Paket-\"#~ \"Listen im LDAP erstellt werden. Der Standard-Wert ist "
+#~ "'ou=packages,'.\""
 
 #~ msgid ""
-#~ "The 'faiPartitionRDN' statement defines the location where new fai-"
-#~ "partitions will be created. The default is 'ou=disk,'."
+#~ "#~ \"The 'faiPartitionRDN' statement defines the location where new fai-"
+#~ "\"#~ \"partitions will be created. The default is 'ou=disk,'.\""
 #~ msgstr ""
-#~ "Die 'faiPartitionRDN' Option legt fest, an welcher Position neue FAI-"
-#~ "Partitionstabellen im LDAP erstellt werden. Der Standard-Wert ist "
-#~ "'ou=disk,'."
+#~ "#~ \"Die 'faiPartitionRDN' Option legt fest, an welcher Position neue FAI-"
+#~ "\"#~ \"Partitionstabellen im LDAP erstellt werden. Der Standard-Wert ist "
+#~ "\"#~ \"'ou=disk,'.\""
 
 #~ msgid ""
-#~ "The FAI plugin can be used in a way that it generates branched or freezed "
-#~ "releases inside your repository. Specifying the 'postcreate' and "
-#~ "'postmodify' keywords in the 'Repository service', calls the provided "
-#~ "script as a hook when adding or removing branches. This script should do "
-#~ "the rest inside of your repository."
+#~ "#~ \"The FAI plugin can be used in a way that it generates branched or "
+#~ "freezed \"#~ \"releases inside your repository. Specifying the "
+#~ "'postcreate' and \"#~ \"'postmodify' keywords in the 'Repository "
+#~ "service', calls the provided \"#~ \"script as a hook when adding or "
+#~ "removing branches. This script should do \"#~ \"the rest inside of your "
+#~ "repository.\""
 #~ msgstr ""
-#~ "Die FAI Erweiterung kann so verwendet werden, dass diese Teilbäume und "
-#~ "eingefrorene Releases in Ihren Repository anlegt. Geben Sie dazu die "
-#~ "'postcreate' und 'postmodify' Schlüsselwörter für die Repository "
-#~ "Erweiterung an, die so angegebenen Skripte werden dann beim erstellen "
-#~ "oder löschen eines Teilbaumes aufgerufen. Die Skripte sollten dann den "
-#~ "Rest innerhalb Ihren Repositories übernehmen."
+#~ "#~ \"Die FAI Erweiterung kann so verwendet werden, dass diese Teilbäume "
+#~ "und \"#~ \"eingefrorene Releases in Ihren Repository anlegt. Geben Sie "
+#~ "dazu die \"#~ \"'postcreate' und 'postmodify' Schlüsselwörter für die "
+#~ "Repository \"#~ \"Erweiterung an, die so angegebenen Skripte werden dann "
+#~ "beim erstellen \"#~ \"oder löschen eines Teilbaumes aufgerufen. Die "
+#~ "Skripte sollten dann den \"#~ \"Rest innerhalb Ihren Repositories "
+#~ "übernehmen.\""
 
 #~ msgid "SUID"
 #~ msgstr "SUID"
@@ -1866,13 +1874,13 @@ msgstr "Dienste"
 #~ msgstr "Dateisystem-Optionen"
 
 #~ msgid ""
-#~ "This includes all account data, system access rules, imap settings, etc. "
-#~ "for this user. Please double check if your really want to do this since "
-#~ "there is no way for GOsa to get your data back."
+#~ "#~ \"This includes all account data, system access rules, imap settings, "
+#~ "etc. \"#~ \"for this user. Please double check if your really want to do "
+#~ "this since \"#~ \"there is no way for GOsa to get your data back.\""
 #~ msgstr ""
-#~ "Dies umfasst alle Konto-Informationen, Zugriffsregeln, IMAP-"
-#~ "Einstellungen, etc. dieses Benutzers. Bitte prüfen Sie genau, da es keine "
-#~ "Möglichkeit für GOsa gibt, die Daten wiederherzustellen. "
+#~ "#~ \"Dies umfasst alle Konto-Informationen, Zugriffsregeln, IMAP-\"#~ "
+#~ "\"Einstellungen, etc. dieses Benutzers. Bitte prüfen Sie genau, da es "
+#~ "keine \"#~ \"Möglichkeit für GOsa gibt, die Daten wiederherzustellen. \""
 
 #~ msgid "Objects"
 #~ msgstr "Objekte"
@@ -1905,11 +1913,11 @@ msgstr "Dienste"
 #~ msgstr "Information"
 
 #~ msgid ""
-#~ "This menu allows you to select FAI class names and to add them to the "
-#~ "currently edited profile."
+#~ "#~ \"This menu allows you to select FAI class names and to add them to "
+#~ "the \"#~ \"currently edited profile.\""
 #~ msgstr ""
-#~ "Dieses Menü erlaubt es Ihnen, FAI Klassen-Namen auszuwählen und zum "
-#~ "gegenwärtig bearbeiteten Profil hinzuzufügen."
+#~ "#~ \"Dieses Menü erlaubt es Ihnen, FAI Klassen-Namen auszuwählen und zum "
+#~ "\"#~ \"gegenwärtig bearbeiteten Profil hinzuzufügen.\""
 
 #~ msgid "Filters"
 #~ msgstr "Filter"
@@ -1993,31 +2001,31 @@ msgstr "Dienste"
 #~ msgstr "Liste verfügbarer Pakete"
 
 #~ msgid ""
-#~ "The search returned too many results, only the first 200 entries are "
-#~ "shown."
+#~ "#~ \"The search returned too many results, only the first 200 entries are "
+#~ "\"#~ \"shown.\""
 #~ msgstr ""
-#~ "Die Suche ergab zu viele Treffer. Es werden nicht mehr als 200 Einträge "
-#~ "angezeigt!"
+#~ "#~ \"Die Suche ergab zu viele Treffer. Es werden nicht mehr als 200 "
+#~ "Einträge \"#~ \"angezeigt!\""
 
 #~ msgid ""
-#~ "This menu allows you to select multiple packages to add them to the "
-#~ "currently edited package list."
+#~ "#~ \"This menu allows you to select multiple packages to add them to the "
+#~ "\"#~ \"currently edited package list.\""
 #~ msgstr ""
-#~ "Dieses Menü erlaubt es Ihnen, Pakete auszuwählen und zur gegenwärtig "
-#~ "bearbeiteten Paketliste hinzuzufügen."
+#~ "#~ \"Dieses Menü erlaubt es Ihnen, Pakete auszuwählen und zur gegenwärtig "
+#~ "\"#~ \"bearbeiteten Paketliste hinzuzufügen.\""
 
 #~ msgid "Please enter your search string here"
 #~ msgstr "Bitte geben Sie hier einen Such-Text ein."
 
 #~ msgid ""
-#~ "This list displays all assigned package names for this repository "
-#~ "settings."
+#~ "#~ \"This list displays all assigned package names for this repository "
+#~ "\"#~ \"settings.\""
 #~ msgstr "Diese Liste zeigt alle diesem Repository zugeordneten Paket-Namen."
 
 #~ msgid "This menu allows you to create, delete and edit repository settings."
 #~ msgstr ""
-#~ "Dieses Menü erlaubt das Erstellen, Löschen und Bearbeiten von "
-#~ "Repositorien-Einstellungen."
+#~ "#~ \"Dieses Menü erlaubt das Erstellen, Löschen und Bearbeiten von \"#~ "
+#~ "\"Repositorien-Einstellungen.\""
 
 #~ msgid "Add repository"
 #~ msgstr "Repository hinzufügen"
