@@ -1179,9 +1179,8 @@ msgstr "Anwendungs-Einstellungen bearbeiten"
 
 #: admin/groups/apps/edit_entry.tpl:76
 #: admin/groups/apps/class_groupApplication.inc:1438
-#, fuzzy
 msgid "Place entry in members startmenu"
-msgstr "Platziere den Eintrag im Startmenü der Gruppenmitglieder"
+msgstr "Platziere einen Eintrag im Startmenü der Gruppenmitglieder"
 
 #: admin/groups/apps/class_groupApplication.inc:400
 #: admin/groups/apps/class_groupApplication.inc:404
@@ -1409,18 +1408,18 @@ msgstr "'Pfad / Volume' muß das Format 'server:port' haben!"
 
 #: admin/systems/services/shares/class_servNfs.inc:189
 msgid "'$' is only allowed at the end of the share name for hidden shares"
-msgstr ""
+msgstr "'$' ist nur am Ende des Namens für versteckte Freigaben erlaubt"
 
 #: admin/systems/services/shares/class_servNfs.inc:197
-#, fuzzy
 msgid ""
 "'Path / Volume' must contain at least one '/' and no special characters!"
-msgstr "'Pfad / Volume' muß mindestens ein '/' enthalten!"
+msgstr ""
+"'Pfad / Volume' muß mindestens ein '/' enthalten und keine Sonderzeichen!"
 
 #: admin/systems/services/shares/class_servNfs.inc:250
 #, php-format
 msgid "The share '%s' on another server '%s' already exists."
-msgstr ""
+msgstr "Die Freigabe '%s' existiert bereits auf einem anderen Server '%s'"
 
 #: admin/systems/services/terminal/goTerminalServer.tpl:1
 #: admin/systems/services/terminal/class_goTerminalServer.inc:26
@@ -1643,6 +1642,8 @@ msgid ""
 "Printer got configured on remote server '%s', Editing Driver will overwrite "
 "settings."
 msgstr ""
+"Der Drucker wurde auf dem Server '%s' eingerichtet; das Bearbeiten des "
+"Treiber wird die Einstellungen überschreiben"
 
 #: admin/systems/goto/class_printGeneric.inc:587
 #, php-format
@@ -1885,9 +1886,8 @@ msgid "Display device"
 msgstr "Anzeige"
 
 #: admin/systems/goto/workstationService.tpl:186
-#, fuzzy
 msgid "Inherit display attributes"
-msgstr "Zeit-Server-Attribute übernehmen"
+msgstr "Anzeige-Attribute übernehmen"
 
 #: admin/systems/goto/workstationService.tpl:192
 #: admin/systems/goto/class_workstationService.inc:93
@@ -2188,7 +2188,7 @@ msgstr "GUI"
 
 #: admin/systems/goto/class_workstationService.inc:90
 msgid "manual/auto"
-msgstr ""
+msgstr "manuell/auto"
 
 #: admin/systems/goto/class_workstationService.inc:97
 #: admin/systems/goto/class_workstationService.inc:98
@@ -2467,6 +2467,8 @@ msgid ""
 "This system is member of more than one object group, object group "
 "inheritence will not work!"
 msgstr ""
+"Dieses System is Mitglied von mehr als einer Objektgruppe, Vererbung ist "
+"nicht möglich!"
 
 #: admin/systems/goto/class_workstationStartup.inc:244
 #, php-format
@@ -2514,14 +2516,12 @@ msgid "Packages"
 msgstr ""
 
 #: admin/systems/goto/class_workstationStartup.inc:595
-#, fuzzy
 msgid "Scripts"
-msgstr "Skript"
+msgstr "Skripte"
 
 #: admin/systems/goto/class_workstationStartup.inc:598
-#, fuzzy
 msgid "Variables"
-msgstr "Variable"
+msgstr "Variablen"
 
 #: admin/systems/goto/class_workstationStartup.inc:600
 msgid "Hooks"
@@ -3730,16 +3730,15 @@ msgstr "Von"
 
 #: addons/goto/events/time_offset.tpl:2
 msgid "Extended settings for delayed operations"
-msgstr ""
+msgstr "Erweiterte Einstellungen für zeitversetzte Vorgänge"
 
 #: addons/goto/events/time_offset.tpl:10
 msgid "Time offset in minutes"
-msgstr ""
+msgstr "Zeitversatz in Minuten"
 
 #: addons/goto/events/time_offset.tpl:20
-#, fuzzy
 msgid "Concurrent operations"
-msgstr "Optionen aktivieren"
+msgstr "Anzahl gleichzeitiger Vorgänge"
 
 #: addons/goto/events/DaemonEvent_sysinfo.tpl:4
 msgid "Goto daemon event: System info"
@@ -4361,9 +4360,8 @@ msgid "Script can be replaced by user"
 msgstr "Skript kann vom Benutzer ausgetauscht werden"
 
 #: personal/environment/logonManagement.tpl:66
-#, fuzzy
 msgid "Import script"
-msgstr "Letztes Skript"
+msgstr "Skript importieren"
 
 #~ msgid "Instant update"
 #~ msgstr "Sofortiges Update"
