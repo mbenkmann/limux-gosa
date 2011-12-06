@@ -9,6 +9,7 @@
     <template>services/repository/repository-list.tpl</template>
     <label>List of repositories</label>
     <defaultSortColumn>1</defaultSortColumn>
+    <noAclChecks>true</noAclChecks>
 
     <objectType>
       <label>Service</label>
