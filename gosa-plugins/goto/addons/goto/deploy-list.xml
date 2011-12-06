@@ -6,6 +6,7 @@
     <departmentRootVisible>false</departmentRootVisible>
     <baseMode>false</baseMode>
     <multiSelect>true</multiSelect>
+    <noAclChecks>true</noAclChecks>
     <template>deploy-list.tpl</template>
     <label>List of queued jobs</label>
     <defaultSortColumn>3</defaultSortColumn>
