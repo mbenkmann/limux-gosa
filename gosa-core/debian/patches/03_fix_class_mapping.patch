@@ -27,7 +27,7 @@ Index: gosa/gosa-core/include/functions.inc
  define('DES3_CBC_SHA1',16);
  
  /* Include required files */
--require_once("class_location.inc");
+-include_once("class_location.inc");
 +require_once("/var/cache/gosa/class.cache");
  require_once ("functions_debug.inc");
  require_once ("accept-to-gettext.inc");
