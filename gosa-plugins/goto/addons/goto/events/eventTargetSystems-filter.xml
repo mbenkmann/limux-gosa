@@ -10,6 +10,8 @@
     <attribute>description</attribute>
     <attribute>dn</attribute>
     <attribute>objectClass</attribute>
+    <attribute>macAddress</attribute>
+    <attribute>ipHostNumber</attribute>
   </definition>
 
   <search>
