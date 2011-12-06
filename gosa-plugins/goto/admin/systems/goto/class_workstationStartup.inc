@@ -266,6 +266,7 @@ class workstartup extends plugin
         // Prepare lists
         $this->ldapList = new sortableListing(array(),array(), TRUE);
         $this->ldapList->setDeleteable(true);
+        $this->ldapList->setInstantDelete(false);
         $this->ldapList->setEditable(false);
         $this->ldapList->setWidth("100%");
         $this->ldapList->setHeight("100px");
@@ -274,6 +275,7 @@ class workstartup extends plugin
 
         $this->faiList = new sortableListing(array(),array(), TRUE);
         $this->faiList->setDeleteable(true);
+        $this->faiList->setInstantDelete(false);
         $this->faiList->setEditable(false);
         $this->faiList->setWidth("100%");
         $this->faiList->setHeight("160px");
