@@ -26,7 +26,7 @@ function smarty_block_render($params, $text, &$smarty)
      *	The parameter 'checked' specifies whether the box is checked or not.
      *  The checkbox disables or enables the current object.
      */
-	if(isset($params['checkbox']) && $params['checkbox']){
+	if(isset($params['checkbox']) && $params['checkbox'] && preg_match("/w/i", $acl)){
 
 		/* Detect name and id of the current object */
 		$use_text = preg_replace("/\n/"," ",$text);
