@@ -202,13 +202,13 @@ class servnfs extends plugin
             $message[]= msgPool::required(_("Type"));
         }
 
-        // only 0-9a-z
+        // only 0-9a-z\._äüö
         if(!$this->is_edit){
             if(empty($this->name)){
                 $message[]= msgPool::required(_("Name"));
             }
-            if(!preg_match("/^[a-z0-9\._äüö]*$/ui",$this->name)){
-              $message[]= msgPool::invalid(_("Name"),$this->name,"/[a-z0-9\._äüö]/ui");
+            if(!preg_match("/^[a-z0-9-\._äüö]*$/ui",$this->name)){
+              $message[]= msgPool::invalid(_("Name"),$this->name,"/[a-z0-9-\._äüö]/ui");
             }
         }
 
