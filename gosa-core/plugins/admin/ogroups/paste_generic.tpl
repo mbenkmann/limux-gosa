@@ -8,13 +8,15 @@
 		</td>
 	</tr>
 </table>
+<br>
+{if $copyMembers}
+<input class="center" type="checkbox" value="1" checked name="copyMembers" id="copyMembers">{t}Inherit Members{/t}<br>
+<br>
+{t}Note that settings are copied even if you choose to not inherit members. Those settings will be lost in case different type members get added to the group and will only appear once a new member of the current type is added.{/t}
+{else}
+{t}Note that only settings are copied and the new object group will have no members initially. Those settings will be lost in case different type members get added to the group and will only appear once a new member of the current type is added.{/t}
+{/if}
 
-
-
-<input type='checkbox' value='1' name='copyMembers' {if $copyMembers} checked {/if} id='copyMembers'>
-<LABEL for='copyMembers'>
-&nbsp;{t}Warning: systems can only inherit from a single object group!{/t}
-</LABEL>
 <script language="JavaScript" type="text/javascript">
 	focus_field('cn');
 </script>
