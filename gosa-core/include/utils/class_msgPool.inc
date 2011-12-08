@@ -279,7 +279,7 @@ class msgPool
         (strlen($mismatch)==1?sprintf(_("%s is not allowed:"), bold($mismatch)):sprintf(_("%s are not allowed!"), bold($mismatch))).
         "<br><br> \"$result\"$example";
     } else {
-      return sprintf(_("The Field %s contains invalid characters!"), bold($name))."!$example";
+      return sprintf(_("The Field %s contains invalid characters!"), bold($name))."$example";
     }
   }
 
