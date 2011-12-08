@@ -12,6 +12,7 @@ class gotoLogView extends plugin
 
     var $selected_date;
     var $selected_file = 0;
+    var $selected_type;
 
     var $attributes = array("macAddress");
     var $macAddress = "";
@@ -65,12 +66,23 @@ class gotoLogView extends plugin
                 if($mac != $this->mac) continue;
 
                 foreach($logs as $name => $log){
+                    $type = $log['FAI_ACTION'];
+                    switch($type) {
+                    case 'softupdate':
+                      $type = _("Software update");
+                      break;
+                    case 'install':
+                      $type = _("Installation");
+                      break;
+                    }
+
                     if(isset($log['FILES'])){
-                        foreach($log['FILES'] as $fkey => $fval){
-                            $tmp[] = array(
+                      foreach($log['FILES'] as $fkey => $fval){
+                          $tmp[] = array(
                                     'MAC'     => $mac,
                                     'DATE'    => $log['REAL_DATE'],
                                     'DATE_STR'=> $log['DATE_STR'],
+                                    'TYPE'    => $type,
                                     'FILE'    => $fval);
                         }
                     }
@@ -89,7 +101,7 @@ class gotoLogView extends plugin
         $this->logSelector->setAcl("rwcdm");
         $this->logSelector->setWidth("100%");
         $this->logSelector->setHeight("120px");
-        $this->logSelector->setHeader(array(_("Date"),_("Filename")));
+        $this->logSelector->setHeader(array(_("Date"),_("Filename"), _("Type")));
         $this->logSelector->setColspecs(array('80px', '100px', '200px', '120px','150px'));
     }
 
@@ -103,7 +115,7 @@ class gotoLogView extends plugin
         $data = array();
         foreach($logs as $key => $log){
             $data[$key] = array('data' => 
-                    array(date('d.m.Y H:i:s',$log['DATE']),$log['FILE']));
+                    array(date('d.m.Y H:i:s',$log['DATE']),$log['FILE'], $log['TYPE']));
         }
         return($data);
     }
@@ -131,10 +143,15 @@ class gotoLogView extends plugin
         $smarty->assign("mac",             set_post($this->mac));
         $smarty->assign("selected_file",   set_post($this->selected_file));
         $smarty->assign("selected_date",   set_post($this->selected_date));
-        $smarty->assign("log_file",        $this->get_log($this->mac,$this->selected_date,$this->selected_file));        
+        $smarty->assign("selected_type",$this->selected_type);
+        $smarty->assign("log_file", $this->get_log($this->mac,$this->selected_date,$this->selected_file, $this->selected_type));
+
         $smarty->assign("standalone",      $this->standalone);
         if (isset($this->logs[$this->mac])){
             $date = date("d.m.Y H:i:s",$this->logs[$this->mac][$this->selected_date]['REAL_DATE']);
+        }
+        if (isset($this->logs[$this->mac])){
+            $type = $this->logs[$this->mac][$this->selected_date]['FAI_ACTION'];
         }
         $file = $this->selected_file;
         $smarty->assign("selected_log",_("none"));
@@ -143,6 +160,7 @@ class gotoLogView extends plugin
         }
         $smarty->assign("ACL",preg_match("/r/",$this->getacl("")));
         $this->logSelector->setAcl($this->getacl(""));
+        $this->logSelector->update();
         $smarty->assign("listing", $this->logSelector->render());
         return($smarty->fetch(get_template_path('log_view.tpl', TRUE,dirname(__FILE__))));
     }

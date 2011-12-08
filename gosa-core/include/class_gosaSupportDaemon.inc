@@ -1800,7 +1800,11 @@ class gosaSupportDaemon
    
             $ret[$mac][$log_date] = array();
             $res = $this->_send($xml_msg2,TRUE);
-            $ret[$mac][$log_date]['DATE_STR']  = $log_date; 
+            $ret[$mac][$log_date]['DATE_STR']  = $log_date;
+            /* Determine FAI action */
+            $fai_action = split('_', $ret[$mac][$log_date]['DATE_STR']);
+            $fai_action = $fai_action[0];
+            $ret[$mac][$log_date]['FAI_ACTION'] = $fai_action;
             $ret[$mac][$log_date]['REAL_DATE'] = strtotime(preg_replace("/[^0-9]*/","",$log_date));
             if(isset($res['XML']['SHOW_LOG_FILES_BY_DATE_AND_MAC'])){
               $ret[$mac][$log_date]['FILES']     = $res['XML']['SHOW_LOG_FILES_BY_DATE_AND_MAC'];

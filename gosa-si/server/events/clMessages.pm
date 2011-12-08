@@ -76,6 +76,7 @@ sub save_fai_log {
     my $header = @{$msg_hash->{'header'}}[0];
     my $source = @{$msg_hash->{'source'}}[0];
     my $macaddress = @{$msg_hash->{'macaddress'}}[0];
+    my $fai_action = @{$msg_hash->{'fai_action'}}[0];
     my $all_logs = @{$msg_hash->{$header}}[0];
 
     # if there is nothing to log
@@ -96,7 +97,7 @@ sub save_fai_log {
 
     my $time = &get_time;
     $time = substr($time, 0, 8)."_".substr($time, 8, 6);
-    $client_fai_log_dir = File::Spec->catfile( $client_fai_log_dir, "install_$time" );
+    $client_fai_log_dir = File::Spec->catfile( $client_fai_log_dir, $fai_action ."_".$time );
     mkdir($client_fai_log_dir, 0755);
 
     my @all_logs = split(/log_file:/, $all_logs); 
