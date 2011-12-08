@@ -140,6 +140,21 @@ class deviceGeneric extends plugin
             $message[] = msgPool::permMove();
         }
 
+        if ($this->cn != $this->orig_cn || $this->base != $this->orig_base) {
+            $ldap = $this->config->get_ldap_link();
+            $ldap->cd($this->config->current['BASE']);
+            $ldap->search("(&(objectClass=gotoEnvironment)(gotoHotplugDeviceDN=".LDAP::prepare4filter($this->orig_dn)."))",
+                array("cn", "uid"));
+            $obj = array();
+            while($attrs = $ldap->fetch()){
+              $obj[$ldap->getDN()]= $attrs['cn'][0];
+            }
+            if ($obj != array()) {
+              $message[] = msgPool::stillInUse(_("Device"), $obj);
+            }
+        }
+
+
         return($message);
     }
 
