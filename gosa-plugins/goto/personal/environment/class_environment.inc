@@ -1226,7 +1226,7 @@ class environment extends plugin
     
     $this->detect_grouptype();
 
-    if($this->add_del_printer_member_was_called){
+    if($this->add_del_printer_member_was_called || $this->OrigCn != $this->cn){
 
       $types = array( "gotoUserPrinter"       => "AddUser",
           "gotoGroupPrinter"      => "AddGroup",
