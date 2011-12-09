@@ -21,6 +21,8 @@ class termgeneric extends plugin
     var $ghScsiDev= array();
     var $ghGfxAdapter= "-";
     var $ghSoundAdapter= "-";
+    var $gotoHardwareChecksum = "";
+    var $gotoSysStatus = "";
     var $gotoLastUser= "-";
     var $netConfigDNS;
     var $auto_activate= FALSE;
@@ -45,7 +47,7 @@ class termgeneric extends plugin
             "gotoSwapServer", "gotoSyslogServer", "gotoNtpServer",
             "gotoFloppyEnable", "gotoCdromEnable", "cn", "gotoSndModule",
             "ghCpuType", "ghMemSize","ghUsbSupport", "description",
-            "ghGfxAdapter", "ghSoundAdapter", "gotoLastUser");
+            "ghGfxAdapter", "ghSoundAdapter", "gotoLastUser", 'gotoHardwareChecksum', 'gotoSysStatus');
     var $objectclasses= array("top", "gotoTerminal", "GOhard");
 
     var $validActions   = array("reboot" => "", "rescan" => "", "wake" => "", "memcheck" => "", "sysinfo" => "");
@@ -662,6 +664,24 @@ another location! */
         if((in_array_strict("default",$this->gotoNtpServer)) || (count($this->gotoNtpServer)==0)){
             $this->inheritTimeServer = true;
             $this->gotoNtpServer=array();
+        }
+
+        $source_o = new termgeneric($this->config, $source['dn']);
+        foreach (array('ghIdeDev', 'ghNetNic', 'ghScsiDev') as $attr) {
+          if (isset($source_o->$attr)) {
+            $this->$attr = $source_o->$attr;
+          }
+        }
+
+        $ldap = $this->config->get_ldap_link();
+        $res = $ldap->cat($source['dn'], array('gotoHardwareChecksum', 'gotoSysStatus'));
+        if ($res) {
+          $attrs = $ldap->fetch();
+          foreach(array('gotoHardwareChecksum', 'gotoSysStatus') as $attr) {
+            if (isset($attrs[$attrs])) {
+              $this->$attr = $attrs[$attr][0];
+            }
+          }
         }
     }
 

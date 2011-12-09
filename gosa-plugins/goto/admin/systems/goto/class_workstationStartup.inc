@@ -19,7 +19,7 @@ class workstartup extends plugin
 
     /* attribute list for save action */
     var $attributes           = array("gotoLdapServer", "gotoBootKernel", "gotoKernelParameters", 
-            "FAIclass", "FAIstatus", "gotoShare","FAIdebianMirror", "FAIrelease");
+            "FAIclass", "FAIstatus", "gotoShare","FAIdebianMirror", "FAIrelease", "FAIstate");
     var $objectclasses        = array("GOhard", "FAIobject");
 
     /* Share */
@@ -36,6 +36,7 @@ class workstartup extends plugin
     var $FAIclass           = array();  // The currently selected classes 
     var $FAIrelease           = "";
     var $FAIdebianMirror      = "auto";
+    var $FAIstate             = "";
     var $si_active            = FALSE;
     var $si_fai_action_failed = FALSE;
 
@@ -919,9 +920,12 @@ another location! */
         plugin::PrepareForCopyPaste($source);    
         $source_o = new workstartup ($this->config, $source['dn']);
         foreach(array("FAIclass","gotoModules", "gotoAutoFs", "gotoFilesystem",
-                    "gotoKernelParameters","gotoShares","gotoLdapServers","gotoLdapServerList",
-                    "gotoLdap_inherit") as $attr){
-            $this->$attr = $source_o->$attr;
+              "FAIstate", "FAIrelease", "gotoKernelParameters","gotoShares",
+              "gotoLdapServers", "gotoLdap_inherit") as $attr){
+          $this->$attr = $source_o->$attr;
+        }
+        if (isset($source['FAIstate'])) {
+          $this->attrs['FAIstate'] = $source['FAIstate'];
         }
     }
 

@@ -21,6 +21,8 @@ class workgeneric extends plugin
     var $ghScsiDev= array();
     var $ghGfxAdapter= "-";
     var $ghSoundAdapter= "-";
+    var $gotoHardwareChecksum = "";
+    var $gotoSysStatus = "";
     var $gotoLastUser= "-";
     var $FAIscript= "";
     var $view_logged = FALSE;
@@ -48,7 +50,8 @@ class workgeneric extends plugin
     var $attributes= array("gotoMode", "gotoSyslogServer", "gotoNtpServer",
             "gotoFloppyEnable", "gotoCdromEnable", "cn", "gotoSndModule",
             "ghCpuType", "ghMemSize", "ghUsbSupport", "description",
-            "ghGfxAdapter", "ghSoundAdapter", "gotoLastUser", "l","FAIscript");
+            "ghGfxAdapter", "ghSoundAdapter", "gotoLastUser", "l","FAIscript",
+            "gotoHardwareChecksum", "gotoSysStatus");
     var $objectclasses= array("top", "gotoWorkstation", "GOhard");
 
     var $validActions   = array("reboot" => "", "localboot" => "", "halt" => "", "update" => "", "reinstall" => "",
@@ -710,6 +713,24 @@ class workgeneric extends plugin
         if((in_array_strict("default",$this->gotoNtpServer)) || (count($this->gotoNtpServer)==0)){
             $this->inheritTimeServer = true;
             $this->gotoNtpServer=array();
+        }
+
+        $source_o = new workgeneric($this->config, $source['dn']);
+        foreach (array('ghIdeDev', 'ghNetNic', 'ghScsiDev') as $attr) {
+          if (isset($source_o->$attr)) {
+            $this->$attr = $source_o->$attr;
+          }
+        }
+
+        $ldap = $this->config->get_ldap_link();
+        $res = $ldap->cat($source['dn'], array('gotoHardwareChecksum', 'gotoSysStatus'));
+        if ($res) {
+          $attrs = $ldap->fetch();
+          foreach(array('gotoHardwareChecksum', 'gotoSysStatus') as $attr) {
+            if (isset($attrs[$attr])) {
+              $this->$attr = $attrs[$attr][0];
+            }
+          }
         }
     }
 
