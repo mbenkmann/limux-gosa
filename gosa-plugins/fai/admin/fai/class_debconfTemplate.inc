@@ -266,14 +266,14 @@ class debconf
         return($this->render_string($data));
     } else {
         $choices= "";
-        foreach (split(", ", $data['Choices']) as $choice){
+        foreach (explode(", ", $data['Choices']) as $choice){
             $choices[]= $choice;
         }
       
         $input="<input type='hidden' name='multi-".$post_name."' value='1'>";
         $template = "\n<input name='%s-multi-%s' type='checkbox' value=\"%s\" %s onChange='javascript:document.getElementsByName(\"save_%s\")[0].checked = true;'>%s";
 
-        $defs = split(", ",$data['Default']);
+        $defs = explode(", ",$data['Default']);
         foreach($choices as $value){
             if(in_array($value,$defs)){
                 $input .= sprintf($template, $post_name, $value, htmlentities($value), "checked", $post_name, _($value));
