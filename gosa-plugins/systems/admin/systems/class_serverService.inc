@@ -61,6 +61,9 @@ class ServerService extends management
             $this->attrs = $this->parent->attrs;
         }
 
+        /* Initialize acl base */
+        $this->set_acl_base($this->dn);
+
         // Set storage points - We do not have any - We just create a fake list which lists all services 
         $this->storagePoints = array("");
 
