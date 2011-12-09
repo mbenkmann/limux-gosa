@@ -371,7 +371,6 @@ class faiPackage extends plugin
        *****/
       if(!preg_match('/freeze/i', $this->FAIstate) && preg_match('/^remove_configuration_/', $name)){
         $id = @postDecode(preg_replace("/^remove_configuration_(.*)$/","\\1",$name));
-        print "Going to remove configuration for $id (was: $name)<br>";
         if(isset($this->ConfiguredPackages[$id])) {
           $this->Removal[$id] = $this->ConfiguredPackages[$id];
           unset($this->ConfiguredPackages[$id]);

@@ -745,8 +745,6 @@ class systemManagement extends management
         if(!isset($tInfo[$info])){
             trigger_error("Unknown action type '".$action."' cant create a new system!");
         }else{
-          print "Creating new entry<br>";
-          print_a($tInfo);
             return(management::newEntry($action,$target,$all, 
                         $tInfo[$info]['tabClass'],
                         $tInfo[$info]['tabDesc'],
