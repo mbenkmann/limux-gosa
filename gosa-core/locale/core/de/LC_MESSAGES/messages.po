@@ -1313,9 +1313,8 @@ msgid "Please enter the new object group name"
 msgstr "Bitte geben Sie einen Namen für die neue Objektgruppe ein"
 
 #: plugins/admin/ogroups/paste_generic.tpl:13
-#, fuzzy
 msgid "Inherit Members"
-msgstr "Mitglieder"
+msgstr "Mitglieder übernehmen"
 
 #: plugins/admin/ogroups/paste_generic.tpl:15
 msgid ""
@@ -1323,6 +1322,10 @@ msgid ""
 "Those settings will be lost in case different type members get added to the "
 "group and will only appear once a new member of the current type is added."
 msgstr ""
+"Beachten Sie, dass die Einstellungen auch dann kopiert werden, wenn keine "
+"Mitglieder übernommen werden. Diese Einstellungen gehen verloren, wenn ein "
+"Mitglied von einem anderen Typ zu der Gruppe hinzugefügt wird und werden "
+"erst angezeigt, wenn ein entsprechendes Mitglied hinzugefügt wurde."
 
 #: plugins/admin/ogroups/paste_generic.tpl:17
 msgid ""
@@ -1331,6 +1334,11 @@ msgid ""
 "members get added to the group and will only appear once a new member of the "
 "current type is added."
 msgstr ""
+"Beachten Sie, dass lediglich die Einstellungen kopiert werden und die neue "
+"Objektgruppe Anfangs keine Mitglieder hat.  Diese Einstellungen gehen "
+"verloren, wenn ein Mitglied von einem anderen Typ zu der Gruppe hinzugefügt "
+"wird und werden erst angezeigt, wenn ein entsprechendes Mitglied hinzugefügt "
+"wurde."
 
 #: plugins/admin/ogroups/tabs_ogroups.inc:139
 msgid "Phone queue"
@@ -6981,5 +6989,5 @@ msgstr "Willkommen beim GOsa Einrichtungsassistenten"
 
 #~ msgid "Warning: systems can only inherit from a single object group!"
 #~ msgstr ""
-#~ "Mitglieder kopieren. Warnung: Systeme können nur von einer einzelnen "
-#~ "Gruppe erben!"
+#~ "#~ \"Mitglieder kopieren. Warnung: Systeme können nur von einer einzelnen "
+#~ "\"#~ \"Gruppe erben!\""
