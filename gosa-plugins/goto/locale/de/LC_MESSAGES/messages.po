@@ -3885,9 +3885,8 @@ msgid "View logs"
 msgstr "Protokolle einsehen"
 
 #: addons/goto/class_gotoLogView.inc:75
-#, fuzzy
 msgid "Installation"
-msgstr "Installationstyp"
+msgstr "Installation"
 
 #: addons/goto/class_gotoLogView.inc:104
 msgid "Date"
