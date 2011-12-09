@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: messages\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-02 10:42+0100\n"
+"POT-Creation-Date: 2011-12-09 14:13+0100\n"
 "PO-Revision-Date: 2005-11-18 15:26+0100\n"
 "Last-Translator: Alessandro Amici <a.amici@bopen.it>\n"
 "Language-Team: Italian\n"
@@ -143,7 +143,7 @@ msgstr "Modifica contatto"
 #: admin/systems/class_servGeneric.inc:264
 #: admin/systems/class_servGeneric.inc:440
 #: admin/systems/class_systemManagement.inc:328
-#: admin/systems/class_systemManagement.inc:1129
+#: admin/systems/class_systemManagement.inc:1127
 #, fuzzy
 msgid "LDAP error"
 msgstr "Errore LDAP"
@@ -170,12 +170,12 @@ msgstr "Nome"
 #: admin/systems/class_systemManagement.inc:275
 #: admin/systems/class_systemManagement.inc:713
 #: admin/systems/class_systemManagement.inc:719
-#: admin/systems/class_systemManagement.inc:794
-#: admin/systems/class_systemManagement.inc:877
-#: admin/systems/class_systemManagement.inc:892
-#: admin/systems/class_serverService.inc:232
-#: admin/systems/class_serverService.inc:277
-#: admin/systems/class_serverService.inc:485
+#: admin/systems/class_systemManagement.inc:792
+#: admin/systems/class_systemManagement.inc:875
+#: admin/systems/class_systemManagement.inc:890
+#: admin/systems/class_serverService.inc:235
+#: admin/systems/class_serverService.inc:280
+#: admin/systems/class_serverService.inc:488
 msgid "Error"
 msgstr ""
 
@@ -672,8 +672,8 @@ msgid "Opsi"
 msgstr ""
 
 #: admin/systems/system-filter.xml:103
-#: admin/systems/class_systemManagement.inc:1527
-#: admin/systems/class_systemManagement.inc:1528
+#: admin/systems/class_systemManagement.inc:1525
+#: admin/systems/class_systemManagement.inc:1526
 #, fuzzy
 msgid "Incoming objects"
 msgstr "Oggetti membri"
@@ -812,15 +812,15 @@ msgstr ""
 
 #: admin/systems/class_systemManagement.inc:596
 #: admin/systems/class_systemManagement.inc:684
-#: admin/systems/class_systemManagement.inc:1174
-#: admin/systems/class_systemManagement.inc:1221
-#: admin/systems/class_systemManagement.inc:1242
+#: admin/systems/class_systemManagement.inc:1172
+#: admin/systems/class_systemManagement.inc:1219
+#: admin/systems/class_systemManagement.inc:1240
 #, fuzzy
 msgid "Permission"
 msgstr "Permessi"
 
 #: admin/systems/class_systemManagement.inc:705
-#: admin/systems/class_serverService.inc:473
+#: admin/systems/class_serverService.inc:476
 #, fuzzy
 msgid "Information"
 msgstr "Icna"
@@ -832,38 +832,38 @@ msgid ""
 "install the required  plugins!"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:944
+#: admin/systems/class_systemManagement.inc:942
 #, fuzzy
 msgid "Internal error"
 msgstr "Terminal Server"
 
-#: admin/systems/class_systemManagement.inc:944
+#: admin/systems/class_systemManagement.inc:942
 #, fuzzy
 msgid "Cannot set mode to 'active'!"
 msgstr "Vai al dipartimento base"
 
-#: admin/systems/class_systemManagement.inc:1174
+#: admin/systems/class_systemManagement.inc:1172
 #, fuzzy, php-format
 msgid "You are not allowed to create a snapshot for %s."
 msgstr "Non hai il permesso di cambiare la tua password."
 
-#: admin/systems/class_systemManagement.inc:1221
-#: admin/systems/class_systemManagement.inc:1242
+#: admin/systems/class_systemManagement.inc:1219
+#: admin/systems/class_systemManagement.inc:1240
 #, fuzzy, php-format
 msgid "You are not allowed to restore a snapshot for %s."
 msgstr "Non hai il permesso di cambiare la tua password."
 
-#: admin/systems/class_systemManagement.inc:1513
+#: admin/systems/class_systemManagement.inc:1511
 #, fuzzy, php-format
 msgid "Inherited from %s"
 msgstr "Gruppi di oggetti"
 
-#: admin/systems/class_systemManagement.inc:1540
+#: admin/systems/class_systemManagement.inc:1538
 #, fuzzy
 msgid "RDN for system storage."
 msgstr "Algorimo password"
 
-#: admin/systems/class_systemManagement.inc:1549
+#: admin/systems/class_systemManagement.inc:1547
 #, fuzzy
 msgid "Incoming"
 msgstr "Icna"
@@ -901,11 +901,11 @@ msgstr "Mostra gruppi che contengono server"
 msgid "Execute"
 msgstr "Esegui"
 
-#: admin/systems/class_serverService.inc:473
+#: admin/systems/class_serverService.inc:476
 msgid "Cannot update service status until it has been saved!"
 msgstr ""
 
-#: admin/systems/class_serverService.inc:485
+#: admin/systems/class_serverService.inc:488
 #, fuzzy
 msgid "Cannot update service status!"
 msgstr "Impossibile aprite il certificato selezionato!"

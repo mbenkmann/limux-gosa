@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: admin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-02 10:41+0100\n"
+"POT-Creation-Date: 2011-12-09 14:13+0100\n"
 "PO-Revision-Date: 2010-01-28 23:21+0100\n"
 "Last-Translator: \n"
 "Language-Team: Spanish <>\n"
@@ -1323,8 +1323,24 @@ msgstr "Editar grupo de objetos"
 msgid "Please enter the new object group name"
 msgstr "Por favor introduzca un nuevo nombre del grupo de objetos"
 
-#: plugins/admin/ogroups/paste_generic.tpl:16
-msgid "Warning: systems can only inherit from a single object group!"
+#: plugins/admin/ogroups/paste_generic.tpl:13
+#, fuzzy
+msgid "Inherit Members"
+msgstr "Miembros"
+
+#: plugins/admin/ogroups/paste_generic.tpl:15
+msgid ""
+"Note that settings are copied even if you choose to not inherit members. "
+"Those settings will be lost in case different type members get added to the "
+"group and will only appear once a new member of the current type is added."
+msgstr ""
+
+#: plugins/admin/ogroups/paste_generic.tpl:17
+msgid ""
+"Note that only settings are copied and the new object group will have no "
+"members initially. Those settings will be lost in case different type "
+"members get added to the group and will only appear once a new member of the "
+"current type is added."
 msgstr ""
 
 #: plugins/admin/ogroups/tabs_ogroups.inc:139

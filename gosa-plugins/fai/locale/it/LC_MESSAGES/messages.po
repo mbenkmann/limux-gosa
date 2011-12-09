@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: messages\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-02 10:42+0100\n"
+"POT-Creation-Date: 2011-12-09 14:13+0100\n"
 "PO-Revision-Date: 2005-11-18 15:26+0100\n"
 "Last-Translator: Alessandro Amici <a.amici@bopen.it>\n"
 "Language-Team: Italian\n"
@@ -28,7 +28,7 @@ msgstr "Errore LDAP"
 #: admin/fai/class_faiScriptEntry.inc:72 admin/fai/class_faiScriptEntry.inc:75
 #: admin/fai/class_faiVariable.inc:142 admin/fai/class_faiHookEntry.inc:77
 #: admin/fai/class_faiHookEntry.inc:80 admin/fai/tabsPackage.inc:35
-#: admin/fai/class_faiSummaryTab.inc:95 admin/fai/class_faiPackage.inc:452
+#: admin/fai/class_faiSummaryTab.inc:95 admin/fai/class_faiPackage.inc:451
 #: admin/fai/tabsScript.inc:35 admin/fai/class_faiScript.inc:219
 #: admin/fai/class_faiManagement.inc:258 admin/fai/class_faiManagement.inc:332
 #: admin/fai/class_faiManagement.inc:945 admin/fai/class_faiManagement.inc:951
@@ -52,7 +52,7 @@ msgstr ""
 #: admin/fai/class_FAI.inc:596
 #: admin/fai/packageSelect/class_filterFAIPackages.inc:15
 #: admin/fai/class_faiPackageConfiguration.inc:35
-#: admin/fai/class_faiPackage.inc:299 admin/fai/class_faiPackage.inc:666
+#: admin/fai/class_faiPackage.inc:299 admin/fai/class_faiPackage.inc:665
 #: admin/fai/class_faiManagement.inc:900
 #: admin/fai/class_faiDebconfConfigurations.inc:71
 #: admin/systems/services/repository/class_servRepository.inc:356
@@ -120,7 +120,7 @@ msgstr "Terminal Server"
 msgid "Release creation failed due to LDAP errors: %s"
 msgstr ""
 
-#: admin/fai/faiDebconfConfigurations.tpl:1 admin/fai/class_faiPackage.inc:809
+#: admin/fai/faiDebconfConfigurations.tpl:1 admin/fai/class_faiPackage.inc:808
 #: admin/fai/class_faiDebconfConfigurations.inc:100
 #: admin/fai/NewDebconfConfiguration.tpl:16
 #, fuzzy
@@ -177,7 +177,7 @@ msgstr "Impostazioni generali delle code"
 #: admin/fai/class_faiHookEntry.inc:194 admin/fai/class_faiHookEntry.inc:237
 #: admin/fai/faiDiskEntry.tpl:10 admin/fai/fai-list.xml:28
 #: admin/fai/class_faiSummaryTab.inc:349 admin/fai/class_faiPackage.inc:132
-#: admin/fai/class_faiPackage.inc:644 admin/fai/class_faiPackage.inc:829
+#: admin/fai/class_faiPackage.inc:643 admin/fai/class_faiPackage.inc:828
 #: admin/fai/faiPartitionTableEntry.tpl:7 admin/fai/faiTemplate.tpl:9
 #: admin/fai/class_faiTemplateEntry.inc:232
 #: admin/fai/class_faiTemplateEntry.inc:298 admin/fai/class_faiScript.inc:76
@@ -210,7 +210,7 @@ msgstr "Cognome"
 #: admin/fai/class_faiVariableEntry.inc:135
 #: admin/fai/class_faiScriptEntry.inc:218 admin/fai/class_faiVariable.inc:407
 #: admin/fai/class_faiHookEntry.inc:238 admin/fai/faiDiskEntry.tpl:35
-#: admin/fai/class_faiPackage.inc:132 admin/fai/class_faiPackage.inc:830
+#: admin/fai/class_faiPackage.inc:132 admin/fai/class_faiPackage.inc:829
 #: admin/fai/faiPartitionTableEntry.tpl:13 admin/fai/faiTemplate.tpl:19
 #: admin/fai/class_faiTemplateEntry.inc:299 admin/fai/class_faiScript.inc:76
 #: admin/fai/class_faiScript.inc:525 admin/fai/class_faiDiskEntry.inc:155
@@ -255,16 +255,16 @@ msgid "Repository settings"
 msgstr "Riprova"
 
 #: admin/fai/faiPackage.tpl:33 admin/fai/fai-list.tpl:15
-#: admin/fai/class_faiPackage.inc:835 admin/fai/class_faiManagement.inc:1022
+#: admin/fai/class_faiPackage.inc:834 admin/fai/class_faiManagement.inc:1022
 #: admin/systems/services/repository/class_servRepositorySetup.inc:152
 #: admin/systems/services/repository/servRepositorySetup.tpl:20
-#: admin/systems/services/repository/repository-list.xml:27
-#: admin/systems/services/repository/repository-list.xml:60
+#: admin/systems/services/repository/repository-list.xml:28
+#: admin/systems/services/repository/repository-list.xml:61
 #, fuzzy
 msgid "Release"
 msgstr "Rimuovi"
 
-#: admin/fai/faiPackage.tpl:40 admin/fai/class_faiPackage.inc:832
+#: admin/fai/faiPackage.tpl:40 admin/fai/class_faiPackage.inc:831
 #, fuzzy
 msgid "Section"
 msgstr "Azione"
@@ -438,7 +438,7 @@ msgstr ""
 
 #: admin/fai/faiVariable.tpl:50 admin/fai/fai-list.xml:167
 #: admin/fai/class_faiDebconfConfigurations.inc:245
-#: admin/systems/services/repository/repository-list.xml:91
+#: admin/systems/services/repository/repository-list.xml:92
 msgid "Edit"
 msgstr "Modifica"
 
@@ -1052,12 +1052,12 @@ msgid "List of deployment classes and products"
 msgstr "Scegli il tuo numero di telefono personale"
 
 #: admin/fai/fai-list.xml:41
-#: admin/systems/services/repository/repository-list.xml:43
+#: admin/systems/services/repository/repository-list.xml:44
 msgid "Actions"
 msgstr "Azioni"
 
 #: admin/fai/fai-list.xml:52
-#: admin/systems/services/repository/repository-list.xml:54
+#: admin/systems/services/repository/repository-list.xml:55
 msgid "Create"
 msgstr "Creare"
 
@@ -1087,8 +1087,8 @@ msgstr "Oggetti membri"
 
 #: admin/fai/fai-list.xml:175 admin/fai/class_faiPartitionTableEntry.inc:252
 #: admin/fai/class_faiPartitionTableEntry.inc:254
-#: admin/systems/services/repository/repository-list.xml:72
-#: admin/systems/services/repository/repository-list.xml:98
+#: admin/systems/services/repository/repository-list.xml:73
+#: admin/systems/services/repository/repository-list.xml:99
 msgid "Remove"
 msgstr "Rimuovi"
 
@@ -1148,65 +1148,65 @@ msgstr ""
 msgid "The following package names don't match the Debian policy: %s"
 msgstr ""
 
-#: admin/fai/class_faiPackage.inc:511
+#: admin/fai/class_faiPackage.inc:510
 #, fuzzy
 msgid "Remove configuration"
 msgstr "Scarica il file di  configurazione"
 
-#: admin/fai/class_faiPackage.inc:517
+#: admin/fai/class_faiPackage.inc:516
 msgid "Package marked for removal"
 msgstr ""
 
-#: admin/fai/class_faiPackage.inc:534
+#: admin/fai/class_faiPackage.inc:533
 msgid "Mark package for removal"
 msgstr ""
 
-#: admin/fai/class_faiPackage.inc:540
+#: admin/fai/class_faiPackage.inc:539
 #, fuzzy
 msgid "Configure this package"
 msgstr "File di configurazione"
 
-#: admin/fai/class_faiPackage.inc:545
+#: admin/fai/class_faiPackage.inc:544
 #, fuzzy
 msgid "Remove this package"
 msgstr "Elimina foto"
 
-#: admin/fai/class_faiPackage.inc:630
+#: admin/fai/class_faiPackage.inc:629
 #, fuzzy
 msgid "Please select a least one package!"
 msgstr "Prego inserire un numero di telefono valido!"
 
-#: admin/fai/class_faiPackage.inc:634
+#: admin/fai/class_faiPackage.inc:633
 #, fuzzy
 msgid ""
 "Please choose a valid release/section combination for your repository setup!"
 msgstr "Specificare una dimenzione valida per le mail da rigettare."
 
-#: admin/fai/class_faiPackage.inc:810
+#: admin/fai/class_faiPackage.inc:809
 #, fuzzy
 msgid "FAI Package list"
 msgstr "Liste di blocco"
 
-#: admin/fai/class_faiPackage.inc:822
+#: admin/fai/class_faiPackage.inc:821
 msgid "RDN for FAI package storage."
 msgstr ""
 
-#: admin/fai/class_faiPackage.inc:831
+#: admin/fai/class_faiPackage.inc:830
 msgid "Packages"
 msgstr "Pacchetti"
 
-#: admin/fai/class_faiPackage.inc:832 admin/fai/class_faiPackage.inc:835
+#: admin/fai/class_faiPackage.inc:831 admin/fai/class_faiPackage.inc:834
 #: admin/fai/class_faiScript.inc:524 admin/fai/class_faiTemplate.inc:534
 #, fuzzy
 msgid "Read-only"
 msgstr "leggere"
 
-#: admin/fai/class_faiPackage.inc:833
+#: admin/fai/class_faiPackage.inc:832
 #, fuzzy
 msgid "Install Method"
 msgstr "Metodo di amministrazione della posta"
 
-#: admin/fai/class_faiPackage.inc:834
+#: admin/fai/class_faiPackage.inc:833
 #, fuzzy
 msgid "Package configuration"
 msgstr "Scarica il file di  configurazione"
@@ -1845,7 +1845,7 @@ msgstr ""
 
 #: admin/systems/services/repository/class_servRepository.inc:426
 #: admin/systems/services/repository/servRepositorySetup.tpl:40
-#: admin/systems/services/repository/repository-list.xml:35
+#: admin/systems/services/repository/repository-list.xml:36
 #, fuzzy
 msgid "Sections"
 msgstr "Azione"
@@ -1860,7 +1860,7 @@ msgstr "Riprova"
 msgid "List of repositories"
 msgstr "Lista degli utenti"
 
-#: admin/systems/services/repository/repository-list.xml:14
+#: admin/systems/services/repository/repository-list.xml:15
 #, fuzzy
 msgid "Service"
 msgstr "Servizi"

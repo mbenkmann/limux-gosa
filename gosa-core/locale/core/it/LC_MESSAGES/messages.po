@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: messages\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-02 10:41+0100\n"
+"POT-Creation-Date: 2011-12-09 14:13+0100\n"
 "PO-Revision-Date: 2005-11-18 15:26+0100\n"
 "Last-Translator: Alessandro Amici <a.amici@bopen.it>\n"
 "Language-Team: Italian\n"
@@ -1310,8 +1310,24 @@ msgstr "Gruppo di oggetti"
 msgid "Please enter the new object group name"
 msgstr "Inserisci la URI del server LDAP"
 
-#: plugins/admin/ogroups/paste_generic.tpl:16
-msgid "Warning: systems can only inherit from a single object group!"
+#: plugins/admin/ogroups/paste_generic.tpl:13
+#, fuzzy
+msgid "Inherit Members"
+msgstr "Membri"
+
+#: plugins/admin/ogroups/paste_generic.tpl:15
+msgid ""
+"Note that settings are copied even if you choose to not inherit members. "
+"Those settings will be lost in case different type members get added to the "
+"group and will only appear once a new member of the current type is added."
+msgstr ""
+
+#: plugins/admin/ogroups/paste_generic.tpl:17
+msgid ""
+"Note that only settings are copied and the new object group will have no "
+"members initially. Those settings will be lost in case different type "
+"members get added to the group and will only appear once a new member of the "
+"current type is added."
 msgstr ""
 
 #: plugins/admin/ogroups/tabs_ogroups.inc:139

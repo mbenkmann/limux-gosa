@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-02 10:41+0100\n"
+"POT-Creation-Date: 2011-12-09 14:13+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1258,8 +1258,23 @@ msgstr ""
 msgid "Please enter the new object group name"
 msgstr ""
 
-#: plugins/admin/ogroups/paste_generic.tpl:16
-msgid "Warning: systems can only inherit from a single object group!"
+#: plugins/admin/ogroups/paste_generic.tpl:13
+msgid "Inherit Members"
+msgstr ""
+
+#: plugins/admin/ogroups/paste_generic.tpl:15
+msgid ""
+"Note that settings are copied even if you choose to not inherit members. "
+"Those settings will be lost in case different type members get added to the "
+"group and will only appear once a new member of the current type is added."
+msgstr ""
+
+#: plugins/admin/ogroups/paste_generic.tpl:17
+msgid ""
+"Note that only settings are copied and the new object group will have no "
+"members initially. Those settings will be lost in case different type "
+"members get added to the group and will only appear once a new member of the "
+"current type is added."
 msgstr ""
 
 #: plugins/admin/ogroups/tabs_ogroups.inc:139

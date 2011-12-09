@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: messages\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-02 10:41+0100\n"
+"POT-Creation-Date: 2011-12-09 14:13+0100\n"
 "PO-Revision-Date: 2010-11-24 16:25+0100\n"
 "Last-Translator: Cajus Pollmeier <pollmeier@gonicus.de>\n"
 "Language-Team: German <kde-i18n-de@kde.org>\n"
@@ -1312,11 +1312,25 @@ msgstr "Objektgruppe einfügen"
 msgid "Please enter the new object group name"
 msgstr "Bitte geben Sie einen Namen für die neue Objektgruppe ein"
 
-#: plugins/admin/ogroups/paste_generic.tpl:16
-msgid "Warning: systems can only inherit from a single object group!"
+#: plugins/admin/ogroups/paste_generic.tpl:13
+#, fuzzy
+msgid "Inherit Members"
+msgstr "Mitglieder"
+
+#: plugins/admin/ogroups/paste_generic.tpl:15
+msgid ""
+"Note that settings are copied even if you choose to not inherit members. "
+"Those settings will be lost in case different type members get added to the "
+"group and will only appear once a new member of the current type is added."
 msgstr ""
-"Mitglieder kopieren. Warnung: Systeme können nur von einer einzelnen Gruppe "
-"erben!"
+
+#: plugins/admin/ogroups/paste_generic.tpl:17
+msgid ""
+"Note that only settings are copied and the new object group will have no "
+"members initially. Those settings will be lost in case different type "
+"members get added to the group and will only appear once a new member of the "
+"current type is added."
+msgstr ""
 
 #: plugins/admin/ogroups/tabs_ogroups.inc:139
 msgid "Phone queue"
@@ -6964,3 +6978,8 @@ msgstr "Die Willkommensnachricht"
 #: setup/class_setupStep_Welcome.inc:44
 msgid "Welcome to the GOsa setup assistent"
 msgstr "Willkommen beim GOsa Einrichtungsassistenten"
+
+#~ msgid "Warning: systems can only inherit from a single object group!"
+#~ msgstr ""
+#~ "Mitglieder kopieren. Warnung: Systeme können nur von einer einzelnen "
+#~ "Gruppe erben!"

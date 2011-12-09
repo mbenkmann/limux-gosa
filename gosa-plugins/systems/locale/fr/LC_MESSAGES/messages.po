@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: messages\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-02 10:42+0100\n"
+"POT-Creation-Date: 2011-12-09 14:13+0100\n"
 "PO-Revision-Date: 2010-11-25 23:25+0100\n"
 "Last-Translator: Benoit Mortier <benoit.mortier@opensides.be>\n"
 "Language-Team:  <fr@li.org>\n"
@@ -132,7 +132,7 @@ msgstr "Service vide"
 #: admin/systems/class_servGeneric.inc:264
 #: admin/systems/class_servGeneric.inc:440
 #: admin/systems/class_systemManagement.inc:328
-#: admin/systems/class_systemManagement.inc:1129
+#: admin/systems/class_systemManagement.inc:1127
 msgid "LDAP error"
 msgstr "Erreur LDAP"
 
@@ -155,12 +155,12 @@ msgstr "Nom du périphérique"
 #: admin/systems/class_systemManagement.inc:275
 #: admin/systems/class_systemManagement.inc:713
 #: admin/systems/class_systemManagement.inc:719
-#: admin/systems/class_systemManagement.inc:794
-#: admin/systems/class_systemManagement.inc:877
-#: admin/systems/class_systemManagement.inc:892
-#: admin/systems/class_serverService.inc:232
-#: admin/systems/class_serverService.inc:277
-#: admin/systems/class_serverService.inc:485
+#: admin/systems/class_systemManagement.inc:792
+#: admin/systems/class_systemManagement.inc:875
+#: admin/systems/class_systemManagement.inc:890
+#: admin/systems/class_serverService.inc:235
+#: admin/systems/class_serverService.inc:280
+#: admin/systems/class_serverService.inc:488
 msgid "Error"
 msgstr "Erreur"
 
@@ -601,8 +601,8 @@ msgid "Opsi"
 msgstr ""
 
 #: admin/systems/system-filter.xml:103
-#: admin/systems/class_systemManagement.inc:1527
-#: admin/systems/class_systemManagement.inc:1528
+#: admin/systems/class_systemManagement.inc:1525
+#: admin/systems/class_systemManagement.inc:1526
 msgid "Incoming objects"
 msgstr "Objets entrants"
 
@@ -730,14 +730,14 @@ msgstr ""
 
 #: admin/systems/class_systemManagement.inc:596
 #: admin/systems/class_systemManagement.inc:684
-#: admin/systems/class_systemManagement.inc:1174
-#: admin/systems/class_systemManagement.inc:1221
-#: admin/systems/class_systemManagement.inc:1242
+#: admin/systems/class_systemManagement.inc:1172
+#: admin/systems/class_systemManagement.inc:1219
+#: admin/systems/class_systemManagement.inc:1240
 msgid "Permission"
 msgstr "Permissions"
 
 #: admin/systems/class_systemManagement.inc:705
-#: admin/systems/class_serverService.inc:473
+#: admin/systems/class_serverService.inc:476
 msgid "Information"
 msgstr "Information"
 
@@ -748,36 +748,36 @@ msgid ""
 "install the required  plugins!"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:944
+#: admin/systems/class_systemManagement.inc:942
 msgid "Internal error"
 msgstr "Erreur interne"
 
-#: admin/systems/class_systemManagement.inc:944
+#: admin/systems/class_systemManagement.inc:942
 msgid "Cannot set mode to 'active'!"
 msgstr "Impossible de mettre le mode comme 'actif' !"
 
-#: admin/systems/class_systemManagement.inc:1174
+#: admin/systems/class_systemManagement.inc:1172
 #, php-format
 msgid "You are not allowed to create a snapshot for %s."
 msgstr ""
 "Vous n'êtes pas autorisé à créer une nouvelle copie instantanée pour %s."
 
-#: admin/systems/class_systemManagement.inc:1221
-#: admin/systems/class_systemManagement.inc:1242
+#: admin/systems/class_systemManagement.inc:1219
+#: admin/systems/class_systemManagement.inc:1240
 #, php-format
 msgid "You are not allowed to restore a snapshot for %s."
 msgstr "Vous n'êtes pas autorisé à restaurer un copie instantanée de %s."
 
-#: admin/systems/class_systemManagement.inc:1513
+#: admin/systems/class_systemManagement.inc:1511
 #, php-format
 msgid "Inherited from %s"
 msgstr "Hérité de %s"
 
-#: admin/systems/class_systemManagement.inc:1540
+#: admin/systems/class_systemManagement.inc:1538
 msgid "RDN for system storage."
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:1549
+#: admin/systems/class_systemManagement.inc:1547
 msgid "Incoming"
 msgstr "Entrants"
 
@@ -812,11 +812,11 @@ msgstr "Sélectionnez l'opération à exécuter sur le serveur"
 msgid "Execute"
 msgstr "Exécuter"
 
-#: admin/systems/class_serverService.inc:473
+#: admin/systems/class_serverService.inc:476
 msgid "Cannot update service status until it has been saved!"
 msgstr "Impossible de mettre à jour le statut avant que cela soit sauvé !"
 
-#: admin/systems/class_serverService.inc:485
+#: admin/systems/class_serverService.inc:488
 msgid "Cannot update service status!"
 msgstr "Impossible de mettre à jour le statut du service!"
 

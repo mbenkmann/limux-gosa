@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: messages\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-02 10:42+0100\n"
+"POT-Creation-Date: 2011-12-09 14:13+0100\n"
 "PO-Revision-Date: 2010-09-15 08:38+0100\n"
 "Last-Translator: Fabian Hickert <Fabian.Hickert@GONICUS.DE>\n"
 "Language-Team: de <kde-i18n-de@kde.org>\n"
@@ -35,7 +35,7 @@ msgstr "LDAP-Fehler"
 #: admin/fai/class_faiScriptEntry.inc:72 admin/fai/class_faiScriptEntry.inc:75
 #: admin/fai/class_faiVariable.inc:142 admin/fai/class_faiHookEntry.inc:77
 #: admin/fai/class_faiHookEntry.inc:80 admin/fai/tabsPackage.inc:35
-#: admin/fai/class_faiSummaryTab.inc:95 admin/fai/class_faiPackage.inc:452
+#: admin/fai/class_faiSummaryTab.inc:95 admin/fai/class_faiPackage.inc:451
 #: admin/fai/tabsScript.inc:35 admin/fai/class_faiScript.inc:219
 #: admin/fai/class_faiManagement.inc:258 admin/fai/class_faiManagement.inc:332
 #: admin/fai/class_faiManagement.inc:945 admin/fai/class_faiManagement.inc:951
@@ -59,7 +59,7 @@ msgstr "Fehler, die folgenden Objekte sollten gleich sein: '%s' und '%s'"
 #: admin/fai/class_FAI.inc:596
 #: admin/fai/packageSelect/class_filterFAIPackages.inc:15
 #: admin/fai/class_faiPackageConfiguration.inc:35
-#: admin/fai/class_faiPackage.inc:299 admin/fai/class_faiPackage.inc:666
+#: admin/fai/class_faiPackage.inc:299 admin/fai/class_faiPackage.inc:665
 #: admin/fai/class_faiManagement.inc:900
 #: admin/fai/class_faiDebconfConfigurations.inc:71
 #: admin/systems/services/repository/class_servRepository.inc:356
@@ -124,7 +124,7 @@ msgstr "Schwerer Fehler"
 msgid "Release creation failed due to LDAP errors: %s"
 msgstr "Das Erstellen des Releases ist fehlgeschlagen: '%s'."
 
-#: admin/fai/faiDebconfConfigurations.tpl:1 admin/fai/class_faiPackage.inc:809
+#: admin/fai/faiDebconfConfigurations.tpl:1 admin/fai/class_faiPackage.inc:808
 #: admin/fai/class_faiDebconfConfigurations.inc:100
 #: admin/fai/NewDebconfConfiguration.tpl:16
 msgid "Package"
@@ -178,7 +178,7 @@ msgstr "Allgemeine Benutzereinstellungen"
 #: admin/fai/class_faiHookEntry.inc:194 admin/fai/class_faiHookEntry.inc:237
 #: admin/fai/faiDiskEntry.tpl:10 admin/fai/fai-list.xml:28
 #: admin/fai/class_faiSummaryTab.inc:349 admin/fai/class_faiPackage.inc:132
-#: admin/fai/class_faiPackage.inc:644 admin/fai/class_faiPackage.inc:829
+#: admin/fai/class_faiPackage.inc:643 admin/fai/class_faiPackage.inc:828
 #: admin/fai/faiPartitionTableEntry.tpl:7 admin/fai/faiTemplate.tpl:9
 #: admin/fai/class_faiTemplateEntry.inc:232
 #: admin/fai/class_faiTemplateEntry.inc:298 admin/fai/class_faiScript.inc:76
@@ -211,7 +211,7 @@ msgstr "Name"
 #: admin/fai/class_faiVariableEntry.inc:135
 #: admin/fai/class_faiScriptEntry.inc:218 admin/fai/class_faiVariable.inc:407
 #: admin/fai/class_faiHookEntry.inc:238 admin/fai/faiDiskEntry.tpl:35
-#: admin/fai/class_faiPackage.inc:132 admin/fai/class_faiPackage.inc:830
+#: admin/fai/class_faiPackage.inc:132 admin/fai/class_faiPackage.inc:829
 #: admin/fai/faiPartitionTableEntry.tpl:13 admin/fai/faiTemplate.tpl:19
 #: admin/fai/class_faiTemplateEntry.inc:299 admin/fai/class_faiScript.inc:76
 #: admin/fai/class_faiScript.inc:525 admin/fai/class_faiDiskEntry.inc:155
@@ -253,15 +253,15 @@ msgid "Repository settings"
 msgstr "Repositorien-Einstellungen"
 
 #: admin/fai/faiPackage.tpl:33 admin/fai/fai-list.tpl:15
-#: admin/fai/class_faiPackage.inc:835 admin/fai/class_faiManagement.inc:1022
+#: admin/fai/class_faiPackage.inc:834 admin/fai/class_faiManagement.inc:1022
 #: admin/systems/services/repository/class_servRepositorySetup.inc:152
 #: admin/systems/services/repository/servRepositorySetup.tpl:20
-#: admin/systems/services/repository/repository-list.xml:27
-#: admin/systems/services/repository/repository-list.xml:60
+#: admin/systems/services/repository/repository-list.xml:28
+#: admin/systems/services/repository/repository-list.xml:61
 msgid "Release"
 msgstr "Release"
 
-#: admin/fai/faiPackage.tpl:40 admin/fai/class_faiPackage.inc:832
+#: admin/fai/faiPackage.tpl:40 admin/fai/class_faiPackage.inc:831
 msgid "Section"
 msgstr "Section"
 
@@ -414,7 +414,7 @@ msgstr "Wählen Sie eine Variable zum Entfernen oder Bearbeiten"
 
 #: admin/fai/faiVariable.tpl:50 admin/fai/fai-list.xml:167
 #: admin/fai/class_faiDebconfConfigurations.inc:245
-#: admin/systems/services/repository/repository-list.xml:91
+#: admin/systems/services/repository/repository-list.xml:92
 msgid "Edit"
 msgstr "Bearbeiten"
 
@@ -975,12 +975,12 @@ msgid "List of deployment classes and products"
 msgstr "Liste von zu verteilenden Klassen und Produkten"
 
 #: admin/fai/fai-list.xml:41
-#: admin/systems/services/repository/repository-list.xml:43
+#: admin/systems/services/repository/repository-list.xml:44
 msgid "Actions"
 msgstr "Aktionen"
 
 #: admin/fai/fai-list.xml:52
-#: admin/systems/services/repository/repository-list.xml:54
+#: admin/systems/services/repository/repository-list.xml:55
 msgid "Create"
 msgstr "Anlegen"
 
@@ -1006,8 +1006,8 @@ msgstr "Release entfernen"
 
 #: admin/fai/fai-list.xml:175 admin/fai/class_faiPartitionTableEntry.inc:252
 #: admin/fai/class_faiPartitionTableEntry.inc:254
-#: admin/systems/services/repository/repository-list.xml:72
-#: admin/systems/services/repository/repository-list.xml:98
+#: admin/systems/services/repository/repository-list.xml:73
+#: admin/systems/services/repository/repository-list.xml:99
 msgid "Remove"
 msgstr "Entfernen"
 
@@ -1063,59 +1063,59 @@ msgstr "Ungültiger Paketname"
 msgid "The following package names don't match the Debian policy: %s"
 msgstr "Der folgende Paketname erfüllt nicht die Debian-Richtlinie: %s"
 
-#: admin/fai/class_faiPackage.inc:511
+#: admin/fai/class_faiPackage.inc:510
 msgid "Remove configuration"
 msgstr "Konfiguration löschen"
 
-#: admin/fai/class_faiPackage.inc:517
+#: admin/fai/class_faiPackage.inc:516
 msgid "Package marked for removal"
 msgstr "Paket zum Entfernen vorgemerkt"
 
-#: admin/fai/class_faiPackage.inc:534
+#: admin/fai/class_faiPackage.inc:533
 msgid "Mark package for removal"
 msgstr "Paket zum Entfernen vormerken"
 
-#: admin/fai/class_faiPackage.inc:540
+#: admin/fai/class_faiPackage.inc:539
 msgid "Configure this package"
 msgstr "Dieses Paket konfigurieren"
 
-#: admin/fai/class_faiPackage.inc:545
+#: admin/fai/class_faiPackage.inc:544
 msgid "Remove this package"
 msgstr "Dieses Paket entfernen"
 
-#: admin/fai/class_faiPackage.inc:630
+#: admin/fai/class_faiPackage.inc:629
 msgid "Please select a least one package!"
 msgstr "Bitte wählen Sie mindestens ein Paket!"
 
-#: admin/fai/class_faiPackage.inc:634
+#: admin/fai/class_faiPackage.inc:633
 msgid ""
 "Please choose a valid release/section combination for your repository setup!"
 msgstr ""
 "Bitte wählen Sie eine gültige Kombination aus Release und Sektion für Ihr "
 "gewünschtes Repository!"
 
-#: admin/fai/class_faiPackage.inc:810
+#: admin/fai/class_faiPackage.inc:809
 msgid "FAI Package list"
 msgstr "FAI-Paketliste"
 
-#: admin/fai/class_faiPackage.inc:822
+#: admin/fai/class_faiPackage.inc:821
 msgid "RDN for FAI package storage."
 msgstr "RDN für die FAI-Paket Ablage"
 
-#: admin/fai/class_faiPackage.inc:831
+#: admin/fai/class_faiPackage.inc:830
 msgid "Packages"
 msgstr "Pakete"
 
-#: admin/fai/class_faiPackage.inc:832 admin/fai/class_faiPackage.inc:835
+#: admin/fai/class_faiPackage.inc:831 admin/fai/class_faiPackage.inc:834
 #: admin/fai/class_faiScript.inc:524 admin/fai/class_faiTemplate.inc:534
 msgid "Read-only"
 msgstr "Nur Lesen"
 
-#: admin/fai/class_faiPackage.inc:833
+#: admin/fai/class_faiPackage.inc:832
 msgid "Install Method"
 msgstr "Installations-Methode"
 
-#: admin/fai/class_faiPackage.inc:834
+#: admin/fai/class_faiPackage.inc:833
 msgid "Package configuration"
 msgstr "Paket-Konfiguration"
 
@@ -1727,7 +1727,7 @@ msgstr "URL"
 
 #: admin/systems/services/repository/class_servRepository.inc:426
 #: admin/systems/services/repository/servRepositorySetup.tpl:40
-#: admin/systems/services/repository/repository-list.xml:35
+#: admin/systems/services/repository/repository-list.xml:36
 msgid "Sections"
 msgstr "Sektionen"
 
@@ -1739,7 +1739,7 @@ msgstr "Repository"
 msgid "List of repositories"
 msgstr "Liste der Repositorien"
 
-#: admin/systems/services/repository/repository-list.xml:14
+#: admin/systems/services/repository/repository-list.xml:15
 msgid "Service"
 msgstr "Dienste"
 

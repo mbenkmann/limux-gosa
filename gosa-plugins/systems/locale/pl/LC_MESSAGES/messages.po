@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: polski\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-02 10:42+0100\n"
+"POT-Creation-Date: 2011-12-09 14:13+0100\n"
 "PO-Revision-Date: 2007-07-14 21:45+0100\n"
 "Last-Translator: Piotr Rybicki <meritus@innervision.pl>\n"
 "Language-Team: Piotr Rybicki <meritus@innervision.pl>\n"
@@ -139,7 +139,7 @@ msgstr "Edytuj usługę"
 #: admin/systems/class_servGeneric.inc:264
 #: admin/systems/class_servGeneric.inc:440
 #: admin/systems/class_systemManagement.inc:328
-#: admin/systems/class_systemManagement.inc:1129
+#: admin/systems/class_systemManagement.inc:1127
 #, fuzzy
 msgid "LDAP error"
 msgstr "błąd LDAP:"
@@ -165,12 +165,12 @@ msgstr "Nazwa urządzenia"
 #: admin/systems/class_systemManagement.inc:275
 #: admin/systems/class_systemManagement.inc:713
 #: admin/systems/class_systemManagement.inc:719
-#: admin/systems/class_systemManagement.inc:794
-#: admin/systems/class_systemManagement.inc:877
-#: admin/systems/class_systemManagement.inc:892
-#: admin/systems/class_serverService.inc:232
-#: admin/systems/class_serverService.inc:277
-#: admin/systems/class_serverService.inc:485
+#: admin/systems/class_systemManagement.inc:792
+#: admin/systems/class_systemManagement.inc:875
+#: admin/systems/class_systemManagement.inc:890
+#: admin/systems/class_serverService.inc:235
+#: admin/systems/class_serverService.inc:280
+#: admin/systems/class_serverService.inc:488
 msgid "Error"
 msgstr "Błąd"
 
@@ -656,8 +656,8 @@ msgid "Opsi"
 msgstr "Cienki klient"
 
 #: admin/systems/system-filter.xml:103
-#: admin/systems/class_systemManagement.inc:1527
-#: admin/systems/class_systemManagement.inc:1528
+#: admin/systems/class_systemManagement.inc:1525
+#: admin/systems/class_systemManagement.inc:1526
 #, fuzzy
 msgid "Incoming objects"
 msgstr "Przenieś obiekty"
@@ -792,15 +792,15 @@ msgstr "Polecenie '%s', podane jako POSTMODIFY dla dodatku '%s' nie istnieje."
 
 #: admin/systems/class_systemManagement.inc:596
 #: admin/systems/class_systemManagement.inc:684
-#: admin/systems/class_systemManagement.inc:1174
-#: admin/systems/class_systemManagement.inc:1221
-#: admin/systems/class_systemManagement.inc:1242
+#: admin/systems/class_systemManagement.inc:1172
+#: admin/systems/class_systemManagement.inc:1219
+#: admin/systems/class_systemManagement.inc:1240
 #, fuzzy
 msgid "Permission"
 msgstr "Uprawnienia"
 
 #: admin/systems/class_systemManagement.inc:705
-#: admin/systems/class_serverService.inc:473
+#: admin/systems/class_serverService.inc:476
 #, fuzzy
 msgid "Information"
 msgstr "Stacja robocza"
@@ -812,38 +812,38 @@ msgid ""
 "install the required  plugins!"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:944
+#: admin/systems/class_systemManagement.inc:942
 #, fuzzy
 msgid "Internal error"
 msgstr "Terminal Server"
 
-#: admin/systems/class_systemManagement.inc:944
+#: admin/systems/class_systemManagement.inc:942
 #, fuzzy
 msgid "Cannot set mode to 'active'!"
 msgstr "Utwórz nowy departament"
 
-#: admin/systems/class_systemManagement.inc:1174
+#: admin/systems/class_systemManagement.inc:1172
 #, fuzzy, php-format
 msgid "You are not allowed to create a snapshot for %s."
 msgstr "Brak uprawnień do zmiany przekazywania poczty"
 
-#: admin/systems/class_systemManagement.inc:1221
-#: admin/systems/class_systemManagement.inc:1242
+#: admin/systems/class_systemManagement.inc:1219
+#: admin/systems/class_systemManagement.inc:1240
 #, fuzzy, php-format
 msgid "You are not allowed to restore a snapshot for %s."
 msgstr "Brak uprawnień do zmiany przekazywania poczty"
 
-#: admin/systems/class_systemManagement.inc:1513
+#: admin/systems/class_systemManagement.inc:1511
 #, fuzzy, php-format
 msgid "Inherited from %s"
 msgstr "Grupy obiektów"
 
-#: admin/systems/class_systemManagement.inc:1540
+#: admin/systems/class_systemManagement.inc:1538
 #, fuzzy
 msgid "RDN for system storage."
 msgstr "Przechowywanie hasła"
 
-#: admin/systems/class_systemManagement.inc:1549
+#: admin/systems/class_systemManagement.inc:1547
 #, fuzzy
 msgid "Incoming"
 msgstr "Ikona"
@@ -878,12 +878,12 @@ msgstr "Proszę wybrać akcję do wykonania dla tego serwera"
 msgid "Execute"
 msgstr "Uruchom"
 
-#: admin/systems/class_serverService.inc:473
+#: admin/systems/class_serverService.inc:476
 #, fuzzy
 msgid "Cannot update service status until it has been saved!"
 msgstr "Nie można ustawić statusu podczas gdy nie zapisano tego serwera."
 
-#: admin/systems/class_serverService.inc:485
+#: admin/systems/class_serverService.inc:488
 #, fuzzy
 msgid "Cannot update service status!"
 msgstr "Nie można otworzyć wybranego certyfikatu!"
