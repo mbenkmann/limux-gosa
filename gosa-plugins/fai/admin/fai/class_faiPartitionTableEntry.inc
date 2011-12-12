@@ -236,13 +236,13 @@ class faiPartitionTableEntry extends plugin
         "changeState('FAIfsOptions_".$key."') ; \"";
 
       if($this->acl_is_writeable("FAIpartitionFlags")){
-        if($part['FAIpartitionFlags']!=false){
+        if($part['FAIpartitionFlags']=="preserve"){
           $str .= "\n<td><input type='checkbox' name='FAIpartitionFlags_".$key."' value='preserve' checked ".$changeState." ".$disableALL."></td>";
         }else{
           $str .= "\n<td><input type='checkbox' name='FAIpartitionFlags_".$key."' value='preserve' ".$changeState." ".$disableALL."></td>";
         }
       }else{
-        if($part['FAIpartitionFlags']!=false){
+        if($part['FAIpartitionFlags']=="preserve"){
           $str .= "<td>"._("False")."</td>";
         }else{
           $str .= "<td>"._("True")."</td>";
@@ -305,6 +305,10 @@ class faiPartitionTableEntry extends plugin
               $this->partitions[$key][$attrs] = false;
             }
           }
+
+          if(!$this->partitions[$key]['FAIpartitionFlags']) {
+            $this->partitions[$key]['FAIpartitionFlags'] = " ";
+          }
         }
 
         /* Adapt ext3 to have -j option */
@@ -351,6 +355,7 @@ class faiPartitionTableEntry extends plugin
   
       /* Skip all checks, if preserve is set */ 
       if($part['FAIpartitionFlags'] == "preserve"){
+        $this->partitions[$key]['FAImountPoint']    = "-";
         $this->partitions[$key]['FAIfsType']        = "preserve";
         $this->partitions[$key]['FAIpartitionSize'] = "preserve";
         continue;
