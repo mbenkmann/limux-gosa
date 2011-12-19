@@ -92,7 +92,6 @@ class baseSelector {
             $elements= array_reverse($elements, true);
 
             $this->pathMapping[$base]= $base == $config->current['BASE']? '/' : ldap::fix(preg_replace('/(^|,)[a-z0-9]+=/i', '/', implode(',', $elements)));
-            $this->pathMapping[$base]= LDAP::makeReadable(  $this->pathMapping[$base]);
         }
 
         // Save bases to session for autocompletion
@@ -170,7 +169,7 @@ class baseSelector {
             onmouseout=\"   mouseIsStillOver=false;
         rtimer=Element.hide.delay(0.25,'bs_".$this->pid."')\"
 
-            value=\"".htmlentities(LDAP::makeReadable($this->pathMapping[$this->base]),ENT_COMPAT,'utf-8')."\">";
+            value=\"".htmlentities($this->pathMapping[$this->base],ENT_COMPAT,'utf-8')."\">";
 
 
         // Autocompleter
