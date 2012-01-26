@@ -23,6 +23,22 @@
 class listingSortIterator implements Iterator {
   private $data;
 
+  /* strcoll wrapper that will sort underscores to the end */
+  public static function sort_underscores($a, $b) {
+    if ((substr($a, 0, 1)) == '_' && (substr($b, 0, 1) == '_')) {
+      return listingSortIterator::sort_underscores(substr($a, 1), substr($b, 1));
+    }
+    elseif (substr($a, 0, 1) == '_') {
+      return 1;
+    }
+    elseif (substr($b, 0, 1) == '_') {
+      return -1;
+    }
+    else {
+      return strcoll($a, $b);
+    }
+  }
+
   public function __construct($data, $direction, $attribute, $type= "string") {
     global $_sortAttribute;
     global $_sortType;
@@ -52,7 +68,7 @@ class listingSortIterator implements Iterator {
       // Take a look at the several types
       switch ($_sortType) {
         case 'string':
-          return strcoll($a, $b);
+          return listingSortIterator::sort_underscores($a, $b);
 
         case 'integer':
           return $b - $a;
