@@ -564,9 +564,10 @@ class faiManagement extends management
 
   /*! \brief   Save dialog/object modifications but keep the dialogs opened
    */
-  protected function applyChanges()
+  protected function applyChanges($re_init=FALSE)
   {
-    $str = management::applyChanges();
+    // Call apply changes without re_init
+    $str = management::applyChanges($re_init);
     if($str) return($str);
 
     // Now save changes
@@ -574,6 +575,9 @@ class faiManagement extends management
 
     // Cleanup
     $this->handle_release_cleanup($this->dn);
+
+    // Call re_init
+    $this->tabObject->re_init();
   }
 
 

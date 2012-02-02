@@ -1071,7 +1071,7 @@ class systemManagement extends management
     /*! \brief  Save object modifications here and any dialogs too.
      *          Keep dialogs opened.
      */
-    protected function applyChanges()
+    protected function applyChanges($re_init=TRUE)
     {
         $str = management::applyChanges();
         if($str) return($str);
