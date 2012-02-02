@@ -16,7 +16,7 @@
     <label>Default filter</label>
     <query>
       <backend>FAIPackages</backend>
-      <filter>$NAME</filter>
+      <filter>$</filter>
     </query>
     <autocomplete>
       <attribute>PACKAGE</attribute>
