@@ -24,8 +24,9 @@ class DaemonEvent_activate_new extends DaemonEvent
 {
     var $visible_for = HIDDEN_EVENT;
 
-    var $attributes = array("dhcp","ip","fqdn","ogroup","base","mac");
+    var $attributes = array("timestamp","dhcp","ip","fqdn","ogroup","base","mac");
 
+    var $timestamp = "";
     var $dhcp = "";
     var $ip = "";
     var $fqdn = "";
