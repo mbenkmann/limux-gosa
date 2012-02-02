@@ -263,7 +263,7 @@ class filter {
                 if ($this->value == "") {
                     $filter= call_user_func(array($m[1], $m[2]), preg_replace('/\$/', "*", $filter));
                 } else {
-                    $filter= call_user_func(array($m[1], $m[2]), preg_replace('/\$/', $this->value, $filter));
+                    $filter= call_user_func(array($m[1], $m[2]), preg_replace('/\$/', "*".normalizeLdap($this->value)."*", $filter));
                 }
             }
 
