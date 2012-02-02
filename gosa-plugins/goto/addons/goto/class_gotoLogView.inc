@@ -133,7 +133,7 @@ class gotoLogView extends plugin
             $id = $action['targets'][0];
             $entry = $this->logs[$id];
             $this->selected_file = $entry['FILE'];
-            $this->selected_date = $entry['DATE'];
+            $this->selected_date = $entry['DATE_STR'];
         }
 
 
@@ -156,7 +156,7 @@ class gotoLogView extends plugin
         $file = $this->selected_file;
         $smarty->assign("selected_log",_("none"));
         if(!empty($file)){
-            $smarty->assign("selected_log", $file.", ".date('d.m.Y H:i:s', $this->selected_date));
+            $smarty->assign("selected_log", $file.", ".date('d.m.Y H:i:s', $entry['DATE']));
         }
         $smarty->assign("ACL",preg_match("/r/",$this->getacl("")));
         $this->logSelector->setAcl($this->getacl(""));
