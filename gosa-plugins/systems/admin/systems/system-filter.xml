@@ -42,7 +42,9 @@
                   (objectClass=gotoPrinter)
                   (objectClass=sambaSamAccount)
                 )
-                (cn=$)
+                (|(cn=$)
+                  (description=$)
+                )
               )
       </filter>
     </query>
@@ -68,7 +70,9 @@
                   (objectClass=sambaSamAccount)
                   (&amp;(objectClass=goHard)(ou:dn:=%systemIncomingRDN))
                 )
-                (cn=$)
+                (|(cn=$)
+                  (description=$)
+                )
               )
       </filter>
     </query>
@@ -103,7 +107,7 @@
     <label>Incoming objects</label>
     <query>
       <backend>SYSTEMS</backend>
-      <filter>(&amp;(objectClass=goHard)(ou:dn:=%systemIncomingRDN)(cn=$))</filter>
+      <filter>(&amp;(objectClass=goHard)(ou:dn:=%systemIncomingRDN)(|(cn=$)(description=$)))</filter>
     </query>
     <autocomplete>
       <attribute>cn</attribute>
