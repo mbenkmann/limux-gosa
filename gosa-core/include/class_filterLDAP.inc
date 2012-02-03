@@ -25,7 +25,7 @@ class filterLDAP {
     // Store in base - i.e. is a rdn value empty?
     $storeOnBase= count($objectStorage) == 1 && empty($objectStorage[0]);
 
-    $method= ($storeOnBase && !($flags & GL_SUBSEARCH))?"ls":"search";
+    $default_method= ($storeOnBase && !($flags & GL_SUBSEARCH))?"ls":"search";
 
     // Initialize search bases
     $bases= array();
@@ -70,7 +70,12 @@ class filterLDAP {
     // Do search for every base
     $result= array();
     $limit_exceeded = FALSE;
+
+    // Save initial selected base for comparison purposes
+    $initial_base = $base;
+
     foreach($bases as $base => $dnFilters) {
+      $method = $default_method;
 
       // Break if the size limit is exceeded
       if($limit_exceeded){
@@ -88,6 +93,13 @@ class filterLDAP {
         $dnFilter= "";
       }
       $ldap->cd($base);
+
+      // In no-subsearch mode overwrite default method if
+      // current base equals the initial base
+      if ($base == $initial_base && !($flags & GL_SUBSEARCH)) {
+          $method = "ls";
+      }
+
       if ($method == "ls") {
         $ldap->ls("(&$filter$dnFilter)", $base, $attributes);
       } else {
