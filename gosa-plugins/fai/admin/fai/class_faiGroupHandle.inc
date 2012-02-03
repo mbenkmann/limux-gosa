@@ -41,6 +41,9 @@ class faiGroupHandle{
 
   function save_object()
   {
+    $vars = array('/faiGroupHandle_apply/', '/edit_selected/', '/^dn$/', '/FAI_group/', '/^mode$/');
+    session::set('LOCK_VARS_TO_USE',$vars);
+
     if(isset($_POST['faiGroupHandle'])){
       if(in_array_strict($this->mode,array("copy","cut","remove"))){
         foreach($this->FAI_group as $key => $group){
@@ -65,6 +68,10 @@ class faiGroupHandle{
         $this->canceled = TRUE;
       }
     }
+
+    // Store some information in the session, in case object is locked
+    session::set('FAI_group', $this->FAI_group);
+    session::set('mode', $this->mode);
   }
 
   function is_open()
