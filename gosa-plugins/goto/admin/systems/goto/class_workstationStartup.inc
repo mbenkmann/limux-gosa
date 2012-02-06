@@ -606,9 +606,9 @@ class workstartup extends plugin
                             "T"        => array("IMG"=> "plugins/fai/images/fai_template.png",
                                         "TITLE" => _('Templates')));
 
-                    if(isset($this->cache['CLASSES'][$this->FAIrelease][$class])){
+                    if(isset($this->cache['CLASSES'][$release][$class])){
                         $desc ="";
-                        foreach($this->cache['CLASSES'][$this->FAIrelease][$class] as $types ){
+                        foreach($this->cache['CLASSES'][$release][$class] as $types ){
                             if(isset($types['Abbr'])){
                                 $desc.= image($objects[$types['Abbr']]['IMG'],
                                   "", $objects[$types['Abbr']]['TITLE']);
@@ -617,18 +617,19 @@ class workstartup extends plugin
                                 }
                             }
                         }
-                    }
+                    } 
                     if(!empty($desc)){
                         $desc = "&nbsp;".trim($desc)."";
                     }        
 
                     $data[$class] = $class;
-                    $lData[$class] = array('data' => array($class,$desc));
+                    $lData[$class] = array('data' => array($class,$desc.$marker));
                 }  
             }// END FAI output generation 
         }// END FAI output generation 
 
         $this->faiList->setAcl('rwcdm');
+        $this->faiList->setDeleteable($this->FAIdebianMirror != "inherited");
         $this->faiList->setReorderable($this->FAIdebianMirror != "inherited");
         $this->faiList->setListData($data,$lData);
         $this->faiList->update();

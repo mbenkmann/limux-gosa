@@ -471,7 +471,7 @@ class systemManagement extends management
 
         // Now send remaining FAI/GOsa-si events here.
         if(count($target) && $this->si_active){
-            $mac= array();
+            $targets= array();
 
             // Collect target mac addresses
             $ldap = $this->config->get_ldap_link();
@@ -483,7 +483,7 @@ class systemManagement extends management
                 if($tD[$type]['sendEvents']){
                     $obj = $headpage->getEntry($dn);
                     if(isset($obj['macAddress'][0])){
-                        $mac[] = $obj['macAddress'][0];
+                        $targets[] = array( "mac" => $obj['macAddress'][0], "cn" => $obj['cn'][0] );
                     }
                 }
             }
@@ -492,13 +492,14 @@ class systemManagement extends management
              *  if this entry is currently processing.
              */
             if($triggered && in_array_strict($event,array("DaemonEvent_reinstall","DaemonEvent_update"))){
-                foreach($mac as $key => $mac_address){
+                foreach($targets as $key => $mac_address){
+                    $mac_address = $mac_address[0];
                     foreach($o_queue->get_entries_by_mac(array($mac_address)) as $entry){
                         $entry['STATUS'] = strtoupper($entry['STATUS']);
                         if($entry['STATUS'] == "PROCESSING" &&
                                 isset($events['QUEUED'][$entry['HEADERTAG']]) &&
                                 in_array_strict($events['QUEUED'][$entry['HEADERTAG']],array("DaemonEvent_reinstall","DaemonEvent_update"))){
-                            unset($mac[$key]);
+                            unset($targets[$key]);
 
                             new log("security","systems/".get_class($this),"",array(),"Skip adding 'DaemonEvent::".$type."' for mac '".$mac_address."', there is already a job in progress.");
                             break;
@@ -508,10 +509,10 @@ class systemManagement extends management
             }
 
             // Prepare event to be added
-            if(count($mac) && isset($events['BY_CLASS'][$event]) && $this->si_active){
+            if(count($targets) && isset($events['BY_CLASS'][$event]) && $this->si_active){
                 $event = $events['BY_CLASS'][$event];
                 $this->dialogObject = new $event['CLASS_NAME']($this->config);
-                $this->dialogObject->add_targets($mac);
+                $this->dialogObject->add_targets($targets);
 
                 if($triggered){
                     $this->dialogObject->set_type(TRIGGERED_EVENT);
@@ -1070,7 +1071,7 @@ class systemManagement extends management
     /*! \brief  Save object modifications here and any dialogs too.
      *          Keep dialogs opened.
      */
-    protected function applyChanges()
+    protected function applyChanges($re_init=TRUE)
     {
         $str = management::applyChanges();
         if($str) return($str);

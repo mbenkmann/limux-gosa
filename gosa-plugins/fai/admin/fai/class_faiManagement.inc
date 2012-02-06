@@ -125,6 +125,20 @@ class faiManagement extends management
     $this->registerAction("saveBranch","saveBranch");
     $this->registerAction("PerformBranch","PerformBranch");
 
+    $fai_types = array(
+      "FAIpartitionTable",
+      "FAIpackageList",
+      "FAIscript",
+      "FAIvariable",
+      "FAIhook",
+      "FAIprofile",
+      "FAItemplate",
+    );
+
+    foreach ($fai_types as $type) {
+      $this->registerAction("edit".$type, "editSubEntry");
+    }
+
     $releases = $this->getReleaseStates($this->config,$this->fai_base);
     $this->releaseSelector = new releaseSelector($releases, $this->fai_release, $this->fai_base);
     parent::__construct($config, $ui, "FAI object", $headpage);
@@ -272,6 +286,23 @@ class faiManagement extends management
     }
   }
 
+
+  function editSubEntry($action,$target, $all) {
+
+    // Guess requested type from action name
+    $class = str_replace("edit", "", $action);
+    $type = $this->get_type(array ( "objectClass" =>  array($class) ) );
+    $headpage = $this->getHeadpage();
+    $entry = $headpage->getEntry($target[0]);
+
+    if ($entry) {
+      $data = $entry['GROUPS'][$class];
+      $str = management::editEntry('editEntry', array($data['dn']), $all,
+      $type[0], $type[2], "fai");
+
+      if ($str) return $str;
+    }
+  }
 
   /*! \brief   Edit the selected entry.
    *           If there was a FAI group clicked, display a dialog with all members of the group.
@@ -496,11 +527,27 @@ class faiManagement extends management
    *           We are now going to display a dialog to let the user select the entry 
    *            he wants to perform the action on.
    */
-  function editByGroup()
+  function editByGroup()  
   {
-    if($this->dialogObject instanceOf faiGroupHandle && $this->dialogObject->get_mode() == "edit"){
-      $this->dialogObject->save_object();
-      $entry = $this->dialogObject->get_selected();
+    if($this->dialogObject instanceOf faiGroupHandle){
+     $mode = $this->dialogObject->get_mode();
+     $this->dialogObject->save_object();
+     $entry = $this->dialogObject->get_selected();
+     
+    } else {
+     // Fallback to retreiving information from session, which is the
+     // way to go if group entry selection dialog is followed by a locking dialog
+     $mode = session::get('mode');
+     $fai_group = session::get('FAI_group'); 
+     $entry = array();
+     foreach($fai_group as $key => $obj) {
+       if($obj['selected']) {
+         $entry[$key] = $obj;
+       }
+     }
+    }
+
+    if($mode && $mode == "edit"){
       $this->closeDialogs();
       $data = array_pop($entry);
       $type = $this->get_type($data);
@@ -508,14 +555,12 @@ class faiManagement extends management
       if($str) return($str);
       $this->tabObject->by_object[$type[1]]->FAIstate = $data['FAIstate'];
       $this->tabObject->read_only = preg_match("/freeze/i", $data['FAIstate']);
-    }elseif($this->dialogObject instanceOf faiGroupHandle && $this->dialogObject->get_mode() == "remove"){
-      $this->dialogObject->save_object();
-      $to_delete = $entry = $this->dialogObject->get_selected();
+    }elseif($mode && $mode == "remove"){
+      $to_delete = $entry;
       if(count($to_delete)) $this->closeDialogs();
       return($this->removeFAIObjects($to_delete));
-    }elseif($this->dialogObject instanceOf faiGroupHandle && $this->dialogObject->get_mode() == "copy"){
-      $this->dialogObject->save_object();
-      $entries = $entry = $this->dialogObject->get_selected();
+    }elseif($mode && $mode == "copy"){
+      $entries = $entry;
       if(count($entries)){
         foreach($entries as $entry){
           $type = $this->get_type($entry);
@@ -564,9 +609,10 @@ class faiManagement extends management
 
   /*! \brief   Save dialog/object modifications but keep the dialogs opened
    */
-  protected function applyChanges()
+  protected function applyChanges($re_init=FALSE)
   {
-    $str = management::applyChanges();
+    // Call apply changes without re_init
+    $str = management::applyChanges($re_init);
     if($str) return($str);
 
     // Now save changes
@@ -574,6 +620,9 @@ class faiManagement extends management
 
     // Cleanup
     $this->handle_release_cleanup($this->dn);
+
+    // Call re_init
+    $this->tabObject->re_init();
   }
 
 
@@ -1154,7 +1203,7 @@ class faiManagement extends management
     $icon_list = "";
     foreach($objects as $type => $type_data){
       if(in_array_strict($type, $classes)){
-        $icon_list .= image($type_data['IMG'],'edit_'.$row.'_'.$type,$type_data['NAME']);
+        $icon_list .= image($type_data['IMG'], 'listing_edit'.$type.'_'.$row,$type_data['NAME']);
       }else{
         $icon_list .= image('images/empty.png');
       }
@@ -1215,30 +1264,6 @@ class faiManagement extends management
     if(isset($_GET['act']) && $_GET['act'] == "branch_branch")  $action['action'] = "createBranch";
     if(isset($_GET['act']) && $_GET['act'] == "freeze_branch")  $action['action'] = "createFreeze";
     if(isset($_GET['act']) && $_GET['act'] == "remove_branch")  $action['action'] = "removeBranch";
-
-    foreach($_POST as $name => $value){
-      if(preg_match("/^edit_([0-9]*)_([a-z_]*)/i", $name)){
-        $id = preg_replace("/^edit_([0-9]*)_([a-z_]*)/i","\\1", $name);
-        $tab = preg_replace("/^edit_([0-9]*)_([a-z_]*)/i","\\2", $name);
-
-        $headpage = $this->getHeadpage();
-        $entry = $headpage->entries[$id];
-
-        if(in_array_strict('FAKE_OC_FAI', $entry['objectClass'])){
-          unset($_POST[$name]);
-          if(isset($headpage->entries[$id]['GROUPS'][$tab])){
-            $data =$headpage->entries[$id]['GROUPS'][$tab];
-            $type = $this->get_type($data);
-            $str = management::editEntry('editEntry',array($data['dn']),array(),$type[0],$type[2],"fai"); 
-            if($str) return($str);
-          } 
-        }else{
-          $str = $this->editEntry('editEntry',array($entry['dn'])); 
-          if($str) return($str);
-        }
-        break;
-      }
-    }
     return($action);
   }
 

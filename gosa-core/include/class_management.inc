@@ -856,7 +856,7 @@ class management
    *          - Calls '::check' to validate the given input.
    *          - Calls '::save' to save back object modifications (e.g. to ldap).
    */
-  protected function applyChanges()
+  protected function applyChanges($re_init=TRUE)
   {
     if($this->tabObject instanceOf tabs || $this->tabObject instanceOf multi_plug){
       $this->tabObject->save_object();
@@ -867,7 +867,9 @@ class management
       }else{
         $this->tabObject->save();
         @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__,$this->dns,"Modifications applied!");
-        $this->tabObject->re_init();
+        if ($re_init) {
+          $this->tabObject->re_init();
+        }
       }
     }
   }

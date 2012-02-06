@@ -866,7 +866,7 @@ class group extends plugin
          */
         if($this->gidNumber != ""){
             $ldap->cd($this->config->current['BASE']);
-            $ldap->search("(&(!(cn=".$this->orig_cn."))(objectClass=posixGroup)(gidNumber=".$this->gidNumber."))",array("cn"));
+            $ldap->search("(&(!(cn=".$this->cn."))(objectClass=posixGroup)(gidNumber=".$this->gidNumber."))",array("cn"));
             if($ldap->count()){
                 $cns = "";
                 while($attrs = $ldap->fetch()){

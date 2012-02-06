@@ -159,7 +159,7 @@ class environment extends plugin
             $tmp2['produkt']      = $tmp[2];
             $tmp2['vendor']       = $tmp[3];
             $tmp2['dn']           = $attrs['dn'];
-            $this->gotoHotplugDevices[] = $tmp2; 
+            $this->gotoHotplugDevices[$tmp2['name']] = $tmp2;
           }
         }else{
           msg_dialog::display(_("Warning"), sprintf(_("Device '%s' is not available anymore. It will be removed!"), $this->attrs['gotoHotplugDeviceDN'][$i]), WARNING_DIALOG);
