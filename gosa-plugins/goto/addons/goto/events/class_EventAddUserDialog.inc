@@ -74,6 +74,9 @@ class EventAddUserDialog extends management
             if(in_array_strict("gosaAccount",$entry['objectClass'])){
                 $a_targets['USERS'][] = $entry['uid'][0];
             }
+            if(in_array_strict("gosaGroupOfNames",$entry['objectClass'])){
+                $a_targets['OBJECTGROUPS'][] = $entry['cn'][0];
+            }
         }
         return($a_targets);
     }
