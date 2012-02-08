@@ -9,7 +9,7 @@
     <template>fai-list.tpl</template>
     <module>fai</module>
     <label>List of deployment classes and products</label>
-    <defaultSortColumn>0</defaultSortColumn>
+    <defaultSortColumn>1</defaultSortColumn>
 
     <objectType>
       <label>FAI</label>
@@ -22,7 +22,11 @@
   </definition>
 
   <table>
-    <layout>||250px|170px;r|</layout>
+    <layout>|20px;c||250px|170px;r|</layout>
+
+    <column>
+      <value>%{filter:filterLockedItem(row,objectClass)}</value>
+    </column>
 
     <column>
       <label>Name</label>
