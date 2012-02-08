@@ -27,6 +27,13 @@
       <image>plugins/groups/images/select_group.png</image>
     </objectType>
 
+    <objectType>
+      <label>Object group</label>
+      <objectClass>gosaGroupOfNames</objectClass>
+      <category>ogroups</category>
+      <class>ogroup</class>
+      <image>plugins/ogroups/images/ogroup.png</image>
+    </objectType>
   </definition>
 
   <table>

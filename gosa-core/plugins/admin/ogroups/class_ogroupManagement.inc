@@ -133,7 +133,7 @@ class ogroupManagement extends management
 
             // Collect selected ogroups
             foreach($target as $dn){
-                $ldap->cat($dn, array('member'));
+                $ldap->cat($dn, array('member'), '(member=*)');
                 while ($entry = $ldap->fetch()) {
                     $m_list[] = $entry;
                 }
@@ -161,16 +161,14 @@ class ogroupManagement extends management
                 }
             }
 
-            // We've at least one recipient
-            if(count($targets)){
-                $events = DaemonEvent::get_event_types(USER_EVENT);
-                if(isset($events['BY_CLASS']['DaemonEvent_notify'])){
-                    $type = $events['BY_CLASS']['DaemonEvent_notify'];
-                    $this->dialogObject = new $type['CLASS_NAME']($this->config);
-                    $this->dialogObject->add_targets($targets);
-                    $this->dialogObject->set_type(TRIGGERED_EVENT);
-                }
-            }
+			// We've at least one recipient
+			$events = DaemonEvent::get_event_types(USER_EVENT);
+			if(isset($events['BY_CLASS']['DaemonEvent_notify'])){
+				$type = $events['BY_CLASS']['DaemonEvent_notify'];
+				$this->dialogObject = new $type['CLASS_NAME']($this->config);
+				$this->dialogObject->add_targets($targets);
+				$this->dialogObject->set_type(TRIGGERED_EVENT);
+			}
 
         }
     }

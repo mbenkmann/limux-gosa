@@ -186,6 +186,10 @@ class DaemonEvent_notify extends DaemonEvent
      */
     public function add_targets($targets)
     {
+        if(isset($targets['OBJECTGROUPS'])){
+          $ogroup_targets = $this->resolve_objectgroups($targets['OBJECTGROUPS']);
+          $targets = array_merge_recursive($targets, $ogroup_targets);
+        }
         if(isset($targets['USERS'])){
             $this->add_users($targets['USERS']);
         }
@@ -194,6 +198,39 @@ class DaemonEvent_notify extends DaemonEvent
         }
     }
 
+
+    /*! \brief Resolve an object group to the contained users and groups
+        @param Array A list of all object groups
+    */
+    public function resolve_objectgroups($targets)
+    {
+      $result = array();
+
+      foreach($targets as $ogroup) {
+        $ldap = $this->config->get_ldap_link();
+        $ldap->cd(get_groups_ou().$this->config->current['BASE']);
+        $ldap->search("(&(cn=".$ogroup.")(member=*))", array('member'));
+        while ($entry = $ldap->fetch()) {
+          $members = $entry['member'];
+            for($i=0;$i<$members['count'];$i++) {
+              $ldap->cat($members[$i], array('uid','cn','objectClass'));
+              if ($ldap->count() > 0) {
+                $attrs = $ldap->fetch();
+                /* Determine which type the object has */
+                if (array_search('gosaAccount', $attrs['objectClass'])) {
+                  $uid = $attrs['uid'][0];
+                  $result['USERS'][] = $uid;
+                }
+                elseif (array_search('posixGroup', $attrs['objectClass'])) {
+                  $group = $attrs['cn'][0];
+                  $result['GROUPS'][] = $group;
+                }
+              }
+            }
+        }
+      }
+      return $result;
+    }
 
     public function save()
     {
