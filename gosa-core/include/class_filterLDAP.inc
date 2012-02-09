@@ -101,9 +101,9 @@ class filterLDAP {
       }
 
       if ($method == "ls") {
-        $ldap->ls("(&$filter$dnFilter)", $base, $attributes);
+        $ldap->ls("(&$filter$dnFilter)", $base, $attributes, TRUE);
       } else {
-        $ldap->search("(&$filter$dnFilter)", $attributes);
+        $ldap->search("(&$filter$dnFilter)", $attributes, TRUE);
       }
 
       // Check for size limit exceeded messages for GUI feedback

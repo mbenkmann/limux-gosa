@@ -129,12 +129,12 @@ class environment extends plugin
     /* Get all Printer assignments */
     $ldap = $this->config->get_ldap_link();
     $ldap->cd($this->config->current['BASE']);
-    $ldap->search("(&(objectClass=gotoPrinter)(goto".$suffix."Printer=".$this->uid."))",array("*"));
+    $ldap->search("(&(objectClass=gotoPrinter)(goto".$suffix."Printer=".$this->uid."))",array("*"),TRUE);
     while($printer = $ldap->fetch()){
       $this->gotoPrinter[$printer['cn'][0]]=$printer;
       $this->gotoPrinter[$printer['cn'][0]]['mode']="user";
     }
-    $ldap->search("(&(objectClass=gotoPrinter)(goto".$suffix."AdminPrinter=".$this->uid."))",array("*"));
+    $ldap->search("(&(objectClass=gotoPrinter)(goto".$suffix."AdminPrinter=".$this->uid."))",array("*"),TRUE);
     while($printer = $ldap->fetch()){
       $this->gotoPrinter[$printer['cn'][0]]=$printer;
       $this->gotoPrinter[$printer['cn'][0]]['mode']="admin";
@@ -309,7 +309,7 @@ class environment extends plugin
     $tmp3  = array();
     $ldap = $this->config->get_ldap_link();
     $ldap->cd($this->config->current['BASE']);
-    $ldap->search("(&(objectClass=goEnvironmentServer)(gotoKioskProfile=*)(cn=*))",array("cn","gotoKioskProfile"));
+    $ldap->search("(&(objectClass=goEnvironmentServer)(gotoKioskProfile=*)(cn=*))",array("cn","gotoKioskProfile"),TRUE);
     $cnt = 0;
     $ui = get_userinfo();
     while($attrs = $ldap->fetch()){
@@ -1243,7 +1243,7 @@ class environment extends plugin
 
       /* Remove old entries */
       $ldap->cd($this->config->current['BASE']);;
-      $ldap->search("(&(objectClass=gotoPrinter)(goto".$s_suffix."Printer=".$this->$useVar."))",array("*"));
+      $ldap->search("(&(objectClass=gotoPrinter)(goto".$s_suffix."Printer=".$this->$useVar."))",array("*"),TRUE);
       while($attr = $ldap->fetch()){
         $printerObj = NULL;
         $printerObj = new printtabs($this->config,$this->config->data['TABS']['PRINTTABS'],$attr['dn'],"printer");
@@ -1253,7 +1253,7 @@ class environment extends plugin
       }
 
       $ldap->cd($this->config->current['BASE']);;
-      $ldap->search("(&(objectClass=gotoPrinter)(goto".$s_suffix."AdminPrinter=".$this->$useVar."))",array("*"));
+      $ldap->search("(&(objectClass=gotoPrinter)(goto".$s_suffix."AdminPrinter=".$this->$useVar."))",array("*"),TRUE);
       while($attr = $ldap->fetch()){
         $printerObj = NULL;
         $printerObj = new printtabs($this->config,$this->config->data['TABS']['PRINTTABS'],$attr['dn'],"printer");

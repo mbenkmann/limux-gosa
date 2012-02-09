@@ -1423,7 +1423,7 @@ function getDepartments()
         $attrs[]= $data['ATTR'];
     }
     $filter.= "))";
-    $res= get_list($filter, $this->categories, $this->base, $attrs, GL_NONE);
+    $res= get_list($filter, $this->categories, $this->base, $attrs, GL_FILTER_UNITTAG);
 
     // Analyze list of departments
     foreach ($res as $department) {

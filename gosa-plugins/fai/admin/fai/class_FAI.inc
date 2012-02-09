@@ -27,7 +27,7 @@ class FAI
      This function resolves the releases  
      from base up to the given dn.
    */
-  static function get_all_objects_for_given_base($Current_DN,$filter,$detailed = false)
+  static function get_all_objects_for_given_base($Current_DN,$filter,$detailed = false, $filter_unittag=TRUE)
   {
     global $config;
     $ldap = $config->get_ldap_link();
@@ -39,6 +39,10 @@ class FAI
 #      return($res);
     }
 
+    if ($filter_unittag) {
+        # Add unittag filter which includes objects which do not have a tag
+        $filter = LDAP::add_unittag_filter($filter, TRUE);
+    }
     /* Collect some basic informations and initialize some variables */ 
     $base_release       = FAI::get_release_dn($Current_DN);
     $previous_releases  = array_reverse(FAI::get_previous_releases_of_this_release($base_release,true));

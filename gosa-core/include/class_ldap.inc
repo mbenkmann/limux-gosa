@@ -108,6 +108,33 @@ class LDAP
     }
 
 
+    /* Function to add a unittag filter to a given filter, if honour unittag
+     * configuration option is set to a true value
+     *
+     * @param filter The input filter, which should be extended by a unittag filter.
+     * @param include_empty_tags Optional parameter, indicating weither objects
+     * without a tag should be included in a result list or not. Default is FALSE, which
+     * means only tagged objects will be included
+     * */
+    static function add_unittag_filter($filter, $include_empty_tags=FALSE) {
+        global $config;
+        global $ui;
+
+        $utags = isset($config->current['HONOURUNITTAGS']) &&
+            preg_match('/true/i', $config->current['HONOURUNITTAGS']);
+
+        if ($utags) {
+          if ($include_empty_tags) {
+            $tag_filter = "(|" . "(!(gosaUnitTag=*))" . "(gosaUnitTag=". $ui->gosaUnitTag . "))";
+          } else {
+            $tag_filter = "(gosaUnitTag=" . $ui->gosaUnitTag . ")";
+          }
+
+          $filter = "(&" . $filter . $tag_filter . ")";
+        }
+        return $filter;
+    }
+
     /* \brief     Tests for the special-char handling of the currently used ldap database 
      *             and updates the LDAP class correspondingly.
      *            This affects the LDAP::fix function and allows us to write 
@@ -311,10 +338,14 @@ class LDAP
     }
 
 
-    function search($srp, $filter, $attrs= array())
+    function search($srp, $filter, $attrs= array(), $filter_unittag=FALSE)
     {
         if($this->hascon){
             if ($this->reconnect) $this->connect();
+
+            if ($filter_unittag) {
+                $filter = LDAP::add_unittag_filter($filter);
+            }
 
             $start = microtime(true);
             $this->clearResult($srp);
@@ -343,10 +374,15 @@ class LDAP
         }
     }
 
-    function ls($srp, $filter = "(objectclass=*)", $basedn = "",$attrs = array("*"))
+    function ls($srp, $filter = "(objectclass=*)", $basedn = "",$attrs = array("*"), $filter_unittag=FALSE)
     {
         if($this->hascon){
             if ($this->reconnect) $this->connect();
+
+            if ($filter_unittag) {
+                $filter = LDAP::add_unittag_filter($filter);
+            }
+
 
             $this->clearResult($srp);
             if ($basedn == "")

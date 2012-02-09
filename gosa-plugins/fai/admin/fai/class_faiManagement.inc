@@ -101,7 +101,7 @@ class faiManagement extends management
     $headpage->setFilter($filter);
     $headpage->setBase($this->fai_release);
     $headpage->registerElementFilter("filterProperties", "faiManagement::filterProperties");
-
+    $headpage->registerElementFilter("filterLockedItem", "faiManagement::filterLockedItem");
     // Add copy&paste and snapshot handler.
     if ($this->config->boolValueIsTrue("core", "copyPaste")){
       $this->cpHandler = new CopyPasteHandler($this->config);
@@ -1174,6 +1174,19 @@ class faiManagement extends management
     return(true);
   }
 
+
+  /* \brief This filter is used to display the locked image, depending
+   *        on the FAIstate of the object
+   */
+
+  static function filterLockedItem($row, $classes)
+  {
+    if (!in_array_strict("FAKE_OC_IsBranch", $classes)) {
+      return image('images/lists/locked.png');
+    } else {
+      return "";
+    }
+  }
 
   /*! \brief   This filter is used to display small icons for each listed object 
    *            instead of their typ names

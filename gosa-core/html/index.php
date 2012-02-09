@@ -324,6 +324,9 @@ if (($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) || $htacces
             /* Save userinfo and plugin structure */
             session::global_set('ui',$ui);
             session::global_set('session_cnt',0);
+            
+            /* User data and unit tag available, load servers */
+            $config->load_servers();
 
       /* Let GOsa trigger a new connection for each POST, save
       config to session. */
