@@ -236,7 +236,7 @@ class posixAccount extends plugin
     $this->ui = get_userinfo(); 
     $this->secondaryGroups[]= "- "._("automatic")." -";
     $ldap->cd($this->config->current['BASE']);
-    $ldap->search("(objectClass=posixGroup)", array("cn", "gidNumber"));
+    $ldap->search("(objectClass=posixGroup)", array("cn", "gidNumber"), TRUE);
     while($attrs = $ldap->fetch()){
       $this->secondaryGroups[$attrs['gidNumber'][0]]= $attrs['cn'][0];
     }

@@ -436,9 +436,6 @@ class config  {
             $this->current['ADMINDN']= $referral['ADMINDN'];
             $this->current['ADMINPASSWORD']= $referral['ADMINPASSWORD'];
         }
-
-        /* Load server informations */
-        $this->load_servers();
     }
 
 
@@ -465,7 +462,7 @@ class config  {
          */
         $tmp = $this->get_cfg_value("core","mailMethod");
         if ($tmp == ""){
-            $ldap->search ("(objectClass=goMailServer)", array('cn'));
+            $ldap->search ("(objectClass=goMailServer)", array('cn'), TRUE);
             $this->data['SERVERS']['IMAP']= array();
             while ($attrs= $ldap->fetch()){
                 $name= $attrs['cn'][0];
@@ -482,7 +479,7 @@ class config  {
         } else {
             $ldap->search ("(&(objectClass=goImapServer)(goImapSieveServer=*))", 
                     array('goImapName', 'goImapConnect', 'goImapAdmin', 'goImapPassword',
-                        'goImapSieveServer', 'goImapSievePort'));
+                        'goImapSieveServer', 'goImapSievePort'), TRUE);
 
             $this->data['SERVERS']['IMAP']= array();
 
@@ -519,7 +516,7 @@ class config  {
 
         /* Get kerberos server. FIXME: only one is supported currently */
         $ldap->cd ($this->current['BASE']);
-        $ldap->search ("(&(objectClass=goKrbServer)(goKrbRealm=*)(goKrbAdmin=*))");
+        $ldap->search ("(&(objectClass=goKrbServer)(goKrbRealm=*)(goKrbAdmin=*))", array(), TRUE);
         if ($ldap->count()){
             $attrs= $ldap->fetch();
             $this->data['SERVERS']['KERBEROS']= array( 'SERVER' => $attrs['cn'][0],
@@ -529,7 +526,7 @@ class config  {
 
         /* Get cups server. FIXME: only one is supported currently */
         $ldap->cd ($this->current['BASE']);
-        $ldap->search ("(objectClass=goCupsServer)");
+        $ldap->search ("(objectClass=goCupsServer)", array(), TRUE);
         if ($ldap->count()){
             $attrs= $ldap->fetch();
             $this->data['SERVERS']['CUPS']= $attrs['cn'][0];	
@@ -537,7 +534,7 @@ class config  {
 
         /* Get fax server. FIXME: only one is supported currently */
         $ldap->cd ($this->current['BASE']);
-        $ldap->search ("(objectClass=goFaxServer)");
+        $ldap->search ("(objectClass=goFaxServer)", array(), TRUE);
         if ($ldap->count()){
             $attrs= $ldap->fetch();
             $this->data['SERVERS']['FAX']= array( 'SERVER' => $attrs['cn'][0],
@@ -548,7 +545,7 @@ class config  {
 
         /* Get asterisk servers */
         $ldap->cd ($this->current['BASE']);
-        $ldap->search ("(objectClass=goFonServer)");
+        $ldap->search ("(objectClass=goFonServer)", array(), TRUE);
         $this->data['SERVERS']['FON']= array();
         if ($ldap->count()){
             while ($attrs= $ldap->fetch()){
@@ -586,7 +583,7 @@ class config  {
 
         /* Get glpi server */
         $ldap->cd ($this->current['BASE']);
-        $ldap->search ("(&(objectClass=goGlpiServer)(cn=*)(goGlpiAdmin=*)(goGlpiDatabase=*))",array("cn","goGlpiPassword","goGlpiAdmin","goGlpiDatabase"));
+        $ldap->search ("(&(objectClass=goGlpiServer)(cn=*)(goGlpiAdmin=*)(goGlpiDatabase=*))",array("cn","goGlpiPassword","goGlpiAdmin","goGlpiDatabase"), TRUE);
         if ($ldap->count()){
             $attrs= $ldap->fetch();
             if(!isset($attrs['goGlpiPassword'])){
@@ -602,7 +599,7 @@ class config  {
 
         /* Get logdb server */
         $ldap->cd ($this->current['BASE']);
-        $ldap->search ("(objectClass=goLogDBServer)");
+        $ldap->search ("(objectClass=goLogDBServer)", array(), TRUE);
         if ($ldap->count()){
             $attrs= $ldap->fetch();
             if(!isset($attrs['gosaLogDB'][0])){
@@ -617,7 +614,7 @@ class config  {
 
         /* GOsa logging databases */
         $ldap->cd ($this->current['BASE']);
-        $ldap->search ("(objectClass=gosaLogServer)");
+        $ldap->search ("(objectClass=gosaLogServer)", array(), TRUE);
         if ($ldap->count()){
             while($attrs= $ldap->fetch()){
                 $this->data['SERVERS']['LOGGING'][$attrs['cn'][0]]= 
@@ -634,7 +631,7 @@ class config  {
         $tmp= array("default");
         $tmp2= array("default");
         $ldap->cd ($this->current['BASE']);
-        $ldap->search ("(&(objectClass=goShareServer)(goExportEntry=*))");
+        $ldap->search ("(&(objectClass=goShareServer)(goExportEntry=*))", array(), TRUE);
         while ($attrs= $ldap->fetch()){
             for ($i= 0; $i<$attrs["goExportEntry"]["count"]; $i++){
                 if(preg_match('/^[^|]+\|[^|]+\|NFS\|.*$/', $attrs["goExportEntry"][$i])){
@@ -652,7 +649,7 @@ class config  {
 
         /* Load Terminalservers */
         $ldap->cd ($this->current['BASE']);
-        $ldap->search ("(objectClass=goTerminalServer)",array("cn","gotoSessionType"));
+        $ldap->search ("(objectClass=goTerminalServer)",array("cn","gotoSessionType"), TRUE);
         $this->data['SERVERS']['TERMINAL']= array();
         $this->data['SERVERS']['TERMINAL'][]= "default";
         $this->data['SERVERS']['TERMINAL_SESSION_TYPES'] = array();
@@ -671,21 +668,22 @@ class config  {
          */
         $this->data['SERVERS']['LDAP']= array();
         $ldap->cd ($this->current['BASE']);
-        $ldap->search ("(&(objectClass=goLdapServer)(goLdapBase=*))");
+        $ldap->search ("(&(objectClass=goLdapServer)(goLdapBase=*))", array(), TRUE);
         while ($attrs= $ldap->fetch()){
             $this->data['SERVERS']['LDAP'][$attrs['dn']] = $attrs;
-        }
+        }        
 
         /* Get misc server lists */
         $this->data['SERVERS']['SYSLOG']= array("default");
         $this->data['SERVERS']['NTP']= array("default");
         $ldap->cd ($this->current['BASE']);
-        $ldap->search ("(objectClass=goNtpServer)");
+        $ldap->search ("(objectClass=goNtpServer)", array(), TRUE);
         while ($attrs= $ldap->fetch()){
             $this->data['SERVERS']['NTP'][]= $attrs["cn"][0];
         }
+        
         $ldap->cd ($this->current['BASE']);
-        $ldap->search ("(objectClass=goSyslogServer)");
+        $ldap->search ("(objectClass=goSyslogServer)", array(), TRUE);
         while ($attrs= $ldap->fetch()){
             $this->data['SERVERS']['SYSLOG'][]= $attrs["cn"][0];
         }
@@ -693,7 +691,7 @@ class config  {
         /* Get samba servers from LDAP, in case of samba3 */
         $this->data['SERVERS']['SAMBA']= array();
         $ldap->cd ($this->current['BASE']);
-        $ldap->search ("(objectClass=sambaDomain)");
+        $ldap->search ("(objectClass=sambaDomain)", array(), TRUE);
         while ($attrs= $ldap->fetch()){
             $this->data['SERVERS']['SAMBA'][$attrs['sambaDomainName'][0]]= array( "SID" =>"","RIDBASE" =>"");
             if(isset($attrs["sambaSID"][0])){
@@ -818,9 +816,7 @@ class config  {
             if ($utags){
                 if ($ui->gosaUnitTag != '' && isset($this->tdepartments[$val]) &&
                         $this->tdepartments[$val] != $ui->gosaUnitTag){
-
-#TODO: link with strict*
-#continue;
+                    continue;
                 }
             }
 
@@ -914,7 +910,7 @@ class config  {
     function getShareList($listboxEntry = false)
     {
         $tmp = get_sub_list("(&(objectClass=goShareServer)(goExportEntry=*))","server",get_ou("servgeneric", "serverRDN"),
-                $this->current['BASE'],array("goExportEntry","cn"), GL_NONE);
+                $this->current['BASE'],array("goExportEntry","cn"), GL_FILTER_UNITTAG);
         $return =array();
         foreach($tmp as $entry){
 
@@ -955,7 +951,7 @@ class config  {
         $ui = get_userinfo();
         $base = $config->current['BASE'];
         $res= get_sub_list("(&(objectClass=goShareServer)(goExportEntry=*))", "server",
-                get_ou("servgeneric", "serverRDN"), $base,array("goExportEntry","cn"),GL_NONE | GL_NO_ACL_CHECK);
+                get_ou("servgeneric", "serverRDN"), $base,array("goExportEntry","cn"),GL_NONE | GL_NO_ACL_CHECK | GL_FILTER_UNITTAG);
 
         foreach($res as $entry){
 
