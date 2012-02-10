@@ -12,6 +12,7 @@
     <attribute>objectClass</attribute>
     <attribute>macAddress</attribute>
     <attribute>ipHostNumber</attribute>
+    <attribute>FAIclass</attribute>
   </definition>
 
   <search>
@@ -36,5 +37,53 @@
       <characters>3</characters>
     </autocomplete>
   </search>
+
+  <search>
+    <tag>byip</tag>
+    <label>IP address</label>
+    <query>
+      <backend>SystemByIp</backend>
+      <filter>(&amp;
+                (|
+                  (objectClass=goServer)
+                  (objectClass=gotoWorkstation)
+                  (objectClass=gotoTerminal)
+                  (objectClass=gosaGroupOfNames)
+                )
+                __ipAddr=$__
+              )
+      </filter>                      
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+
+  <search>
+    <tag>bymac</tag>
+    <label>MAC address</label>
+    <query>
+      <backend>SystemByMac</backend>
+      <filter>(&amp;
+                (|
+                  (objectClass=goServer)
+                  (objectClass=gotoWorkstation)
+                  (objectClass=gotoTerminal)
+                  (objectClass=gosaGroupOfNames)
+                  )
+                  (cn=*)
+                  __macAddr=$__
+              )
+      </filter>                      
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+
 
 </filterdef>
