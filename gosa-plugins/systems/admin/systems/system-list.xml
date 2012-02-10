@@ -159,7 +159,7 @@
   </definition>
 
   <table>
-    <layout>|20px;c|||80px|170px;r|</layout>
+    <layout>|20px;c|||150px|80px|170px;r|</layout>
 
     <department>
       <value>%{filter:objectType(dn,objectClass)}</value>
@@ -189,6 +189,14 @@
       <value>%{filter:filterSystemDescription(row,dn,pid,state,description)}</value>
       <export>true</export>
     </column>
+
+    <column>
+      <label>Object group</label>
+      <sortAttribute>ogroup</sortAttribute>
+      <sortType>string</sortType>
+      <value>%{ogroup}</value>
+      <export>true</export>
+   </column>
 
     <column>
       <label>Release</label>
