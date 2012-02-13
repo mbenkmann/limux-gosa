@@ -43,6 +43,7 @@ class listing {
     var $header= array();
     var $colprops= array();
     var $filters= array();
+    var $sort_filters= array();
     var $filter= null;
     var $pid;
     var $objectTypes= array();
@@ -145,10 +146,13 @@ class listing {
     }
 
 
-    function registerElementFilter($name, $call)
+    function registerElementFilter($name, $call, $has_sortFilter=FALSE)
     {
         if (!isset($this->filters[$name])) {
             $this->filters[$name]= $call;
+            if ($has_sortFilter) {
+                $this->sort_filters[$name] = $call . "_sort";
+            }
             return true;
         }
 
@@ -404,11 +408,11 @@ class listing {
             }
 
             foreach ($this->xmlData['table']['column'] as $index => $config) {
-                $renderedCell= $this->renderCell($config['value'], $entry, $row);
+                list($renderedCell, $sort) = $this->renderCell($config['value'], $entry, $row, TRUE);
                 $trow.="<td ".$this->colprops[$index]." class='list0'>".$renderedCell."</td>\n";
 
                 // Save rendered column
-                $sort= preg_replace('/.*>([^<]+)<.*$/', '$1', $renderedCell);
+                $sort= preg_replace('/.*>([^<]+)<.*$/', '$1', $sort);
                 $sort= preg_replace('/&nbsp;/', '', $sort);
                 if (preg_match('/</', $sort)){
                     $sort= "";
@@ -744,7 +748,7 @@ class listing {
     }
 
 
-    function renderCell($data, $config, $row)
+    function renderCell($data, $config, $row, $get_sortData=FALSE)
     {
         // Replace flat attributes in data string
         for ($i= 0; $i<$config['count']; $i++) {
@@ -759,13 +763,24 @@ class listing {
         }
 
         // Watch out for filters and prepare to execute them
-        $data= $this->processElementFilter($data, $config, $row);
+        $data= $this->processElementFilter($data, $config, $row, $get_sortData);
+        if (!is_array($data)) {
+            $data = array($data);
+        }
+    
 
         // Replace all non replaced %{...} instances because they
         // are non resolved attributes or filters
-        $data= preg_replace('/%{[^}]+}/', '&nbsp;', $data);
+        foreach ($data as $k => $v) {
+            $data[$k] =  preg_replace('/%{[^}]+}/', '&nbsp;', $v);
+        }
 
-        return $data;
+
+        if ($get_sortData) {
+            return $data;
+        } else {
+            return $data[0];
+        }
 }
 
 
@@ -779,13 +794,15 @@ function renderBase()
 }
 
 
-function processElementFilter($data, $config, $row)
+function processElementFilter($data, $config, $row, $get_sortData=FALSE)
 {
+    $sortData = "";
     preg_match_all("/%\{filter:([^(]+)\((.*)\)\}/", $data, $matches, PREG_SET_ORDER);
 
     foreach ($matches as $match) {
         $cl= "";
         $method= "";
+        $sort_filter_method= "";
         if (preg_match('/::/', $match[1])) {
             $cl= preg_replace('/::.*$/', '', $match[1]);
             $method= preg_replace('/^.*::/', '', $match[1]);
@@ -795,6 +812,10 @@ function processElementFilter($data, $config, $row)
             }
             $cl= preg_replace('/::.*$/', '', $this->filters[$match[1]]);
             $method= preg_replace('/^.*::/', '', $this->filters[$match[1]]);
+            if (isset($this->sort_filters[$match[1]])) {
+                $sort_filter_method = preg_replace('/^.*::/', '', $this->sort_filters[$match[1]]);
+                $sortData = $data;
+            }
         }
 
         // Prepare params for function call
@@ -849,12 +870,27 @@ function processElementFilter($data, $config, $row)
         if ($cl == "listing") {
             // Non static call - seems to result in errors
             $data= @preg_replace('/'.preg_quote($match[0]).'/', call_user_func_array(array($this, "$method"), $params), $data);
+            if ($sort_filter_method and $get_sortData) {
+                $sortData = @preg_replace('/'.preg_quote($match[0]).'/', call_user_func_array(array($this, "$sort_filter_method"), $params), $sortData);
+            } elseif ($get_sortData) {
+                $sortData = $data;
+            }
+
         } else {
             // Static call
             $data= preg_replace('/'.preg_quote($match[0]).'/', call_user_func_array(array($cl, $method), $params), $data);
+            if ($sort_filter_method and $get_sortData) {
+                $sortData = preg_replace('/'.preg_quote($match[0]).'/', call_user_func_array(array($cl, $sort_filter_method), $params), $sortData);
+            } elseif ($get_sortData) {
+                $sortData = $data;
+            }
+
         }
     }
 
+    if ($get_sortData) {
+        return array($data, $sortData);
+    }
     return $data;
 }
 
