@@ -872,24 +872,22 @@ function processElementFilter($data, $config, $row, $get_sortData=FALSE)
             $data= @preg_replace('/'.preg_quote($match[0]).'/', call_user_func_array(array($this, "$method"), $params), $data);
             if ($sort_filter_method and $get_sortData) {
                 $sortData = @preg_replace('/'.preg_quote($match[0]).'/', call_user_func_array(array($this, "$sort_filter_method"), $params), $sortData);
-            } elseif ($get_sortData) {
-                $sortData = $data;
-            }
-
+            } 
         } else {
             // Static call
             $data= preg_replace('/'.preg_quote($match[0]).'/', call_user_func_array(array($cl, $method), $params), $data);
             if ($sort_filter_method and $get_sortData) {
                 $sortData = preg_replace('/'.preg_quote($match[0]).'/', call_user_func_array(array($cl, $sort_filter_method), $params), $sortData);
-            } elseif ($get_sortData) {
-                $sortData = $data;
-            }
-
+            } 
         }
     }
 
     if ($get_sortData) {
-        return array($data, $sortData);
+        if (empty($sortData)) {
+            $sortData = $data;
+        }
+        $ret = array(0 => $data, 1 => $sortData);
+        return $ret;
     }
     return $data;
 }
