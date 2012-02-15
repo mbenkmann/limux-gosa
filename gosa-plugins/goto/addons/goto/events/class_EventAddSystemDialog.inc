@@ -47,6 +47,7 @@ class EventAddSystemDialog extends management
 
     // Build headpage
     $headpage = new listing(get_template_path("../../addons/goto/events/eventTargetSystems-list.xml", TRUE));
+    $headpage->registerElementFilter("systemRelease", "EventAddSystemDialog::systemRelease");
     $headpage->setFilter($filter);
     parent::__construct($config, $ui, "object", $headpage);
   }
@@ -110,6 +111,36 @@ class EventAddSystemDialog extends management
 
     return($result);
   }
+
+  static function systemRelease($dn="",$objectclasses=null, $fai_class=array()) {
+    global $config;
+
+   
+    // No objectclasses set - go ahead$
+    if(!$objectclasses) return("&nbsp;");
+  
+    $rel = '';
+    if ($str = array_shift($fai_class)) {
+      $parts = explode(':', $str);
+      if ($parts) {
+        $rel = array_pop($parts);
+      }
+    }
+
+    // Test for object group if no release defined
+    if ($rel == '') {
+      $ldap = $config->get_ldap_link();
+      $ldap->cd($config->current['BASE']);
+      $ldap->search("(&(objectClass=gosaGroupOfNames)(FAIclass=*)(member=".$dn."))",array('FAIclass','cn'));
+      if ($ldap->count() >= 1) {
+        $rel = "<i>"._("inherited")."</i>";
+      }
+    }
+    
+    return $rel;
+  }
+
+
 }
 // vim:tabstop=2:expandtab:shiftwidth=2:filetype=php:syntax:ruler:
 ?>

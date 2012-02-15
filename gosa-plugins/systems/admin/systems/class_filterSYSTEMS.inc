@@ -96,7 +96,35 @@ class filterSYSTEMS {
                 $entries[$key]['state']= $state;
                 $entries[$key]['count'] ++;
             }
+
+            // Get object group membership and FAIclass inheritance info
+            $ldap = $config->get_ldap_link();
+            $ldap->cd($config->current['BASE']);
+            $dn = $entries[$key]['dn'];
+            $ldap->search("(&(objectClass=gosaGroupOfNames)(FAIclass=*)(member=".$dn."))",array('cn', 'FAIclass'));
+
+            $ogroup = "";
+            $class = "";
+            if($attrs = $ldap->fetch()){
+                if (isset($attrs['FAIclass'])) {
+                    $class = $attrs['FAIclass'][0];
+                }
+                $ogroup = $attrs['cn'][0];
+            }
+
+            // Add ogroup and ogroup_FAIclass in any case, even if its empty
+            // to avoid problems with filter functions which could otherwise
+            // have more then one empty parameter
+            $entries[$key][$entries[$key]['count']]= 'ogroup';
+            $entries[$key]['ogroup'] = $ogroup;
+            $entries[$key]['count'] ++;
+
+            $entries[$key][$entries[$key]['count']]= 'ogroup_FAIclass';
+            $entries[$key]['ogroup_FAIclass'] = $class;
+            $entries[$key]['count'] ++;
+
         }
+
         return($entries);
     }
 }

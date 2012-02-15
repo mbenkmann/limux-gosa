@@ -5,31 +5,40 @@ class filterSystemByIp  extends filterLDAP{
     {
 
         // IP Range selection 
-        $filterByIP = preg_match("/__FilterByIP__/", $filter);
-        $filter = preg_replace("/__FilterByIP__/","",$filter);
-        $ipstart = "";
-        $ipstop = "";
-        if(preg_match("/__IPSTART__=/", $filter)){
-            $ipstart = trim(preg_replace("/^.*__IPSTART__=([^_]*)__.*$/","\\1",$filter),"*");
-        }
-        if(preg_match("/__IPSTOP__=/", $filter)){
-            $ipstop = trim(preg_replace("/^.*__IPSTOP__=([^_]*)__.*$/","\\1",$filter),"*");
-        }
+        $filterByIP = preg_match("/__ipAddr=([^_]+)__/", $filter, $matches);
+        $ip_filter = str_replace('*', '', $matches[1]);
 
+        // Remove pseudo filter from real LDAP filter
+        $filter = preg_replace("/__ipAddr=([^_]+)__/", "", $filter);
+        
 
-        // Get entries 
-        $filter= preg_replace("/__IPSTART.*$/","",$filter);
+        // Test if filtering by a range is requested
+        if (strstr($ip_filter, "-") != FALSE) {
+            list($ipstart, $ipstop) = explode('-', $ip_filter, 3);
+            if (!tests::is_ip($ipstart)) {
+                $ipstart = '0.0.0.0';
+            }
+            if (!tests::is_ip($ipstop)) {
+                $ipstop = '255.255.255.255';
+            }
+        } else {
+            $ip = $ip_filter;
+        }
+        
+        // Get list of entries
         $entries = filterLDAP::query($base, $scope, $filter, $attributes, $category, $objectStorage);
 
-
         // Filter entries by IP-Address
-        if($filterByIP){
+        if($filterByIP && !empty($ip_filter)){
             foreach($entries as $key => $entry){ 
                 if(!isset($entry['ipHostNumber'])){
                     unset($entries[$key]);
                     continue;
-                }
-                if(!tests::is_in_ip_range($ipstart,$ipstop, $entry['ipHostNumber'][0])){
+                } elseif (isset($ipstart) && isset($ipstop) && tests::is_in_ip_range($ipstart,$ipstop, $entry['ipHostNumber'][0])){
+                    continue;
+                } elseif (isset($ip) && strstr($entry['ipHostNumber'][0], $ip) != FALSE) {
+                    continue;
+                } else {
                     unset($entries[$key]);
                     continue;
                 }

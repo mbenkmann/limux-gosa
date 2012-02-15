@@ -97,7 +97,9 @@ class systemManagement extends management
 
         // Build headpage
         $headpage = new listing(get_template_path("system-list.xml", true));
-        $headpage->registerElementFilter("systemRelease", "systemManagement::systemRelease");
+        $headpage->registerElementFilter("systemRelease", "systemManagement::systemRelease", TRUE);
+        $headpage->registerElementFilter("filterOgroup", "systemManagement::filterOgroup");
+
         $headpage->registerElementFilter("filterSystemDescription", "systemManagement::filterSystemDescription");
         $headpage->registerElementFilter("filterLink", "systemManagement::filterLink");
         $headpage->setFilter($filter);
@@ -1439,6 +1441,13 @@ class systemManagement extends management
     }
 
 
+    static function filterOgroup($ogroup=NULL) {
+      if (!$ogroup) {
+        $ogroup = "&nbsp;";
+      }
+      return $ogroup;
+    }
+
     static function filterSystemDescription($row,$dn,$pid,$state = '',$description=array())
     {
         $dn= LDAP::fix(func_get_arg(1));
@@ -1482,7 +1491,36 @@ class systemManagement extends management
     }
 
 
-    static function systemRelease($a,$b,$c,$objectclasses= null,$class= null)
+    static function systemRelease_sort($a,$b,$c,$objectclasses=null,$ogroup,$ogroup_FAIclass,$class=null) {
+      global $config;
+
+      // No objectclasses set - go ahead
+      if(!$objectclasses) return("");
+
+      // Skip non fai objects
+      if (!in_array_ics("FAIobject", $objectclasses)) {
+          return "";
+      }
+
+      // If we've an own fai class, just use this
+      if ($class && is_array($class)) {
+          foreach (explode(' ', $class[0]) as $element) {
+              if ($element[0] == ":") {
+                  return mb_substr($element, 1);
+                }
+            }
+      }
+
+      // Load information if needed
+      if (!empty($ogroup_FAIclass)) {
+          $rel = preg_replace("/^.*:/","",$ogroup_FAIclass);
+          return($rel);
+      }
+
+      return("");
+    }
+
+    static function systemRelease($a,$b,$c,$objectclasses= null,$ogroup,$ogroup_FAIclass,$class= null)
     {
         global $config;
 
@@ -1498,19 +1536,15 @@ class systemManagement extends management
         if ($class && is_array($class)) {
             foreach (explode(' ', $class[0]) as $element) {
                 if ($element[0] == ":") {
-                    return "&nbsp;".image('images/empty.png')."&nbsp;".mb_substr($element, 1);
+                    return mb_substr($element,1 )."&nbsp;".image('images/empty.png');
                 }
             }
         }
 
-        // Load information if needed
-        $ldap = $config->get_ldap_link();
-        $ldap->cd($config->current['BASE']);
-        $ldap->search("(&(objectClass=gosaGroupOfNames)(FAIclass=*)(member=".$b."))",array('FAIclass','cn'));
-        while($attrs = $ldap->fetch()){
-            $rel = preg_replace("/^.*:/","",$attrs['FAIclass'][0]);
-            $sys = sprintf(_("Inherited from %s"),$attrs['cn'][0]);
-            $str = "&nbsp;".image('plugins/ogroups/images/ogroup.png', "", $sys)."&nbsp;".$rel;
+        if(!empty($ogroup)) {
+            $rel = preg_replace("/^.*:/","",$ogroup_FAIclass);
+            $sys = sprintf(_("Inherited from %s"),$ogroup);
+            $str = $rel."&nbsp;".image('plugins/ogroups/images/ogroup.png', "", $sys);
             return($str);
         }
 

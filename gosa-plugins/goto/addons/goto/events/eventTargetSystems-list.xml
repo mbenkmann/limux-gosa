@@ -46,7 +46,7 @@
   </definition>
 
   <table>
-    <layout>|20px;c|220px||||</layout>
+    <layout>|20px;c|220px|||||</layout>
 
     <department>
       <value>%{filter:objectType(dn,objectClass)}</value>
@@ -90,6 +90,14 @@
       <sortAttribute>macAddress</sortAttribute>
       <sortType>string</sortType>
       <value>%{macAddress}</value>
+      <export>true</export>
+    </column>
+
+    <column>
+      <label>Release</label>
+      <sortAttribute>Release</sortAttribute>
+      <sortType>string</sortType>
+      <value>%{filter:systemRelease(dn,objectClass,FAIclass)}</value>
       <export>true</export>
     </column>
 
