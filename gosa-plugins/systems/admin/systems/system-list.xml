@@ -159,7 +159,7 @@
   </definition>
 
   <table>
-      <layout>|20px;c|||200px|130px;l|160px;r|</layout>
+    <layout>|20px;c|||150px|150px;l|80px|170px;r|</layout>
 
     <department>
       <value>%{filter:objectType(dn,objectClass)}</value>
@@ -200,9 +200,17 @@
 
     <column>
       <label>Release</label>
-      <sortAttribute>description</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>sort,cn</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{filter:systemRelease(row,dn,"%s",objectClass,ogroup,ogroup_FAIclass,FAIclass)}</value>
+      <export>true</export>
+    </column>
+
+    <column>
+      <label>FAI state</label>
+      <sortAttribute>sort,cn</sortAttribute>
+      <sortType>string,string</sortType>
+      <value>%{filter:systemFAIstate(row,dn,"%s",objectClass,FAIstate)}</value>
       <export>true</export>
     </column>
 

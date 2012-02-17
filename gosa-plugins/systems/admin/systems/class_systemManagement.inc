@@ -97,9 +97,9 @@ class systemManagement extends management
 
         // Build headpage
         $headpage = new listing(get_template_path("system-list.xml", true));
-        $headpage->registerElementFilter("systemRelease", "systemManagement::systemRelease", TRUE);
+        $headpage->registerElementFilter("systemRelease", "systemManagement::systemRelease");
         $headpage->registerElementFilter("filterOgroup", "systemManagement::filterOgroup");
-
+        $headpage->registerElementFilter("systemFAIstate", "systemManagement::systemFAIstate");
         $headpage->registerElementFilter("filterSystemDescription", "systemManagement::filterSystemDescription");
         $headpage->registerElementFilter("filterLink", "systemManagement::filterLink");
         $headpage->setFilter($filter);
@@ -1491,36 +1491,44 @@ class systemManagement extends management
     }
 
 
-    static function systemRelease_sort($a,$b,$c,$objectclasses=null,$ogroup,$ogroup_FAIclass,$class=null) {
-      global $config;
+    static function systemRelease($a,$b,$c,$objectclasses= null,$ogroup,$ogroup_FAIclass,$class= null)
+    {
+        global $config;
+        $render_ret = '&nbsp;';
+        $sort_ret = '';
 
-      // No objectclasses set - go ahead
-      if(!$objectclasses) return("");
+        // No objectclasses set - go ahead
+        if (!$objectclasses)
+            goto sr_bailout;
 
-      // Skip non fai objects
-      if (!in_array_ics("FAIobject", $objectclasses)) {
-          return "";
-      }
+        // Skip non fai objects
+        if (!in_array_ics("FAIobject", $objectclasses))
+            goto sr_bailout;
 
-      // If we've an own fai class, just use this
-      if ($class && is_array($class)) {
-          foreach (explode(' ', $class[0]) as $element) {
-              if ($element[0] == ":") {
-                  return mb_substr($element, 1);
+        // If we've an own fai class, just use this
+        if ($class && is_array($class)) {
+            foreach (explode(' ', $class[0]) as $element) {
+                if ($element[0] == ":") {
+                    $sort_ret = mb_substr($element, 1);
+                    $render_ret = $sort_ret."&nbsp;".image('images/empty.png');
+                    goto sr_bailout;
                 }
             }
-      }
+        }
 
-      // Load information if needed
-      if (!empty($ogroup_FAIclass)) {
-          $rel = preg_replace("/^.*:/","",$ogroup_FAIclass);
-          return($rel);
-      }
+        if(!empty($ogroup)) {
+            $sort_ret = preg_replace("/^.*:/","",$ogroup_FAIclass);
+            $sys = sprintf(_("Inherited from %s"),$ogroup);
+            $render_ret = $sort_ret."&nbsp;".image('plugins/ogroups/images/ogroup.png', "", $sys);
+            goto sr_bailout;
+        }
 
-      return("");
+    sr_bailout:
+        return array( $render_ret, $sort_ret );
     }
 
-    static function systemRelease($a,$b,$c,$objectclasses= null,$ogroup,$ogroup_FAIclass,$class= null)
+
+    static function systemFAIstate($a,$b,$c,$objectclasses= null,$state= null)
     {
         global $config;
 
@@ -1532,21 +1540,15 @@ class systemManagement extends management
             return "&nbsp;";
         }
 
-        // If we've an own fai class, just use this
-        if ($class && is_array($class)) {
-            foreach (explode(' ', $class[0]) as $element) {
-                if ($element[0] == ":") {
-                    return mb_substr($element,1 )."&nbsp;".image('images/empty.png');
-                }
-            }
+        if ($state) {
+            $elements = explode(':', $state[0], 2);
+            if (count($elements) == 1)
+                return '&nbsp;'.$elements[0].'&nbsp;';
+            else
+                return '&nbsp;<div style="display:inline-block;" title="'.htmlentities($elements[1]).'">'.htmlentities($elements[0]).'</div>&nbsp;';
         }
-
-        if(!empty($ogroup)) {
-            $rel = preg_replace("/^.*:/","",$ogroup_FAIclass);
-            $sys = sprintf(_("Inherited from %s"),$ogroup);
-            $str = $rel."&nbsp;".image('plugins/ogroups/images/ogroup.png', "", $sys);
-            return($str);
-        }
+        else
+            return ("&nbsp;(new)&nbsp;");
 
         return("&nbsp;");
     }

@@ -42,8 +42,8 @@ class listingSortIterator implements Iterator {
   public function __construct($data, $direction, $attribute, $type= "string") {
     global $_sortAttribute;
     global $_sortType;
-    $_sortAttribute= $attribute; 
-    $_sortType= $type; 
+    $_sortAttribute= explode(',', $attribute);
+    $_sortType= explode(',', $type);
 
     // Inline function to 
     function attrSort($ao, $bo) {
@@ -51,45 +51,59 @@ class listingSortIterator implements Iterator {
       global $_sortType;
 
       // Extract values from ao and bo
-      $a= $b= "";
-      if (isset($ao[$_sortAttribute])) {
-        $a= $ao[$_sortAttribute];
-        if (is_array($a)) {
-          $a= $a[0];
-        }
-      }
-      if (isset($bo[$_sortAttribute])) {
-        $b= $bo[$_sortAttribute];
-        if (is_array($b)) {
-          $b= $b[0];
-        }
-      }
 
-      // Take a look at the several types
-      switch ($_sortType) {
-        case 'string':
-          return listingSortIterator::sort_underscores($a, $b);
+      $sorted = 0;
+      for( $i=0; $i < min(count( $_sortAttribute ), count( $_sortType )); $i++ ) {
 
-        case 'integer':
-          return $b - $a;
-
-        case 'date':
-          if ($a == "") {
-            $a= "31.12.0000";
+        $a= $b= "";
+        if (isset($ao[$_sortAttribute[$i]])) {
+          $a= $ao[$_sortAttribute[$i]];
+          if (is_array($a)) {
+            $a= $a[0];
           }
-          if ($b == "") {
-            $b= "31.12.0000";
+        }
+        if (isset($bo[$_sortAttribute[$i]])) {
+          $b= $bo[$_sortAttribute[$i]];
+          if (is_array($b)) {
+            $b= $b[0];
           }
-          list($d, $m, $y)= explode('.', $a);
-          $a= (int)sprintf("%04d%02d%02d", $y, $m, $d);
-          list($d, $m, $y)= explode('.', $b);
-          $b= (int)sprintf("%04d%02d%02d", $y, $m, $d);
-          return $b-$a;
-
-        // Sort for string by default
-        default:
-          return strcoll($a, $b);
+        }
+  
+        // Take a look at the several types
+        switch ($_sortType[$i]) {
+          case 'string':
+            $sorted = listingSortIterator::sort_underscores($a, $b);
+            break;
+  
+          case 'integer':
+            $sorted = $b - $a;
+            break;
+  
+          case 'date':
+            if ($a == "") {
+              $a= "31.12.0000";
+            }
+            if ($b == "") {
+              $b= "31.12.0000";
+            }
+            list($d, $m, $y)= explode('.', $a);
+            $a= (int)sprintf("%04d%02d%02d", $y, $m, $d);
+            list($d, $m, $y)= explode('.', $b);
+            $b= (int)sprintf("%04d%02d%02d", $y, $m, $d);
+            $sorted = $b - $a;
+            break;
+  
+          // Sort for string by default
+          default:
+            $sorted = strcoll($a, $b);
+            break;
+        }
+  
+        if( $sorted !== 0 )
+          break;
       }
+
+      return $sorted;
     }
 
     // Sort for attribute
