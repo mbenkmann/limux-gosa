@@ -200,8 +200,8 @@
 
     <column>
       <label>Release</label>
-      <sortAttribute>sort</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>sort,cn</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{filter:systemRelease(row,dn,"%s",objectClass,ogroup,ogroup_FAIclass,FAIclass)}</value>
       <export>true</export>
     </column>
