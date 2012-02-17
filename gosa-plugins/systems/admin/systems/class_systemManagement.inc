@@ -1494,32 +1494,37 @@ class systemManagement extends management
     static function systemRelease($a,$b,$c,$objectclasses= null,$ogroup,$ogroup_FAIclass,$class= null)
     {
         global $config;
+        $render_ret = '&nbsp;';
+        $sort_ret = '';
 
         // No objectclasses set - go ahead
-        if(!$objectclasses) return("&nbsp;");
+        if (!$objectclasses)
+            goto sr_bailout;
 
         // Skip non fai objects
-        if (!in_array_ics("FAIobject", $objectclasses)) {
-            return "&nbsp;";
-        }
+        if (!in_array_ics("FAIobject", $objectclasses))
+            goto sr_bailout;
 
         // If we've an own fai class, just use this
         if ($class && is_array($class)) {
             foreach (explode(' ', $class[0]) as $element) {
                 if ($element[0] == ":") {
-                    return mb_substr($element,1 )."&nbsp;".image('images/empty.png');
+                    $sort_ret = mb_substr($element, 1);
+                    $render_ret = $sort_ret."&nbsp;".image('images/empty.png');
+                    goto sr_bailout;
                 }
             }
         }
 
         if(!empty($ogroup)) {
-            $rel = preg_replace("/^.*:/","",$ogroup_FAIclass);
+            $sort_ret = preg_replace("/^.*:/","",$ogroup_FAIclass);
             $sys = sprintf(_("Inherited from %s"),$ogroup);
-            $str = $rel."&nbsp;".image('plugins/ogroups/images/ogroup.png', "", $sys);
-            return($str);
+            $render_ret = $sort_ret."&nbsp;".image('plugins/ogroups/images/ogroup.png', "", $sys);
+            goto sr_bailout;
         }
 
-        return("&nbsp;");
+    sr_bailout:
+        return array( $render_ret, $sort_ret );
     }
 
 
