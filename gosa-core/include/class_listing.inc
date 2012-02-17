@@ -414,7 +414,8 @@ class listing {
         }
 
         // Complete list by sorting entries for _sort$index and appending them to the output
-        $entryIterator= new listingSortIterator($this->entries, $this->sortDirection[$this->sortColumn], "_sort".$this->sortColumn, $this->sortType);
+        $entryIterator= new listingSortIterator($this->entries, $this->sortDirection[$this->sortColumn],
+            str_replace('sort', "_sort".$this->sortColumn, $this->sortAttribute), $this->sortType);
         foreach ($entryIterator as $row => $entry){
 
             // Apply label to objecttype icon?
@@ -575,7 +576,8 @@ class listing {
                 if (preg_match('/^export.*$/', $_POST['act']) && isset($this->exporter[$_POST['act']])) {
                     $exporter= $this->exporter[get_post('act')];
                     $userinfo= ", "._("created by")." ".$ui->cn." - ".strftime('%A, %d. %B %Y, %H:%M:%S');
-                    $entryIterator= new listingSortIterator($this->entries, $this->sortDirection[$this->sortColumn], "_sort".$this->sortColumn, $this->sortType);
+                    $entryIterator= new listingSortIterator($this->entries, $this->sortDirection[$this->sortColumn],
+                        str_replace('sort', "_sort".$this->sortColumn, $this->sortAttribute), $this->sortType);
                     $sortedEntries= array();
                     foreach ($entryIterator as $entry){
                         $sortedEntries[]= $entry;
