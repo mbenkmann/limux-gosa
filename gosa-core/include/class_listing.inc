@@ -43,7 +43,6 @@ class listing {
     var $header= array();
     var $colprops= array();
     var $filters= array();
-    var $sort_filters= array();
     var $filter= null;
     var $pid;
     var $objectTypes= array();
@@ -146,13 +145,10 @@ class listing {
     }
 
 
-    function registerElementFilter($name, $call, $has_sortFilter=FALSE)
+    function registerElementFilter($name, $call)
     {
         if (!isset($this->filters[$name])) {
             $this->filters[$name]= $call;
-            if ($has_sortFilter) {
-                $this->sort_filters[$name] = $call . "_sort";
-            }
             return true;
         }
 
@@ -410,13 +406,6 @@ class listing {
             foreach ($this->xmlData['table']['column'] as $index => $config) {
                 list($renderedCell, $sort) = $this->renderCell($config['value'], $entry, $row, TRUE);
                 $trow.="<td ".$this->colprops[$index]." class='list0'>".$renderedCell."</td>\n";
-
-                // Save rendered column
-                $sort= preg_replace('/.*>([^<]+)<.*$/', '$1', $sort);
-                $sort= preg_replace('/&nbsp;/', '', $sort);
-                if (preg_match('/</', $sort)){
-                    $sort= "";
-                }
                 $this->entries[$row]["_sort$index"]= $sort;
             }
 
@@ -748,7 +737,7 @@ class listing {
     }
 
 
-    function renderCell($data, $config, $row, $get_sortData=FALSE)
+    function renderCell($data, $config, $row, $get_sort_column=FALSE)
     {
         // Replace flat attributes in data string
         for ($i= 0; $i<$config['count']; $i++) {
@@ -763,25 +752,34 @@ class listing {
         }
 
         // Watch out for filters and prepare to execute them
-        $data= $this->processElementFilter($data, $config, $row, $get_sortData);
-        if (!is_array($data)) {
-            $data = array($data);
-        }
-    
+        $data= $this->processElementFilter($data, $config, $row, $get_sort_column);
 
         // Replace all non replaced %{...} instances because they
         // are non resolved attributes or filters
-        foreach ($data as $k => $v) {
-            $data[$k] =  preg_replace('/%{[^}]+}/', '&nbsp;', $v);
-        }
+        if( is_array( $data ) )
+            $value = $data[0];
+        else
+            $value = $data;
 
-
-        if ($get_sortData) {
-            return $data;
-        } else {
-            return $data[0];
+        $value =  preg_replace('/%{[^}]+}/', '&nbsp;', $value);
+        if( $get_sort_column ) {
+            if( is_array( $data ) )
+                $data[0] = $value;
+            else {
+                // Save rendered column
+                $sort= preg_replace('/.*>([^<]+)<.*$/', '$1', $value);
+                $sort= preg_replace('/&nbsp;/', '', $sort);
+                if (preg_match('/</', $sort)) {
+                    $sort= "";
+                }
+                $data = array($value, $sort);
+            }
         }
-}
+        else
+            $data = $value;
+
+        return $data;
+    }
 
 
 function renderBase()
@@ -794,15 +792,13 @@ function renderBase()
 }
 
 
-function processElementFilter($data, $config, $row, $get_sortData=FALSE)
+function processElementFilter($data, $config, $row, $get_sort_column=FALSE)
 {
-    $sortData = "";
     preg_match_all("/%\{filter:([^(]+)\((.*)\)\}/", $data, $matches, PREG_SET_ORDER);
 
     foreach ($matches as $match) {
         $cl= "";
         $method= "";
-        $sort_filter_method= "";
         if (preg_match('/::/', $match[1])) {
             $cl= preg_replace('/::.*$/', '', $match[1]);
             $method= preg_replace('/^.*::/', '', $match[1]);
@@ -812,10 +808,6 @@ function processElementFilter($data, $config, $row, $get_sortData=FALSE)
             }
             $cl= preg_replace('/::.*$/', '', $this->filters[$match[1]]);
             $method= preg_replace('/^.*::/', '', $this->filters[$match[1]]);
-            if (isset($this->sort_filters[$match[1]])) {
-                $sort_filter_method = preg_replace('/^.*::/', '', $this->sort_filters[$match[1]]);
-                $sortData = $data;
-            }
         }
 
         // Prepare params for function call
@@ -868,27 +860,34 @@ function processElementFilter($data, $config, $row, $get_sortData=FALSE)
 
         // Replace information
         if ($cl == "listing") {
-            // Non static call - seems to result in errors
-            $data= @preg_replace('/'.preg_quote($match[0]).'/', call_user_func_array(array($this, "$method"), $params), $data);
-            if ($sort_filter_method and $get_sortData) {
-                $sortData = @preg_replace('/'.preg_quote($match[0]).'/', call_user_func_array(array($this, "$sort_filter_method"), $params), $sortData);
-            } 
-        } else {
-            // Static call
-            $data= preg_replace('/'.preg_quote($match[0]).'/', call_user_func_array(array($cl, $method), $params), $data);
-            if ($sort_filter_method and $get_sortData) {
-                $sortData = preg_replace('/'.preg_quote($match[0]).'/', call_user_func_array(array($cl, $sort_filter_method), $params), $sortData);
-            } 
+            // BROKEN by design
+            // There are too many broken XML definitions and missing
+            // ldap attributes are always omitted to function calls
+            // which may also be called with the wrong parameter count.
+            // Some functions even rely on this (acl-list.xml / filterLabel),
+            // so the XML definition contains 6 args (row,dn,ou,cn,pid,base)
+            // but the implementation has just 5 ($row,$dn,$ou,$pid,$base)
+            // because either ou or cn won't be available on call.
+            // There are also many functions like user-list.xml / 
+            // lockLabel(userPassword), where the argument may be missing.
+            // Therefore the error of 'call_user_func_array' is ignored.
+            $res = "";
+            $res = @call_user_func_array(array($this, "$method"), $params);
+        }
+        else
+            $res = call_user_func_array(array($cl, $method), $params);
+        if( is_array($res) )
+            $rep = $res[0];
+        else
+            $rep = $res;
+
+        $data= preg_replace('/'.preg_quote($match[0]).'/', $rep, $data);
+        if( is_array($res) && $get_sort_column ) {
+            $res[0]= $data;
+            $data= $res;
         }
     }
 
-    if ($get_sortData) {
-        if (empty($sortData)) {
-            $sortData = $data;
-        }
-        $ret = array(0 => $data, 1 => $sortData);
-        return $ret;
-    }
     return $data;
 }
 

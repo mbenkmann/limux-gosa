@@ -97,7 +97,7 @@ class systemManagement extends management
 
         // Build headpage
         $headpage = new listing(get_template_path("system-list.xml", true));
-        $headpage->registerElementFilter("systemRelease", "systemManagement::systemRelease", TRUE);
+        $headpage->registerElementFilter("systemRelease", "systemManagement::systemRelease");
         $headpage->registerElementFilter("filterOgroup", "systemManagement::filterOgroup");
 
         $headpage->registerElementFilter("filterSystemDescription", "systemManagement::filterSystemDescription");
@@ -1490,35 +1490,6 @@ class systemManagement extends management
         return $result;
     }
 
-
-    static function systemRelease_sort($a,$b,$c,$objectclasses=null,$ogroup,$ogroup_FAIclass,$class=null) {
-      global $config;
-
-      // No objectclasses set - go ahead
-      if(!$objectclasses) return("");
-
-      // Skip non fai objects
-      if (!in_array_ics("FAIobject", $objectclasses)) {
-          return "";
-      }
-
-      // If we've an own fai class, just use this
-      if ($class && is_array($class)) {
-          foreach (explode(' ', $class[0]) as $element) {
-              if ($element[0] == ":") {
-                  return mb_substr($element, 1);
-                }
-            }
-      }
-
-      // Load information if needed
-      if (!empty($ogroup_FAIclass)) {
-          $rel = preg_replace("/^.*:/","",$ogroup_FAIclass);
-          return($rel);
-      }
-
-      return("");
-    }
 
     static function systemRelease($a,$b,$c,$objectclasses= null,$ogroup,$ogroup_FAIclass,$class= null)
     {
