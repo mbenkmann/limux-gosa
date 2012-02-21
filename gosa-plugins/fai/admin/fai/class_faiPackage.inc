@@ -233,7 +233,17 @@ class faiPackage extends plugin
       /* Assign Repository settings*/ 
       $this->is_account     = true;
     }
-  
+
+    // Display warning if release is not available, but only when the dialog is first opened
+    if (!isset($_POST['pluginModified']) && !empty($this->FAIdebianRelease)) {
+      $this->genPkgs();
+      if (empty($this->buffer)) {
+        msg_dialog::display(_("Release unavailable"), 
+          sprintf(_("The release is not available on this server: %s. Package metadata will be missing."), $this->FAIdebianRelease),
+          WARNING_DIALOG);      
+        }
+    }
+    
 
     /******
      * Add 
