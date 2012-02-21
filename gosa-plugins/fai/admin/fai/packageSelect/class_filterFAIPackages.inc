@@ -10,7 +10,7 @@ class filterFAIPackages {
     $filter     = array("%$filter%");
     $attrs      = array("distribution", "package","version", "section", "description", "timestamp");
     $release = session::get('packageSelect_Release');
-    $ret        = $q->FAI_get_packages($release,$attrs,$filter,0,200);
+    $ret        = $q->FAI_get_packages($release,$attrs,$filter);
     if($q->is_error()){
       msg_dialog::display(_("Service infrastructure"),msgPool::siError($q->get_error()),ERROR_DIALOG);
     }else{
