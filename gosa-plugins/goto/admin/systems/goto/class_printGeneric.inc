@@ -715,6 +715,11 @@ class printgeneric extends plugin
         plugin::save_object();
         $this->base = $base_tmp;
 
+        // Remove whitespace characters at the beginning or end of an URI
+        if (isset($this->labeledURI)) {
+          $this->labeledURI = trim($this->labeledURI);
+        }
+
         if(isset($_POST['ppdServerPart'])){
             $this->ppdServerPart = get_post('ppdServerPart');
         }
