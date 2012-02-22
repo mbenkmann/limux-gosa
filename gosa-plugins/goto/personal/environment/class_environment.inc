@@ -1368,7 +1368,7 @@ class environment extends plugin
     $a_return= array();
     if(is_array($this->gotoHotplugDevices)){
       foreach($this->gotoHotplugDevices as $key=>$device){
-        $a_return[$key] = $device['name']." - ".$device['id'];
+        $a_return[$key] = $device['name']." [".$device['description']."] - ".$device['id'];
       }
     }
     return($a_return);
