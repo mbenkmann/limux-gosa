@@ -137,13 +137,10 @@ class askClassName extends plugin
   {
     /* Call common method to give check the hook */
     $message= plugin::check();
-
-    if($this->objectClass == "FAIscript" && preg_match("/^-/", $this->ClassName)) { 
-      $message[] = msgPool::invalid(_("Name"),preg_replace("/ /","_",$this->ClassName),"/[^_]/");
-    }   
-
-    if($this->ClassName != preg_replace("/ /","",trim($this->ClassName))){
-      $message[] = msgPool::invalid(_("Name"),preg_replace("/ /","_",$this->ClassName),"/[^_]/");
+    
+    /* Only allow limited set of characters as class name to avoid issues */
+    if (!preg_match('/^[A-Za-z0-9_]*$/', $this->ClassName)) {
+      $message[] = msgPool::invalid(_("Name"), $this->ClassName, "/[A-Za-z0-9_]/");
     }
 
     if($this->ClassName == ""){
