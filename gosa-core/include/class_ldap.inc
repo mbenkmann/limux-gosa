@@ -913,6 +913,53 @@ class LDAP
         return TRUE;
     }
 
+    // Remove all parent DNs of a given DN, if they are empty and
+    // not an administrative units.
+    // Most useful after deleting an object, to remove all the objects
+    // previously created by create_missing_trees.
+    //
+    // If optional second argument included_rdns is given, deletion is
+    // stopped once an RDN is hit, which is not contained in that array.
+    //
+    // \param string dn The DN of the object whose parent DNs shall be removed
+    // \param array included_rdns
+    static function rm_obsolete_trees($dn, $included_rdns=array()) {
+
+      global $config;
+      $ldap = $config->get_ldap_link();
+      $parent_dns = get_parent_dns($dn, $ldap->basedn);
+
+      foreach($parent_dns as $current_dn) {
+        $exploded_dn = gosa_ldap_explode_dn($current_dn);
+        $current_rdn = $exploded_dn[0];
+    
+        // Break if included_rdns is not empty and the current RDN is not
+        // in the given array of RDNs
+        if (!empty($included_rdns)) {
+          if (!in_array_strict($current_rdn, $included_rdns)) {
+            break;
+          }
+        }
+
+        // Break if current DN is an administrative unit
+        $ldap->cat($current_dn, array("objectClass"));
+        $attrs = $ldap->fetch();
+        if (in_array_strict('gosaAdministrativeUnit', $attrs['objectClass'])) {
+          // Break if the current parent_dn is an administrative unit
+          break;
+        }
+
+        $ldap->cd($current_dn);
+        $ldap->ls('(objectClass=*)', $current_dn, array('dn'));
+        if ($ldap->count() == 0) {
+          $ldap->rmdir($current_dn);
+        } else {
+          // Break once first non-empty directory is hit
+          break;
+        }
+      }
+    }
+
 
     function recursive_remove($srp)
     {
