@@ -80,7 +80,7 @@ if(!is_writeable($smarty->compile_dir)){
     exit();
 }
 
-$smarty->assign ("title","GOsa");
+$smarty->assign ("title","GOsa - " . $_SERVER['SERVER_NAME']);
     
 /* If GET request is posted, the logout was forced by pressing the link */
 if (isset($_POST['forcedlogout']) || isset($_GET['forcedlogout'])){

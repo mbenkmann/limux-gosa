@@ -87,7 +87,7 @@ class pathNavigator
     }
 
     $smarty = get_smarty();
-    $smarty->assign('title', 'GOsa '.$sTitle);
+    $smarty->assign('title', 'GOsa - ' . $_SERVER['SERVER_NAME'] . $sTitle);
     return($path);
   }
 

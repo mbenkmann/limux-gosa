@@ -332,7 +332,7 @@ if (isset($_GET['reset'])){
 }
 
 /* show web frontend */
-$smarty->assign ("title","GOsa");
+$smarty->assign ("title","GOsa - " . $_SERVER['SERVER_NAME']);
 $smarty->assign ("logo", image(get_template_path("images/logo.png")));
 $smarty->assign ("logoutimage", get_template_path("images/btn-logout.png"));
 $smarty->assign ("date", date("l, dS F Y H:i:s O"));
