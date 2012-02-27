@@ -1253,6 +1253,9 @@ msgstr "hinzufügen"
 msgid "Add selected applications to this folder."
 msgstr "Füge gewählte Anwendungen zu diesem Verzeichnis hinzu."
 
+msgid "Add selected category to this folder."
+msgstr "Füge gewählte Kategorie diesem Verzeichnis hinzu."
+
 #: admin/groups/apps/app_list.tpl:148
 msgid "Add a separator to this folder."
 msgstr "Füge Feldtrenner zu diesem Verzeichnis hinzu."

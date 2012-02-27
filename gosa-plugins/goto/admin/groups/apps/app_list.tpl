@@ -143,7 +143,7 @@
 				<option value="{$key}">{$item}</option>
 			{/foreach}
 			</select>
-			<button type='submit' name='add_menu_to_folder' title="{t}Add selected applications to this folder.{/t}">{msgPool type=addButton}</button>
+			<button type='submit' name='add_menu_to_folder' title="{t}Add selected category to this folder.{/t}">{msgPool type=addButton}</button>
 
 			<button type='submit' name='add_seperator' title="{t}Add a separator to this folder.{/t}">{t}Separator{/t}</button>
 
