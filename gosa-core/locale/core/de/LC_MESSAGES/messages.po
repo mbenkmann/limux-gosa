@@ -6991,3 +6991,6 @@ msgstr "Willkommen beim GOsa Einrichtungsassistenten"
 #~ msgstr ""
 #~ "#~ \"Mitglieder kopieren. Warnung: Systeme können nur von einer einzelnen "
 #~ "\"#~ \"Gruppe erben!\""
+
+msgid "Columns"
+msgstr "Spalten"
