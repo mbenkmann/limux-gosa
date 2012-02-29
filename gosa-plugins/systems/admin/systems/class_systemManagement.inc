@@ -674,6 +674,17 @@ class systemManagement extends management
                         $this->tabObject->delete ();
                     }
 
+                    // Delete obsolete trees
+                    LDAP::rm_obsolete_trees($this->dn, array(
+                        'ou=workstations',
+                        'ou=servers',
+                        'ou=systems',
+                        'ou=terminals',
+                        'ou=printers',
+                        'ou=winstations',
+                        'ou=netdevices'
+                    ));
+
                     // Remove the lock for the current object.
                     del_lock($this->dn);
 

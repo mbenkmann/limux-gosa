@@ -2496,6 +2496,50 @@ function gosa_ldap_explode_dn($dn,$config = NULL,$verify_in_ldap=false)
   return($ret);
 }
 
+/*! \brief Explode a DN into its parent DNs
+ *
+ * Similar to gosa_ldap_explode_dn, but returns the parent DNs
+ * of the given DN only.
+ *
+ * Example:
+ * Given an DN of ou=foo,ou=bar,<base>
+ *
+ * the function returns an array with
+ * ou=foo,ou=bar,<base>
+ * ou=bar,<base>
+ *
+ * \param string 'dn' the DN to split
+ * \param string 'basedn' the current basedn 
+ * \param boolean include_basedn weither the basedn should be an element in the
+ * result array. By default it is not included.
+ *
+ */
+
+function get_parent_dns($dn, $basedn, $include_basedn=FALSE) {
+  $real_path = substr($dn, 0, strlen($dn) - strlen($basedn) -1 );
+  $dn_parts = gosa_ldap_explode_dn($real_path);
+  $cnt = $dn_parts['count']-1;
+
+  $parent_dns = array();
+  foreach($dn_parts as $idx => $rdn) {
+    // Skip the input RDN
+    if ($idx == 0) {
+      continue;
+    }
+
+    $rdn_parts = array($rdn);
+    for ($i = ($idx+1); $i <= $cnt; $i++) {
+      array_push($rdn_parts, $dn_parts[$i]);
+    }
+    array_push($rdn_parts, $basedn);
+    $real_dn = join(",", $rdn_parts);
+    array_push($parent_dns, $real_dn);
+  }
+  if ($include_basedn) {
+    array_push($parent_dns, $basedn);
+  }
+  return $parent_dns;
+}
 
 function get_base_from_hook($dn, $attrib)
 {
