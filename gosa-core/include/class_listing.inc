@@ -57,6 +57,7 @@ class listing {
     var $scrollPosition= 0;
     var $baseSelector;
     var $aclToObjectClass = array();
+    var $enabledColumns = array();
 
     function listing($source, $isString = FALSE)
     {
@@ -203,18 +204,14 @@ class listing {
             }
         }
         $this->objectTypes = array_values($this->objectTypes);
-
-        // Parse layout per column
-        $this->colprops= $this->parseLayout($this->xmlData['table']['layout']);
-
-        // Prepare table headers
-        $this->renderHeader();
-
+ 
         // Assign headline/Categories
         $this->headline= _($this->xmlData['definition']['label']);
         if (!is_array($this->categories)){
             $this->categories= array($this->categories);
         }
+                
+        $this->enabledColumns = $this->xmlData['table']['column'];
 
         // Evaluate columns to be exported
         if (isset($this->xmlData['table']['column'])){
@@ -247,8 +244,8 @@ class listing {
             $sortInit= true;
         }
 
-        if (isset($this->xmlData['table']['column'])){
-            foreach ($this->xmlData['table']['column'] as $index => $config) {
+        if (isset($this->enabledColumns)){
+            foreach ($this->enabledColumns as $index => $config) {
                 // Initialize everything to one direction
                 if ($sortInit) {
                     $this->sortDirection[$index]= false;
@@ -356,6 +353,9 @@ class listing {
                 if ($this->multiSelect || $this->singleSelect) {
                     $rowResult.="<td style='text-align:center;padding:0;' class='list1'>&nbsp;</td>";
                 }
+                
+                // Create local colprops without holes (for missing columns)
+                $colprops = array_values($this->colprops);
 
                 // Render defined department columns, fill the rest with some stuff
                 $rest= $this->numColumns - 1;
@@ -365,14 +365,22 @@ class listing {
                         $colspan= $config['span'];
                         $this->useSpan= true;
                     }
-                    $rowResult.="<td colspan='$colspan' ".$this->colprops[$index]." class='list1'>".$this->renderCell($config['value'], $entry, $row)."</td>";
+                    
+                    // Cap colspan at amount of existing columns
+                    if ($colspan > $rest) {
+                        $colspan = $rest;
+                    }
+                    if (!isset($colprops[$index])) {
+                        $colprops[$index] = '';
+                    }
+                    $rowResult.="<td colspan='$colspan' ".$colprops[$index]." class='list1'>".$this->renderCell($config['value'], $entry, $row)."</td>";
                     $rest-= $colspan;
                 }
 
                 // Fill remaining cols with nothing
                 $last= $this->numColumns - $rest;
                 for ($i= 0; $i<$rest; $i++){
-                    $rowResult.= "<td ".$this->colprops[$last+$i-1]." class='list1'>&nbsp;</td>";
+                    $rowResult.= "<td ".$colprops[$last+$i-1]." class='list1'>&nbsp;</td>";
                 }
                 $rowResult.="</tr>";
 
@@ -403,7 +411,7 @@ class listing {
                 $trow.="<td style='text-align:center;width:20px;' class='list0'><input type='radio' id='listing_radio_selected_$row' name='listing_radio_selected' value='{$row}'></td>\n";
             }
 
-            foreach ($this->xmlData['table']['column'] as $index => $config) {
+            foreach ($this->enabledColumns as $index => $config) {
                 list($renderedCell, $sort) = $this->renderCell($config['value'], $entry, $row, TRUE);
                 $trow.="<td ".$this->colprops[$index]." class='list0'>".$renderedCell."</td>\n";
                 $this->entries[$row]["_sort$index"]= $sort;
@@ -499,10 +507,11 @@ class listing {
             $smarty->assign($key, $html);
         }
 
-        // Assign action menu / base
+        // Assign action menu / base / columns
         $smarty->assign("HEADLINE", $this->headline);
         $smarty->assign("ACTIONS", $this->renderActionMenu());
         $smarty->assign("BASE", $this->renderBase());
+        $smarty->assign("COLUMNS", $this->renderColumnSelection());
 
         // Assign separator
         $smarty->assign("SEPARATOR", "<img src='images/lists/seperator.png' alt='-' align='middle' height='16' width='1' class='center'>");
@@ -669,7 +678,29 @@ class listing {
         // Fix filter if querie returns NULL
         if ($this->entries == null) {
             $this->entries= array();
+        }        
+        
+        
+        if (isset($_POST['act'])) {
+            if (preg_match('/^column-enable-(\d+)$/', $_POST['act'], $matches)) {
+                $index = $matches[1];
+                $this->enabledColumns[$index] = $this->xmlData['table']['column'][$index];
+            }
+            if (preg_match('/^column-disable-(\d+)$/', $_POST['act'], $matches)) {
+                $index = $matches[1];
+                unset($this->enabledColumns[$index]);
+            }
         }
+        
+        // Sort by index
+        ksort($this->enabledColumns);
+                                
+        // Parse layout per column
+        $this->colprops= $this->parseLayout($this->xmlData['table']['layout']);
+
+        // Prepare table headers
+        $this->renderHeader();
+        
     }
 
 
@@ -693,7 +724,14 @@ class listing {
         $result= array();
         $layout= preg_replace("/^\|/", "", $layout);
         $layout= preg_replace("/\|$/", "", $layout);
-        $cols= explode("|", $layout);
+
+        $cols = array();
+        foreach (explode("|", $layout) as $index => $config) {
+            if (isset($this->enabledColumns[$index])) {
+                $cols[$index] = $config;
+            }
+        }
+        
 
         foreach ($cols as $index => $config) {
             if ($config != "") {
@@ -727,13 +765,14 @@ class listing {
             } else {
                 $result[$index]= " style='min-width:100px;'";
             }
+            $last_index = $index;
         }
 
         // Save number of columns for later use
         $this->numColumns= count($cols);
-
+        
         // Add no border to the last column
-        $result[$this->numColumns-1]= preg_replace("/'$/", "border-right:0;'", $result[$this->numColumns-1]);
+        $result[$last_index]= preg_replace("/'$/", "border-right:0;'", $result[$last_index]);
 
         return $result;
     }
@@ -1220,6 +1259,37 @@ function getAction()
         unset($result['targets']);
     }
     return $result;
+}
+
+function renderColumnSelection()
+{
+    // Load shortcut
+    $result= "<ul class='level1' id='column-root'><li><a href='#'>"._("Columns")."&nbsp;".image("images/lists/sort-down.png")."</a>";
+
+    // Build ul/li list
+    $separator= " style='border-top:1px solid #AAA' ";
+    $result.= "<ul class='level2'>";
+
+    // Build in filters
+    foreach ($this->xmlData['table']['column'] as $index => $config) {
+        if (!isset($config['label'])) {
+            continue;
+        }
+        
+        $label = htmlentities(_($config['label']),ENT_COMPAT,'UTF-8');
+        if (isset($this->enabledColumns[$index])) {
+            $result.= "<li><a href='#' onClick='\$(\"act\").value= \"column-disable-$index\";\$(\"exec_act\").click();'>".image("images/checked.png")."&nbsp;$label</a></li>";
+        } else {
+             $result.= "<li><a href='#' onClick='\$(\"act\").value= \"column-enable-$index\";\$(\"exec_act\").click();'>".image("images/empty.png")."&nbsp;".$label."</a></li>";
+        }
+    }
+
+
+    $result.= "</ul>";
+
+    $script= '<script type="text/javascript" language="JavaScript">var column_menu; column_menu = new Menu("column-root", "column_menu", configMenu)</script>';
+
+    return "<div id='columnmenu'>".$result."</li></ul></div>$script";
 }
 
 
