@@ -23,6 +23,7 @@
      <td class="left-border">{t}Base{/t}
       {$BASE}
      </td>
+     <td class="left-border">{$COLUMNS}</td>
      <td class="left-border">
       {$ACTIONS}
      </td>
