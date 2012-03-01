@@ -209,7 +209,7 @@ class faiTemplateEntry extends plugin
       /* Check if we are allowed to change the destination directory 
        */
       if($this->acl_is_writeable("cn")){
-        $cur_path = preg_replace("/[^\/]*$/","",$cur_path).rtrim(get_post('templateFile'));
+        $cur_path = preg_replace("/[^\/]*$/","",$cur_path).trim(get_post('templateFile'));
       }
       $cur_path= str_replace("//","/",$cur_path);
       if(trim($cur_path,"/") == ""){
