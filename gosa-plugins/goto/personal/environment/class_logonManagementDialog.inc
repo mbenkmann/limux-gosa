@@ -107,6 +107,11 @@ class logonManagementDialog extends plugin
         }
 
       }
+      
+      if ($this->LogonData) {
+        $this->LogonData = preg_replace('/\\r\\n/', "\n", $this->LogonData);
+      }
+      
     }
   }
 
