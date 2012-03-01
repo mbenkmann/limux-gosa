@@ -238,8 +238,8 @@ class faiPackage extends plugin
     if (!isset($_POST['pluginModified']) && !empty($this->FAIdebianRelease)) {
       $this->genPkgs();
       if (empty($this->buffer)) {
-        msg_dialog::display(_("Release unavailable"), 
-          sprintf(_("The release is not available on this server: %s. Package metadata will be missing."), $this->FAIdebianRelease),
+        msg_dialog::display(sprintf(_("Release unavailable: %s"), $this->FAIdebianRelease), 
+          sprintf(_("The packages in release %s and their details cannot be displayed because the release is unavailable on this server."), $this->FAIdebianRelease),
           WARNING_DIALOG);      
         }
     }
