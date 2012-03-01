@@ -977,7 +977,7 @@ class group extends plugin
                     $tag = $this->gosaUnitTag;
                   }
                   if ($entry['gosaUnitTag'][0] == $tag) {
-                    if ($ldap->getDN() != $this->orig_dn){
+                    if (mb_strtolower($ldap->getDN()) != mb_strtolower($this->orig_dn)){
                       $message[] = ("Another group of the same name already exists, saving or creating this group is not allowed. Please rename the group or remove the or remove the other group.");
                       break;
                     }
