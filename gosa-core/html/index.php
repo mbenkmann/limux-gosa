@@ -53,7 +53,7 @@ function displayLogin()
         $username= get_post("username");
     }
     
-    $smarty->assign ("title","GOsa");
+    $smarty->assign ("title","GOsa - " . $_SERVER['SERVER_NAME']);
     $smarty->assign("logo", image(get_template_path("images/logo.png")));
     $smarty->assign('date', gmdate("D, d M Y H:i:s"));
     $smarty->assign('username', $username);
