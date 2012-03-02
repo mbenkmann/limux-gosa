@@ -272,6 +272,50 @@
      </td>
     </tr>
    </table> 
+   
+   <h3><label for="gotoLogoffScript">{t}Log off scripts{/t}</label></h3>
+   <table summary="{t}Log off script management{/t}" style="width:100%">
+    <tr>
+     <td>
+      {render acl=$gotoLogoffScriptACL}
+      <select style="width:100%;" name="gotoLogoffScript" multiple size=5 id="gotoLogoffScript">
+       
+       {if $multiple_support}
+       {foreach from=$gotoLogoffScripts item=item key=key}
+       {if $item.UsedByAllUsers}
+       <option value="{$key}">{$item.LogoffPriority}&nbsp;{$item.LogoffName}&nbsp;[{$item.LogoffDescription}] ({t}Used by all users{/t})</option>
+       {else}
+       <option style='color: #888888; background: #DDDDDD;background-color: #DDDDDD;' value="{$key}">{$item.LogoffPriority}&nbsp;{$item.LogoffName}&nbsp;[{$item.LogoffDescription}] ({t}Used by some users{/t})</option>
+       {/if}
+       {/foreach}
+       {else}
+       {html_options values=$gotoLogoffScriptKeys output=$gotoLogoffScripts}
+       <option disabled>&nbsp;</option>
+       {/if}
+      </select>
+      {/render}
+      
+      <br>
+      {render acl=$gotoLogoffScriptACL}
+      <button type='submit' name='gotoLogoffScriptNew'>{msgPool type=addButton}</button>
+      
+      {/render}
+      {render acl=$gotoLogoffScriptACL}
+      <button type='submit' name='gotoLogoffScriptEdit' {if $gotoLogoffScriptKeysCnt ==0} disabled {/if}
+      >{t}Edit{/t}</button>
+      
+      {/render}
+      {render acl=$gotoLogoffScriptACL}
+      <button type='submit' name='gotoLogoffScriptDel' {if $gotoLogoffScriptKeysCnt ==0} disabled {/if}
+      >{msgPool type=delButton}</button>
+      
+      {/render}
+     </td>
+    </tr>
+   </table> 
+   
+   
+   
   </td>
  </tr>
 </table>
