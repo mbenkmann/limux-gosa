@@ -1179,7 +1179,7 @@ class FAI
          */
         foreach($attr as $key => $value){
 
-          if(in_array_strict($key ,array("gotoLogonScript", "gosaApplicationIcon","gotoMimeIcon"))){
+          if(in_array_strict($key ,array("gotoLogonScript", "gotoLogoffScript", "gosaApplicationIcon","gotoMimeIcon"))){
             $sr= ldap_read($ldap->cid, LDAP::fix($sourcedn), "$key=*", array($key));
             $ei= ldap_first_entry($ldap->cid, $sr);
             if ($tmp= @ldap_get_values_len($ldap->cid, $ei,$key)){

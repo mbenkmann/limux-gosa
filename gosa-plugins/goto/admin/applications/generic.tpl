@@ -132,18 +132,31 @@
 <table width="99%" summary="{t}Log on script{/t}">
 	<tr>
 		<td>
-			<h3>{t}Script{/t}</h3>
+			<h3>{t}Log on script{/t}</h3>
 {render acl=$gotoLogonScriptACL}
 			<textarea name="gotoLogonScript" style='width:99%;height:220px;'>{$gotoLogonScript}</textarea>
 {/render}
 {render acl=$gotoLogonScriptACL}
-			<input type="file" name="ScriptFile" value="{t}Import{/t}">
+			<input type="file" name="ScriptFileOn" value="{t}Import{/t}">
 {/render}
 {render acl=$gotoLogonScriptACL}
-			<button type='submit' name='upLoad'>{t}Upload{/t}</button>
+			<button type='submit' name='upLoadOn'>{t}Upload{/t}</button>
 
 {/render}
-			{image path="images/save.png" action="downloadScript" title="{t}Download{/t}"}
+			{image path="images/save.png" action="downloadScriptOn" title="{t}Download{/t}"}
+
+			<h3>{t}Log off script{/t}</h3>
+{render acl=$gotoLogoffScriptACL}
+			<textarea name="gotoLogoffScript" style='width:99%;height:220px;'>{$gotoLogoffScript}</textarea>
+{/render}
+{render acl=$gotoLogoffScriptACL}
+			<input type="file" name="ScriptFileOff" value="{t}Import{/t}">
+{/render}
+{render acl=$gotoLogoffScriptACL}
+			<button type='submit' name='upLoadOff'>{t}Upload{/t}</button>
+
+{/render}
+			{image path="images/save.png" action="downloadScriptOff" title="{t}Download{/t}"}
 
 		</td>
 	</tr>
