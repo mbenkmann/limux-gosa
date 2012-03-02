@@ -7,17 +7,18 @@ class printgeneric extends plugin
     var $ignore_account = FALSE;
 
     /* Needed values and lists */
-    var $base             = "";
-    var $cn               = "";
-    var $l                = "";
-    var $description      = "";
-    var $labeledURI       = "";
-    var $gotoPrinterPPD   = "";
-    var $initial_PPD      = "";
-    var $initial_PPD_URL  = "";
-    var $orig_dn          = "";
-    var $orig_cn          = "";
-    var $orig_base        = "";
+    var $base              = "";
+    var $cn                = "";
+    var $l                 = "";
+    var $description       = "";
+    var $ghInventoryNumber = "";
+    var $labeledURI        = "";
+    var $gotoPrinterPPD    = "";
+    var $initial_PPD       = "";
+    var $initial_PPD_URL   = "";
+    var $orig_dn           = "";
+    var $orig_cn           = "";
+    var $orig_base         = "";
 
     var $UserMember       ="";
     var $UserMembers      =array();
@@ -45,8 +46,12 @@ class printgeneric extends plugin
     var $baseSelector;
 
     /* attribute list for save action */
-    var $attributes     = array("cn", "description", "l", "labeledURI", "gotoPrinterPPD","gotoUserPrinter", "macAddress", 
-            "gotoUserAdminPrinter","gotoGroupAdminPrinter","gotoUserPrinter","gotoGroupPrinter","gosaUnitTag");
+    var $attributes     = array("cn", "description", "l", "labeledURI", "gotoPrinterPPD",
+      "gotoUserPrinter", "macAddress", "gotoUserAdminPrinter",
+      "gotoGroupAdminPrinter","gotoUserPrinter","gotoGroupPrinter",
+      "gosaUnitTag", "ghInventoryNumber"
+     
+    );
     var $objectclasses  = array("top", "gotoPrinter");
     var $view_logged    = FALSE;
     var $parent;
@@ -1069,6 +1074,7 @@ class printgeneric extends plugin
                     "cn"                => _("Name"),
                     "base"                => _("Base") ,         
                     "description"       => _("Description"), 
+                    "ghInventoryNumber" => _("Inventory number"),
                     "l"                 => _("Location"), 
                     "labeledURI"        => _("Labeled URI"), 
                     "macAddress"        => _("Mac address"), 

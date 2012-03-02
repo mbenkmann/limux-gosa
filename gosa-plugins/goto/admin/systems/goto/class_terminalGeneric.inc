@@ -18,6 +18,7 @@ class termgeneric extends plugin
     var $ghUsbSupport= "-";
     var $ghNetNic= array();
     var $ghIdeDev= array();
+    var $ghInventoryNumber = "";
     var $ghScsiDev= array();
     var $ghGfxAdapter= "-";
     var $ghSoundAdapter= "-";
@@ -47,7 +48,8 @@ class termgeneric extends plugin
             "gotoSwapServer", "gotoSyslogServer", "gotoNtpServer",
             "gotoFloppyEnable", "gotoCdromEnable", "cn", "gotoSndModule",
             "ghCpuType", "ghMemSize","ghUsbSupport", "description",
-            "ghGfxAdapter", "ghSoundAdapter", "gotoLastUser", 'gotoHardwareChecksum', 'gotoSysStatus');
+            "ghGfxAdapter", "ghSoundAdapter", "gotoLastUser", 
+            'gotoHardwareChecksum', 'gotoSysStatus', 'ghInventoryNumber');
     var $objectclasses= array("top", "gotoTerminal", "GOhard");
 
     var $validActions   = array("reboot" => "", "rescan" => "", "wake" => "", "memcheck" => "", "sysinfo" => "");
@@ -235,6 +237,7 @@ class termgeneric extends plugin
 
         $smarty->assign("cn",set_post($this->cn));
         $smarty->assign("description", set_post($this->description));
+        $smarty->assign("ghInventoryNumber", set_post($this->ghInventoryNumber));
 
         /* tell smarty the inherit checkbox state */
         $smarty->assign("inheritTimeServer",$this->inheritTimeServer);
@@ -709,6 +712,8 @@ another location! */
                             "type"          => "rdn",
                             "default"       => "ou=terminals,ou=systems,",
                             "description"   => _("RDN for terminal storage."),
+                            "ghInventoryNumber" => _("Inventory Number"),
+
                             "check"         => "gosaProperty::isRdn",
                             "migrate"       => "migrate_terminalRDN",
                             "group"         => "plugin",
