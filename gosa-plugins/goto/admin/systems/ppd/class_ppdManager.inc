@@ -361,7 +361,15 @@ class ppdManager
             if (preg_match('/^\*ShortNickName:/i', $line)) { 
                 $ppdDesc['nickname'] = trim(preg_replace('/^\*ShortNickName:\s+"?([^"]+)"?.*$/i', '\1', $line)); 
             } 
+            if (preg_match('/^\*NickName:/i', $line)) {
+                $ppdDesc['longNickname'] = trim(preg_replace('/^\*NickName:\s+"?([^"]+)"?.*$/i', '\1', $line));
+            }
 
+            if (isset($ppdDesc['nickname']) && isset($ppdDesc['longNickname'])) {
+              if ($ppdDesc['nickname'] == $ppdDesc['model']) {
+                $ppdDesc['nickname'] = $ppdDesc['longNickname'];
+              }
+            }
             /* Got everything we need? Skip rest for speed reasons... */
             if (isset($ppdDesc['manufacturer'])  && isset($ppdDesc['model']) && isset($ppdDesc['nickname'])){
                 break;

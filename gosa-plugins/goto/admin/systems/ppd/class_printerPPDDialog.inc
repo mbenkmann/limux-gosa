@@ -490,7 +490,7 @@ class printerPPDDialog extends plugin
         $str = "none";
         if(!empty($this->selectedPPD)){
             $ppdDesc = $this->ppdManager->loadDescription($this->pathToPPD.$this->pathToModified.$this->selectedPPD['link']);
-            $str = $ppdDesc['name'];
+            $str = $ppdDesc['nickname'];
         }
         return($str) ; 
     }
