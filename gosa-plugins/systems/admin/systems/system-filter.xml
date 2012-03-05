@@ -24,6 +24,7 @@
     <attribute>FAIclass</attribute>
     <attribute>macAddress</attribute>
     <attribute>gotoLastUser</attribute>
+    <attribute>ghInventoryNumber</attribute>
     <attribute>state</attribute>
   </definition>
 
