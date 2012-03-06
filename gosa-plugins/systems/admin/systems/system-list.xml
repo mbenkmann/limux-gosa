@@ -192,8 +192,8 @@
 
     <column>
       <label>Inventory number</label>
-      <sortAttribute>ghInventoryNumber</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>ghInventoryNumber,cn</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{ghInventoryNumber}</value>
       <export>true</export>
     </column>
