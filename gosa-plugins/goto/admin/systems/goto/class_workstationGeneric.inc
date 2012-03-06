@@ -14,6 +14,7 @@ class workgeneric extends plugin
     var $gotoCdromEnable= "";
     var $description= "";
     var $ghInventoryNumber = "";
+    var $goComment = "";
     var $ghCpuType= "-";
     var $ghMemSize= "-";
     var $ghUsbSupport= "-";
@@ -48,11 +49,12 @@ class workgeneric extends plugin
 
     /* attribute list for save action */
     var $ignore_account= TRUE;
+
     var $attributes= array("gotoMode", "gotoSyslogServer", "gotoNtpServer",
             "gotoFloppyEnable", "gotoCdromEnable", "cn", "gotoSndModule",
             "ghCpuType", "ghMemSize", "ghUsbSupport", "description",
             "ghGfxAdapter", "ghSoundAdapter", "gotoLastUser", "l","FAIscript",
-            "gotoHardwareChecksum", "gotoSysStatus", "ghInventoryNumber");
+            "gotoHardwareChecksum", "gotoSysStatus", "ghInventoryNumber", "goComment");
     var $objectclasses= array("top", "gotoWorkstation", "GOhard");
 
     var $validActions   = array("reboot" => "", "localboot" => "", "halt" => "", "update" => "", "reinstall" => "",
@@ -274,6 +276,7 @@ class workgeneric extends plugin
         $smarty->assign("cn", set_post($this->cn));
         $smarty->assign("description", set_post($this->description));
         $smarty->assign("ghInventoryNumber", set_post($this->ghInventoryNumber));
+        $smarty->assign("goComment", set_post($this->goComment));
         $smarty->assign("l", set_post($this->l));
 
         $tmp = array();
@@ -432,6 +435,11 @@ class workgeneric extends plugin
 
         if(isset($_POST["inheritAll"])){
             $this->set_everything_to_inherited();
+        }
+
+        if(isset($_POST['goComment'])) {
+          print "comments set<br>";
+          $this->goComment = $_POST['goComment'];
         }
 
         /* Hanle kerberos host key plugin */
@@ -787,6 +795,7 @@ class workgeneric extends plugin
                                 "gotoMode"            => _("Goto mode"), 
                                 "gotoSyslogServer"    => _("Syslog server"), 
                                 "gotoNtpServer"       => _("NTP server"), 
+                                "goComment"          => _("Comments"),
                                 "userPassword"      => _("Root password"),
                                 "createFAICD"         => _("Create FAI CD"),
                                 "FAIstate"            => _("Action flag"))

@@ -32,12 +32,13 @@ class servgeneric extends plugin
     var $l= "";
     var $description= "";
     var $ghInventoryNumber = "";
+    var $goComment = "";
     var $orig_dn= "";
     var $orig_cn= "";
     var $orig_base= "";
 
     /* attribute list for save action */
-    var $attributes= array("cn", "description","gotoMode", "ghInventoryNumber");
+    var $attributes= array("cn", "description","gotoMode", "ghInventoryNumber", "goComment");
     var $objectclasses= array("top", "GOhard", "goServer");
 
     var $gotoMode= "locked";
@@ -234,6 +235,7 @@ class servgeneric extends plugin
         $smarty->assign("currently_installing", $this->currently_installing);
 
         $smarty->assign("host_key","");
+        $smarty->assign("goComment", set_post($this->goComment));
         if(is_object($this->kerberos_key_service)){
             $smarty->assign("host_key",$this->kerberos_key_service->execute_by_prefix("host/"));
         }
@@ -304,6 +306,9 @@ class servgeneric extends plugin
             }
         }
 
+        if (isset($_POST['goComment'])) {
+          $this->goComment = get_post("goComment");
+        }
 
         /* Hanle kerberos host key plugin */
         if(is_object($this->kerberos_key_service)){
@@ -540,7 +545,7 @@ class servgeneric extends plugin
                     "description"   => _("Description"),
                     "ghInventoryNumber" => _("Inventory number"),
                     "base"          => _("Base"),
-
+                    "goComment"          => _("Comments"),
                     "gotoMode"      => _("Goto mode"),
                     "userPassword"=> _("Root password"),
                     "FAIstate"      => _("Action flag"))

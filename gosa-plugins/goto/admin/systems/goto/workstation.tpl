@@ -49,11 +49,21 @@
 {/render}
      </td>
     </tr>
+    <tr>
+    <td><LABEL for="comments">{t}Comment{/t}</LABEL></td>
+    <td>
+{render acl=$goCommentACL}
+    <textarea rows=6 cols=45 id="goComment" name="goComment">{$goComment}</textarea>
+
+{/render}
+    </td>
+    </tr>
    </table>
 
+{if $host_key}
    <hr>
-	  {$host_key}
-
+   {$host_key}
+{/if}
   </td>
   <td class='left-border'>
 
@@ -91,11 +101,13 @@
                         changeState('gotoNtpServers');
                         changeState('addNtpServer');
                         changeState('delNtpServer');">{t}Inherit time server attributes{/t}
+                        <br><br>
     {/render}
     {else}
-      <input disabled type='checkbox' name='option_disabled'>{t}Inherit time server attributes{/t}
+      <input disabled type='checkbox' name='option_disabled'>{t}Inherit time server attributes{/t}<br><br>
     {/if}
          <LABEL for="gotoNtpServerSelected">{t}NTP server{/t}</LABEL>
+         <br>
     {render acl=$gotoNtpServerACL}
           <select name="gotoNtpServerSelected[]" id="gotoNtpServerSelected" multiple size=5 style="width:100%;"
                 title="{t}Choose server to use for synchronizing time{/t}" {if $inheritTimeServer} disabled {/if}>
