@@ -761,7 +761,7 @@ class environment extends plugin
        */
       if(isset($_POST['gotoLogoffScriptNew'])){
         $this->is_dialog = true;
-        $this->dialog = new LogoffManagementDialog($this->config,$this->dn);
+        $this->dialog = new logoffManagementDialog($this->config,$this->dn);
       }
 
       /* If we receive a Delete request and there is a Script selected in the selectbox, delete this one.
@@ -777,7 +777,7 @@ class environment extends plugin
       if((isset($_POST['gotoLogoffScriptEdit']))&&(isset($_POST['gotoLogoffScript']))){
         $is_entry = $this->gotoLogoffScripts[get_post('gotoLogoffScript')];
         $this->is_dialog = true;
-        $this->dialog = new LogoffManagementDialog($this->config,$this->dn,$is_entry);
+        $this->dialog = new logoffManagementDialog($this->config,$this->dn,$is_entry);
       }
     }
     
