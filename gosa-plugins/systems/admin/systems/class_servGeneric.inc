@@ -31,12 +31,13 @@ class servgeneric extends plugin
     var $cn= "";
     var $l= "";
     var $description= "";
+    var $ghInventoryNumber = "";
     var $orig_dn= "";
     var $orig_cn= "";
     var $orig_base= "";
 
     /* attribute list for save action */
-    var $attributes= array("cn", "description","gotoMode");
+    var $attributes= array("cn", "description","gotoMode", "ghInventoryNumber");
     var $objectclasses= array("top", "GOhard", "goServer");
 
     var $gotoMode= "locked";
@@ -402,6 +403,7 @@ class servgeneric extends plugin
         plugin::save();
 
         /* Remove all empty values */
+
         if ($this->orig_dn == 'new'){
             $attrs= array();
             foreach ($this->attrs as $key => $val){
@@ -536,6 +538,7 @@ class servgeneric extends plugin
             "plProvidedAcls"=> array(
                     "cn"            => _("Name"),
                     "description"   => _("Description"),
+                    "ghInventoryNumber" => _("Inventory number"),
                     "base"          => _("Base"),
 
                     "gotoMode"      => _("Goto mode"),

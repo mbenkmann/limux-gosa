@@ -13,6 +13,7 @@ class workgeneric extends plugin
     var $gotoFloppyEnable= "";
     var $gotoCdromEnable= "";
     var $description= "";
+    var $ghInventoryNumber = "";
     var $ghCpuType= "-";
     var $ghMemSize= "-";
     var $ghUsbSupport= "-";
@@ -51,7 +52,7 @@ class workgeneric extends plugin
             "gotoFloppyEnable", "gotoCdromEnable", "cn", "gotoSndModule",
             "ghCpuType", "ghMemSize", "ghUsbSupport", "description",
             "ghGfxAdapter", "ghSoundAdapter", "gotoLastUser", "l","FAIscript",
-            "gotoHardwareChecksum", "gotoSysStatus");
+            "gotoHardwareChecksum", "gotoSysStatus", "ghInventoryNumber");
     var $objectclasses= array("top", "gotoWorkstation", "GOhard");
 
     var $validActions   = array("reboot" => "", "localboot" => "", "halt" => "", "update" => "", "reinstall" => "",
@@ -272,6 +273,7 @@ class workgeneric extends plugin
 
         $smarty->assign("cn", set_post($this->cn));
         $smarty->assign("description", set_post($this->description));
+        $smarty->assign("ghInventoryNumber", set_post($this->ghInventoryNumber));
         $smarty->assign("l", set_post($this->l));
 
         $tmp = array();
@@ -779,6 +781,7 @@ class workgeneric extends plugin
                         "plProvidedAcls"=> array(
                                 "cn"                  => _("Workstation name"),
                                 "description"         => _("Description") ,
+                                "ghInventoryNumber"   => _("Inventory number"),
                                 "l"                   => _("Location") ,
                                 "base"                => _("Base") ,
                                 "gotoMode"            => _("Goto mode"), 

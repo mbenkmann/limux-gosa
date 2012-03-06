@@ -25,6 +25,17 @@
       <td colspan=2>&nbsp;</td>
     </tr>
     <tr>
+     <td><LABEL for="ghInventoryNumber">{t}Inventory number{/t}</LABEL></td>
+     <td>
+{render acl=$ghInventoryNumberACL}
+      <input type='text' id="ghInventoryNumber" name="ghInventoryNumber" size=25 maxlength=80 value="{$ghInventoryNumber}">
+{/render}
+     </td>
+    </tr>
+    <tr>
+      <td colspan=2>&nbsp;</td>
+    </tr>
+    <tr>
      <td><LABEL for="base">{t}Base{/t}</LABEL>{$must}</td>
      <td>
 {render acl=$baseACL}

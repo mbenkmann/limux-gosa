@@ -25,6 +25,14 @@
      </td>
     </tr>
     <tr>
+     <td><LABEL for="ghInventoryNumber">{t}Inventory number{/t}</LABEL></td>
+     <td>
+{render acl=$ghInventoryNumberACL}
+      <input type='text' name="ghInventoryNumber" id="ghInventoryNumber" size=18 maxlength=60 value="{$ghInventoryNumber}">
+{/render}
+     </td>
+    </tr>
+    <tr>
      <td><LABEL for="base">{t}Base{/t}</LABEL>{$must}</td>
      <td>
 
