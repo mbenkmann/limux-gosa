@@ -1334,7 +1334,7 @@ class mailAccount extends plugin
   
   /*! \brief  ...
    */
-  function set_multi_edit_values($values)
+  function set_multi_edit_values($values, $skip_attrs = array())
   {
     plugin::set_multi_edit_values($values);
     $tmp= preg_replace("/[^a-z]/i","",$this->gosaMailDeliveryMode);

@@ -272,7 +272,7 @@ class connectivity extends plugin
     return($ret);
   }
 
-  function set_multi_edit_values($values)
+  function set_multi_edit_values($values, $skip_attrs = array())
   {
     foreach($values['plugin'] as $name => $plugin){
       $this->plugin[$name]->set_multi_edit_values($plugin->get_multi_edit_values());

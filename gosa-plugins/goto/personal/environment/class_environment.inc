@@ -1767,16 +1767,10 @@ class environment extends plugin
   }
 
 
-  function set_multi_edit_values($attrs)
+  function set_multi_edit_values($attrs, $skip_attrs = array())
   {
-    $shares = $this->gotoShares;
-    $scripts= $this->gotoLogonScripts;
-    $plugs= $this->gotoHotplugDevices;
-    plugin::set_multi_edit_values($attrs);
-
-    $this->gotoShares = $shares;
-    $this->gotoLogonScripts = $scripts;
-    $this->gotoHotplugDevices = $plugs;
+    plugin::set_multi_edit_values($attrs, 
+      array('gotoShares', 'gotoLogonScripts', 'gotoHotplugDevices'));
 
     foreach($attrs['gotoShares'] as $name => $share){
       if($share['UsedByAllUsers'] == TRUE){

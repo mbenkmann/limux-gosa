@@ -582,7 +582,7 @@ class kolabAccount extends plugin
               will be applied to this plugin.
       @param  array   An array containing modified attributes returned by get_multi_edit_values();
    */
-  public function set_multi_edit_values($values)
+  public function set_multi_edit_values($values, $skip_attrs = array())
   {
     plugin::set_multi_edit_values($values);
     if(isset($values['is_account'])){
