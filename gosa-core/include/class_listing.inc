@@ -58,6 +58,7 @@ class listing {
     var $baseSelector;
     var $aclToObjectClass = array();
     var $enabledColumns = array();
+    var $columnSettingsId;
 
     function listing($source, $isString = FALSE)
     {
@@ -163,6 +164,7 @@ class listing {
 
     function loadString($contents)
     {
+        $this->columnSettingsId = 'listing_columns_' . sha1($contents);
         $this->xmlData= xml::xml2array($contents, 1);
 
         if (!isset($this->xmlData['list'])) {
@@ -210,8 +212,14 @@ class listing {
         if (!is_array($this->categories)){
             $this->categories= array($this->categories);
         }
-                
-        $this->enabledColumns = $this->xmlData['table']['column'];
+        
+        // Use column settings from session if available
+        if (session::global_is_set($this->columnSettingsId)) {
+            $this->enabledColumns = session::global_get($this->columnSettingsId);
+        }
+        else {
+            $this->enabledColumns = $this->xmlData['table']['column'];
+        }
 
         // Evaluate columns to be exported
         if (isset($this->xmlData['table']['column'])){
@@ -694,7 +702,10 @@ class listing {
         
         // Sort by index
         ksort($this->enabledColumns);
-                                
+        
+        // Save column settings to session
+        session::global_set($this->columnSettingsId, $this->enabledColumns);
+        
         // Parse layout per column
         $this->colprops= $this->parseLayout($this->xmlData['table']['layout']);
 
