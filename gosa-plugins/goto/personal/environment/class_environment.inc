@@ -1768,65 +1768,32 @@ class environment extends plugin
 
   function set_multi_edit_values($attrs, $skip_attrs = array())
   {
-    plugin::set_multi_edit_values($attrs, 
-      array('gotoShares', 'gotoLogonScripts', 'gotoHotplugDevices'));
+    $skip_types = array('gotoShares', 'gotoLogonScripts', 'gotoLogoffScripts',
+      'gotoHotplugDevices');
+    plugin::set_multi_edit_values($attrs, $skip_types);
 
-    foreach($attrs['gotoShares'] as $name => $share){
-      if($share['UsedByAllUsers'] == TRUE){
-        $this->gotoShares[$name] = $share;
-      }
-    }
-    foreach($this->gotoShares as $name => $share){
-      if(!isset($attrs['gotoShares'][$name])){
-        unset($this->gotoShares[$name]);
-      }
-    }
-    foreach($attrs['gotoLogonScripts'] as $name => $script){
-      if($script['UsedByAllUsers'] == TRUE){
-        $this->gotoLogonScripts[$name] = $script;
-      }
-    }
-    foreach($this->gotoLogonScripts as $name => $script){
-      if(!isset($attrs['gotoLogonScripts'][$name])){
-        unset($this->gotoLogonScripts[$name]);
-      }
-    }
-    foreach($attrs['gotoLogoffScripts'] as $name => $script){
-      if($script['UsedByAllUsers'] == TRUE){
-        $this->gotoLogoffScripts[$name] = $script;
-      }
-    }
-    foreach($this->gotoLogoffScripts as $name => $script){
-      if(!isset($attrs['gotoLogoffScripts'][$name])){
-        unset($this->gotoLogoffScripts[$name]);
-      }
-    }
-    
-    $tmp = array();
-    foreach($this->gotoHotplugDevices as $entry){
-      $tmp[$entry['name']] = $entry;
-    }
-  
-    foreach($attrs['gotoHotplugDevices'] as $name => $plug){
-      if($plug['UsedByAllUsers'] == TRUE){
-        $tmp[$plug['dn']] = $plug;
-      }
-    }
-    foreach($tmp as $name => $plug){
-      $found = false;
-      foreach($attrs['gotoHotplugDevices'] as $test){
-        if($test['dn'] == $name){
-          $found = true;
+    /* Only add new objects if UsedByAllUsers flag is set to TRUE
+     * and remove objects not even set in $attrs */
+    foreach($skip_types as $type) {
+      if (isset($attrs[$type])) {
+        /* Add newly added objects */
+        foreach($attrs[$type] as $name => $obj) {
+          if (isset($obj['UsedByAllUsers']) && $obj['UsedByAllUsers'] == TRUE) {
+            $this->{$type}[$name] = $obj;
+          }
         }
       }
-      if(!$found){
-        unset($tmp[$name]);
+
+      /* Prune old objects */
+      foreach($this->{$type} as $name => $obj) {
+        if (!isset($attrs[$type][$name])) {
+          unset($this->{$type}[$name]);
+        }
       }
     }
   }
 
-
-    /* Return selected values for multiple edit */
+  /* Return selected values for multiple edit */
   function get_multi_edit_values()
   {
     $ret = plugin::get_multi_edit_values();
