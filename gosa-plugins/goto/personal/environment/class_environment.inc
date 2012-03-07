@@ -965,7 +965,7 @@ class environment extends plugin
     if(isset($_POST['gotoHotplugDeviceUse']) && $this->acl_is_writeable("gotoHotplugDeviceDN")){
       $tmp  =array();
       foreach($this->gotoHotplugDevices as $plugs){
-        $tmp[] = $plugs['name'];
+        $tmp[$plugs['name']] = $plugs['name'];
       }
       $this->dialog = new hotplugSelect($this->config, get_userinfo());
       $this->is_dialog = true;
@@ -1719,7 +1719,7 @@ class environment extends plugin
             $tmp2['vendor']       = $tmp[3];
             $tmp2['dn']           = $multi_attrs_all['dn'];
             $tmp2['UsedByAllUsers'] = FALSE;
-            $this->gotoHotplugDevices[$tmp2['dn']] = $tmp2;
+            $this->gotoHotplugDevices[$tmp2['name']] = $tmp2;
           }
         }
       }
@@ -1744,12 +1744,11 @@ class environment extends plugin
             $tmp2['vendor']       = $tmp[3];
             $tmp2['dn']           = $multi_attrs['dn'];
             $tmp2['UsedByAllUsers'] = TRUE;
-            $this->gotoHotplugDevices[$tmp2['dn']] = $tmp2;
+            $this->gotoHotplugDevices[$tmp2['name']] = $tmp2;
           }
         }
       }
     }
-    $this->gotoHotplugDevices = array_values($this->gotoHotplugDevices);
     for($i = 0 ; $i < strlen($this->gotoProfileFlags) ; $i ++){
       $chr = $this->gotoProfileFlags[$i];
       $name = "gotoProfileFlag".$chr;
@@ -1805,7 +1804,7 @@ class environment extends plugin
     
     $tmp = array();
     foreach($this->gotoHotplugDevices as $entry){
-      $tmp[$entry['dn']] = $entry;
+      $tmp[$entry['name']] = $entry;
     }
   
     foreach($attrs['gotoHotplugDevices'] as $name => $plug){
