@@ -364,6 +364,13 @@ class listing {
                 
                 // Create local colprops without holes (for missing columns)
                 $colprops = array_values($this->colprops);
+                
+                $disabledDataColumnsAmount = 0;                
+                foreach ($this->xmlData['table']['column'] as $index => $config) {
+                    if (!isset($this->enabledColumns[$index]) && isset($config['export'])) {
+                        $disabledDataColumnsAmount++;
+                    }
+                }
 
                 // Render defined department columns, fill the rest with some stuff
                 $rest= $this->numColumns - 1;
@@ -374,9 +381,9 @@ class listing {
                         $this->useSpan= true;
                     }
                     
-                    // Cap colspan at amount of existing columns
-                    if ($colspan > $rest) {
-                        $colspan = $rest;
+                    $colspan -= $disabledDataColumnsAmount;
+                    if ($colspan <= 0) {
+                        $colspan = 1;
                     }
                     if (!isset($colprops[$index])) {
                         $colprops[$index] = '';
@@ -745,6 +752,7 @@ class listing {
         
 
         foreach ($cols as $index => $config) {
+            $last_index = $index;
             if ($config != "") {
                 $res= "";
                 $components= explode(';', $config);
@@ -776,7 +784,6 @@ class listing {
             } else {
                 $result[$index]= " style='min-width:100px;'";
             }
-            $last_index = $index;
         }
 
         // Save number of columns for later use
