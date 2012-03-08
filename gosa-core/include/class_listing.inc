@@ -512,7 +512,23 @@ class listing {
 
         $smarty->assign("FILTER", $this->filter->render());
         $smarty->assign("SIZELIMIT", print_sizelimit_warning());
-        $smarty->assign("LIST", $result);
+        
+        // Check if there are any data columns enabled
+        $anyDataColumnsEnabled = false;
+        foreach ($this->enabledColumns as $index => $config) {
+            if (isset($config['export'])) {
+                $anyDataColumnsEnabled = true;
+                break;
+            }
+        }
+        
+        if ($anyDataColumnsEnabled) {
+            $smarty->assign("LIST", $result);
+        }
+        else {
+            $smarty->assign("LIST", _('You have disabled all columns. '
+              .'Please enable at least one to see any list content.'));
+        }
 
         // Assign navigation elements
         $nav= $this->renderNavigation();
