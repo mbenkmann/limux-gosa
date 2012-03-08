@@ -632,6 +632,9 @@ msgstr "Platziere einen Eintrag in der Kontrollleiste der Gruppenmitglieder"
 msgid "Log on script"
 msgstr "Anmelde-Skript"
 
+msgid "Log off script"
+msgstr "Abmelde-Skript"
+
 #: admin/applications/generic.tpl:135
 #: personal/environment/logonManagement.tpl:56
 msgid "Script"
@@ -4169,6 +4172,9 @@ msgstr "POSIX"
 #: personal/environment/environment.tpl:235
 msgid "Log on scripts"
 msgstr "Anmelde-Skripte"
+
+msgid "Log off scripts"
+msgstr "Abmelde-Skripte"
 
 #: personal/environment/class_environment.inc:711
 msgid "Share"

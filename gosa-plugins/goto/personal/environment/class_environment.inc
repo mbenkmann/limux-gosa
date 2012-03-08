@@ -35,6 +35,10 @@ class environment extends plugin
   var $gotoLogonScripts   = array();// Contains all available Logon Scripts  
   var $gotoLogonScript    = "";     // The selected Logon Script
 
+  /* Logo script section*/
+  var $gotoLogoffScripts   = array();// Contains all available Logoff Scripts  
+  var $gotoLogoffScript    = "";     // The selected Logoff Script
+
   /* Printer */
   var $gotoPrinter        = array();// All available Printer, with their configurations
   var $gotoPrinterSel     = "";     //  The selected Printer
@@ -75,6 +79,8 @@ class environment extends plugin
                             "gotoProfileQuota",
                             "gotoLogonScripts",
                             "gotoLogonScript",
+                            "gotoLogoffScripts",
+                            "gotoLogoffScript",
                             "gotoPrinter",
                             "gotoPrinterSel",
                             "gosaDefaultPrinter",
@@ -92,7 +98,8 @@ class environment extends plugin
 
   var $attributes         = array("uid","gotoProfileServer","gotoProfileFlags","gotoHotplugDeviceDN",
       "gotoXResolution","gotoProfileQuota",
-      "gotoLogonScript","gotoLogonScripts","gotoHotplugDevices",
+      "gotoLogonScript","gotoLogonScripts",
+      "gotoLogoffScript","gotoLogoffScripts","gotoHotplugDevices",
       "gotoPrinter", "gosaDefaultPrinter",
       "gotoShare",
       "gotoKioskProfile");
@@ -191,6 +198,31 @@ class environment extends plugin
         $this->gotoLogonScripts[$tmp[0]]=$tmp2;
       }
     }
+    
+    /* prepare LogoffScripts */
+    if((isset($this->attrs['gotoLogoffScript']))&&(is_array($this->attrs['gotoLogoffScript']))){
+      unset($this->attrs['gotoLogoffScript']['count']);
+      foreach($this->attrs['gotoLogoffScript'] as $device){
+        $tmp = $tmp2 = array();
+        $tmp = explode("|",$device);
+        $tmp2['LogoffName']        = $tmp[0]; 
+        $tmp2['LogoffPriority']    = $tmp[2]; 
+        if(preg_match("/O/i",$tmp[1])){
+          $tmp2['LogoffOverload'] = "O";
+        }else{
+          $tmp2['LogoffOverload'] = "";
+        }
+        if(preg_match("/L/i",$tmp[1])){
+          $tmp2['LogoffLast'] = "L";
+        }else{
+          $tmp2['LogoffLast'] = "";
+        }
+        $tmp2['LogoffData']        = base64_decode($tmp[3]); 
+        $tmp2['LogoffDescription'] = $tmp[4];
+        $this->gotoLogoffScripts[$tmp[0]]=$tmp2;
+      }
+    }
+    
 
     /* Prepare Shares */
     if((isset($this->attrs['gotoShare']))&&(is_array($this->attrs['gotoShare']))){
@@ -678,16 +710,94 @@ class environment extends plugin
         $this->dialog = new logonManagementDialog($this->config,$this->dn,$is_entry);
       }
     }
+    
+    /* Logoffscript Management
+     * Get available LogoffScripts (possibly grey out (or mark) these script that are defined for the group) 
+     * Perform add Delete edit Posts 
+     */
+
+    /* Dialog Save */
+    if(isset($_POST['LogoffSave'])){
+
+      if(!$this->acl_is_writeable("gotoLogoffScript")){
+        msg_dialog::display(_("Permission error"), msgPool::permModify(_("Log off scripts")), ERROR_DIALOG);
+        unset($this->dialog);
+        $this->dialog=FALSE;
+        $this->is_dialog=false;
+      }else{
+        $this->dialog->save_object();
+        if(count($this->dialog->check())!=0){
+          foreach($this->dialog->check() as $msg){
+            msg_dialog::display(_("Error"), $msg, ERROR_DIALOG);
+          }
+        }else{
+          $tmp = $this->dialog->save();
+          unset($this->dialog);
+          $this->dialog=FALSE;
+          $this->is_dialog=false;
+
+          if($this->multiple_support_active){
+            $tmp['UsedByAllUsers'] = TRUE;
+          }
+          $this->gotoLogoffScripts[$tmp['LogoffName']]=$tmp; 
+        }
+      }
+    }
+    
+
+    /* Dialog Quit without saving */
+    if(isset($_POST['LogoffCancel'])){
+      $this->is_dialog= false;
+      unset($this->dialog);
+      $this->dialog= FALSE;
+    }
+
+    /* Check Edit Del New Posts for a selected LogoffScript */ 
+    if($this->acl_is_writeable("gotoLogoffScript") && 
+        (isset($_POST['gotoLogoffScriptNew'])) || isset($_POST['gotoLogoffScriptEdit']) ||isset($_POST['gotoLogoffScriptDel'])){
+
+      /* New Logoff Script: Open an edit dialog, we don't need a $_POST['gotoLogoffScript'] here.
+       * In this case we create a new Logoff Script.
+       */
+      if(isset($_POST['gotoLogoffScriptNew'])){
+        $this->is_dialog = true;
+        $this->dialog = new logoffManagementDialog($this->config,$this->dn);
+      }
+
+      /* If we receive a Delete request and there is a Script selected in the selectbox, delete this one.
+       * We only can delete if there is an entry selected.
+       */
+      if((isset($_POST['gotoLogoffScriptDel']))&&(isset($_POST['gotoLogoffScript']))){
+        unset($this->gotoLogoffScripts[$_POST['gotoLogoffScript']]);
+      }
+
+      /* In this case we want to edit an existing entry, we open a new Dialog to allow editing.
+       * There must be an entry selected to perform edit request.
+       */
+      if((isset($_POST['gotoLogoffScriptEdit']))&&(isset($_POST['gotoLogoffScript']))){
+        $is_entry = $this->gotoLogoffScripts[get_post('gotoLogoffScript')];
+        $this->is_dialog = true;
+        $this->dialog = new logoffManagementDialog($this->config,$this->dn,$is_entry);
+      }
+    }
+    
 
     /* Append List to smarty*/
     if($this->multiple_support_active){
       $smarty->assign("gotoLogonScripts",       set_post($this->gotoLogonScripts));
       $smarty->assign("gotoLogonScriptKeysCnt", count($this->gotoLogonScripts));
+      $smarty->assign("gotoLogoffScripts",       set_post($this->gotoLogoffScripts));
+      $smarty->assign("gotoLogoffScriptKeysCnt", count($this->gotoLogoffScripts));
     }else{
       $ls = $this->printOutLogonScripts();
       $smarty->assign("gotoLogonScripts",  set_post($ls));
       $smarty->assign("gotoLogonScriptKeys",set_post(array_flip($ls)));
       $smarty->assign("gotoLogonScriptKeysCnt",count($ls));
+      
+      $ls = $this->printOutLogoffScripts();
+      $smarty->assign("gotoLogoffScripts",  set_post($ls));
+      $smarty->assign("gotoLogoffScriptKeys",set_post(array_flip($ls)));
+      $smarty->assign("gotoLogoffScriptKeysCnt",count($ls));
     }
 
     /* In this section server shares will be defined 
@@ -1156,7 +1266,7 @@ class environment extends plugin
       plugin::save_object();
       foreach($this->attributes as $s_attr){
         if((!isset($_POST[$s_attr])) || 
-            in_array_strict($s_attr,array("gosaDefaultPrinter","gotoShare","gotoHotplugDevices","gotoPrinter","gotoLogonScripts","uid"))) continue;
+            in_array_strict($s_attr,array("gosaDefaultPrinter","gotoShare","gotoHotplugDevices","gotoPrinter","gotoLogonScripts","gotoLogoffScripts","uid"))) continue;
         if(!$this->acl_is_writeable($s_attr)){
           continue;
         }else{ 
@@ -1294,6 +1404,17 @@ class environment extends plugin
         base64_encode($script['LogonData'])."|".
         $script['LogonDescription'];
     }
+
+    /* Prepare LogoffScripts */
+    $this->attrs['gotoLogoffScript'] = array();
+    foreach($this->gotoLogoffScripts as $name => $script){
+      $this->attrs['gotoLogoffScript'][] =   $script['LogoffName']."|".
+        $script['LogoffOverload'].$script['LogoffLast']."|".
+        $script['LogoffPriority']."|".
+        base64_encode($script['LogoffData'])."|".
+        $script['LogoffDescription'];
+    }
+
 
     /* Prepare Shares */
     $this->attrs['gotoShare']=array();
@@ -1437,6 +1558,20 @@ class environment extends plugin
     return($a_return);
   }
 
+  /* Generates ListBox frienly output of used logoffscripts 
+   */
+  function printOutLogoffScripts()
+  {
+    $a_return = array();
+    if(is_array($this->gotoLogoffScripts)){
+      foreach($this->gotoLogoffScripts as $script){
+        $a_return[$script['LogoffName']]= $script['LogoffPriority']." - ".$script['LogoffName']; 
+      }
+    }
+    return($a_return);
+  }
+
+
 
   function multiple_execute()
   {
@@ -1540,28 +1675,28 @@ class environment extends plugin
       }
     }
 
-    /* prepare LogonScripts */
-    if((isset($this->multi_attrs['gotoLogonScript']))&&(is_array($this->multi_attrs['gotoLogonScript']))){
-      unset($this->multi_attrs['gotoLogonScript']['count']);
-      foreach($this->multi_attrs['gotoLogonScript'] as $device){
+    /* prepare LogoffScripts */
+    if((isset($this->multi_attrs['gotoLogoffScript']))&&(is_array($this->multi_attrs['gotoLogoffScript']))){
+      unset($this->multi_attrs['gotoLogoffScript']['count']);
+      foreach($this->multi_attrs['gotoLogoffScript'] as $device){
         $tmp = $tmp2 = array();
         $tmp = explode("|",$device);
-        $tmp2['LogonName']        = $tmp[0];
-        $tmp2['LogonPriority']    = $tmp[2];
+        $tmp2['LogoffName']        = $tmp[0];
+        $tmp2['LogoffPriority']    = $tmp[2];
         if(preg_match("/O/i",$tmp[1])){
-          $tmp2['LogonOverload'] = "O";
+          $tmp2['LogoffOverload'] = "O";
         }else{
-          $tmp2['LogonOverload'] = "";
+          $tmp2['LogoffOverload'] = "";
         }
         if(preg_match("/L/i",$tmp[1])){
-          $tmp2['LogonLast'] = "L";
+          $tmp2['LogoffLast'] = "L";
         }else{
-          $tmp2['LogonLast'] = "";
+          $tmp2['LogoffLast'] = "";
         }
-        $tmp2['LogonData']        = base64_decode($tmp[3]);
-        $tmp2['LogonDescription'] = $tmp[4];
+        $tmp2['LogoffData']        = base64_decode($tmp[3]);
+        $tmp2['LogoffDescription'] = $tmp[4];
         $tmp2['UsedByAllUsers'] = TRUE;
-        $this->gotoLogonScripts[$tmp[0]]=$tmp2;
+        $this->gotoLogoffScripts[$tmp[0]]=$tmp2;
       }
     }
 
@@ -1663,6 +1798,17 @@ class environment extends plugin
         unset($this->gotoLogonScripts[$name]);
       }
     }
+    foreach($attrs['gotoLogoffScripts'] as $name => $script){
+      if($script['UsedByAllUsers'] == TRUE){
+        $this->gotoLogoffScripts[$name] = $script;
+      }
+    }
+    foreach($this->gotoLogoffScripts as $name => $script){
+      if(!isset($attrs['gotoLogoffScripts'][$name])){
+        unset($this->gotoLogoffScripts[$name]);
+      }
+    }
+    
     $tmp = array();
     foreach($this->gotoHotplugDevices as $entry){
       $tmp[$entry['dn']] = $entry;
@@ -1843,7 +1989,8 @@ class environment extends plugin
                           "gotoKioskProfile"    => _("Kiosk profile") ,
                           "gotoProfileFlagL"    => _("Resolution changeable during session") ,
                           "gotoXResolution"     => _("Resolution") ,
-                          "gotoLogonScript"     => _("Log on script"))
+                          "gotoLogonScript"     => _("Log on script"),
+                          "gotoLogoffScript"    => _("Log off script"))
                       ));
   }
 }

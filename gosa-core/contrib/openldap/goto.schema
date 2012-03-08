@@ -88,6 +88,12 @@ attributetype ( 1.3.6.1.4.1.10098.1.1.11.18 NAME 'gotoHotplugDeviceDN'
 	EQUALITY distinguishedNameMatch
         SYNTAX 1.3.6.1.4.1.1466.115.121.1.12)
 
+attributetype ( 1.3.6.1.4.1.10098.1.1.11.19 NAME 'gotoLogoffScript'
+        DESC 'GOto - specifies a LogoffScript'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)
+
 objectclass (1.3.6.1.4.1.10098.1.2.1.1 NAME 'gotoTerminal'
         DESC 'GOto - Gonicus Terminal Concept, objectclass (v2.7)' SUP top AUXILIARY
         MUST ( cn )
@@ -111,7 +117,8 @@ objectclass (1.3.6.1.4.1.10098.1.2.1.31 NAME 'gotoPrinter'
 objectclass (1.3.6.1.4.1.10098.1.2.1.32 NAME 'gotoEnvironment'
 	DESC 'GOto - contains environment settings (v2.7)' SUP top AUXILIARY
 	MAY ( gotoProfileServer $ gotoProfileFlags $ gotoXResolution $ gotoShare $ gotoLogonScript $
-		  gotoKioskProfile $ gotoHotplugDevice $ gotoProfileQuota $ gotoHotplugDeviceDN ) )
+		  gotoKioskProfile $ gotoHotplugDevice $ gotoProfileQuota $ gotoHotplugDeviceDN $
+		  gotoLogoffScript ) )
 
 # objectclass for the Terminal Conecept
 objectclass (1.3.6.1.4.1.10098.1.2.1.34 NAME 'gotoWorkstationTemplate'
