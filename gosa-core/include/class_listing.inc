@@ -240,7 +240,6 @@ class listing {
         $this->plainHeader= array();
 
         // Initialize sort?
-        $sortInit= false;
         if (!$this->sortDirection) {
             $this->sortColumn= 0;
             if (isset($this->xmlData['definition']['defaultSortColumn'])){
@@ -249,16 +248,15 @@ class listing {
                 $this->sortAttribute= "";
             }
             $this->sortDirection= array();
-            $sortInit= true;
-        }
+            
+            // Initialize everything to one direction (including disabled columns)
+            foreach ($this->xmlData['table']['column'] as $index => $config) {
+                $this->sortDirection[$index]= false;
+            }
+        }      
 
         if (isset($this->enabledColumns)){
             foreach ($this->enabledColumns as $index => $config) {
-                // Initialize everything to one direction
-                if ($sortInit) {
-                    $this->sortDirection[$index]= false;
-                }
-
                 $sorter= "";
                 if ($index == $this->sortColumn && isset($config['sortAttribute']) &&
                         isset($config['sortType'])) {
