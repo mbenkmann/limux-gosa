@@ -851,8 +851,8 @@ function renderBase()
 
 function processElementFilter($data, $config, $row, $get_sort_column=FALSE)
 {
-    preg_match_all("/%\{filter:([^(]+)\((.*)\)\}/", $data, $matches, PREG_SET_ORDER);
-
+    preg_match_all("/%\{filter:([^(]+)\(([^)]*)\)\}/", $data, $matches, PREG_SET_ORDER);
+    
     foreach ($matches as $match) {
         $cl= "";
         $method= "";
