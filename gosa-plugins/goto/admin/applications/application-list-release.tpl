@@ -7,6 +7,7 @@
      <tr>
       <td>{$RELOAD}</td>
       <td class="left-border">{t}Release{/t} {$RELEASE}</td>
+      <td class="left-border">{$COLUMNS}</td>
       <td class="left-border">{$ACTIONS}</td>
       <td class="left-border">{$FILTER}</td>
      </tr>

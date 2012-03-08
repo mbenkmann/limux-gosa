@@ -102,6 +102,7 @@ class systemManagement extends management
         $headpage->registerElementFilter("systemFAIstate", "systemManagement::systemFAIstate");
         $headpage->registerElementFilter("filterSystemDescription", "systemManagement::filterSystemDescription");
         $headpage->registerElementFilter("filterLink", "systemManagement::filterLink");
+        $headpage->registerElementFilter("filterState", "systemManagement::filterState");
         $headpage->setFilter($filter);
         $filter->setConverter('systemManagement::incomingFilterConverter');
 
@@ -1464,6 +1465,11 @@ class systemManagement extends management
         $dn= LDAP::fix(func_get_arg(1));
         $desc = isset($description[0])?set_post($description[0]):"";
     
+        return("<a href='?plug=".$_GET['plug']."&amp;PID={$pid}&amp;act=listing_edit_{$row}' title='{$dn}'>".$desc."</a>");
+    }
+    
+    static function filterState($state = '')
+    {
         $rc = "";
         switch($state){
             case 'locked' : $rc = "<rowClass:entry-locked/><rowLabel:locked/>"; break;
@@ -1471,7 +1477,7 @@ class systemManagement extends management
             case 'busy' : $rc = "<rowClass:entry-busy/><rowLabel:busy/>"; break;
             case 'warning' : $rc = "<rowClass:entry-warning/><rowLabel:warning/>"; break;
         }
-        return("<a href='?plug=".$_GET['plug']."&amp;PID={$pid}&amp;act=listing_edit_{$row}' title='{$dn}'>".$desc."</a>{$rc}");
+        return $rc;
     }
 
 

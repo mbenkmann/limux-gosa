@@ -5,6 +5,7 @@
     <table summary="{$HEADLINE}">
      <tr>
       <td>{$RELOAD}</td>
+      <td class="left-border">{$COLUMNS}</td>
       <td class="left-border">{$ACTIONS}</td>
      </tr>
     </table>

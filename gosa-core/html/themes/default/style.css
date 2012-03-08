@@ -1478,6 +1478,95 @@ background-image:none;
 }                       
 
 
+/* Column Menu */
+
+#columnmenu {
+display:inline-block;
+background-color:#FFF;
+height:23px;    
+border:1px solid #CCC;
+  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#F8F8F8', endColorstr='#FFFFFF')";
+background:-webkit-gradient(linear, 0 0, 0 100%, from(#F8F8F8), to(#EEE));
+background:-moz-linear-gradient(top, #F8F8F8, #EEE);
+}                             
+
+#columnmenu ul {
+display:block;
+margin:0;     
+padding:0;    
+line-height:1em;
+list-style:none;
+z-index:90;     
+}               
+
+#columnmenu ul li {
+float:left;      
+margin:0 3px 0 0;
+padding:0;       
+font-size:13px;  
+line-height:1 5em;
+list-style-type:none;
+}                    
+
+#columnmenu ul li a {
+float:left;        
+display:block;     
+width:auto;        
+font-weight:normal;
+background:transparent;
+text-decoration:none;  
+margin:0;              
+padding:5px;           
+}                      
+
+#columnmenu ul li a:hover {
+text-decoration:none;    
+}                        
+
+#columnmenu ul li.sep {
+color:#AAA;          
+padding:.8em 0 .5em; 
+}                    
+
+/* Commented Backslash Hack hides rule from IE5-Mac \*/
+#columnmenu ul li a {                                    
+float:none;                                            
+}                                                      
+
+/* End IE5-Mac hack */
+#columnmenu ul.level2,#columnmenu ul.level3 {
+position:absolute;                       
+top:0;                                   
+left:0;                                  
+visibility:hidden;                       
+border:1px #CCC solid;            
+background:#FFF;                         
+box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+-webkit-box-shadow: 2px 2px 1px rgba(0,0,0,0.1);
+-moz-box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+}                                        
+
+#columnmenu ul.level2 li,#columnmenu ul.level3 li {
+border-bottom:1px solid #fff;                  
+float:none;                                    
+margin:0;                                      
+padding:0;                                     
+width:200px;                                   
+}                                              
+
+#columnmenu ul.level2 li a,#columnmenu ul.level3 li a {
+padding:5px 9px 5px 5px;                           
+}                                                  
+
+#columnmenu ul.level2 li a:hover,#columnmenu ul.level3 li a:hover {
+font-weight:normal;                                            
+background-color:#418DD4;                                      
+background-image:none;                                         
+}                       
+
+
+
+
 /* Misc */
 
 .copynotice, .copynotice a {

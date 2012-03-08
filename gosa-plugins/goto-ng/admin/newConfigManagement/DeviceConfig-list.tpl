@@ -8,6 +8,7 @@
       <td>{$RELOAD}</td>
       <td class="left-border">{t}Container{/t} {$CONTAINER}</td>
       <td class="left-border">{t}Item{/t} {$ITEM}</td>
+      <td class="left-border">{$COLUMNS}</td>
       <td class="left-border">{$ACTIONS}</td>
       <td class="left-border">{$FILTER}</td>
      </tr>

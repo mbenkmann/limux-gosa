@@ -6991,3 +6991,9 @@ msgstr "Willkommen beim GOsa Einrichtungsassistenten"
 #~ msgstr ""
 #~ "#~ \"Mitglieder kopieren. Warnung: Systeme können nur von einer einzelnen "
 #~ "\"#~ \"Gruppe erben!\""
+
+msgid "Columns"
+msgstr "Spalten"
+
+msgid "You have disabled all columns. Please enable at least one to see any list content."
+msgstr "Sie haben alle Spalten deaktiviert. Bitte aktivieren Sie mindestens eine um Listeninhalt sehen zu können."
