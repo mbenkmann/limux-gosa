@@ -121,6 +121,7 @@ class systemManagement extends management
         $this->registerAction("performIsoCreation","performIsoCreation");
         $this->registerAction("systemTypeChosen","systemTypeChosen");
         $this->registerAction("OgroupChosen","OgroupChosen");
+        $this->registerAction("ApplyObjectGroup","ApplyObjectGroup");
         $this->registerAction("handleActivationQueue","handleActivationQueue");
 
         $this->registerAction("new_device",           "newEntry");
@@ -131,6 +132,7 @@ class systemManagement extends management
         $this->registerAction("new_goFonHardware",    "newEntry");
         $this->registerAction("new_ieee802Device",    "newEntry");
         $this->registerAction("new_FAKE_OC_OpsiHost", "newEntry");
+        $this->registerAction("AddToOgroup", "AddToOgroup");
 
         $this->registerAction("setPassword", "setPassword");
         $this->registerAction("passwordChangeConfirmed", "passwordChangeConfirmed");
@@ -440,6 +442,50 @@ class systemManagement extends management
         exit;
     }
 
+    /*! \brief    Add selected system to an object group */
+    function AddToOgroup($action="",$target=array(),$all=array()) {
+      $headpage = $this->headpage;
+
+      // Detect types of all targets
+      $used_types = array();
+      foreach ($target as $dn) {
+        $type = $headpage->getType($dn);
+        if (!in_array_strict($type, $used_types)) {
+          array_push($used_types, $type);
+        }
+      }
+
+      if (count($used_types) == 1) {
+        $type = $used_types[0];
+
+        $allowed_types = array("gotoWorkstation", "gotoTerminal", "goServer",
+            "FAKE_OC_NewDevice");
+        if (!in_array($type, $allowed_types)) {
+          return;
+        }
+
+        foreach($target as $dn) {
+            $this->activationQueue[$dn] = array();
+        }
+        if ($type == 'FAKE_OC_NewDevice') {
+          $this->dialogObject = new applyObjectGroup($this->config, $target);
+          $this->dialogObject->set_acl_category("incoming");
+          $this->dialogObject->is_incoming = TRUE;
+          $this->dialogObject->always_inherit = TRUE;
+          $this->skipFooter = TRUE;
+          $this->displayApplyBtn = FALSE;
+        } else {
+          $this->dialogObject = new applyObjectGroup($this->config, $target);
+          $this->dialogObject->is_incoming = FALSE;
+          $this->dialogObject->SystemType = $type;
+          $this->dialogObject->always_inherit = TRUE;
+          $this->skipFooter = TRUE;
+          $this->displayApplyBtn = FALSE;
+        }
+          
+      }
+
+    }
 
     /*! \brief    Handle GOsa-si events
      *            All schedules and triggered events are handled here.
@@ -796,6 +842,55 @@ class systemManagement extends management
         }
     }
 
+    function ApplyObjectGroup()
+    {
+      $this->dialogObject->save_object();
+
+      // Test if any of the objects is already member of an object group
+      $ldap = $this->config->get_ldap_link();
+      $ldap->cd($this->config->current['BASE']);
+      $found = array();
+      foreach($this->activationQueue as $dn => $data) {
+        $ogroups = ogroup::get_ogroup_memberships($dn);
+        if (count($ogroups) != 0) {
+          unset($this->activationQueue[$dn]);
+          array_push($found, $dn);
+        }
+      }
+
+      if (count($found) != 0) {
+        msg_dialog::display(_("Warning"), sprintf(_("These systems are already configured by other object groups and cannot be added:")).msgPool::buildList($found), WARNING_DIALOG);
+      }
+
+      if (count($this->dialogObject->check()) != 0) {
+        foreach($this->dialogObject->check() as $msg) {
+          msg_dialog::display(_("Error"), $msg, ERROR_DIALOG);
+        }
+      } else {
+        $ogroup = $this->dialogObject->save();
+        $this->closeDialogs();
+        $tmp = array();
+        foreach($this->activationQueue as $dn => $data) {
+          $data['OG'] = $ogroup;
+          $data['SS'] = get_post('SystemType');
+          $data['skip_activation'] = TRUE;
+          if (!isset($_POST['inherit_attributes'])) {
+            $data['skip_inheritance'] = TRUE;
+          }
+          if (isset($_POST['trigger_reinstall'])) {
+            $data['trigger_reinstall'] = TRUE;
+            $data['skip_activation'] = FALSE;
+          }
+          if (isset($_POST['is_incoming'])) {
+            $data['is_incoming'] = 1;
+          }
+          $tmp[$dn] = $data;
+        }
+        $this->activationQueue = $tmp;
+        return($this->handleActivationQueue());
+      }
+      $this->activationQueue = array();
+    }
     /*! \brief  The ask object group dialog was closed.
      *          We will now open the normal workstation dialog.
      */
@@ -860,6 +955,8 @@ class systemManagement extends management
         $headpage = $this->getHeadpage();
         $ldap->cd($this->config->current['BASE']);
 
+        $reinstall_targets = array();
+
         // Walk through systems to activate
         while(count($this->activationQueue)){
 
@@ -918,7 +1015,7 @@ class systemManagement extends management
                     @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__,
                             $data['OG'], "<b>Selected ogroup:</b>");
 
-                    if($data['OG'] != "none"){
+                    if($data['OG'] != "none" && isset($data['is_incoming'])){
                         $this->tabObject->base = preg_replace("/^[^,]+,".preg_quote(get_ou("group", "ogroupRDN"), '/')."/i", "", $data['OG']);
                         $this->tabObject->by_object[$plugClass]->baseSelector->setBase($this->tabObject->base);
                     } else {
@@ -944,17 +1041,29 @@ class systemManagement extends management
                     if($data['OG'] != "none"){
 
                         // Set gotoMode to active if there was an ogroup selected.
-                        $found = false;
-                        foreach(array("workgeneric"=>"active","servgeneric"=>"active","termgeneric"=>"active") as $tab => $value){
-                            if(isset($this->tabObject->by_object[$tab]->gotoMode)) {
-                                $found = true;
-                                $this->tabObject->by_object[$tab]->gotoMode = $value;
-                                @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__,
-                                        $tab."->gotoMode = {$value}", "<b>Setting gotoMode to: </b>");
-                            }
-                        }
-                        if(!$found){
-                            msg_dialog::display(_("Internal error"), _("Cannot set mode to 'active'!"), ERROR_DIALOG);
+                        if (!isset($data['skip_activation']) or !$data['skip_activation']) {
+                          $found = false;
+                          foreach(array("workgeneric"=>"active","servgeneric"=>"active","termgeneric"=>"active") as $tab => $value){
+                              if(isset($this->tabObject->by_object[$tab]->gotoMode)) {
+                                  $found = true;
+                                  $this->tabObject->by_object[$tab]->gotoMode = $value;
+                                  @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__,
+                                          $tab."->gotoMode = {$value}", "<b>Setting gotoMode to: </b>");
+                              }
+                          }
+                          if(!$found){
+                              msg_dialog::display(_("Internal error"), _("Cannot set mode to 'active'!"), ERROR_DIALOG);
+                          }
+
+                          // Enable activation
+                          foreach (array("servgeneric", "workgeneric", "termgeneric") as $cls){
+                              if (isset($this->tabObject->by_object[$cls])){
+                                  $this->tabObject->by_object[$cls]->auto_activate= TRUE;
+                                  @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__,
+                                          $cls, "<b>Setting auto_activate=TRUE for</b>");
+                              }
+                          }
+
                         }
 
                         // Update object group membership
@@ -966,32 +1075,28 @@ class systemManagement extends management
                                     $og->dn, "<b>Adding system to ogroup</b>");
                         }
 
-                        // Set default system specific attributes
-                        foreach (array("workgeneric", "termgeneric") as $cls){
-                            if (isset($this->tabObject->by_object[$cls])){
-                                $this->tabObject->by_object[$cls]->set_everything_to_inherited();
-                                @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__,
-                                        $og->dn, "<b>Calling {$cls}->set_everything_to_inherited()</b>");
-                            }
-                        }
+                        if(!isset($data['skip_inheritance'])) {
+                          // Set default system specific attributes
+                          foreach (array("workgeneric", "termgeneric") as $cls){
+                              if (isset($this->tabObject->by_object[$cls])){
+                                  $this->tabObject->by_object[$cls]->set_everything_to_inherited();
+                                  @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__,
+                                          $og->dn, "<b>Calling {$cls}->set_everything_to_inherited()</b>");
+                              }
+                          }
 
-                        // Enable activation
-                        foreach (array("servgeneric", "workgeneric", "termgeneric") as $cls){
-                            if (isset($this->tabObject->by_object[$cls])){
-                                $this->tabObject->by_object[$cls]->auto_activate= TRUE;
-                                @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__,
-                                        $cls, "<b>Setting auto_activate=TRUE for</b>");
-                            }
-                        }
-
-                        // Enable sending of LDAP events
-                        if (isset($this->tabObject->by_object["workstartup"])){
-                            $this->tabObject->by_object["workstartup"]->gotoLdap_inherit= TRUE;
-                            @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__,
-                                    "", "<b>Setting workstartup->gotoLdap_inherit=TRUE</b>");
+                          // Enable sending of LDAP events
+                          if (isset($this->tabObject->by_object["workstartup"])){
+                              $this->tabObject->by_object["workstartup"]->gotoLdap_inherit= TRUE;
+                              @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__,
+                                      "", "<b>Setting workstartup->gotoLdap_inherit=TRUE</b>");
+                          }
                         }
                     }
 
+                    if (isset($data['skip_activation']) and $data['skip_activation']) {
+                      unset($this->activationQueue[$dn]);
+                    }
                     // Try to inherit everythin from the selected object group and then save
                     //  the entry, normally this should work without any problems. 
                     // But if there is any, then display the dialogs.
@@ -1011,8 +1116,28 @@ class systemManagement extends management
                                 "", "<b>Open dialogs now</b>");
                         return;
                     }
+
+                    if(isset($data['trigger_reinstall'])) {
+                      $reinstall_targets[] = $dn;
+                    }
                 }
             }
+        }
+
+        // Create reinstallation job if reinstallation_targets are available
+        if (count($reinstall_targets) != 0) {
+          $targets = array();
+          foreach($reinstall_targets as $dn) {
+            $obj = $this->headpage->getEntry($dn);
+            if(isset($obj['macAddress'][0])) {
+              $targets[] = array( "mac" => $obj['macAddress'][0], "cn" => $obj['cn'][0]);
+            }
+            $o_queue = new gosaSupportDaemon();
+            $evt = new DaemonEvent_reinstall($this->config);
+            $evt->add_targets($targets);
+            $evt->set_type(TRIGGERED_EVENT);
+            $o_queue->append($evt);
+          }
         }
     }
 
@@ -1302,6 +1427,7 @@ class systemManagement extends management
         }
 
         if(isset($_POST['systemTypeChosen']))  $action['action'] = "systemTypeChosen";
+        if(isset($_POST['ApplyOgroup']))  $action['action'] = "ApplyObjectGroup";
         if(isset($_POST['edit_continue']))  $action['action'] = "OgroupChosen";
 
         return($action);

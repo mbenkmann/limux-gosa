@@ -455,6 +455,17 @@
     </action>
 
     <action>
+        <name>AddToOgroup</name>
+        <type>entry</type>
+        <image>plugins/ogroups/images/ogroup.png</image>
+        <label>Apply template</label>
+    </action>
+
+    <action>
+      <type>separator</type>
+    </action>
+
+    <action>
       <name>activateMultiple</name>
       <depends>DaemonEvent_activate</depends>
       <type>entry</type>

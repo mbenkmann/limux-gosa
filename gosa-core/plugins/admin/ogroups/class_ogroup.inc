@@ -868,6 +868,22 @@ class ogroup extends plugin
     }
 
 
+    /* \brief Get the ogroups a given DN is a member of */
+    static function get_ogroup_memberships($dn) {
+      global $config;
+      $ldap = $config->get_ldap_link();
+      $ldap->cd($config->current['BASE']);
+      $ogroups = array();
+      $filter = "(&(objectClass=gosaGroupOfNames)(member=".LDAP::prepare4filter($dn)."))";
+      $ldap->search($filter);
+      if ($ldap->count()) {
+        while ($entry = $ldap->fetch()) {
+          array_push($ogroups, $ldap->getDN());
+        }
+      }
+      return $ogroups;
+    }
+
     static function plInfo()
     {
         return (array(
