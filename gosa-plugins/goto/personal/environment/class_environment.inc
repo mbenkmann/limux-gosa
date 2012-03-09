@@ -1799,6 +1799,7 @@ class environment extends plugin
     $ret = plugin::get_multi_edit_values();
     $ret['gotoShares'] = $this->gotoShares;
     $ret['gotoLogonScripts'] = $this->gotoLogonScripts;
+    $ret['gotoLogoffScripts'] = $this->gotoLogoffScripts;
     $ret['gotoHotplugDevices'] = $this->gotoHotplugDevices;
   
     if(in_array_strict("gotoPrinter",$this->multi_boxes)){
