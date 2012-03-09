@@ -536,6 +536,14 @@ class FAI
               /* Only save removed parent objects, not their children, unless
                  they are a child of a copy-on-write parent in a subrelease */
               if (FAI::is_parent_object($Current_DN) || FAI::is_child_of_cow_parent($key)){
+                if(isset($objectAttrs['FAIstate'])&&(preg_match("/removed$/",$objectAttrs['FAIstate']))){
+                  /* We're saving a removed object. Strip out unneeded data */
+                  foreach($objectAttrs['objectClass'] as $attr => $value){
+                    if ($value == "FAItemplateEntry") {
+                      $objectAttrs['FAItemplateFile'] = "|removed";
+                    }
+                  }
+                }
                 if(DEBUG_FAI_FUNC) {
                   echo "<b>Create an empty placeholder in follwing release</b> ".$key;
                   print_a($objectAttrs);
