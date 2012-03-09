@@ -242,16 +242,19 @@ class printerPPDDialog extends plugin
             }
         }
 
-        /* Create destination file handle */
-        $fp = @fopen($AbsoluteDestinationPath.$PPDName,"w+");
-        if(!$fp){
-            msg_dialog::display(_("PPD error"), msgPool::cannotWriteFile($AbsoluteDestinationPath.$PPDName), ERROR_DIALOG);
-            return(false);
-        }
-
-        $str = file_get_contents($AbsoluteSourceName);
-        fputs($fp,$str);
-        @fclose($fp);
+        if ($AbsoluteSourceName != $AbsoluteDestinationPath.$PPDName) {
+	
+            /* Create destination file handle */
+            $fp = @fopen($AbsoluteDestinationPath.$PPDName,"w+");
+            if(!$fp){
+                msg_dialog::display(_("PPD error"), msgPool::cannotWriteFile($AbsoluteDestinationPath.$PPDName), ERROR_DIALOG);
+                return(false);
+            }
+            
+            $str = file_get_contents($AbsoluteSourceName);
+            fputs($fp,$str);
+            @fclose($fp);
+        }        
 
         //$this->ppdManager->updateAttribute($filename,"NO_SECTION","ModelName",$printerName);
 
