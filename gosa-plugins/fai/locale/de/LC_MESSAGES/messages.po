@@ -2029,3 +2029,9 @@ msgstr "Dienste"
 
 #~ msgid "Add repository"
 #~ msgstr "Repository hinzufügen"
+
+msgid "Release unavailable: %s"
+msgstr "Release nicht verfügbar: %s"
+
+msgid "The packages in release %s and their details cannot be displayed because the release is unavailable on this server."
+msgstr "Die Pakete im Release %s und deren Details können nicht angezeigt werden, da das Release auf diesem Server nicht verfügbar ist."
