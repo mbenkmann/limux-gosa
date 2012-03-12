@@ -252,7 +252,7 @@ class intranetAccount extends plugin
     return($ret);
   }
 
-  function set_multi_edit_values($values)
+  function set_multi_edit_values($values, $skip_attrs = array())
   {
     plugin::set_multi_edit_values($values);
     if(isset($values['is_account'])){

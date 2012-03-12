@@ -1501,10 +1501,17 @@ class plugin
 
   
   /*! \brief  Update class variables with values collected by multiple edit.
+   *
+   * @param Array 'skip_attrs' A list of keys that will not be updated. 
+   * This is useful to allow classes to override the handling for
+   * certain keys (e.g. to merge values instead of overriding the values)
    */
-  function set_multi_edit_values($attrs)
+  function set_multi_edit_values($attrs, $skip_attrs = array())
   {
     foreach($attrs as $name => $value){
+      if (in_array_strict($name, $skip_attrs)) {
+        continue;
+      }
       $this->$name = $value;
     }
   }

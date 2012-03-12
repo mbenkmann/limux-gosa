@@ -1916,7 +1916,7 @@ class user extends plugin
   }
 
 
-  function set_multi_edit_values($attrs)
+  function set_multi_edit_values($attrs, $skip_attrs = array())
   {
     $lR = array();
 

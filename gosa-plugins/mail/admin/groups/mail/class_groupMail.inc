@@ -1106,7 +1106,7 @@ class mailgroup extends plugin
         return($ret);
     }
 
-    function set_multi_edit_values($attrs)
+    function set_multi_edit_values($attrs, $skip_attrs = array())
     {
         $forward = array();
         foreach($attrs['Forward_some'] as $addr){
