@@ -1871,6 +1871,11 @@ class environment extends plugin
     if (isset($this->attrs['gotoProfileFlags'])) {
       $this->update_gotoProfileFlags($this->attrs['gotoProfileFlags'][0]);
     }
+
+    if (isset($this->attrs['gotoKioskProfile'])) {
+      $this->gotoKioskProfile = $this->attrs['gotoKioskProfile'][0];
+      $this->update_kiosk_profiles();
+    }
   }
 
   /* Return plugin informations for acl handling 
