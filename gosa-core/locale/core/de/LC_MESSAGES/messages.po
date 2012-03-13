@@ -6997,3 +6997,15 @@ msgstr "Spalten"
 
 msgid "You have disabled all columns. Please enable at least one to see any list content."
 msgstr "Sie haben alle Spalten deaktiviert. Bitte aktivieren Sie mindestens eine um Listeninhalt sehen zu können."
+
+msgid "Existing session!"
+msgstr "Offene Sitzung!"
+
+msgid "You have an existing session. Using multiple windows or tabs for a single GOsa session results in data corruption!"
+msgstr "Sie haben eine offene Sitzung. Mehrere Fenster oder Tabs für die gleiche GOsa-Sitzung zu verwenden führt zu Datenverlust!"
+
+msgid "If you are sure you closed all other GOsa windows/tabs, you can continue using the session."
+msgstr "Wenn Sie sicher sind, dass sie alle anderen GOsa-Fenster/Tabs geschlossen haben, können sie diese Sitzung fortsetzen"
+
+msgid "Force use of existing session"
+msgstr "Nutzung der offenen Sitzung erzwingen"
