@@ -106,6 +106,7 @@ class environment extends plugin
   var $objectclasses      = array("gotoEnvironment"); // Specifies the objectClass which contains the attributes edited here 
   var $cn;
   var $OrigCn;
+  var $OrigUID; // Store orig UID if in template mode
   var $suffix;  // Store information weither we are editting an user or a group
   var $add_del_printer_member_was_called = false;
 
@@ -1393,7 +1394,10 @@ class environment extends plugin
       if($this->is_group){
         $s_suffix = "Group";
         $useVar   = "cn";
-      }else{
+      } elseif (isset($this->OrigUID)) {
+        $useVar   = "OrigUID";
+        $s_suffix = "User";
+      }else {
         $useVar   = "uid";
         $s_suffix = "User";
       }
@@ -1821,6 +1825,10 @@ class environment extends plugin
   }
 
   function adapt_from_template($tmpl_dn, $skip=array()) {
+
+    if (isset($this->uid)) {
+      $this->OrigUID = $this->uid;
+    }
 
     $skip_types = array("gotoLogonScripts", "gotoLogoffScripts", 
       "gotoPrinter","gotoShare","gotoShares","gotoHotplugDevices" );
