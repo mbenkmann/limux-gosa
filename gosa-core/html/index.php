@@ -117,17 +117,68 @@ function displayLogin()
  *                               M   A   I   N                               *
  *****************************************************************************/
 
+/* Check if gosa.conf (.CONFIG_FILE) is accessible */
+if (!is_readable(CONFIG_DIR."/".CONFIG_FILE)) {
+    msg_dialog::display(_("Configuration error"),sprintf(_("GOsa configuration %s/%s is not readable. Aborted."), CONFIG_DIR,CONFIG_FILE),FATAL_ERROR_DIALOG);
+    exit();
+}
+
+/* Parse configuration file */
+$config= new config(CONFIG_DIR."/".CONFIG_FILE, $BASE_DIR);
+
+
+/* Set template compile directory */
+$smarty->compile_dir= $config->get_cfg_value("core","templateCompileDirectory");
+$smarty->error_unassigned= true;
+
+/* Check for compile directory */
+if (!(is_dir($smarty->compile_dir) && is_writable($smarty->compile_dir))) {
+    msg_dialog::display(_("Smarty error"),sprintf(_("Compile directory %s is not accessible!"),
+        $smarty->compile_dir),FATAL_ERROR_DIALOG);
+    exit();
+}
+
+/* Check for old files in compile directory */
+clean_smarty_compile_dir($smarty->compile_dir);
+
+
+/* Language setup */
+$lang= get_browser_language();
+putenv("LANGUAGE=");
+putenv("LANG=$lang");
+setlocale(LC_ALL, $lang);
+$GLOBALS['t_language']= $lang;
+$GLOBALS['t_gettext_message_dir'] = $BASE_DIR.'/locale/';
+
+/* Set the text domain as 'messages' */
+$domain = 'messages';
+bindtextdomain($domain, LOCALE_DIR);
+textdomain($domain);
+$smarty->assign ('nextfield', 'username');
+
+session::start();
+
+/* Check for existing, alive session */
+if (session::global_get('_LAST_PAGE_REQUEST')) {
+    $max_life= $config->get_cfg_value("core","sessionLifetime");
+    $request_time = (time()- session::global_get('_LAST_PAGE_REQUEST'));
+
+     if (!($request_time > $max_life)){
+         // Existing session which has not timed out yet
+         $smarty->assign('title', 'GOsa error: existing session!');
+         $smarty->assign('date', gmdate("D, d M Y H:i:s"));
+         $smarty->display (get_template_path('headers.tpl'));
+         $smarty->display (get_template_path('existing_session.tpl'));
+         exit;
+
+
+     }
+ }
+ 
 /* Set error handler to own one, initialize time calculation
 and start session. */
-session::start();
 session::set('errorsAlreadyPosted',array());
-
-/* Destroy old session if exists. 
-Else you will get your old session back, if you not logged out correctly. */
-if(is_array(session::get_all()) && count(session::get_all())) {
-    session::destroy();
-    session::start();
-}
+ 
 
 $username= "";
 
@@ -152,14 +203,7 @@ if(isset($_POST['javascript']) && $_POST['javascript'] == "true") {
     session::global_set('js',FALSE);
 }
 
-/* Check if gosa.conf (.CONFIG_FILE) is accessible */
-if (!is_readable(CONFIG_DIR."/".CONFIG_FILE)) {
-    msg_dialog::display(_("Configuration error"),sprintf(_("GOsa configuration %s/%s is not readable. Aborted."), CONFIG_DIR,CONFIG_FILE),FATAL_ERROR_DIALOG);
-    exit();
-}
 
-/* Parse configuration file */
-$config= new config(CONFIG_DIR."/".CONFIG_FILE, $BASE_DIR);
 session::global_set('debugLevel',$config->get_cfg_value("core",'debugLevel'));
 if ($_SERVER["REQUEST_METHOD"] != "POST") {
     @DEBUG (DEBUG_CONFIG, __LINE__, __FUNCTION__, __FILE__, $config->data, "config");
@@ -170,33 +214,6 @@ if ($config->get_cfg_value("core","sendCompressedOutput") != "") {
     ob_start("ob_gzhandler");
 }
 
-/* Set template compile directory */
-$smarty->compile_dir= $config->get_cfg_value("core","templateCompileDirectory");
-$smarty->error_unassigned= true;
-
-/* Check for compile directory */
-if (!(is_dir($smarty->compile_dir) && is_writable($smarty->compile_dir))) {
-    msg_dialog::display(_("Smarty error"),sprintf(_("Compile directory %s is not accessible!"),
-        $smarty->compile_dir),FATAL_ERROR_DIALOG);
-    exit();
-}
-
-/* Check for old files in compile directory */
-clean_smarty_compile_dir($smarty->compile_dir);
-
-/* Language setup */
-$lang= get_browser_language();
-putenv("LANGUAGE=");
-putenv("LANG=$lang");
-setlocale(LC_ALL, $lang);
-$GLOBALS['t_language']= $lang;
-$GLOBALS['t_gettext_message_dir'] = $BASE_DIR.'/locale/';
-
-/* Set the text domain as 'messages' */
-$domain = 'messages';
-bindtextdomain($domain, LOCALE_DIR);
-textdomain($domain);
-$smarty->assign ('nextfield', 'username');
 
 /* Translation of cookie-warning. Whether to display it, is determined by JavaScript */
 $smarty->assign ("cookies", _("Your browser has cookies disabled: please enable cookies and reload this page before logging in!"));
