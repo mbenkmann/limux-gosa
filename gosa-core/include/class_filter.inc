@@ -294,7 +294,7 @@ class filter {
         $seen_dns = array();
         foreach ($result as $id => $entry) {
           $dn = $entry['dn'];
-          if(!empty($seen_dns) && array_search($dn, $seen_dns)) {
+          if(in_array($dn, $seen_dns)) {
             unset($result[$id]);
           }
           $seen_dns[] = $dn;
