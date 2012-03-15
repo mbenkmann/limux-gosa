@@ -277,7 +277,7 @@ class FAI
 
               /* Check if this Profile uses the source class ($cn)
                */
-              $classlist = split(" ", $attrs['FAIclass']);
+              $classlist = explode(" ", $attrs['FAIclass']);
               $new_classlist = "";
               foreach($classlist as $class){
                   if($class != $cn){
