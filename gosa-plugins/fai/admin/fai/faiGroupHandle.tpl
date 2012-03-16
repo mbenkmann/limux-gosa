@@ -13,18 +13,12 @@
     {foreach from=$FAI_group item=item key=key}
         <tr>
             <td>
-                {if $item.freezed}
-                    {image path="images/lists/locked.png"}
-                {else}
-
                     {if $mode == "remove" || $mode == "copy"}
                         <input id='{$mode}_selected_{$key}' type='checkbox' name='{$mode}_{$key}' {if $item.selected} checked {/if}>
                     {elseif $mode == "edit"}
                         <input id='{$mode}_selected_{$key}' type='radio' name='{$mode}_selected' 
                             value='{$key}' {if $item.selected} checked {/if}>
                     {/if}
-
-                {/if}
             </td>
             <td>
                 {image path="{$types.$key.IMG}" title="{$types.$key.NAME}"}
