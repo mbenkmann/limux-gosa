@@ -540,7 +540,10 @@ class FAI
                   /* We're saving a removed object. Strip out unneeded data */
                   foreach($objectAttrs['objectClass'] as $attr => $value){
                     if ($value == "FAItemplateEntry") {
-                      $objectAttrs['FAItemplateFile'] = "|removed";
+		      /* Truncate content of template file to "|removed", as
+                         deletion is not allowed by schema */
+		      $objectAttrs['FAItemplateFile'] = "|removed";
+                      break;
                     }
                   }
                 }
