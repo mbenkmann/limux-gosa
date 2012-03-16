@@ -66,6 +66,7 @@ class faiTemplate extends plugin
     // Prepare lists
     $this->templateList = new sortableListing();
     $this->templateList->setDeleteable(true);
+    $this->templateList->setInstantDelete(false);
     $this->templateList->setEditable(true);
     $this->templateList->setWidth("100%");
     $this->templateList->setHeight("220px");
