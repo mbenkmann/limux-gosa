@@ -37,6 +37,7 @@ class sortableListing {
     private $data= array();
     private $keys= array();
     private $modes= array();
+    private $actions= array();
     private $displayData= array();
     private $columns= 0;
     private $deleteable= false;
@@ -147,6 +148,10 @@ class sortableListing {
             if (isset($value['mode'])) {
                 $this->modes[]= $value['mode'];
             }
+            // Allow overwriting allowed actions of a single entry
+            if (isset($value['actions'])) {
+                $this->actions[] = $value['actions'];
+            }
         }
         $this->keys= array_keys($data);
 
@@ -233,15 +238,23 @@ class sortableListing {
         $result= "<div class='sortableListContainer' id='scroll_".$this->id."' style='min-width:".$this->width.";height: ".$this->height."'>\n";
         $result.= "<table summary='"._("Sortable list")."' border='0' cellpadding='0' cellspacing='0' width='100%' style='width:100%' ".(!empty($this->cssclass)?" class='".$this->cssclass."'":"").">\n";
         $action_width= 0;
+
+        // Define images based on list attributes
+        $edit_img_disabled = $this->editable?image("images/lists/edit-grey.png"):"";
+        $edit_img_enabled  = $this->editable?image('images/lists/edit.png', "%ID", _("Edit this entry")):"";
+        $delete_img_disabled = $this->deleteable?image('images/lists/trash-grey.png'):"";
+        $delete_img_enabled = $this->deleteable?image('images/lists/trash.png', "%ID", _("Delete this entry")):"";
+
+        // Define default images based on ACL
         if (strpos($this->acl, 'w') === false) {
-            $edit_image= $this->editable?image("images/lists/edit-grey.png"):"";
+            $edit_image= $edit_img_disabled;
         } else {
-            $edit_image= $this->editable?image('images/lists/edit.png', "%ID", _("Edit this entry")):"";
+            $edit_image= $edit_img_enabled;
         }
         if (strpos($this->acl, 'w') === false) {
-            $delete_image= $this->deleteable?image('images/lists/trash-grey.png'):"";
+            $delete_image= $delete_img_disabled;
         } else {
-            $delete_image= $this->deleteable?image('images/lists/trash.png', "%ID", _("Delete this entry")):"";
+            $delete_image= $delete_img_enabled;
         }
 
         // Do we need colspecs?
@@ -305,6 +318,17 @@ class sortableListing {
                         case LIST_MARKED:
                             $id= " sortableListItemMarked";
                             break;
+                    }
+                }
+
+                // If an action is defined for this row, use it instead of
+                // the default list action
+                if (isset($this->actions[$row])) {
+                    if (isset($this->actions[$row]['edit'])) {
+                         $edit_image = ($this->actions[$row]['edit'])?$edit_img_enabled:$edit_img_disabled;
+                   }
+                    if (isset($this->actions[$row]['delete'])) {
+                        $delete_image = ($this->actions[$row]['delete'])?$delete_img_enabled:$delete_img_disabled;
                     }
                 }
 
@@ -421,53 +445,63 @@ class sortableListing {
             }
         }
 
-        // Delete requested?
         $this->action = "";
         if (strpos($this->acl, 'd') !== false){
             foreach ($_POST as $key => $value) {
                 $value = get_post($key);
-                if (preg_match('/^del_'.$this->id.'_([0-9]+)$/', $key, $matches)) {
-
-
-                    if(!isset($this->mapping[$matches[1]])) return;
-
-                    $this->active_index= $this->mapping[$matches[1]];
-
-                    // Ignore request if mode requests it
-                    if (isset($this->modes[$this->active_index]) && $this->modes[$this->active_index] == LIST_DISABLED) {
-                        $this->active_index= null;
-                        continue;
-                    }
-
-                    // Set action
-                    $this->action= "delete";
-
-                    // Remove value if requested
-                    if ($this->instantDelete) {
-                        $this->deleteEntry($this->active_index);
-                    }
-                }
             }
         }
 
-        // Edit requested?
-        if (strpos($this->acl, 'w') !== false){
-            foreach ($_POST as $key => $value) {
-                $value = get_post($key);
-                if (preg_match('/^edit_'.$this->id.'_([0-9]+)$/', $key, $matches)) {
+        foreach ($_POST as $key => $value) {
+            $value = get_post($key);
 
-                    if(!isset($this->mapping[$matches[1]])) return;
+            // Delete requested?
+            if (preg_match('/^del_'.$this->id.'_([0-9]+)$/', $key, $matches)) {
+                if(!isset($this->mapping[$matches[1]])) return;
 
-                    $this->active_index= $this->mapping[$matches[1]];
+                $this->active_index= $this->mapping[$matches[1]];
 
-                    // Ignore request if mode requests it
-                    if (isset($this->modes[$this->active_index]) && $this->modes[$this->active_index] == LIST_DISABLED) {
-                        $this->active_index= null;
-                        continue;
-                    }
-
-                    $this->action= "edit";
+                // Ignore request if mode requests it
+                if (isset($this->modes[$this->active_index]) && $this->modes[$this->active_index] == LIST_DISABLED) {
+                    $this->active_index= null;
+                    continue;
                 }
+    
+                // Allowed to delete?
+                $allow_delete = strpos($this->acl, 'w');
+                if (isset($this->actions[$this->active_index]['delete'])) {
+                    $this->actions[$this->active_index]['delete'];
+                }
+
+                // Set action
+                $this->action= "delete";
+
+                // Remove value if requested
+                if ($this->instantDelete) {
+                    $this->deleteEntry($this->active_index);
+                }
+            }
+
+
+            // Edit requested?
+            if (preg_match('/^edit_'.$this->id.'_([0-9]+)$/', $key, $matches)) {
+                if(!isset($this->mapping[$matches[1]])) return;
+
+                $this->active_index= $this->mapping[$matches[1]];
+
+                // Ignore request if mode requests it
+                if (isset($this->modes[$this->active_index]) && $this->modes[$this->active_index] == LIST_DISABLED) {
+                    $this->active_index= null;
+                    continue;
+                }
+
+                // Allowed to edit?
+                $allow_edit = strpos($this->acl, 'w');
+                if (isset($this->actions[$this->active_index]['edit'])) {
+                    $allow_edit = $this->actions[$this->active_index]['edit'];
+                }
+
+                $this->action= $allow_edit?"edit":"";
             }
         }
     }
