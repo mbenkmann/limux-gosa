@@ -6,6 +6,7 @@ class faiTemplateEdit extends plugin
   var $config = "";
   var $dn     = "";
   var $value  = "";
+  var $FAIstate = "";
 
   // Encoding identification. Allows to warn the user.
   var $enc_before_edit = "";
@@ -37,6 +38,7 @@ class faiTemplateEdit extends plugin
     $smarty->assign("templateValue",set_post(($this->value)));
     $smarty->assign("write_protect",$this->write_protect);
     $smarty->assign("mb_extension",$this->mb_extension);
+    $smarty->assign("FAIstate",$this->FAIstate);
     return($smarty->fetch(get_template_path('faiTemplateEdit.tpl', TRUE)));
   }
 

@@ -7,7 +7,9 @@
 <br>
 <input type="hidden" name="update_values" value="1">
 <div align="right" valign="bottom" style="align:right;">
+{if $writable}
     <button name="SaveDebconfConfig" type="submit">{msgPool type=applyButton}</button>
+{/if}
     <button name="CancelSubObject" type="submit">{msgPool type=cancelButton}</button>
 </div>
 <table style="visibility: hidden;">

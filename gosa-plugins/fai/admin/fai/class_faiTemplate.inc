@@ -273,7 +273,7 @@ class faiTemplate extends plugin
      /* list Containing FAItemplates */
     $dn  = $this->acl_base_for_current_object($this->dn);
     $acl = $this->ui->get_permissions($dn,"fai/faiTemplateEntry")  ;
-    $this->templateList->setAcl($acl,preg_match('/^freeze/', $this->FAIstate));
+    $this->templateList->setAcl($this->getAcl(""));
 
     $tmp = $this->getList(true);
     $data = $lData = array();
@@ -295,7 +295,9 @@ class faiTemplate extends plugin
         $down = image('images/save.png','download_'.postEncode($key), _("Download"));
       }
       $data[$key] = $key;
-      $lData[$key] = array('data' => array($name['cn'], $down));
+      $lData[$key] = array('data' => array($name['cn'], $down),
+        'actions' => array( 'edit' => TRUE )
+      );
     }
 
     $this->templateList->setListData($data,$lData);
