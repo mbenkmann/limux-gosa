@@ -76,8 +76,14 @@ class pathNavigator
     $path = "";
     $sTitle = "";
     foreach($list as $entry){
-        $title = (!empty($entry['TITLE']))? 'title="'.htmlentities(LDAP::fix($entry['TITLE']),ENT_COMPAT,'UTF-8').'"': '';
-        $path.= "\n<li {$title} class='left path-element'>{$entry['NAME']}</li>";
+        $dn = "";
+        if (!empty($entry['TITLE'])) {
+            $dn = htmlentities(LDAP::fix($entry['TITLE']),ENT_COMPAT,'UTF-8');
+        }
+        $title = !empty($dn) ? 'title="'.$dn.'"' : '';
+        $dnDisplay = !empty($dn) ? "($dn)" : "";
+
+        $path.= "\n<li {$title} class='left path-element'>{$entry['NAME']} {$dnDisplay}</li>";
         $sTitle .= " - ".$entry['NAME'];
     }
 
