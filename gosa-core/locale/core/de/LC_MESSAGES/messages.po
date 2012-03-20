@@ -887,7 +887,7 @@ msgstr "Domänen-Komponente"
 
 #: plugins/admin/departments/class_departmentManagement.inc:25
 msgid "Directory structure"
-msgstr "Verzeichnisstruktur"
+msgstr "Abteilungen"
 
 #: plugins/admin/departments/class_departmentManagement.inc:26
 msgid ""
@@ -940,7 +940,7 @@ msgstr "Standard-Filter"
 
 #: plugins/admin/departments/dep-list.xml:11
 msgid "List of structural objects"
-msgstr "Liste von strukturellen Objekten"
+msgstr "Liste der Abteilungen"
 
 #: plugins/admin/departments/dep-list.xml:87
 #: plugins/admin/ogroups/ogroup-list.xml:62
@@ -1363,7 +1363,7 @@ msgstr "Systemeinstellungen"
 #: plugins/admin/ogroups/tabs_ogroups.inc:188
 #: plugins/admin/ogroups/tabs_ogroups.inc:213
 msgid "Recipe"
-msgstr "Rezept"
+msgstr "Start"
 
 #: plugins/admin/ogroups/tabs_ogroups.inc:200
 #: plugins/admin/ogroups/tabs_ogroups.inc:222
@@ -1376,7 +1376,7 @@ msgstr "Zusammenfassung der Verteilung"
 
 #: plugins/admin/ogroups/tabs_ogroups.inc:242
 msgid "Desktop"
-msgstr "Schreibtisch"
+msgstr "Umgebung"
 
 #: plugins/admin/ogroups/tabs_ogroups.inc:259
 msgid "Applications"

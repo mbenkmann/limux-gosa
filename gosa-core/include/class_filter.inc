@@ -25,6 +25,7 @@ class filter {
     var $searches= array();
     var $xmlSearches= array();
     var $attributes= array();
+    var $overlays = array();
     var $search;
     var $defaultSearch;
     var $category= "";
@@ -87,6 +88,19 @@ class filter {
             }
         } else {
             return false;
+        }
+
+        if(isset($xmlData['overlay'])) {
+          if (!isset($xmlData['overlay'][0])) {
+            $overlays = array($xmlData['overlay']);
+          } else {
+            $overlays = $xmlData['overlay'];
+          }
+          foreach($overlays as $overlay) {
+            if (isset($overlay['query'])) {
+              array_push($this->overlays, $overlay['query']);
+            }
+          }
         }
 
         // Transfer scope
@@ -242,8 +256,15 @@ class filter {
             $this->initial= true;
             return $result;
         }
+        // Look for overlays - if defined also use those queries for
+        // the query loop
+        $queries = $this->query;
+        foreach($this->overlays as $id => $overlay) {
+          $queries[] = $overlay;
+        }
+
         // Go thru all queries and merge results
-        foreach ($this->query as $query) {
+        foreach ($queries as $query) {
             if (!isset($query['backend']) || !isset($query['filter'])) {
                 die("No backend specified in search config.");
             }
@@ -269,6 +290,17 @@ class filter {
             $result= array_merge($result, call_user_func(array($backend, 'query'), $this->base, $this->scope, $filter, $this->attributes, $this->category, $this->objectStorage));
         }
 
+        // Filter duplicates
+        $seen_dns = array();
+        foreach ($result as $id => $entry) {
+          $dn = $entry['dn'];
+          if(in_array($dn, $seen_dns)) {
+            unset($result[$id]);
+          }
+          $seen_dns[] = $dn;
+        }
+
+        
         return ($result);
     }
     

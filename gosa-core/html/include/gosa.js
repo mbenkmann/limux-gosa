@@ -271,11 +271,11 @@ function resizeHandler (e) {
       		}
 
 		if (Prototype.Browser.IE) {
-	      		document.getElementById('d_scrollbody').style.height = contentHeight+23+'px';
-	      		document.getElementById('t_nscrollbody').style.height = contentHeight+'px';
-		} else {
 	      		document.getElementById('d_scrollbody').style.minHeight = contentHeight+23+'px';
 	      		document.getElementById('t_nscrollbody').style.minHeight = contentHeight+'px';
+		} else {
+	      		document.getElementById('d_scrollbody').style.height = contentHeight+23+'px';
+	      		document.getElementById('t_nscrollbody').style.height = contentHeight+'px';
 		}
     	}
 
