@@ -2805,6 +2805,7 @@ function get_post($name)
         foreach($_POST[$name] as $key => $val){
             if(get_magic_quotes_gpc()){
                 $val = stripcslashes($val);
+                $val = fix_dos_linebreaks($val);
             }
             $tmp[$key] = $val;
         } 
@@ -2816,6 +2817,7 @@ function get_post($name)
         }else{
             $val = $_POST[$name];
         }
+        $val = fix_dos_linebreaks($val);        
     }
   return($val);
 }
@@ -3998,6 +4000,11 @@ function gosa_fopen($filename, $mode)
 function in_array_strict($needle, $haystack, $strict = TRUE)
 {
     return(in_array($needle, $haystack, $strict));
+}
+
+function fix_dos_linebreaks($str)
+{
+    return preg_replace('/\\r\\n/', "\n", $str);
 }
 
 // vim:tabstop=2:expandtab:shiftwidth=2:filetype=php:syntax:ruler:
