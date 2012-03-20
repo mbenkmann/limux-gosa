@@ -4110,7 +4110,7 @@ msgstr "Druckerauswahl"
 #: personal/environment/class_environment.inc:519
 #: personal/environment/class_environment.inc:1795
 msgid "Desktop"
-msgstr "Schreibtisch"
+msgstr "Umgebung"
 
 #: personal/environment/class_environment.inc:10
 msgid "Manage desktop settings"
