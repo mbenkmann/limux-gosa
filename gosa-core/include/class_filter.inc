@@ -260,24 +260,32 @@ class filter {
             // Handle converters if present
             if ($this->converter) {
                 preg_match('/([^:]+)::(.*)$/', $this->converter, $m);
-                if ($this->value == "") {
-                    $filter= call_user_func(array($m[1], $m[2]), preg_replace('/\$/', "*", $filter));
-                } else {
-                    $filter= call_user_func(array($m[1], $m[2]), preg_replace('/\$/', "*".normalizeLdap($this->value)."*", $filter));
-                }
+                $filter = call_user_func(array($m[1], $m[2]), preg_replace('/\$/', $this->prepareFilterValue($this->value), $filter));
             }
 
             // Do not replace escaped \$ - This is required to be able to search for e.g. windows machines.
-            if ($this->value == "") {
-                $filter= preg_replace("/\\$/", '*', $filter);
-            } else {
-                $filter= preg_replace("/\\$/", "*".normalizeLdap($this->value)."*", $filter);
-            }
+            $filter = preg_replace("/\\$/", $this->prepareFilterValue($this->value), $filter);
 
             $result= array_merge($result, call_user_func(array($backend, 'query'), $this->base, $this->scope, $filter, $this->attributes, $this->category, $this->objectStorage));
         }
 
         return ($result);
+    }
+    
+    function prepareFilterValue($value)
+    {
+        if (empty($value)) {
+            // Empty search string matches everything
+            $value = '*';
+        }
+        elseif ((substr($value, 0, 1) == '*') || (substr($value, -1) == '*')) {
+            // Wildcard by user, use as-is
+        }
+        else {
+            $value = "*$value*";
+        }
+        
+        return normalizeLdap($value);
     }
 
 
