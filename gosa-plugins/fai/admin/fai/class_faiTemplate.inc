@@ -160,7 +160,7 @@ class faiTemplate extends plugin
 
     $once = true;
     foreach($_POST as $name => $value){
-      if(preg_match("/^download_/",$name)&&($once) && !preg_match("/freeze/",$this->FAIstate)){
+      if(preg_match("/^download_/",$name)&&($once)){
         $once = false;
         $entry = postDecode(preg_replace("/^download_/","",$name));
         $obj  = $this->SubObjects[$entry];

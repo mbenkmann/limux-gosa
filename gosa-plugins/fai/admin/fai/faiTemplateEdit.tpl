@@ -23,7 +23,9 @@
      {if !$write_protect}name="templateValue"{/if}>{$templateValue}</textarea>
 
  <div class="plugin-actions">
+  {if !$FAIstate == 'freeze' and not $write_protect}
   <button type='submit' name='templateEditSave'>{msgPool type=okButton}</button>&nbsp;
+  {/if}
   <button type='submit' name='templateEditCancel'>{msgPool type=cancelButton}</button>
  </div>
  
