@@ -58,7 +58,7 @@ class appgroup extends plugin
         // Prepare lists
         $this->applicationList = new sortableListing();
         $this->applicationList->setDeleteable(false);
-        $this->applicationList->setEditable(true);
+        $this->applicationList->setEditable(false);
         $this->applicationList->setWidth("100%");
         $this->applicationList->setHeight("300px");
         $this->applicationList->setColspecs(array('20px','20px','*'));
