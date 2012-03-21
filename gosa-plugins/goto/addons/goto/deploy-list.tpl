@@ -57,23 +57,23 @@ var fai_status = new Array();
 
 function loadContent()
 {
-	var c = 0;
+    var c = 0;
 
-	/* Create array of available progress images once 
-	 */
-	if(!fai_status.length){
-                var progressBars= Form.getElements("mainform");
-                progressBars.each(function(progressBar) {
-                        if(progressBar.id.match(/^progress_/)){
-                                var mac = id.replace(/^progress_/,'');
-                                mac = mac.replace(/_/g,':');
-                                fai_status[c] = new Object();
-                                fai_status[c]['MAC']  = mac;
-                                fai_status[c]['PROGRESS'] = -1;
-                                c ++;
-                        }
-                }
-	}
+    /* Create array of available progress images once 
+     */
+    if(!fai_status.length){
+        var progressBars= document.getElementsByTagName ('div') ;
+        for(var i=0; i< progressBars.length; i++){
+            if(progressBars[i].id.match(/^progress_/)){
+                var mac = progressBars[i].id.replace(/^progress_/,'');
+                mac = mac.replace(/_/g,':');
+                fai_status[c] = new Object();
+                fai_status[c]['MAC']  = mac;
+                fai_status[c]['PROGRESS'] = -1;
+                c ++;
+            }
+        }
+    }
 
 	/* Create string of macs used as parameter for getFAIstatus.php
 		to retrieve all progress values.
@@ -120,31 +120,39 @@ function handleContent()
 			 	continue;
 			}
 
-			for (var i = 0; i < data.length; i++) {
-				var mac 	= data[i].replace(/\|.*$/,"");
-				var progress= data[i].replace(/^.*\|/,"");
+            for (var i = 0; i < data.length; i++) {
+                var mac 	= data[i].replace(/\|.*$/,"");
+                var progress= parseInt(data[i].replace(/^.*\|/,""));
 
-				/* Match mac returned by the support daemon and 
-					the one out of our list */
-				if(fai_status[e]["MAC"] == mac){
-					found = true;	
+                /* Match mac returned by the support daemon and 
+                   the one out of our list */
+                if(fai_status[e]["MAC"] == mac){
+                    found = true;	
 
-					/* Check if progress has changed 
-					 */	
-					if(fai_status[e]["PROGRESS"] != progress){
-                                                var woffset= Math.floor(0.85 * (100-progress));
+                    /* Check if progress has changed 
+                     */	
+                    if(progress!= 'none'){
+                        progressBar.innerHTML = progress + "%";
+                    }
+                    if(true || fai_status[e]["PROGRESS"] != progress){
+                        var woffset= Math.floor(0.85 * (100-progress));
+                        var tmp = 
+                            " 0 0 2px rgba(255, 255, 255, 0.4) inset," + 
+                            " 0 4px 6px rgba(255, 255, 255, 0.4) inset,"+
+                            " 0 10px 0 -2px rgba(255, 255, 255, 0.2) inset,"+
+                            " -" + woffset + "px 0 0 -2px rgba(255, 255, 255, 0.2) inset,"+
+                            " -" + (woffset+1) + "px 0 0 -2px rgba(0, 0, 0, 0.6) inset,"+
+                            " 0pt 11px 8px rgba(0, 0, 0, 0.3) inset,"+
+                            " 0pt 1px 0px rgba(0, 0, 0, 0.2)";
 
-                                                progressBar.setStyle({
-                                                   -moz-box-shadow: "0 0 2px rgba(255, 255, 255, 0.4) inset, 0 4px 6px rgba(255, 255, 255, 0.4) inset, 0 10px 0 -2px rgba(255, 255, 255, 0.2) inset, -" + woffset + "px 0 0 -2px rgba(255, 255, 255, 0.2) inset, -" + (woffset+1) + "px 0 0 -2px rgba(0, 0, 0, 0.6) inset, 0pt 11px 8px rgba(0, 0, 0, 0.3) inset, 0pt 1px 0px rgba(0, 0, 0, 0.2)",
-                                                   -webkit-box-shadow: "0 0 2px rgba(255, 255, 255, 0.4) inset, 0 4px 6px rgba(255, 255, 255, 0.4) inset, 0 10px 0 -2px rgba(255, 255, 255, 0.2) inset, -" + woffset + "px 0 0 -2px rgba(255, 255, 255, 0.2) inset, -" + (woffset+1) + "px 0 0 -2px rgba(0, 0, 0, 0.6) inset, 0pt 11px 8px rgba(0, 0, 0, 0.3) inset, 0pt 1px 0px rgba(0, 0, 0, 0.2)",
-                                                   box-shadow: "0 0 2px rgba(255, 255, 255, 0.4) inset, 0 4px 6px rgba(255, 255, 255, 0.4) inset, 0 10px 0 -2px rgba(255, 255, 255, 0.2) inset, -" + woffset + "px 0 0 -2px rgba(255, 255, 255, 0.2) inset, -" + (woffset+1) + "px 0 0 -2px rgba(0, 0, 0, 0.6) inset, 0pt 11px 8px rgba(0, 0, 0, 0.3) inset, 0pt 1px 0px rgba(0, 0, 0, 0.2)"
-                                                });
-                                                fai_status[e]["PROGRESS"] = progress;
-
-					}
-					break;
-				}
-			}
+                        progressBar.style.boxShadow = tmp; 
+                        progressBar.style.MozBoxShadow = tmp; 
+                        progressBar.style.WebkitBoxShadow = tmp; 
+                        fai_status[e]["PROGRESS"] = progress;
+                    }
+                    break;
+                }
+            }
 			//document.getElementById("text1").value += "\n ";
 
 			/* There was no status send for the current mac. 
