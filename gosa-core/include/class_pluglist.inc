@@ -452,8 +452,9 @@ class pluglist
             $this->pathMenu.= "\n        </div>";
         }
 
-        $menu = pathNavigator::getCurrentPath();
-        return(preg_replace("/%navigator%/", $menu, $this->pathMenu)); 
+        list($menu, $dnHeader) = pathNavigator::getCurrentPath();
+
+        return(preg_replace("/%navigator%/", $menu, $this->pathMenu)) . $dnHeader;
     }
 
 
