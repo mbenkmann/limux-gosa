@@ -521,7 +521,7 @@ class appgroup extends plugin
         $smarty->assign("releases", set_post($this->Releases));
         $smarty->assign("folders" , set_post($this->_get_folder_names()));
         $entries = $this->_get_entries_for_release($this->FAIrelease);
-        $smarty->assign("entries", set_post($entries));
+        $smarty->assign("entries", $entries);
         $display.= $smarty->fetch (get_template_path('app_list.tpl', TRUE, dirname(__FILE__)));
         return($display);
     }
@@ -1185,9 +1185,10 @@ class appgroup extends plugin
                         }
                         break;
                     }
-                } 
+                }
+                $entry = set_post($entry);
                 if(!$found){
-                    $entry['INFO'] = "<font color='red'>"._("Not available in release.")."</font>";
+                    $entry['INFO'] = "<font color='red'>".set_post(_("Not available in release."))."</font>";
                 }
             }
 
