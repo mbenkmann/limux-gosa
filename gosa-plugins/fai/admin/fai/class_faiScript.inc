@@ -87,7 +87,8 @@ class faiScript extends plugin
         $data[$cn] = $entry;
       }else{
         if(!isset($entry['description'])) $entry['description']="";
-        $data[$cn] = array('data' => array($entry['cn'], $entry['description']));
+        $data[$cn] = array('data' => array($entry['cn'], $entry['description']),
+          'actions' => array( 'edit' => TRUE));
       }
     }
     return($data);

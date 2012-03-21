@@ -376,7 +376,7 @@ class faiPartitionTable extends plugin
 
     $dn = $this->acl_base_for_current_object($this->dn);
     $acl = $this->ui->get_permissions($dn,"fai/faiPartitionTableEntry");
-    $this->diskList->setAcl($acl);
+    $this->diskList->setAcl($this->getacl(""));
     $data = $lData = array();
     foreach($this->disks as $key => $disk){
       $act = "";
@@ -395,7 +395,9 @@ class faiPartitionTable extends plugin
             "raid" => "plugins/fai/images/raid.png", "lvm" => "plugins/ogroups/images/list_ogroup.png");
         $type = isset($disk['FAIdiskType'])?$types[$disk['FAIdiskType']]:$types['old'];
         $data[$key] = $key;
-        $lData[$key] = array('data' => array(image($type),$key,$disk['description'],$cnt));
+        $lData[$key] = array('data' => array(image($type),$key,$disk['description'],$cnt),
+            'actions' => array( 'edit' => TRUE) 
+        );
       }
     }
     $this->diskList->setListData($data,$lData);

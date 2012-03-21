@@ -70,9 +70,7 @@
  {render acl=$FAIscriptACL}
   <button type='submit' name='ImportUpload'>{t}Import script{/t}</button>
  {/render}
- {render acl=$FAIscriptACL}
-  {$DownMe}
- {/render}
+ {$DownMe}
 </div>
 <br>
 <hr>

@@ -286,6 +286,21 @@ class faiManagement extends management
     }
   }
 
+  /*! \brief Initialize attributes of a FAI tab, like FAIstate etc.
+   *
+   * @param Array Type array as returned by $this->get_type()
+   * @param String The FAIstate of the object, which is editted, usually
+   * taken from $data['FAIstate']
+   * */
+  function init_tab_attrs($type, $FAIstate) {
+    $this->tabObject->by_object[$type[1]]->FAIstate = $FAIstate;
+    $this->tabObject->FAIstate = $FAIstate;
+
+    $read_only = preg_match("/freeze/i", $FAIstate);
+    $this->tabObject->read_only = $read_only;
+    $this->tabObject->by_object[$type[1]]->read_only = $read_only;
+  }
+
 
   function editSubEntry($action,$target, $all) {
 
@@ -301,6 +316,7 @@ class faiManagement extends management
       $type[0], $type[2], "fai");
 
       if ($str) return $str;
+      $this->init_tab_attrs($type, $data['FAIstate']);
     }
   }
 
@@ -337,8 +353,7 @@ class faiManagement extends management
             $type = $this->get_type($data);
             $str = management::editEntry('editEntry',array($data['dn']),array(),$type[0],$type[2],"fai");
             if($str) return($str);
-            $this->tabObject->by_object[$type[1]]->FAIstate = $data['FAIstate'];
-            $this->tabObject->read_only = preg_match("/freeze/i", $data['FAIstate']);
+            $this->init_tab_attrs($type, $data['FAIstate']);
 
           }else{
             $this->dialogObject = new faiGroupHandle($entry['GROUPS'],"edit");
@@ -553,8 +568,7 @@ class faiManagement extends management
       $type = $this->get_type($data);
       $str = management::editEntry('editEntry',array($data['dn']),array(),$type[0],$type[2],'fai');
       if($str) return($str);
-      $this->tabObject->by_object[$type[1]]->FAIstate = $data['FAIstate'];
-      $this->tabObject->read_only = preg_match("/freeze/i", $data['FAIstate']);
+      $this->init_tab_attrs($type, $data['FAIstate']);
     }elseif($mode && $mode == "remove"){
       $to_delete = $entry;
       if(count($to_delete)) $this->closeDialogs();
