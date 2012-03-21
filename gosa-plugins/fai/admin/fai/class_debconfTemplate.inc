@@ -6,11 +6,12 @@ class debconf
   var $language= "";
   var $loaded_template= FALSE;
   var $template= array();
+  var $read_only = FALSE;
 
-
-  function debconf($language= "")
+  function debconf($language= "", $read_only=FALSE)
   {
     $this->set_language($language);
+    $this->read_only = $read_only;
   }
 
   function set_language($language)
@@ -233,8 +234,9 @@ class debconf
     if ($save) {
       $checked = "checked";
     }
-    
-    $template = "<img src='images/save.png'><br><input type=checkbox name='save_%s' value='%s' %s>";
+
+    $disabled = ($this->read_only) ? "disabled" : ""; 
+    $template = "<img src='images/save.png'><br><input type=checkbox name='save_%s' $disabled value='%s' %s>";
     return(sprintf($template, $postname, $save, $checked));
   }
 
@@ -242,7 +244,8 @@ class debconf
   {
     $post_name= $data['post_name'];
     $result = "";
-    $template = "<input type='radio' name=\"%s\" value=\"%s\" %s onChange='javascript:document.getElementsByName(\"save_%s\")[0].checked = true;'>%s";
+    $disabled = ($this->read_only) ? "disabled" : "";
+    $template = "<input type='radio' name=\"%s\" value=\"%s\" %s $disabled onChange='javascript:document.getElementsByName(\"save_%s\")[0].checked = true;'>%s";
 
     foreach(array("true","false") as $value){
       if($data['Default'] == $value){
@@ -269,8 +272,9 @@ class debconf
         foreach (explode(", ", $data['Choices']) as $choice){
             $choices[]= $choice;
         }
-      
-        $input="<input type='hidden' name='multi-".$post_name."' value='1'>";
+
+        $disabled = ($this->read_only) ? "disabled" : "";
+        $input="<input type='hidden' name='multi-".$post_name."' $disabled value='1'>";
         $template = "\n<input name='%s-multi-%s' type='checkbox' value=\"%s\" %s onChange='javascript:document.getElementsByName(\"save_%s\")[0].checked = true;'>%s";
 
         $defs = explode(", ",$data['Default']);
@@ -298,7 +302,9 @@ class debconf
   function render_password($data)
   {
     $result =  "";
-    $template = "&nbsp;<input type='text' name='%s' value=\"%s\" onChange='javascript:document.getElementsByName(\"save_%s\")[0].checked = true;'><br><br>";
+
+    $disabled = ($this->read_only) ? "disabled" : ""; 
+    $template = "&nbsp;<input type='text' name='%s' value=\"%s\" $disabled onChange='javascript:document.getElementsByName(\"save_%s\")[0].checked = true;'><br><br>";
     $result .= sprintf($template, $data['post_name'], $data['Default'], $data['post_name']);
     return ($this->render_entry($data, $result));
   }
@@ -317,7 +323,8 @@ class debconf
             $choices[]= $choice;
         }
 
-        $template = "\n<input type='radio' name='%s' value=\"%s\" %s onChange='javascript:document.getElementsByName(\"save_%s\")[0].checked = true;'>%s<br>";;
+        $disabled = ($this->read_only) ? "disabled" : "";
+        $template = "\n<input type='radio' name='%s' value=\"%s\" %s $disabled onChange='javascript:document.getElementsByName(\"save_%s\")[0].checked = true;'>%s<br>";;
         foreach($choices as $value){
             if($data['Default'] == $value){
                 $result.= sprintf($template, $post_name, htmlentities($value), "checked", $post_name, htmlentities($value));
@@ -333,7 +340,8 @@ class debconf
 
   function render_string($data)
   {
-    $template = "<input type='text' name='%s' value=\"%s\" style='width:300px' onChange='javascript:document.getElementsByName(\"save_%s\")[0].checked = true;'>";
+    $disabled = ($this->read_only) ? "disabled" : "";
+    $template = "<input type='text' name='%s' $disabled value=\"%s\" style='width:300px' onChange='javascript:document.getElementsByName(\"save_%s\")[0].checked = true;'>";
     $result=  sprintf($template, $data['post_name'], $data['Default'], $data['post_name']);
     return ($this->render_entry($data, $result));
   }

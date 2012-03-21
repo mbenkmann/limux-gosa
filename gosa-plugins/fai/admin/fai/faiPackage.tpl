@@ -83,9 +83,9 @@
 {if $debconf_configurations}
    <button type="submit" name="EditConfigurations">{t}Edit package configurations{/t}</button>
 {/if}                                                                           
+ {/render}
    </td>
    </td>
   </tr>
- {/render}
 </table><!-- Place cursor -->
 <script language="JavaScript" type="text/javascript"><!-- // First input field on page	focus_field('cn','description');  --></script>

@@ -274,6 +274,7 @@ class faiDebconfConfigurations extends plugin
     $smarty     = get_smarty();
     $smarty->assign("divlist", $this->ConfigurationsList->render());
     $smarty->assign("headline", sprintf(_("Debconf information for package list '%s'"), $this->package_list));
+    $smarty->assign("writable", $this->FAIstate != 'freeze');
     return($smarty->fetch(get_template_path('faiDebconfConfigurations.tpl', TRUE)));
   }
 

@@ -431,6 +431,7 @@ class faiPackage extends plugin
           }
           $this->configure_dialog_shown = TRUE;
           $this->dialog = new faiPackageConfiguration($this->config, $this->dn,$pkg, $this->FAIdebianRelease , $pkg_config);
+          $this->dialog->FAIstate = $this->FAIstate;
           $this->is_dialog =true;
         }
         break;
@@ -512,14 +513,33 @@ class faiPackage extends plugin
     ksort($this->usedPackages);
     if(is_array($this->usedPackages)){
         foreach($this->usedPackages as $usedName => $name){
+            /* Is this class frezed? */
+            $freeze = preg_match('/^freeze/', $this->FAIstate);
 
             /* Append message if package is configured */
             $configured = image('images/empty.png');
             if(isset($this->ConfiguredPackages[$usedName])){
-              $configured = image('plugins/fai/images/package_configure.png', "remove_configuration_".base64_encode($usedName),
-                _("Remove configuration"));
+              if ($this->acl_is_writeable("FAIdebconfInfo") and !$freeze) {
+                $configured = image('plugins/fai/images/package_configure.png', "remove_configuration_".base64_encode($usedName), _("Remove configuration"));
+              } else {
+                $configured = image('plugins/fai/images/package_configure-grey.png');
+              }
             }
-
+            if (!$freeze) {
+              $removal_image = image('plugins/fai/images/removal_mark.png',
+                'removal_package_'.postEncode($usedName),
+                _("Mark package for removal"));
+            } else {
+              $removal_image = image('plugins/fai/images/removal_mark-grey.png');
+            }
+            if (!$freeze) {
+              $trash_image = image('images/lists/trash.png',
+                'remove_package_'.postEncode($usedName),
+                ("Remove this package"));
+            } else {
+              $trash_image = image('images/lists/trash-grey.png');
+            }
+                        
             /* Adapt used name if we're marked for removal */
             $removal = image('images/empty.png');
             if (preg_match('/\-$/', $name)){
@@ -538,9 +558,7 @@ class faiPackage extends plugin
                 $description = base64_decode($this->list[$usedName]['DESCRIPTION']);
             }
 
-            $actions= image('plugins/fai/images/removal_mark.png',
-                    'removal_package_'.postEncode($usedName),
-                    _("Mark package for removal"));
+            $actions = $removal_image;
 
             if(isset($this->list[$usedName]['TEMPLATE']) && 
                     !preg_match('/^freeze/', $this->FAIstate) && $this->acl_is_writeable("FAIdebconfInfo")){
@@ -548,10 +566,8 @@ class faiPackage extends plugin
                         'configure_package_'.postEncode($usedName),
                         _("Configure this package"));
             }
-            if(!preg_match('/^freeze/', $this->FAIstate) && $this->acl_is_writeable("FAIpackage")){
-                $actions.= image('images/lists/trash.png',
-                        'remove_package_'.postEncode($usedName),
-                        _("Remove this package"));
+            if($this->acl_is_writeable("FAIpackage")){
+              $actions.= $trash_image; 
             }
             $data[$usedName] = $usedName;
             $lData[$usedName] = array('data'=>

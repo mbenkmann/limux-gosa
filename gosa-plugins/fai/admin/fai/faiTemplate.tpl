@@ -35,7 +35,7 @@
     <button type='submit' name='AddSubObject' title="{msgPool type=addButton}">
     {msgPool type=addButton}</button>
     {else}
-    <button type='submit' name='AddSubObject' title="{msgPool type=addButton}">
+    <button type='submit' name='AddSubObject' disabled title="{msgPool type=addButton}">
     {msgPool type=addButton}</button>
     
    {/if}

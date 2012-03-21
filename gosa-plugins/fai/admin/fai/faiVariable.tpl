@@ -43,7 +43,7 @@
        <button type='submit' name='AddSubObject' title="{msgPool type=addButton}">
        {msgPool type=addButton}</button>
        {else}
-       <button type='submit' name='AddSubObject' title="{msgPool type=addButton}">
+       <button type='submit' name='AddSubObject' disabled title="{msgPool type=addButton}">
        {msgPool type=addButton}</button>
        
       {/if}
@@ -53,7 +53,7 @@
        <button type='submit' name='DelSubObject' title="{msgPool type=delButton}">
        {msgPool type=delButton}</button>
        {else}
-       <button type='submit' name='DelSubObject' title="{msgPool type=delButton}">
+       <button type='submit' name='DelSubObject' disabled title="{msgPool type=delButton}">
        {msgPool type=delButton}</button>
        
       {/if}

@@ -8,6 +8,7 @@ class faiPackageConfiguration extends plugin
   var $objectclasses  = array();
 
   var $Debconf_handle = NULL;
+  var $FAIstate;
   var $pkg_config ;
   var $obj;
   var $release;
@@ -66,10 +67,12 @@ class faiPackageConfiguration extends plugin
     /* Call parent execute */
     plugin::execute();
 
+    $this->Debconf_handle->read_only = ($this->FAIstate == 'freeze');
     /* Fill templating stuff */
     $smarty     = get_smarty();
     $smarty->assign("headline", sprintf(_("Debconf information for package '%s'"), $this->obj));
     $this->Debconf_handle->PostCheck();
+    $smarty->assign("writable", $this->FAIstate != 'freeze');
     $smarty->assign("Config",$this->Debconf_handle->get_dialog());
     return($smarty->fetch(get_template_path('faiPackageConfiguration.tpl', TRUE)));
   }
