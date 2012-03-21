@@ -3615,9 +3615,8 @@ msgid "Months"
 msgstr "Monate"
 
 #: addons/goto/events/class_DaemonEvent.inc:296
-#, fuzzy, php-format
 msgid "Added via object group \"%s\""
-msgstr "Objektgruppe bearbeiten"
+msgstr "Via Objektruppe \"%s\" hinzugefügt"
 
 #: addons/goto/events/class_DaemonEvent.inc:303
 msgid "Add"
