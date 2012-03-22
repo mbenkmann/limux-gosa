@@ -8,10 +8,28 @@ class faiHookEntry extends plugin
   var $attributes   = array("cn","description","FAIscript","FAItask");
   var $objectclasses= array();
 
-  var $orig_cn              = "";
-  var $tasks                = array("chboot", "configure", "debconf", "extrbase", "faiend", "finish",
-                                    "install", "instsoft", "mirror", "mountdisks", "partition", "prepareapt",
-                                    "savelog", "softupdate", "sysinfo","updatebase", "error");
+  var $orig_cn       = "";
+  var $tasks         = array(
+                         "chboot",
+                         "configure",
+                         "debconf",
+                         "error",
+                         "extrbase",
+                         "faiend",
+                         "finish",
+                         "install",
+                         "instsoft",
+                         "mirror",
+                         "mountdisks",
+                         "partition",
+                         "prepareapt",
+                         "repository",
+                         "savelog",
+                         "setup",
+                         "softupdate",
+                         "sysinfo",
+                         "updatebase"
+                       );
   var $dn            = "";
   var $cn            = "";
   var $FAItask       = "chboot";
