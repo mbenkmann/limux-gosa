@@ -296,6 +296,13 @@ div.plugin-area-noMenu {
   cursor:default;
 }
 
+div.dnHeader {
+  margin-top: -0.5em;
+  padding: 0px;
+  color: grey;
+  font-size: small;
+  margin-bottom: 1em;
+}
 
 /* Plugin decorations */
 

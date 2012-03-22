@@ -75,8 +75,17 @@ class pathNavigator
     // Build up title and path string.
     $path = "";
     $sTitle = "";
+    $dnHeader = "";
     foreach($list as $entry){
-        $title = (!empty($entry['TITLE']))? 'title="'.htmlentities(LDAP::fix($entry['TITLE']),ENT_COMPAT,'UTF-8').'"': '';
+        $dn = "";
+        if (!empty($entry['TITLE'])) {
+            $dn = htmlentities(LDAP::fix($entry['TITLE']),ENT_COMPAT,'UTF-8');
+        }
+        $title = !empty($dn) ? 'title="'.$dn.'"' : '';
+        if (!empty($dn)) {
+          $dnHeader = "<div class='dnHeader'>$dn<hr></div";
+        }
+
         $path.= "\n<li {$title} class='left path-element'>{$entry['NAME']}</li>";
         $sTitle .= " - ".$entry['NAME'];
     }
@@ -88,7 +97,7 @@ class pathNavigator
 
     $smarty = get_smarty();
     $smarty->assign('title', 'GOsa - ' . $_SERVER['SERVER_NAME'] . $sTitle);
-    return($path);
+    return(array($path, $dnHeader));
   }
 
   static function clear()
