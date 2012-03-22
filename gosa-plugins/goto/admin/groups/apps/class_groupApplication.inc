@@ -454,6 +454,7 @@ class appgroup extends plugin
 
         $smarty = get_smarty();
         $smarty->assign("plug_id" , $_GET['plug']);
+        $smarty->assign("gosaMemberApplicationACL", $this->getacl("gosaMemberApplicationACL"));
 
         /* Create application list */
         $departments = array();

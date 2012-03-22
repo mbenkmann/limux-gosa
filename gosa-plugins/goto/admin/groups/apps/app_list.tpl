@@ -1,3 +1,4 @@
+{render acl=$gosaMemberApplicationACL}
 <table style="width:100%;" summary="{t}Group application settings{/t}">
 	{if $enableReleaseManagement}
 	<tr>
@@ -161,4 +162,5 @@
 		</td>
 	</tr>
 </table>
+{/render}
 	
