@@ -1658,3 +1658,7 @@ msgstr ""
 #: admin/systems/services/repository/repository-list.xml:15
 msgid "Service"
 msgstr ""
+
+#: admin/systems/services/repository/class_servRepositorySetup.inc:264
+msgid "The following sections are not present on the parent server: '%s'"
+msgstr ""
