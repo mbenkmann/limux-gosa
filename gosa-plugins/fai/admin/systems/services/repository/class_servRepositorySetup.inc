@@ -168,7 +168,7 @@ class servRepositorySetup  extends plugin
 
         $sections = array();
         if (isset($_POST["ParentServer"]) && $ParentServer != "none" &&
-                $this->OldParentServer != $this->ParentServer || 
+                ($this->OldParentServer != $this->ParentServer || 
                 $this->OldRelease != $SelectedRelease)) {
             /* Parent server or release changed, prefill section list */
             foreach ($repositories[$ParentServer][$SelectedRelease+1]["sections"] as $key => $entry) {
