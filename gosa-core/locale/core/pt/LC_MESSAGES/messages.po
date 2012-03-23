@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: messages-2.6.4-pt_BR\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-09 14:13+0100\n"
+"POT-Creation-Date: 2012-03-23 14:28+0100\n"
 "PO-Revision-Date: 2009-03-02 15:03-0300\n"
 "Last-Translator: Clever de Oliveira Jr. <clever@dri.cefetmg.br>\n"
 "Language-Team: Brazilian Portuguese <pt@li.org>\n"
@@ -21,14 +21,14 @@ msgstr ""
 msgid "Smarty"
 msgstr ""
 
-#: html/setup.php:73 html/password.php:115 html/index.php:179
+#: html/setup.php:73 html/password.php:115 html/index.php:136
 #, php-format
 msgid "Compile directory %s is not accessible!"
 msgstr ""
 
 #: html/main.php:170 html/password.php:61
 #: plugins/admin/departments/class_department.inc:439
-#: include/functions.inc:482 include/utils/class_xml.inc:43
+#: include/functions.inc:483 include/utils/class_xml.inc:43
 msgid "Fatal error"
 msgstr ""
 
@@ -59,15 +59,15 @@ msgstr "Senha alterada"
 msgid "Your password is about to expire, please change your password!"
 msgstr ""
 
-#: html/main.php:295 html/password.php:113 html/index.php:157
-#: html/index.php:233 plugins/admin/groups/class_group.inc:171
+#: html/main.php:295 html/password.php:113 html/index.php:122
+#: html/index.php:250 plugins/admin/groups/class_group.inc:171
 #: plugins/admin/groups/class_group.inc:1267
 #: include/password-methods/class_password-methods-sha.inc:48
 #: include/password-methods/class_password-methods-ssha.inc:51
-#: include/functions.inc:864 include/functions.inc:3085
-#: include/functions.inc:3100 include/class_config.inc:171
-#: include/class_config.inc:712 include/class_config.inc:1173
-#: include/class_config.inc:1186 include/class_config.inc:1204
+#: include/functions.inc:865 include/functions.inc:3130
+#: include/functions.inc:3145 include/class_config.inc:171
+#: include/class_config.inc:710 include/class_config.inc:1169
+#: include/class_config.inc:1182 include/class_config.inc:1200
 #: include/class_pluglist.inc:146 include/class_SnapshotHandler.inc:44
 #: include/class_SnapshotHandler.inc:57 include/class_SnapshotHandler.inc:75
 #: include/utils/class_timezone.inc:47 include/class_CopyPasteHandler.inc:119
@@ -135,7 +135,7 @@ msgid "Help directory '%s' is not accessible, can't read any help files."
 msgstr ""
 "Helpdir '%s' não está acessível, não foi possível ler nenhum helpfiles."
 
-#: html/password.php:63 html/index.php:157
+#: html/password.php:63 html/index.php:122
 #, php-format
 msgid "GOsa configuration %s/%s is not readable. Aborted."
 msgstr "A configuração GOsa %s/%s não pôde ser lida. Abortado."
@@ -193,7 +193,7 @@ msgstr "A senha utilizada como nova é curta."
 msgid "The password contains possibly problematic Unicode characters!"
 msgstr "O campo '%s' contém uma palavra reservada!"
 
-#: html/password.php:261 html/index.php:311
+#: html/password.php:261 html/index.php:328
 #, fuzzy
 msgid "Please check the username/password combination!"
 msgstr "Por favor, verifique a combinação usuário / senha"
@@ -213,8 +213,8 @@ msgstr ""
 #: plugins/admin/groups/class_group.inc:876
 #: plugins/personal/posix/class_posixAccount.inc:662
 #: plugins/personal/posix/class_posixAccount.inc:785
-#: include/functions.inc:2516 include/functions.inc:2520
-#: include/functions.inc:2526 include/functions.inc:2550
+#: include/functions.inc:2561 include/functions.inc:2565
+#: include/functions.inc:2571 include/functions.inc:2595
 #: include/class_tabs.inc:287 include/utils/class_xml.inc:37
 #: include/class_configRegistry.inc:688 include/class_configRegistry.inc:703
 #: include/class_configRegistry.inc:718 include/class_configRegistry.inc:733
@@ -255,11 +255,11 @@ msgstr "Servidor"
 msgid "The configured session lifetime will be overridden by php.ini settings!"
 msgstr ""
 
-#: html/index.php:179
+#: html/index.php:136
 msgid "Smarty error"
 msgstr ""
 
-#: html/index.php:202
+#: html/index.php:219
 #, fuzzy
 msgid ""
 "Your browser has cookies disabled: please enable cookies and reload this "
@@ -268,11 +268,11 @@ msgstr ""
 "Seu navegador está com suporte a cookies desabilitado. Por favor, habilite-o "
 "e recarregue essa página antes de entrar!"
 
-#: html/index.php:233
+#: html/index.php:250
 msgid "Broken HTTP authentication setup!"
 msgstr ""
 
-#: html/index.php:241 html/index.php:245
+#: html/index.php:258 html/index.php:262
 #: plugins/admin/departments/class_department.inc:317
 #: plugins/admin/ogroups/class_ogroup.inc:217
 #: plugins/admin/ogroups/class_ogroup.inc:439
@@ -306,18 +306,18 @@ msgstr ""
 #: include/class_gosaSupportDaemon.inc:1188
 #: include/class_gosaSupportDaemon.inc:1208
 #: include/password-methods/class_password-methods.inc:339
-#: include/functions.inc:3070 include/functions.inc:3378
-#: include/functions.inc:3392 include/functions.inc:3422
-#: include/functions.inc:3430 include/functions.inc:3442
-#: include/functions.inc:3446 include/functions.inc:3461
-#: include/functions.inc:3470 include/functions.inc:3530
-#: include/class_tabs.inc:71 include/class_plugin.inc:1710
-#: include/class_plugin.inc:1717 include/class_management.inc:508
+#: include/functions.inc:3115 include/functions.inc:3423
+#: include/functions.inc:3437 include/functions.inc:3467
+#: include/functions.inc:3475 include/functions.inc:3487
+#: include/functions.inc:3491 include/functions.inc:3506
+#: include/functions.inc:3515 include/functions.inc:3575
+#: include/class_tabs.inc:71 include/class_plugin.inc:1717
+#: include/class_plugin.inc:1724 include/class_management.inc:508
 #: include/class_management.inc:669 include/utils/class_xml.inc:40
 #: include/utils/class_msgPool.inc:137 include/utils/class_msgPool.inc:149
 #: include/utils/class_msgPool.inc:167 include/utils/class_msgPool.inc:440
 #: include/utils/class_msgPool.inc:462 include/class_msg_dialog.inc:99
-#: include/class_listing.inc:542 include/class_CopyPasteHandler.inc:118
+#: include/class_listing.inc:574 include/class_CopyPasteHandler.inc:118
 #: include/class_CopyPasteHandler.inc:127
 #: include/class_CopyPasteHandler.inc:159
 #: include/class_CopyPasteHandler.inc:176
@@ -330,15 +330,15 @@ msgstr ""
 msgid "Error"
 msgstr "Erro"
 
-#: html/index.php:241
+#: html/index.php:258
 msgid "Cannot find a valid user for the current HTTP authentication!"
 msgstr ""
 
-#: html/index.php:245
+#: html/index.php:262
 msgid "Cannot find a unique user for the current HTTP authentication!"
 msgstr ""
 
-#: html/index.php:271 plugins/admin/departments/class_department.inc:285
+#: html/index.php:288 plugins/admin/departments/class_department.inc:285
 #: plugins/admin/departments/class_department.inc:482
 #: plugins/admin/departments/class_department.inc:759
 #: plugins/admin/departments/class_department.inc:790
@@ -356,41 +356,41 @@ msgstr ""
 #: plugins/personal/posix/trustModeDialog/class_trustModeDialog.inc:253
 #: plugins/personal/posix/class_posixAccount.inc:540
 #: plugins/personal/posix/class_posixAccount.inc:802
-#: plugins/generic/references/class_reference.inc:97 include/functions.inc:511
-#: include/functions.inc:546 include/functions.inc:554
-#: include/functions.inc:600 include/functions.inc:879
-#: include/functions.inc:928 include/functions.inc:985
-#: include/functions.inc:1035 include/functions.inc:3304
+#: plugins/generic/references/class_reference.inc:97 include/functions.inc:512
+#: include/functions.inc:547 include/functions.inc:555
+#: include/functions.inc:601 include/functions.inc:880
+#: include/functions.inc:929 include/functions.inc:986
+#: include/functions.inc:1036 include/functions.inc:3349
 #: include/class_config.inc:367 include/class_SnapshotHandler.inc:123
 #: include/class_SnapshotHandler.inc:280 include/class_SnapshotHandler.inc:329
 #: include/class_SnapshotHandler.inc:333 include/class_SnapshotHandler.inc:346
 #: include/class_SnapshotHandler.inc:380 include/class_SnapshotHandler.inc:435
 #: include/class_SnapshotHandler.inc:500 include/class_SnapshotHandler.inc:515
 #: include/class_acl.inc:1258 include/class_acl.inc:1354
-#: include/class_ldap.inc:871 include/class_ldap.inc:1329
+#: include/class_ldap.inc:907 include/class_ldap.inc:1412
 #: include/class_userFilter.inc:275 setup/class_setupStep_Migrate.inc:461
 #: setup/class_setupStep_Migrate.inc:814
 msgid "LDAP error"
 msgstr "Erro de LDAP"
 
-#: html/index.php:289
+#: html/index.php:306
 #, fuzzy
 msgid "Please specify a valid user name!"
 msgstr "Por favor, especifique um nome de usuário válido!"
 
-#: html/index.php:292
+#: html/index.php:309
 msgid "Please specify your password!"
 msgstr "Por favor, especifique sua senha!"
 
-#: html/index.php:304
+#: html/index.php:321
 msgid "Authentication error"
 msgstr ""
 
-#: html/index.php:304
+#: html/index.php:321
 msgid "Cannot retrieve user information for HTTP authentication!"
 msgstr ""
 
-#: html/index.php:364
+#: html/index.php:384
 msgid "Account locked. Please contact your system administrator!"
 msgstr ""
 
@@ -791,7 +791,7 @@ msgstr ""
 #: plugins/admin/departments/organization.tpl:109
 #: plugins/admin/departments/class_department.inc:376
 #: plugins/admin/ogroups/objectSelect/selectObject-list.xml:55
-#: plugins/admin/ogroups/class_ogroupManagement.inc:188
+#: plugins/admin/ogroups/class_ogroupManagement.inc:186
 #: plugins/admin/users/class_userManagement.inc:918
 #: plugins/admin/groups/class_groupManagement.inc:181
 #: plugins/personal/generic/generic.tpl:394
@@ -888,7 +888,7 @@ msgstr "no domínio"
 #: plugins/admin/departments/dep-list.xml:71
 #: plugins/admin/departments/dep-list.xml:138
 #: plugins/admin/ogroups/objectSelect/selectObject-list.xml:15
-#: plugins/admin/ogroups/class_ogroupManagement.inc:186
+#: plugins/admin/ogroups/class_ogroupManagement.inc:184
 #: plugins/personal/generic/generic.tpl:306
 #: plugins/personal/generic/class_user.inc:1721
 msgid "Department"
@@ -918,7 +918,7 @@ msgstr "Lista dos grupos"
 #: plugins/admin/users/user-list.xml:78 plugins/admin/acl/acl-list.xml:65
 #: plugins/admin/groups/group-list.xml:62
 #: plugins/addons/propertyEditor/property-list.xml:97
-#: include/class_listing.inc:1207
+#: include/class_listing.inc:1344
 msgid "Actions"
 msgstr "Ações"
 
@@ -953,7 +953,7 @@ msgstr "Editar"
 #: plugins/admin/groups/class_group.inc:334
 #: plugins/admin/groups/class_group.inc:357
 #: plugins/admin/groups/class_group.inc:374
-#: plugins/generic/references/contents.tpl:18 include/class_pluglist.inc:479
+#: plugins/generic/references/contents.tpl:18 include/class_pluglist.inc:480
 msgid "Unknown"
 msgstr "Desconhecido"
 
@@ -1054,30 +1054,30 @@ msgid "Please select the desired entries"
 msgstr ""
 
 #: plugins/admin/ogroups/objectSelect/selectObject-list.xml:23
-#: plugins/admin/ogroups/class_ogroupManagement.inc:187
+#: plugins/admin/ogroups/class_ogroupManagement.inc:185
 #: plugins/personal/posix/trustSelect/trust-list.xml:12
 msgid "Server"
 msgstr "Servidor"
 
 #: plugins/admin/ogroups/objectSelect/selectObject-list.xml:31
-#: plugins/admin/ogroups/class_ogroupManagement.inc:189
+#: plugins/admin/ogroups/class_ogroupManagement.inc:187
 #: plugins/personal/posix/trustSelect/trust-list.xml:19
 msgid "Workstation"
 msgstr "Estação de trabalho"
 
 #: plugins/admin/ogroups/objectSelect/selectObject-list.xml:39
-#: plugins/admin/ogroups/class_ogroupManagement.inc:191
+#: plugins/admin/ogroups/class_ogroupManagement.inc:189
 #: plugins/personal/posix/trustSelect/trust-list.xml:26
 msgid "Terminal"
 msgstr ""
 
 #: plugins/admin/ogroups/objectSelect/selectObject-list.xml:47
-#: plugins/admin/ogroups/class_ogroupManagement.inc:192
+#: plugins/admin/ogroups/class_ogroupManagement.inc:190
 msgid "Printer"
 msgstr "Impressora"
 
 #: plugins/admin/ogroups/objectSelect/selectObject-list.xml:63
-#: plugins/admin/ogroups/class_ogroupManagement.inc:183
+#: plugins/admin/ogroups/class_ogroupManagement.inc:181
 #: plugins/admin/users/user-list.xml:23 plugins/admin/users/user-list.xml:95
 #: plugins/admin/groups/userGroupSelect/selectUserGroup-list.xml:15
 #: plugins/admin/groups/singleUserSelect/singleUser-list.xml:14
@@ -1087,7 +1087,7 @@ msgstr "Usuário"
 
 #: plugins/admin/ogroups/objectSelect/selectObject-list.xml:71
 #: plugins/admin/ogroups/ogroup-list.xml:79
-#: plugins/admin/ogroups/class_ogroupManagement.inc:184
+#: plugins/admin/ogroups/class_ogroupManagement.inc:182
 #: plugins/admin/groups/userGroupSelect/selectUserGroup-list.xml:23
 #: plugins/admin/groups/group-list.xml:15
 #: plugins/admin/groups/group-list.xml:79
@@ -1174,15 +1174,15 @@ msgstr ""
 msgid "Infrastructure error"
 msgstr ""
 
-#: plugins/admin/ogroups/class_ogroupManagement.inc:182
+#: plugins/admin/ogroups/class_ogroupManagement.inc:180
 msgid "Templates"
 msgstr "Modelos"
 
-#: plugins/admin/ogroups/class_ogroupManagement.inc:185
+#: plugins/admin/ogroups/class_ogroupManagement.inc:183
 msgid "Application"
 msgstr "Aplicação"
 
-#: plugins/admin/ogroups/class_ogroupManagement.inc:190
+#: plugins/admin/ogroups/class_ogroupManagement.inc:188
 msgid "Windows Install"
 msgstr ""
 
@@ -2144,7 +2144,7 @@ msgstr ""
 msgid "Ignoring LDAP defined properties!"
 msgstr ""
 
-#: plugins/addons/propertyEditor/property-list.tpl:77
+#: plugins/addons/propertyEditor/property-list.tpl:78
 msgid "Undo"
 msgstr ""
 
@@ -2496,7 +2496,7 @@ msgstr "Página pessoal"
 msgid "Password storage"
 msgstr "Armazenamento da senha"
 
-#: plugins/personal/generic/generic.tpl:218 include/functions.inc:1308
+#: plugins/personal/generic/generic.tpl:218 include/functions.inc:1309
 msgid "Configure"
 msgstr "Configurar"
 
@@ -3128,15 +3128,15 @@ msgstr "Senha expira em"
 msgid "Your password hash method will not be changed!"
 msgstr "Sua senha foi alterada com sucesso."
 
-#: plugins/personal/myaccount/main.inc:49 include/functions.inc:640
-#: include/functions.inc:854 include/functions.inc:972
-#: include/functions.inc:1367 include/functions.inc:2195
-#: include/functions.inc:2225 include/functions.inc:2245
+#: plugins/personal/myaccount/main.inc:49 include/functions.inc:641
+#: include/functions.inc:855 include/functions.inc:973
+#: include/functions.inc:1368 include/functions.inc:2196
+#: include/functions.inc:2226 include/functions.inc:2246
 #: include/class_session.inc:76 include/class_session.inc:101
 #: include/class_session.inc:127 include/class_log.inc:87
 #: include/class_acl.inc:984 include/class_management.inc:659
-#: include/class_management.inc:743 include/class_ldap.inc:809
-#: include/class_ldap.inc:860 include/class_CopyPasteHandler.inc:160
+#: include/class_management.inc:743 include/class_ldap.inc:845
+#: include/class_ldap.inc:896 include/class_CopyPasteHandler.inc:160
 #: include/class_CopyPasteHandler.inc:274
 msgid "Internal error"
 msgstr "Erro interno"
@@ -3525,7 +3525,7 @@ msgstr "Colar"
 msgid "You are about to delete the snapshot %s."
 msgstr ""
 
-#: include/class_SnapShotDialog.inc:142 include/class_listing.inc:1607
+#: include/class_SnapShotDialog.inc:142 include/class_listing.inc:1744
 msgid "Restore snapshot"
 msgstr ""
 
@@ -3554,34 +3554,34 @@ msgstr ""
 msgid "No valid certificate loaded!"
 msgstr ""
 
-#: include/class_releaseSelector.inc:214 include/class_listing.inc:1081
-#: include/class_listing.inc:1083 include/class_ItemSelector.inc:247
-#: include/class_baseSelector.inc:188
+#: include/class_releaseSelector.inc:214 include/class_listing.inc:1187
+#: include/class_listing.inc:1189 include/class_ItemSelector.inc:247
+#: include/class_baseSelector.inc:187
 msgid "Root"
 msgstr "Raiz"
 
 #: include/class_releaseSelector.inc:262 include/class_ItemSelector.inc:299
-#: include/class_baseSelector.inc:235
+#: include/class_baseSelector.inc:234
 msgid "Submit"
 msgstr "Submeter"
 
-#: include/class_sortableListing.inc:234
+#: include/class_sortableListing.inc:239
 msgid "Sortable list"
 msgstr ""
 
-#: include/class_sortableListing.inc:239
+#: include/class_sortableListing.inc:244
 msgid "Edit this entry"
 msgstr "Editar esta entrada"
 
-#: include/class_sortableListing.inc:244
+#: include/class_sortableListing.inc:246
 msgid "Delete this entry"
 msgstr "Deletar esta entrada"
 
-#: include/class_sortableListing.inc:274 include/class_listing.inc:262
+#: include/class_sortableListing.inc:287 include/class_listing.inc:265
 msgid "Sort ascending"
 msgstr ""
 
-#: include/class_sortableListing.inc:274 include/class_listing.inc:262
+#: include/class_sortableListing.inc:287 include/class_listing.inc:265
 msgid "Sort descending"
 msgstr ""
 
@@ -3589,261 +3589,261 @@ msgstr ""
 msgid "Cannot find a suitable password method for the current hash!"
 msgstr ""
 
-#: include/functions.inc:151
+#: include/functions.inc:152
 #, php-format
 msgid "Fatal error: no class locations defined - please run %s to fix this"
 msgstr ""
 
-#: include/functions.inc:158
+#: include/functions.inc:159
 #, php-format
 msgid "Fatal error: cannot instantiate class %s - try running %s to fix this"
 msgstr ""
 
-#: include/functions.inc:483
+#: include/functions.inc:484
 #, fuzzy, php-format
 msgid "Error while connecting to LDAP: %s"
 msgstr "enquanto executava no LDAP server %s"
 
-#: include/functions.inc:554 include/functions.inc:640
+#: include/functions.inc:555 include/functions.inc:641
 msgid "User ID is not unique!"
 msgstr ""
 
-#: include/functions.inc:854 include/functions.inc:972
+#: include/functions.inc:855 include/functions.inc:973
 msgid "Error while locking entry!"
 msgstr ""
 
-#: include/functions.inc:864
+#: include/functions.inc:865
 #, php-format
 msgid "Cannot store lock information in LDAP!"
 msgstr ""
 
-#: include/functions.inc:864
+#: include/functions.inc:865
 #, fuzzy, php-format
 msgid "Error: %s"
 msgstr "Erro"
 
-#: include/functions.inc:1294
+#: include/functions.inc:1295
 #, php-format
 msgid "The current size limit of %d entries is exceeded!"
 msgstr ""
 
-#: include/functions.inc:1296
+#: include/functions.inc:1297
 #, php-format
 msgid "Set the size limit to %s"
 msgstr ""
 
-#: include/functions.inc:1313
+#: include/functions.inc:1314
 #, fuzzy
 msgid "list is incomplete"
 msgstr "Operação finalizada"
 
-#: include/functions.inc:1663
+#: include/functions.inc:1664
 msgid "Continue anyway"
 msgstr ""
 
-#: include/functions.inc:1665
+#: include/functions.inc:1666
 msgid "Edit anyway"
 msgstr "Editar mesmo assim"
 
-#: include/functions.inc:1668
+#: include/functions.inc:1669
 msgid "These entries are currently locked:"
 msgstr ""
 
-#: include/functions.inc:1909
+#: include/functions.inc:1910
 msgid "Entries per page"
 msgstr ""
 
-#: include/functions.inc:2087
+#: include/functions.inc:2088
 #, fuzzy, php-format
 msgid "GOsa %s"
 msgstr "GOsa"
 
-#: include/functions.inc:2094
+#: include/functions.inc:2095
 #, php-format
 msgid "GOsa %s snapshot (Rev %s)"
 msgstr ""
 
-#: include/functions.inc:2099
+#: include/functions.inc:2100
 #, php-format
 msgid "GOsa development snapshot (Rev %s)"
 msgstr ""
 
-#: include/functions.inc:2195
+#: include/functions.inc:2196
 #, fuzzy, php-format
 msgid "File %s cannot be deleted!"
 msgstr "Esse objeto '%s' será apagado!"
 
-#: include/functions.inc:2225 include/functions.inc:2245
+#: include/functions.inc:2226 include/functions.inc:2246
 msgid "Cannot write revision file!"
 msgstr ""
 
-#: include/functions.inc:2516 include/functions.inc:2520
-#: include/functions.inc:2526
+#: include/functions.inc:2561 include/functions.inc:2565
+#: include/functions.inc:2571
 msgid "'baseIdHook' is not available. Using default base!"
 msgstr ""
 
-#: include/functions.inc:2550
+#: include/functions.inc:2595
 msgid ""
 "Cannot read schema information from LDAP. Schema validation is not possible!"
 msgstr ""
 
-#: include/functions.inc:2576
+#: include/functions.inc:2621
 msgid "This class is used to make users appear in GOsa."
 msgstr ""
 
-#: include/functions.inc:2583
+#: include/functions.inc:2628
 msgid ""
 "This class is used to lock entries in order to prevent multiple edits at a "
 "time."
 msgstr ""
 
-#: include/functions.inc:2628
+#: include/functions.inc:2673
 #, php-format
 msgid "Required object class %s is missing!"
 msgstr ""
 
-#: include/functions.inc:2631
+#: include/functions.inc:2676
 #, php-format
 msgid "Optional object class %s is missing!"
 msgstr ""
 
-#: include/functions.inc:2636
+#: include/functions.inc:2681
 #, php-format
 msgid "Wrong version of required object class %s (!=%s) detected!"
 msgstr ""
 
-#: include/functions.inc:2639
+#: include/functions.inc:2684
 #, php-format
 msgid "Class available"
 msgstr ""
 
-#: include/functions.inc:2661
+#: include/functions.inc:2706
 msgid ""
 "RFC2307bis schema is enabled, but the current LDAP configuration does not "
 "support it!"
 msgstr ""
 
-#: include/functions.inc:2662
+#: include/functions.inc:2707
 msgid ""
 "To use RFC2307bis groups, the objectClass 'posixGroup' must be AUXILIARY."
 msgstr ""
 
-#: include/functions.inc:2666
+#: include/functions.inc:2711
 msgid ""
 "RFC2307bis schema is disabled, but the current LDAP configuration supports "
 "it!"
 msgstr ""
 
-#: include/functions.inc:2667
+#: include/functions.inc:2712
 msgid "To correct this, the objectClass 'posixGroup' must be STRUCTURAL."
 msgstr ""
 
-#: include/functions.inc:2692
+#: include/functions.inc:2737
 msgid "German"
 msgstr "Alemão"
 
-#: include/functions.inc:2693
+#: include/functions.inc:2738
 msgid "French"
 msgstr "Francês"
 
-#: include/functions.inc:2694
+#: include/functions.inc:2739
 msgid "Italian"
 msgstr "Italiano"
 
-#: include/functions.inc:2695
+#: include/functions.inc:2740
 msgid "Spanish"
 msgstr "Espanhol"
 
-#: include/functions.inc:2696
+#: include/functions.inc:2741
 msgid "English"
 msgstr "Inglês"
 
-#: include/functions.inc:2697
+#: include/functions.inc:2742
 msgid "Dutch"
 msgstr "Holandês"
 
-#: include/functions.inc:2698
+#: include/functions.inc:2743
 msgid "Polish"
 msgstr "Polonês"
 
-#: include/functions.inc:2699
+#: include/functions.inc:2744
 msgid "Brazilian Portuguese"
 msgstr ""
 
-#: include/functions.inc:2701
+#: include/functions.inc:2746
 msgid "Chinese"
 msgstr ""
 
-#: include/functions.inc:2702
+#: include/functions.inc:2747
 msgid "Vietnamese"
 msgstr ""
 
-#: include/functions.inc:2703
+#: include/functions.inc:2748
 msgid "Russian"
 msgstr "Russo"
 
-#: include/functions.inc:2896
+#: include/functions.inc:2941
 #, fuzzy
 msgid "Cannot detect password hash!"
 msgstr "Não foi possível selecionar o banco de dados %s!"
 
-#: include/functions.inc:2942 include/functions.inc:3017
+#: include/functions.inc:2987 include/functions.inc:3062
 #, php-format
 msgid "Pre-event hook reported a problem: %s. Password change canceled!"
 msgstr ""
 
-#: include/functions.inc:2973
+#: include/functions.inc:3018
 #, fuzzy
 msgid "Password change failed!"
 msgstr "Senha alterada"
 
-#: include/functions.inc:2981
+#: include/functions.inc:3026
 #, php-format
 msgid "Post-event hook reported a problem: %s. Password change canceled!"
 msgstr ""
 
-#: include/functions.inc:3085
+#: include/functions.inc:3130
 msgid "Cannot generate SAMBA hash!"
 msgstr ""
 
-#: include/functions.inc:3100
+#: include/functions.inc:3145
 #, php-format
 msgid "Generating SAMBA hash by running %s failed: check %s!"
 msgstr ""
 
-#: include/functions.inc:3378 include/functions.inc:3392
-#: include/functions.inc:3430 include/functions.inc:3442
-#: include/functions.inc:3446 include/functions.inc:3461
-#: include/functions.inc:3470
+#: include/functions.inc:3423 include/functions.inc:3437
+#: include/functions.inc:3475 include/functions.inc:3487
+#: include/functions.inc:3491 include/functions.inc:3506
+#: include/functions.inc:3515
 msgid "Cannot allocate free ID:"
 msgstr ""
 
-#: include/functions.inc:3378
+#: include/functions.inc:3423
 msgid "unknown idAllocation method!"
 msgstr ""
 
-#: include/functions.inc:3392
+#: include/functions.inc:3437
 #, php-format
 msgid "%sPoolMin >= %sPoolMax!"
 msgstr ""
 
-#: include/functions.inc:3422
+#: include/functions.inc:3467
 msgid "Cannot create sambaUnixIdPool entry!"
 msgstr ""
 
-#: include/functions.inc:3430
+#: include/functions.inc:3475
 msgid "sambaUnixIdPool is not unique!"
 msgstr ""
 
-#: include/functions.inc:3442 include/functions.inc:3446
+#: include/functions.inc:3487 include/functions.inc:3491
 msgid "no ID available!"
 msgstr ""
 
-#: include/functions.inc:3470
+#: include/functions.inc:3515
 msgid "maximum number of tries exceeded!"
 msgstr ""
 
-#: include/functions.inc:3530
+#: include/functions.inc:3575
 msgid "Cannot allocate free ID!"
 msgstr ""
 
@@ -3856,15 +3856,15 @@ msgstr "Erro de XML no gosa.conf: %s na linha %d"
 msgid "Cannot bind to LDAP!"
 msgstr ""
 
-#: include/class_config.inc:713
+#: include/class_config.inc:711
 msgid "sambaSID and/or sambaRidBase missing in the configuration!"
 msgstr "sambaSID e/ou sambaRidBase não configurado!"
 
-#: include/class_config.inc:1132
+#: include/class_config.inc:1128
 msgid "Configuration"
 msgstr "Configuração"
 
-#: include/class_config.inc:1132
+#: include/class_config.inc:1128
 #, fuzzy
 msgid ""
 "The configuration file you are using is outdated. Please move the GOsa "
@@ -3873,14 +3873,14 @@ msgstr ""
 "O arquivo de configuração do GOsa parece estar desatualizador. Por favor, "
 "remova-o e execute o configurador novamente."
 
-#: include/class_config.inc:1174 include/class_config.inc:1205
+#: include/class_config.inc:1170 include/class_config.inc:1201
 #, php-format
 msgid ""
 "The snapshot functionality is enabled, but the required variable %s is not "
 "set."
 msgstr ""
 
-#: include/class_config.inc:1187
+#: include/class_config.inc:1183
 #, php-format
 msgid ""
 "The snapshot functionality is enabled, but the required compression module "
@@ -4730,57 +4730,67 @@ msgstr "A configuração GOsa %s/%s não pôde ser lida. Abortado."
 msgid "Please fix the above error and reload the page."
 msgstr ""
 
-#: include/class_listing.inc:324
+#: include/class_listing.inc:327
 msgid "Select all"
 msgstr ""
 
-#: include/class_listing.inc:584
+#: include/class_listing.inc:529
+msgid ""
+"You have disabled all columns. Please enable at least one to see any list "
+"content."
+msgstr ""
+
+#: include/class_listing.inc:616
 #, fuzzy
 msgid "created by"
 msgstr "Criar"
 
-#: include/class_listing.inc:1088 include/class_listing.inc:1090
+#: include/class_listing.inc:1194 include/class_listing.inc:1196
 msgid "Go to preceding level"
 msgstr ""
 
-#: include/class_listing.inc:1096 include/class_listing.inc:1098
+#: include/class_listing.inc:1202 include/class_listing.inc:1204
 msgid "Go to current users level"
 msgstr ""
 
-#: include/class_listing.inc:1103
+#: include/class_listing.inc:1209
 msgid "Reload list"
 msgstr "Recarregar lista"
 
-#: include/class_listing.inc:1477
+#: include/class_listing.inc:1299
+msgid "Columns"
+msgstr ""
+
+#: include/class_listing.inc:1614
 msgid "Copy"
 msgstr ""
 
-#: include/class_listing.inc:1483
+#: include/class_listing.inc:1620
 msgid "Cut"
 msgstr ""
 
-#: include/class_listing.inc:1491 include/class_listing.inc:1493
+#: include/class_listing.inc:1628 include/class_listing.inc:1630
 #: include/class_CopyPasteHandler.inc:571
 msgid "Paste"
 msgstr "Colar"
 
-#: include/class_listing.inc:1516
+#: include/class_listing.inc:1653
 msgid "Cut this entry"
 msgstr ""
 
-#: include/class_listing.inc:1525
+#: include/class_listing.inc:1662
 msgid "Copy this entry"
 msgstr ""
 
-#: include/class_listing.inc:1557 include/class_listing.inc:1559
+#: include/class_listing.inc:1694 include/class_listing.inc:1696
 msgid "Restore snapshots"
 msgstr ""
 
-#: include/class_listing.inc:1573
+#: include/class_listing.inc:1710
 msgid "Export list"
 msgstr ""
 
-#: include/class_listing.inc:1615
+#: include/class_listing.inc:1752
 msgid "Create new snapshot for this object"
 msgstr ""
 
@@ -4843,45 +4853,45 @@ msgstr ""
 msgid "Page"
 msgstr "Pager"
 
-#: include/class_ldap.inc:330 include/class_ldap.inc:367
+#: include/class_ldap.inc:361 include/class_ldap.inc:403
 msgid "Performance warning"
 msgstr "Alerta de performance"
 
-#: include/class_ldap.inc:330 include/class_ldap.inc:367
+#: include/class_ldap.inc:361 include/class_ldap.inc:403
 #, fuzzy, php-format
 msgid "LDAP performance is poor: last query took %.2fs!"
 msgstr ""
 "A performance do LDAP está ruim: a última pesquisa levou cerca de %.2fs!"
 
-#: include/class_ldap.inc:809
+#: include/class_ldap.inc:845
 #, fuzzy, php-format
 msgid "Cannot automatically create subtrees with RDN %s: no object class found"
 msgstr ""
 "Não foi possível criar subárvores automaticamente com RDN '%s': classe de "
 "objeto não encontrada!"
 
-#: include/class_ldap.inc:860
+#: include/class_ldap.inc:896
 #, fuzzy, php-format
 msgid "Cannot automatically create subtrees with RDN %s: not supported"
 msgstr ""
 "Não foi possível criar subárvores automaticamente com '%s': não suportado"
 
-#: include/class_ldap.inc:946
+#: include/class_ldap.inc:1029
 #, fuzzy, php-format
 msgid "while operating on %s using LDAP server %s"
 msgstr "enquanto executava em '%s' usando LDAP server '%s'"
 
-#: include/class_ldap.inc:948
+#: include/class_ldap.inc:1031
 #, php-format
 msgid "while operating on LDAP server %s"
 msgstr "enquanto executava no LDAP server %s"
 
-#: include/class_ldap.inc:1001
+#: include/class_ldap.inc:1084
 #, php-format
 msgid "Command line programm %s is missing!"
 msgstr ""
 
-#: include/class_ldap.inc:1162
+#: include/class_ldap.inc:1245
 #, fuzzy, php-format
 msgid ""
 "Invalid DN %s: block to be imported should start with 'dn: ...' in line %s"
@@ -4889,7 +4899,7 @@ msgstr ""
 "Esse não é um DN válido: '%s'. O bloco para importação deve iniciar com "
 "'dn: ...' na linha %s"
 
-#: include/class_ldap.inc:1191
+#: include/class_ldap.inc:1274
 #, fuzzy, php-format
 msgid "Error while importing DN %s: please check LDIF from line %s on!"
 msgstr ""
@@ -5033,7 +5043,7 @@ msgstr "O comando '%s' para o plugin %s is invalid!"
 msgid "The RDN %s specified for %s:%s is invalid!"
 msgstr "O comando '%s' para o plugin %s is invalid!"
 
-#: include/class_pathNavigator.inc:86
+#: include/class_pathNavigator.inc:95
 #, fuzzy
 msgid "Welcome to GOsa"
 msgstr "Bem vindo %s!"
@@ -5510,21 +5520,21 @@ msgstr "Impressora"
 msgid "Options"
 msgstr "Ações"
 
-#: include/class_filter.inc:158 include/class_filter.inc:228
+#: include/class_filter.inc:172 include/class_filter.inc:242
 #: ihtml/themes/default/help.tpl:21 setup/setup_ldap.tpl:15
 msgid "Search"
 msgstr "Procura"
 
-#: include/class_filter.inc:226
+#: include/class_filter.inc:240
 #, fuzzy
 msgid "Search filter"
 msgstr "Impressora"
 
-#: include/class_filter.inc:444
+#: include/class_filter.inc:484
 msgid "Search in subtrees"
 msgstr "Procurar em subárvores"
 
-#: include/class_filter.inc:449
+#: include/class_filter.inc:489
 #, fuzzy
 msgid "Edit filters"
 msgstr "Editar certificados"
@@ -5663,6 +5673,26 @@ msgstr ""
 #, fuzzy
 msgid "Query"
 msgstr "Usuários"
+
+#: ihtml/themes/default/existing_session.tpl:4
+msgid "Existing session!"
+msgstr ""
+
+#: ihtml/themes/default/existing_session.tpl:7
+msgid ""
+"You have an existing session. Using multiple windows or tabs for a single "
+"GOsa session results in data corruption!"
+msgstr ""
+
+#: ihtml/themes/default/existing_session.tpl:11
+msgid ""
+"If you are sure you closed all other GOsa windows/tabs, you can continue "
+"using the session."
+msgstr ""
+
+#: ihtml/themes/default/existing_session.tpl:18
+msgid "Force use of existing session"
+msgstr ""
 
 #: ihtml/themes/default/logout.tpl:6
 msgid "Your GOsa session has expired!"
