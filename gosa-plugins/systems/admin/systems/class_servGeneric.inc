@@ -545,7 +545,7 @@ class servgeneric extends plugin
                     "description"   => _("Description"),
                     "ghInventoryNumber" => _("Inventory number"),
                     "base"          => _("Base"),
-                    "goComment"          => _("Comments"),
+                    "goComment"          => _("Comment"),
                     "gotoMode"      => _("Goto mode"),
                     "userPassword"=> _("Root password"),
                     "FAIstate"      => _("Action flag"))

@@ -1090,7 +1090,7 @@ class printgeneric extends plugin
                     "labeledURI"        => _("Labeled URI"), 
                     "macAddress"        => _("Mac address"), 
                     "gotoPrinterPPD"    => _("Printer PPD"),
-                    "goComment"         => _("Comments"),
+                    "goComment"         => _("Comment"),
                     "gotoUserPrinter"   => _("Permissions")) 
                 ));
     }

@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: messages\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-23 14:27+0100\n"
+"POT-Creation-Date: 2012-03-23 14:36+0100\n"
 "PO-Revision-Date: 2010-09-17 11:08+0100\n"
 "Last-Translator: Fabian Hickert <Fabian.Hickert@GONICUS.DE>\n"
 "Language-Team: deutsch <de@li.org>\n"
@@ -51,7 +51,7 @@ msgstr "Systemauswahl"
 
 #: admin/systems/systemSelect/selectSystem-list.tpl:12
 #: admin/systems/component.tpl:18 admin/systems/class_componentGeneric.inc:316
-#: admin/systems/class_servGeneric.inc:542 admin/systems/system-list.tpl:12
+#: admin/systems/class_servGeneric.inc:547 admin/systems/system-list.tpl:12
 #: admin/systems/server.tpl:42
 msgid "Base"
 msgstr "Basis"
@@ -61,7 +61,7 @@ msgid "Please select the desired entries"
 msgstr "Bitte wählen Sie die gewünschten Einträge"
 
 #: admin/systems/systemSelect/selectSystem-list.xml:15
-#: admin/systems/class_servGeneric.inc:522 admin/systems/system-list.xml:112
+#: admin/systems/class_servGeneric.inc:527 admin/systems/system-list.xml:112
 #: admin/systems/system-list.xml:251 admin/systems/server.tpl:1
 msgid "Server"
 msgstr "Server"
@@ -78,14 +78,14 @@ msgstr "Terminal"
 
 #: admin/systems/systemSelect/selectSystem-list.xml:57
 #: admin/systems/class_componentGeneric.inc:315
-#: admin/systems/class_servGeneric.inc:539 admin/systems/system-list.xml:178
+#: admin/systems/class_servGeneric.inc:544 admin/systems/system-list.xml:178
 msgid "Name"
 msgstr "Name"
 
 #: admin/systems/systemSelect/selectSystem-list.xml:65
 #: admin/systems/component.tpl:29 admin/systems/class_componentGeneric.inc:317
 #: admin/systems/serverService-list.xml:35
-#: admin/systems/class_servGeneric.inc:540 admin/systems/system-list.xml:186
+#: admin/systems/class_servGeneric.inc:545 admin/systems/system-list.xml:186
 #: admin/systems/server.tpl:16
 msgid "Description"
 msgstr "Beschreibung"
@@ -136,8 +136,8 @@ msgstr "Leerer Dienst"
 #: admin/systems/class_termDNS.inc:962
 #: admin/systems/class_componentGeneric.inc:134
 #: admin/systems/class_componentGeneric.inc:284
-#: admin/systems/class_servGeneric.inc:265
-#: admin/systems/class_servGeneric.inc:442
+#: admin/systems/class_servGeneric.inc:267
+#: admin/systems/class_servGeneric.inc:447
 #: admin/systems/class_systemManagement.inc:331
 #: admin/systems/class_systemManagement.inc:1142
 msgid "LDAP error"
@@ -157,7 +157,7 @@ msgstr "Gerätename"
 
 #: admin/systems/class_termDNS.inc:315 admin/systems/class_termDNS.inc:362
 #: admin/systems/class_componentGeneric.inc:166
-#: admin/systems/class_servGeneric.inc:299
+#: admin/systems/class_servGeneric.inc:301
 #: admin/systems/class_filterOPSIHOSTS.inc:30
 #: admin/systems/class_systemManagement.inc:278
 #: admin/systems/class_systemManagement.inc:728
@@ -250,7 +250,7 @@ msgid "Component name"
 msgstr "Komponenten-Name"
 
 #: admin/systems/class_componentGeneric.inc:292
-#: admin/systems/class_servGeneric.inc:512 admin/systems/server.tpl:5
+#: admin/systems/class_servGeneric.inc:517 admin/systems/server.tpl:5
 msgid "Generic"
 msgstr "Allgemein"
 
@@ -268,7 +268,7 @@ msgid "RDN for component storage."
 msgstr "RDN zur Ablage von Komponenten."
 
 #: admin/systems/class_componentGeneric.inc:318
-#: admin/systems/class_servGeneric.inc:545
+#: admin/systems/class_servGeneric.inc:550
 msgid "Root password"
 msgstr "Root-Passwort"
 
@@ -318,110 +318,113 @@ msgstr "Dienst bearbeiten"
 msgid "Remove service"
 msgstr "Dienst entfernen"
 
-#: admin/systems/class_servGeneric.inc:80
+#: admin/systems/class_servGeneric.inc:81
 msgid "Activated"
 msgstr "Aktiv"
 
-#: admin/systems/class_servGeneric.inc:81
+#: admin/systems/class_servGeneric.inc:82
 msgid "Locked"
 msgstr "Gesperrt"
 
-#: admin/systems/class_servGeneric.inc:159
+#: admin/systems/class_servGeneric.inc:160
 msgid "server"
 msgstr "Server"
 
-#: admin/systems/class_servGeneric.inc:176
-#: admin/systems/class_servGeneric.inc:462
+#: admin/systems/class_servGeneric.inc:177
+#: admin/systems/class_servGeneric.inc:467
 #: admin/systems/class_systemManagement.inc:524
 msgid "Service infrastructure"
 msgstr "Dienst-Infrastruktur"
 
-#: admin/systems/class_servGeneric.inc:180
+#: admin/systems/class_servGeneric.inc:181
 msgid "Event error"
 msgstr "Ereignisfehler"
 
-#: admin/systems/class_servGeneric.inc:181
+#: admin/systems/class_servGeneric.inc:182
 #, php-format
 msgid "Event '%s' is not available!"
 msgstr "Das Ereignis '%s' ist nicht verfügbar!"
 
-#: admin/systems/class_servGeneric.inc:207
+#: admin/systems/class_servGeneric.inc:208
 msgid "Switch off"
 msgstr "Ausschalten"
 
-#: admin/systems/class_servGeneric.inc:208 admin/systems/system-list.xml:334
+#: admin/systems/class_servGeneric.inc:209 admin/systems/system-list.xml:334
 #: admin/systems/system-list.xml:408
 msgid "Reboot"
 msgstr "Neustarten"
 
-#: admin/systems/class_servGeneric.inc:209
+#: admin/systems/class_servGeneric.inc:210
 msgid "Software update"
 msgstr "Systemaktualisierung"
 
-#: admin/systems/class_servGeneric.inc:210
-#: admin/systems/class_servGeneric.inc:218 admin/systems/system-list.xml:374
+#: admin/systems/class_servGeneric.inc:211
+#: admin/systems/class_servGeneric.inc:219 admin/systems/system-list.xml:374
 #: admin/systems/system-list.xml:448
 msgid "Reinstall"
 msgstr "Neu-Installation"
 
-#: admin/systems/class_servGeneric.inc:211
+#: admin/systems/class_servGeneric.inc:212
 msgid "Rescan hardware"
 msgstr "Hardware neu erkennen"
 
-#: admin/systems/class_servGeneric.inc:212
-#: admin/systems/class_servGeneric.inc:220 admin/systems/system-list.xml:325
+#: admin/systems/class_servGeneric.inc:213
+#: admin/systems/class_servGeneric.inc:221 admin/systems/system-list.xml:325
 #: admin/systems/system-list.xml:399
 msgid "Force local boot"
 msgstr "Erzwinge lokalen Systemstart"
 
-#: admin/systems/class_servGeneric.inc:217
+#: admin/systems/class_servGeneric.inc:218
 msgid "Wake up"
 msgstr "Aufwecken"
 
-#: admin/systems/class_servGeneric.inc:219
+#: admin/systems/class_servGeneric.inc:220
 msgid "System update"
 msgstr "Systemaktualisierung"
 
-#: admin/systems/class_servGeneric.inc:325
-#: admin/systems/class_servGeneric.inc:330 admin/systems/paste_generic.tpl:4
+#: admin/systems/class_servGeneric.inc:330
+#: admin/systems/class_servGeneric.inc:335 admin/systems/paste_generic.tpl:4
 #: admin/systems/server.tpl:8
 msgid "Server name"
 msgstr "Server-Name"
 
-#: admin/systems/class_servGeneric.inc:360
+#: admin/systems/class_servGeneric.inc:365
 msgid "Server Name"
 msgstr "Server-Name"
 
-#: admin/systems/class_servGeneric.inc:377
+#: admin/systems/class_servGeneric.inc:382
 msgid "Software deployment"
 msgstr "Softwareverteilung"
 
-#: admin/systems/class_servGeneric.inc:378
+#: admin/systems/class_servGeneric.inc:383
 msgid ""
 "This host is currently installing, if you really want to save it, press 'OK'."
 msgstr ""
 "Der Host ist gerade mitten in der Installation - wenn Sie dennoch speichern "
 "möchten, drücken Sie auf 'OK'."
 
-#: admin/systems/class_servGeneric.inc:513
+#: admin/systems/class_servGeneric.inc:518
 msgid "Server generic"
 msgstr "Server (Allgemein)"
 
-#: admin/systems/class_servGeneric.inc:530
+#: admin/systems/class_servGeneric.inc:535
 msgid "RDN for server storage."
 msgstr "RDN zur Ablage von Servern."
 
-#: admin/systems/class_servGeneric.inc:541 admin/systems/system-list.xml:194
+#: admin/systems/class_servGeneric.inc:546 admin/systems/system-list.xml:194
 #: admin/systems/server.tpl:24
-#, fuzzy
 msgid "Inventory number"
-msgstr "Telefonnummer"
+msgstr "Inventarnummer"
 
-#: admin/systems/class_servGeneric.inc:544
+#: admin/systems/class_servGeneric.inc:548 admin/systems/server.tpl:51
+msgid "Comments"
+msgstr ""
+
+#: admin/systems/class_servGeneric.inc:549
 msgid "Goto mode"
 msgstr "GOto-Modus"
 
-#: admin/systems/class_servGeneric.inc:546
+#: admin/systems/class_servGeneric.inc:551
 msgid "Action flag"
 msgstr "Ablaufstatus"
 
@@ -812,22 +815,22 @@ msgstr "Modus"
 msgid "Select terminal mode"
 msgstr "Wählen Sie den Terminal-Modus"
 
-#: admin/systems/server.tpl:67
+#: admin/systems/server.tpl:73
 msgid "Action"
 msgstr "Aktion"
 
-#: admin/systems/server.tpl:70
+#: admin/systems/server.tpl:76
 msgid ""
 "System installation in progress, the FAI state cannot be changed right now."
 msgstr ""
 "Eine Systeminstallation läuft gerade, der FAI state kann momentan nicht "
 "geändert werden."
 
-#: admin/systems/server.tpl:73
+#: admin/systems/server.tpl:79
 msgid "Select action to execute for this server"
 msgstr "Wählen Sie die auszuführende Aktion für diesen Server"
 
-#: admin/systems/server.tpl:79
+#: admin/systems/server.tpl:85
 msgid "Execute"
 msgstr "Ausführen"
 
