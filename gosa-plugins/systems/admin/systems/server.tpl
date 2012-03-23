@@ -47,6 +47,12 @@
 {/render}
 	   </td>
 	  </tr>
+    <tr>
+    <td><LABEL for="comments">{t}Comment{/t}</LABEL></td>
+    <td>
+{render acl=$goCommentACL}
+    <textarea rows=6 cols=45 id="goComment" name="goComment">{$goComment}</textarea>
+{/render}
 	</table>
 
   </td>
