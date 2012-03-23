@@ -101,7 +101,7 @@ class filterSYSTEMS {
             $ldap = $config->get_ldap_link();
             $ldap->cd($config->current['BASE']);
             $dn = $entries[$key]['dn'];
-            $ldap->search("(&(objectClass=gosaGroupOfNames)(FAIclass=*)(member=".$dn."))",array('cn', 'FAIclass'));
+            $ldap->search("(&(objectClass=gosaGroupOfNames)(FAIclass=*)(member=".LDAP::prepare4filter($dn)."))",array('cn', 'FAIclass'));
 
             $ogroup = "";
             $class = "";
