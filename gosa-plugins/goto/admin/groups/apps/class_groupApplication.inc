@@ -107,7 +107,7 @@ class appgroup extends plugin
              */
             foreach($app_deps as $dep){
                 if(preg_match("/^".preg_quote($release_info['suffix'], '/')."/",$dep)){
-                    $ret = array_merge($ret,get_list("(objectClass=gosaApplication)","application",$dep,array("*"),GL_NONE));
+                    $ret = array_merge($ret,get_list("(objectClass=gosaApplication)","application",$dep,array("*"),GL_NONE | GL_FILTER_UNITTAG));
                 }
             }
 
