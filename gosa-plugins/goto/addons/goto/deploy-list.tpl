@@ -167,5 +167,6 @@ function handleContent()
 }
 
 timer=setTimeout('loadContent()',3000);
+var timer_refresh = setTimeout('document.mainform.submit()', 30000);
 </script>
 {/literal}
