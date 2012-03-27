@@ -15,7 +15,7 @@
       <label>FAI</label>
       <objectClass>FAIclass</objectClass>
       <category>fai</category>
-      <class>fai</class>
+      <class>faiManagement</class>
       <image>plugins/fai/images/script.png</image>
     </objectType>
 
