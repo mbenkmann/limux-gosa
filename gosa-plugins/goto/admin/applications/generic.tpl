@@ -7,7 +7,7 @@
       <td><LABEL for="cn">{t}Application name{/t}{$must}</LABEL></td>
       <td>
 {render acl=$cnACL}
-	<input type='text' id="cn" name="cn" value="{$cn}" title="{t}Application name{/t}">
+	<input type='text' id="cn" name="cn" value="{$cn}" title="{t}Application name GOsa{/t}">
 {/render}
       </td>
     </tr>
@@ -15,7 +15,7 @@
      <td><LABEL for="description">{t}Description{/t}</LABEL></td>
      <td>
 {render acl=$descriptionACL}
-      <input type='text' id="description" name="description" value="{$description}">
+      <input type='text' id="description" name="description" value="{$description}" title="{t}Description function{/t}">
 {/render}
      </td>
     </tr>
