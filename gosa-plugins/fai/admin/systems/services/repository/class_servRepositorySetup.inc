@@ -94,7 +94,7 @@ class servRepositorySetup  extends plugin
             /* offset of parent server in server list */
             $this->ParentServer = $_POST["ParentServer"];
         } else {
-            if ($this->ParentServer) {
+            if ($this->ParentServer && $this->ParentServer != "none") {
                 $ParentServer = $servers[$this->ParentServer];
             } else {
                 $ParentServer = "none";
