@@ -12,6 +12,14 @@
       </td>
     </tr>
     <tr>
+     <td><LABEL for="description">{t}Description{/t}</LABEL></td>
+     <td>
+{render acl=$descriptionACL}
+      <input type='text' id="description" name="description" value="{$description}">
+{/render}
+     </td>
+    </tr>
+    <tr>
      <td><LABEL for="gosaApplicationName">{t}Display name{/t}</LABEL></td>
      <td>
 {render acl=$gosaApplicationNameACL}
@@ -26,14 +34,6 @@
 {render acl=$gosaApplicationExecuteACL}
         <input id="gosaApplicationExecute" name="gosaApplicationExecute" type="text"
 	  value="{$gosaApplicationExecute}" title="{t}Path and/or binary name of application{/t}">
-{/render}
-     </td>
-    </tr>
-    <tr>
-     <td><LABEL for="description">{t}Description{/t}</LABEL></td>
-     <td>
-{render acl=$descriptionACL}
-      <input type='text' id="description" name="description" value="{$description}">
 {/render}
      </td>
     </tr>
