@@ -97,6 +97,7 @@ class servRepositorySetup  extends plugin
             if ($this->ParentServer && $this->ParentServer != "none") {
                 $ParentServer = $servers[$this->ParentServer];
             } else {
+                $this->ParentServer = 0;
                 $ParentServer = "none";
             }
         }
