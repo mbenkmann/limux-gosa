@@ -14,7 +14,7 @@
       <label>Printer</label>
       <objectClass>gotoPrinter</objectClass>
       <category>printer</category>
-      <class>printGeneric</class>
+      <class>printgeneric</class>
       <image>plugins/systems/images/select_printer.png</image>
     </objectType>
 
