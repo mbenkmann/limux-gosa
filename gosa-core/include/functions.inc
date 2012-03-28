@@ -54,6 +54,7 @@ define("GL_SIZELIMIT",    2);
 define("GL_CONVERT",      4);
 define("GL_NO_ACL_CHECK", 8);
 define("GL_FILTER_UNITTAG", 16);
+define("GL_FILTER_INCLUDE_EMPTY_TAG", 32);
 
 /* Heimdal stuff */
 define('UNIVERSAL',0x00);
