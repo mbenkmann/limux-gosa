@@ -356,7 +356,7 @@ msgstr "Neustarten"
 
 #: admin/systems/class_servGeneric.inc:210
 msgid "Software update"
-msgstr "Systemaktualisierung"
+msgstr "Softwareupdate"
 
 #: admin/systems/class_servGeneric.inc:211
 #: admin/systems/class_servGeneric.inc:219 admin/systems/system-list.xml:374
@@ -380,7 +380,7 @@ msgstr "Aufwecken"
 
 #: admin/systems/class_servGeneric.inc:220
 msgid "System update"
-msgstr "Systemaktualisierung"
+msgstr "Softwareupdate"
 
 #: admin/systems/class_servGeneric.inc:330
 #: admin/systems/class_servGeneric.inc:335 admin/systems/paste_generic.tpl:4
@@ -574,7 +574,7 @@ msgstr "Aufwecken"
 
 #: admin/systems/system-list.xml:350 admin/systems/system-list.xml:424
 msgid "Update"
-msgstr "Aktualisieren"
+msgstr "Softwareupdate"
 
 #: admin/systems/system-list.xml:358 admin/systems/system-list.xml:432
 msgid "Lock"
