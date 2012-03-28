@@ -558,6 +558,14 @@ msgstr "Allgemeine Benutzereinstellungen"
 msgid "Application name"
 msgstr "Name der Anwendung"
 
+#: admin/applications/generic.tpl:7 admin/applications/generic.tpl:10
+msgid "Application name GOsa"
+msgstr "Hier wird der Name der GOsa-Anwendung hinterlegt. Der Name wird nur in GOsa intern verwendet. (z.B. oowriter)"
+
+#: admin/applications/generic.tpl:18
+msgid "Description function"
+msgstr "Welche Funktionalität wird mit diesem Softwareprodukt bereit gestellt? Dieser Wert wird an erster Stelle im Startmenü angezeigt. (z.B. Textverarbeitung)"
+
 #: admin/applications/generic.tpl:15
 msgid "Display name"
 msgstr "Angezeigter Name"
@@ -565,7 +573,7 @@ msgstr "Angezeigter Name"
 #: admin/applications/generic.tpl:19
 #: admin/applications/class_applicationGeneric.inc:595
 msgid "Application name to be displayed (i.e. below icons)"
-msgstr "Angezeigter Name der Anwendung (z.B. unter Symbole)"
+msgstr "Name der Software: Dieser Wert steht im Startmenü in Klammern an zweiter Stelle. (z.B. OpenOffice.org Writer)"
 
 #: admin/applications/generic.tpl:24
 #: admin/applications/class_applicationGeneric.inc:444
@@ -578,7 +586,7 @@ msgstr "Ausführen"
 
 #: admin/applications/generic.tpl:28
 msgid "Path and/or binary name of application"
-msgstr "Pfad und/oder Name der Anwendung"
+msgstr "Pfad zur auszuführenden Datei: Wenn die Datei nicht gefunden wird, wird die Anwendung nicht im Startmenü angezeigt. (z.B. /usr/bin/swriter)"
 
 #: admin/applications/generic.tpl:80
 msgid "Reload picture from LDAP"
