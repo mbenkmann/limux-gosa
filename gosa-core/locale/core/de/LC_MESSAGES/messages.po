@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: messages\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-28 12:49+0200\n"
+"POT-Creation-Date: 2012-03-28 12:52+0200\n"
 "PO-Revision-Date: 2010-11-24 16:25+0100\n"
 "Last-Translator: Cajus Pollmeier <pollmeier@gonicus.de>\n"
 "Language-Team: German <kde-i18n-de@kde.org>\n"
@@ -3354,6 +3354,15 @@ msgstr "Kann keine RIDBASE für '%s' finden!"
 #, php-format
 msgid "The gidNumber '%s' is already in use by %s!"
 msgstr "Die Gruppen ID-Nummer '%s' wird bereits von %s verwendet!"
+
+#: plugins/admin/groups/class_group.inc:981
+msgid ""
+"Another group of the same name already exists, saving or creating this group "
+"is not allowed. Please rename the group or remove the other group."
+msgstr ""
+"Es existiert bereits eine gleichnamige Gruppe, daher ist das Erstellen oder "
+"Speichern dieser Gruppe nicht erlaubt. Bitte benennen Sie die Gruppe um oder "
+"entfernen Sie die andere Gruppe."
 
 #: plugins/admin/groups/class_group.inc:1063
 msgid "Generic group settings"
