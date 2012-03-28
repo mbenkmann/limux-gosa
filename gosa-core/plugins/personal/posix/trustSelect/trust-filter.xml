@@ -26,4 +26,32 @@
     </autocomplete>
   </search>
 
+  <search>
+    <tag>goServer</tag>
+    <label>Server</label>
+    <query>
+      <backend>LDAPBlacklist</backend>
+      <filter>(&amp;(objectClass=goServer)(cn=$))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+
+  <search>
+    <tag>gotoWorkstation</tag>
+    <label>Workstation</label>
+    <query>
+      <backend>LDAPBlacklist</backend>
+      <filter>(&amp;(objectClass=gotoWorkstation)(cn=$))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+
 </filterdef>

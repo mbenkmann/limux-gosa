@@ -60,5 +60,110 @@
       <characters>3</characters>
     </autocomplete>
   </search>
+  
+  <search>
+    <tag>gotoWorkstation</tag>
+    <label>Workstation</label>
+    <query>
+      <backend>LDAPBlacklist</backend>
+      <filter>(&amp;
+                (objectClass=gotoWorkstation)
+                (cn=$)
+              )
+      </filter>
+    </query>
+    <query>
+      <backend>LDAPDepartmentBlacklist</backend>
+      <filter>(&amp;(objectClass=gosaDepartment)(cn=$))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <attribute>l</attribute>
+      <attribute>o</attribute>
+      <attribute>dc</attribute>
+      <attribute>c</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+    
+  <search>
+    <tag>gotoPrinter</tag>
+    <label>Printer</label>
+    <query>
+      <backend>LDAPBlacklist</backend>
+      <filter>(&amp;
+                (objectClass=gotoPrinter)
+                (cn=$)
+              )
+      </filter>
+    </query>
+    <query>
+      <backend>LDAPDepartmentBlacklist</backend>
+      <filter>(&amp;(objectClass=gosaDepartment)(cn=$))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <attribute>l</attribute>
+      <attribute>o</attribute>
+      <attribute>dc</attribute>
+      <attribute>c</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+  
+  <search>
+    <tag>posixGroup</tag>
+    <label>Group</label>
+    <query>
+      <backend>LDAPBlacklist</backend>
+      <filter>(&amp;
+                (objectClass=posixGroup)
+                (cn=$)
+              )
+      </filter>
+    </query>
+    <query>
+      <backend>LDAPDepartmentBlacklist</backend>
+      <filter>(&amp;(objectClass=gosaDepartment)(cn=$))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <attribute>l</attribute>
+      <attribute>o</attribute>
+      <attribute>dc</attribute>
+      <attribute>c</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+  
+  <search>
+    <tag>gosaAccount</tag>
+    <label>User</label>
+    <query>
+      <backend>LDAPBlacklist</backend>
+      <filter>(&amp;
+                (objectClass=gosaAccount)
+                (cn=$)
+              )
+      </filter>
+    </query>
+    <query>
+      <backend>LDAPDepartmentBlacklist</backend>
+      <filter>(&amp;(objectClass=gosaDepartment)(cn=$))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <attribute>l</attribute>
+      <attribute>o</attribute>
+      <attribute>dc</attribute>
+      <attribute>c</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+  
 
 </filterdef>
