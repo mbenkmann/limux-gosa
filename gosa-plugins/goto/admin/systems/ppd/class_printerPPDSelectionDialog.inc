@@ -119,7 +119,10 @@ class printerPPDSelectionDialog extends plugin
                 $name = $ppd['ppd']['name'];
                 if(preg_match("/^".$this->Vendor."/", $name)){
                     $data[$key] = array('TYPE' => 'PPD' , 'ID' => $key);
-                    $lData[$key] = array('data'=>array($name));
+                    $lData[$key] = array(
+                      'data'=>array($name),
+                      'actions'=>array('delete' => is_writable($ppd['link'])),
+                    );
                 }
             }
         }
