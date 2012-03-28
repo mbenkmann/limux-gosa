@@ -54,6 +54,7 @@ define("GL_SIZELIMIT",    2);
 define("GL_CONVERT",      4);
 define("GL_NO_ACL_CHECK", 8);
 define("GL_FILTER_UNITTAG", 16);
+define("GL_FILTER_INCLUDE_EMPTY_TAG", 32);
 
 /* Heimdal stuff */
 define('UNIVERSAL',0x00);
@@ -1160,9 +1161,9 @@ function get_sub_list($filter, $category,$sub_deps, $base= "", $attributes= arra
 
     /* Perform ONE or SUB scope searches? */
     if ($flags & GL_SUBSEARCH) {
-      $ldap->search ($filter, $attributes, $flags & GL_FILTER_UNITTAG);
+      $ldap->search ($filter, $attributes, $flags & GL_FILTER_UNITTAG, $flags & GL_FILTER_INCLUDE_EMPTY_TAG);
     } else {
-      $ldap->ls ($filter,$dep,$attributes, $flags & GL_FILTER_UNITTAG);
+      $ldap->ls ($filter,$dep,$attributes, $flags & GL_FILTER_UNITTAG, $flags & GL_FILTER_INCLUDE_EMPTY_TAG);
     }
 
     /* Check for size limit exceeded messages for GUI feedback */
@@ -1231,9 +1232,9 @@ function get_list($filter, $category, $base= "", $attributes= array(), $flags= G
 
   /* Perform ONE or SUB scope searches? */
   if ($flags & GL_SUBSEARCH) {
-    $ldap->search ($filter, $attributes, $flags & GL_FILTER_UNITTAG);
+    $ldap->search ($filter, $attributes, $flags & GL_FILTER_UNITTAG, $flags & GL_FILTER_INCLUDE_EMPTY_TAG);
   } else {
-    $ldap->ls ($filter,$base,$attributes, $flags & GL_FILTER_UNITTAG);
+    $ldap->ls ($filter,$base,$attributes, $flags & GL_FILTER_UNITTAG, $flags & GL_FILTER_INCLUDE_EMPTY_TAG);
   }
 
   /* Check for size limit exceeded messages for GUI feedback */

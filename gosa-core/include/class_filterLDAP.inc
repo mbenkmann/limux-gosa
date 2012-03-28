@@ -27,6 +27,11 @@ class filterLDAP {
 
     $default_method= ($storeOnBase && !($flags & GL_SUBSEARCH))?"ls":"search";
 
+    // Detect weither empty tags shall be shown
+    $include_empty_tags = ($flags & GL_FILTER_INCLUDE_EMPTY_TAG)
+        ? TRUE
+        : FALSE;
+
     // Initialize search bases
     $bases= array();
     
@@ -101,9 +106,11 @@ class filterLDAP {
       }
 
       if ($method == "ls") {
-        $ldap->ls("(&$filter$dnFilter)", $base, $attributes, TRUE);
+          $ldap->ls("(&$filter$dnFilter)", $base, $attributes, TRUE,
+            $include_empty_tags);
       } else {
-        $ldap->search("(&$filter$dnFilter)", $attributes, TRUE);
+          $ldap->search("(&$filter$dnFilter)", $attributes, TRUE,
+            $include_empty_tags);
       }
 
       // Check for size limit exceeded messages for GUI feedback

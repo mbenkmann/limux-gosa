@@ -338,13 +338,13 @@ class LDAP
     }
 
 
-    function search($srp, $filter, $attrs= array(), $filter_unittag=FALSE)
+    function search($srp, $filter, $attrs= array(), $filter_unittag=FALSE, $include_empty_tags=FALSE)
     {
         if($this->hascon){
             if ($this->reconnect) $this->connect();
 
             if ($filter_unittag) {
-                $filter = LDAP::add_unittag_filter($filter);
+                $filter = LDAP::add_unittag_filter($filter, $include_empty_tags);
             }
 
             $start = microtime(true);
@@ -374,13 +374,13 @@ class LDAP
         }
     }
 
-    function ls($srp, $filter = "(objectclass=*)", $basedn = "",$attrs = array("*"), $filter_unittag=FALSE)
+    function ls($srp, $filter = "(objectclass=*)", $basedn = "",$attrs = array("*"), $filter_unittag=FALSE, $include_empty_tags=FALSE)
     {
         if($this->hascon){
             if ($this->reconnect) $this->connect();
 
             if ($filter_unittag) {
-                $filter = LDAP::add_unittag_filter($filter);
+                $filter = LDAP::add_unittag_filter($filter, $include_empty_tags);
             }
 
 
