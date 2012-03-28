@@ -715,21 +715,62 @@ class appgroup extends plugin
                 }
             }
             if(!$found){
-                $release           =  array();
-                $release['UNIQID'] = uniqid();
-                $release['PARENT'] = $parent_id;
-                $release['NAME']   = $part;
-                $release['TYPE']   = "RELEASE";
-                $release['ENTRIES']= array();
-                $release['STATUS']   = "ADDED";
-                $release['FAIstate'] =  $release_info['FAIstate'];
-                $cur[] = $release;
+                $new_release           =  array();
+                $new_release['UNIQID'] = uniqid();
+                $new_release['PARENT'] = $parent_id;
+                $new_release['NAME']   = $part;
+                $new_release['TYPE']   = "RELEASE";
+                $new_release['ENTRIES']= array();
+                $new_release['STATUS']   = "ADDED";
+                $new_release['FAIstate'] =  $release_info['FAIstate'];
+                $cur[] = $new_release;
+                if (preg_match("/".$part."$/", $release)) {
+                    /* Trailing part of the release, call hook to possibly
+                       populate new release with initial folders */
+                    $this->_create_init_folders($release);
+                }
                 $i --;
             }
         }
     }
 
+    /*! \brief Creates an initial structure of folders for
+      empty releases based on an external file references
+      in gosa.conf
+     */
+    function _create_init_folders($release)
+    {
+        if ($this->config->get_cfg_value('appgroup', 'initialFoldersHook')) {
+            $folders = $this->GetHookElements();
+            foreach ($folders as $folder) {
+                $this->_add_sub_folder("BASE", $folder);
+            }
+        }
+    }
 
+    /* Return initial folder hook output, if possible.
+     */
+    function GetHookElements()
+    {
+        $ret = array();
+        $cmd= $this->config->get_cfg_value("appgroup", "initialFoldersHook");
+        if(!empty($cmd)){
+            $res = shell_exec($cmd);
+            $res2 = trim($res);
+            if((!$res)){
+                msg_dialog::display(_("Configuration error"), msgPool::cmdexecfailed("initalFoldersHook", $cmd), ERROR_DIALOG);
+            }elseif(empty($res2)){
+                msg_dialog::display(_("Configuration error"), _("'initialFoldersHook' returned no result!"), ERROR_DIALOG);
+            }else{
+                $tmp = preg_split("/\n/",$res);
+                foreach($tmp as $line){
+                    if(empty($line)) continue;
+                    $ret[]= $line;
+                }
+            }
+        }
+        return($ret);
+    }
 
     /*! \brief Moves a given object ($id) in a specified direction ($dir).
       @param  String The object ID of the object we want to move
@@ -1431,6 +1472,14 @@ class appgroup extends plugin
                         'ldapSchema' => array('gotoSubmenuEntry'=>'>=2.7','gotoMenuEntry' => '>=2.7'),
                         'onFailureDisablePlugin' => array(get_class())
                         ),
+                    "plProperties"  => array(
+                        array(
+                          "name"          => "initialFoldersHook",
+                          "type"          => "command",
+                          "default"       => "",
+                          "description"   => _("Skript to output default menu folders."),
+                          "mandatory"     => FALSE
+                          )),
                     "plProvidedAcls"=> array(
                         "gosaMemberApplication"     => _("Application"),
                         "FAIrelease"                => _("Release"),
