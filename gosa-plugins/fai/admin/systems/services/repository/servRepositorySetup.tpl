@@ -21,7 +21,7 @@
 					</td>
 					<td>
 {render acl=$ReleaseACL}
-						{if $ParentServer == 0}
+						{if $ParentServer == "none"}
 						<input type="text" value="{$Release}" name="Release">
 						{else}
 						<select name="SelectedRelease" onchange='document.mainform.submit()' size=1>
@@ -48,10 +48,10 @@
 			{$Sections}
 {/render}
 {render acl=$SectionACL}
-			<input type="text"    {if $ParentServer != 0}disabled{/if} name="SectionName" value="" style='width:100%;'>
+			<input type="text"    {if $ParentServer != "none"}disabled{/if} name="SectionName" value="" style='width:100%;'>
 {/render}
 {render acl=$SectionACL}
-			<button type='submit' {if $ParentServer != 0}disabled{/if} name='AddSection'>{msgPool type=addButton}</button>
+			<button type='submit' {if $ParentServer != "none"}disabled{/if} name='AddSection'>{msgPool type=addButton}</button>
 
 {/render}
 		</td>

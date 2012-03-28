@@ -10,7 +10,7 @@ class servRepositorySetup  extends plugin
     /* Attributes */
     var $Release          = "";
     var $SelectedRelease  = "";
-    var $ParentServer     = "";
+    var $ParentServer     = "none";
     var $Url              = "";   
     var $Sections         = array();
     var $ParentServers    = "";
@@ -78,38 +78,22 @@ class servRepositorySetup  extends plugin
 
         /* Generate the list of possible parent servers */
         $repositories = $this->getParentServers();
-        $servers = array();
-        foreach ($repositories as $key => $entry) {
-            if (is_array($entry)) {
-                array_push($servers, $entry[0]);
-            } else {
-            array_push($servers, "none");
-            }
-        }
 
         /* Set parent server */
         if (isset($_POST["ParentServer"])) {
             /* name of parent server */
-            $ParentServer = $servers[$_POST["ParentServer"]];
-            /* offset of parent server in server list */
             $this->ParentServer = $_POST["ParentServer"];
-        } else {
-            if ($this->ParentServer) {
-                $ParentServer = $servers[$this->ParentServer];
-            } else {
-                $ParentServer = "none";
-            }
-        }
+        } 
 
         /* Set release */
         $SelectedRelease = 0;
         if (!$this->Release || ($this->OldParentServer != "" &&
                 $this->ParentServer != $this->OldParentServer)) {
-            if ($ParentServer == "none") {
+            if ($this->ParentServer == "none") {
                 $this->Release = "";
             } else {
                 /* Set release to first available release of parent server */
-                $this->Release = $repositories[$ParentServer][1]["release"];
+                $this->Release = $repositories[$this->ParentServer][1]["release"];
                 /* Unset selected release (which is from old server) */
                 unset($_POST["SelectedRelease"]);
             }
@@ -117,22 +101,22 @@ class servRepositorySetup  extends plugin
 
 
         /* Detect selected release */
-        if ($ParentServer != "none") {
+        if ($this->ParentServer != "none") {
             if (isset($_POST["SelectedRelease"])) {
                 /* Some release was selected */
                 $SelectedRelease = $_POST["SelectedRelease"];
             } else {
                 /* Determine release offset by comparing with old relase string */
                 $SelectedRelease = 0;
-                while(isset($repositories[$ParentServer][$SelectedRelease+1])) {
+                while(isset($repositories[$this->ParentServer][$SelectedRelease+1])) {
                      $bla = $this->Release;
-                     if ($repositories[$ParentServer][$SelectedRelease+1]["release"] == $this->Release) {
+                     if ($repositories[$this->ParentServer][$SelectedRelease+1]["release"] == $this->Release) {
                         break;
                     }
                     $SelectedRelease++;
                 }
             }
-            $this->Release = $repositories[$ParentServer][$SelectedRelease+1]["release"];
+            $this->Release = $repositories[$this->ParentServer][$SelectedRelease+1]["release"];
         }
 
         if(preg_match("/w/",$this->parent->getacl("Section"))){
@@ -167,11 +151,11 @@ class servRepositorySetup  extends plugin
         }
 
         $sections = array();
-        if (isset($_POST["ParentServer"]) && $ParentServer != "none" &&
+        if (isset($_POST["ParentServer"]) && $this->ParentServer != "none" &&
                 ($this->OldParentServer != $this->ParentServer || 
                 $this->OldRelease != $SelectedRelease)) {
             /* Parent server or release changed, prefill section list */
-            foreach ($repositories[$ParentServer][$SelectedRelease+1]["sections"] as $key => $entry) {
+            foreach ($repositories[$this->ParentServer][$SelectedRelease+1]["sections"] as $key => $entry) {
                 $sections[$entry] = $entry;
             }
             $this->Sections = $sections;
@@ -194,12 +178,20 @@ class servRepositorySetup  extends plugin
             $smarty->assign($attr, set_post($this->$attr));
         }
 
+        $servers = array();
+        foreach ($repositories as $key => $entry) {
+            if (is_array($entry)) {
+                $servers[$entry[0]] =  $entry[0];
+            } else {
+                $servers["none"] = "none";
+            }
+        }
         $smarty->assign("ParentServers"   , set_post($servers));
         $smarty->assign("ParentServerKeys", set_post(array_flip($servers)));
 
         $releases = array();
-        if ($ParentServer != "none") {
-            foreach ($repositories[$ParentServer] as $key => $entry) {
+        if ($this->ParentServer != "none") {
+            foreach ($repositories[$this->ParentServer] as $key => $entry) {
                 if (is_array($entry)) {
                     array_push($releases, $entry["release"]);
                 }
@@ -246,9 +238,9 @@ class servRepositorySetup  extends plugin
         }
 
         /* Check whether list of sections is consistent with parent server */
-        if ($this->ParentServer) {
-            $server = array_slice($this->getParentServers(), $this->ParentServer, 1);
-            foreach (array_pop($server) as $key => $release) {
+        if ($this->ParentServer != "none") {
+            $servers = $this->getParentServers();
+            foreach ($servers[$this->ParentServer] as $key => $release) {
                 if (!is_array($release)) {
                     continue;
                 }
