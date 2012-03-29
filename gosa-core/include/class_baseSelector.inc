@@ -154,11 +154,18 @@ class baseSelector {
 
             onkeydown=\"    \$('bs_{$this->pid}').hide(); \"
             onfocus=\"      \$('bs_{$this->pid}').hide(); \"
+              
             onmouseover=\"  mouseIsStillOver = true;
+        function hideIt(event)
+        {
+            event.stopPropagation();
+            Element.hide('bs_".$this->pid."');
+        }
         function showIt()
         {
             if(mouseIsStillOver){
                 \$('bs_".$this->pid."').show();
+                Event.observe(window, 'click', hideIt);
             }
         };
         Element.clonePosition(\$('bs_".$this->pid."'),
@@ -166,8 +173,7 @@ class baseSelector {
                 {setHeight: false, setWidth: false, offsetTop:(Element.getHeight('bs_input_".$this->pid."'))});
         rtimer=showIt.delay(0.25); \"
 
-            onmouseout=\"   mouseIsStillOver=false;
-        rtimer=Element.hide.delay(0.25,'bs_".$this->pid."')\"
+            onmouseout=\"   mouseIsStillOver=false;\"         
 
             value=\"".htmlentities($this->pathMapping[$this->base],ENT_COMPAT,'utf-8')."\">";
 
@@ -184,7 +190,7 @@ class baseSelector {
         $this->tree.= "</script>";
 
         $selected= $this->base == $config->current['BASE']?"Selected":"";
-        $this->tree.= "<div class='treeList' style='display:none;max-height:".$this->height."px' id='bs_".$this->pid."' onmouseover=\"window.clearTimeout(rtimer);\" onmouseout=\"rtimer= Element.hide.delay(0.25, 'bs_".$this->pid."')\"><a class='treeList$selected' $link>/&nbsp;["._("Root")."]</a><ul class='treeList'>\n";
+        $this->tree.= "<div class='treeList' style='display:none;max-height:".$this->height."px' id='bs_".$this->pid."' \"><a class='treeList$selected' $link>/&nbsp;["._("Root")."]</a><ul class='treeList'>\n";
         $first= true;
         $last_indent= 2;
 
