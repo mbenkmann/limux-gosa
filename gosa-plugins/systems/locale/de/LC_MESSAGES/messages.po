@@ -582,7 +582,7 @@ msgstr "Sperren"
 
 #: admin/systems/system-list.xml:366 admin/systems/system-list.xml:440
 msgid "Activate"
-msgstr "Aktivieren"
+msgstr "Sperre aufheben"
 
 #: admin/systems/system-list.xml:385
 msgid "Schedule action"
