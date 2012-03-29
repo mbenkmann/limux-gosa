@@ -88,6 +88,32 @@
   </search>
     
   <search>
+    <tag>goServer</tag>
+    <label>Server</label>
+    <query>
+      <backend>LDAPBlacklist</backend>
+      <filter>(&amp;
+                (objectClass=goServer)
+                (cn=$)
+              )
+      </filter>
+    </query>
+    <query>
+      <backend>LDAPDepartmentBlacklist</backend>
+      <filter>(&amp;(objectClass=gosaDepartment)(cn=$))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <attribute>l</attribute>
+      <attribute>o</attribute>
+      <attribute>dc</attribute>
+      <attribute>c</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+    
+  <search>
     <tag>gotoPrinter</tag>
     <label>Printer</label>
     <query>
