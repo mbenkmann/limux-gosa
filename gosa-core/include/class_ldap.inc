@@ -246,6 +246,7 @@ class LDAP
         $fixed= normalizeLdap(str_replace('\\\\', '\\\\\\', LDAP::fix($dn)));
         $fixed = str_replace('\\,', '\\\\,', $fixed);
         $fixed = str_replace('\\2C', '\\\\2C', $fixed);
+        $fixed = str_replace('*', '\*', $fixed);
         return $fixed;
     }
 
