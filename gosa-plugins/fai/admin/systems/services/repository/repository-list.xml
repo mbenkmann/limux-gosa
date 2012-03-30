@@ -8,7 +8,7 @@
     <multiSelect>true</multiSelect>
     <template>services/repository/repository-list.tpl</template>
     <label>List of repositories</label>
-    <defaultSortColumn>1</defaultSortColumn>
+    <defaultSortColumn>0</defaultSortColumn>
     <noAclChecks>true</noAclChecks>
 
     <objectType>
