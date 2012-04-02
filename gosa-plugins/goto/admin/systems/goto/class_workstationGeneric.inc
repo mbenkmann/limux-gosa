@@ -438,7 +438,6 @@ class workgeneric extends plugin
         }
 
         if(isset($_POST['goComment'])) {
-          print "comments set<br>";
           $this->goComment = $_POST['goComment'];
         }
 
