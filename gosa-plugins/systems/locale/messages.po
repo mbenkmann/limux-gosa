@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-23 14:36+0100\n"
+"POT-Creation-Date: 2012-04-02 14:50+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,27 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: admin/systems/ogroup_selection.tpl:1
+msgid "Object group selection"
+msgstr ""
+
+#: admin/systems/ogroup_selection.tpl:4
+msgid "Choose an object group"
+msgstr ""
+
+#: admin/systems/ogroup_selection.tpl:5 admin/systems/askObjectGroup.tpl:13
+#: admin/systems/askObjectGroup.tpl:24 admin/systems/ApplyObjectGroup.tpl:19
+msgid "Select object group"
+msgstr ""
+
+#: admin/systems/ogroup_selection.tpl:7
+msgid "none"
+msgstr ""
+
+#: admin/systems/ogroup_selection.tpl:16
+msgid "Inherit attributes"
+msgstr ""
 
 #: admin/systems/class_filterSYSTEMS.inc:23 admin/systems/system-list.xml:31
 msgid "New workstation"
@@ -90,10 +111,6 @@ msgid ""
 "predefined settings to be inherited."
 msgstr ""
 
-#: admin/systems/askObjectGroup.tpl:13 admin/systems/askObjectGroup.tpl:24
-msgid "Select object group"
-msgstr ""
-
 #: admin/systems/askObjectGroup.tpl:23
 msgid "Choose an object group as template"
 msgstr ""
@@ -114,6 +131,34 @@ msgstr ""
 msgid "Create"
 msgstr ""
 
+#: admin/systems/ApplyObjectGroup.tpl:3
+msgid "Apply template to"
+msgstr ""
+
+#: admin/systems/ApplyObjectGroup.tpl:9
+msgid ""
+"The selected system(s) do not have an assigned type. Please choose a type "
+"and a template to be applied."
+msgstr ""
+
+#: admin/systems/ApplyObjectGroup.tpl:11
+msgid ""
+"This dialog gives you the possibility to choose a template, which will be "
+"applied to the selected target(s)."
+msgstr ""
+
+#: admin/systems/ApplyObjectGroup.tpl:45
+msgid "Trigger installation of the selected system(s)"
+msgstr ""
+
+#: admin/systems/ApplyObjectGroup.tpl:47
+msgid "Trigger reinstallation of the selected system(s)"
+msgstr ""
+
+#: admin/systems/ApplyObjectGroup.tpl:65
+msgid "Apply"
+msgstr ""
+
 #: admin/systems/services/class_goService.inc:44
 #: admin/systems/services/class_goService.inc:81
 msgid "Empty service"
@@ -130,9 +175,18 @@ msgstr ""
 #: admin/systems/class_componentGeneric.inc:284
 #: admin/systems/class_servGeneric.inc:267
 #: admin/systems/class_servGeneric.inc:447
-#: admin/systems/class_systemManagement.inc:331
-#: admin/systems/class_systemManagement.inc:1142
+#: admin/systems/class_systemManagement.inc:333
+#: admin/systems/class_systemManagement.inc:1267
 msgid "LDAP error"
+msgstr ""
+
+#: admin/systems/devicetype_selection.tpl:1
+msgid "Target system type selection"
+msgstr ""
+
+#: admin/systems/devicetype_selection.tpl:4
+#: admin/systems/devicetype_selection.tpl:5
+msgid "System type"
 msgstr ""
 
 #: admin/systems/component.tpl:1 admin/systems/system-list.xml:152
@@ -151,12 +205,13 @@ msgstr ""
 #: admin/systems/class_componentGeneric.inc:166
 #: admin/systems/class_servGeneric.inc:301
 #: admin/systems/class_filterOPSIHOSTS.inc:30
-#: admin/systems/class_systemManagement.inc:278
-#: admin/systems/class_systemManagement.inc:728
-#: admin/systems/class_systemManagement.inc:734
-#: admin/systems/class_systemManagement.inc:807
-#: admin/systems/class_systemManagement.inc:890
-#: admin/systems/class_systemManagement.inc:905
+#: admin/systems/class_systemManagement.inc:280
+#: admin/systems/class_systemManagement.inc:774
+#: admin/systems/class_systemManagement.inc:780
+#: admin/systems/class_systemManagement.inc:867
+#: admin/systems/class_systemManagement.inc:902
+#: admin/systems/class_systemManagement.inc:987
+#: admin/systems/class_systemManagement.inc:1002
 #: admin/systems/class_serverService.inc:235
 #: admin/systems/class_serverService.inc:280
 #: admin/systems/class_serverService.inc:488
@@ -277,7 +332,7 @@ msgstr ""
 msgid "Actions"
 msgstr ""
 
-#: admin/systems/serverService-list.xml:57 admin/systems/system-list.xml:469
+#: admin/systems/serverService-list.xml:57 admin/systems/system-list.xml:480
 msgid "Remove"
 msgstr ""
 
@@ -321,7 +376,7 @@ msgstr ""
 
 #: admin/systems/class_servGeneric.inc:177
 #: admin/systems/class_servGeneric.inc:467
-#: admin/systems/class_systemManagement.inc:524
+#: admin/systems/class_systemManagement.inc:570
 msgid "Service infrastructure"
 msgstr ""
 
@@ -579,23 +634,27 @@ msgstr ""
 msgid "Halt"
 msgstr ""
 
-#: admin/systems/system-list.xml:462
+#: admin/systems/system-list.xml:461
+msgid "Apply template"
+msgstr ""
+
+#: admin/systems/system-list.xml:473
 msgid "Activate systems"
 msgstr ""
 
-#: admin/systems/system-list.xml:497
+#: admin/systems/system-list.xml:508
 msgid "Change password"
 msgstr ""
 
-#: admin/systems/system-list.xml:508
+#: admin/systems/system-list.xml:519
 msgid "Create ISO"
 msgstr ""
 
-#: admin/systems/system-list.xml:520
+#: admin/systems/system-list.xml:531
 msgid "Edit role"
 msgstr ""
 
-#: admin/systems/system-list.xml:533
+#: admin/systems/system-list.xml:544
 msgid "Remove system"
 msgstr ""
 
@@ -608,8 +667,8 @@ msgid "Opsi"
 msgstr ""
 
 #: admin/systems/system-filter.xml:121
-#: admin/systems/class_systemManagement.inc:1579
-#: admin/systems/class_systemManagement.inc:1580
+#: admin/systems/class_systemManagement.inc:1705
+#: admin/systems/class_systemManagement.inc:1706
 msgid "Incoming objects"
 msgstr ""
 
@@ -688,92 +747,103 @@ msgstr ""
 msgid "Manage systems, their services and prepare them for use with GOsa"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:180
-#: admin/systems/class_systemManagement.inc:287
+#: admin/systems/class_systemManagement.inc:182
+#: admin/systems/class_systemManagement.inc:289
 msgid "Permission error"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:180
-#: admin/systems/class_systemManagement.inc:287
+#: admin/systems/class_systemManagement.inc:182
+#: admin/systems/class_systemManagement.inc:289
 msgid "You have no permission to change this password!"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:279
+#: admin/systems/class_systemManagement.inc:281
 msgid ""
 "The passwords you've entered as 'New password' and 'Repeated password' do "
 "not   match!"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:325
+#: admin/systems/class_systemManagement.inc:327
 msgid "Password method"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:325
+#: admin/systems/class_systemManagement.inc:327
 msgid "Password method crypt is missing. Cannot set system password."
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:380
+#: admin/systems/class_systemManagement.inc:382
 msgid "Back"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:426
+#: admin/systems/class_systemManagement.inc:428
 msgid "Creating the image failed. Please see the report below."
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:431
+#: admin/systems/class_systemManagement.inc:433
 #, php-format
 msgid "Command '%s', specified for ISO creation doesn't seem to exist."
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:600
-#: admin/systems/class_systemManagement.inc:699
-#: admin/systems/class_systemManagement.inc:1187
-#: admin/systems/class_systemManagement.inc:1234
-#: admin/systems/class_systemManagement.inc:1255
+#: admin/systems/class_systemManagement.inc:646
+#: admin/systems/class_systemManagement.inc:745
+#: admin/systems/class_systemManagement.inc:1312
+#: admin/systems/class_systemManagement.inc:1359
+#: admin/systems/class_systemManagement.inc:1380
 msgid "Permission"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:720
+#: admin/systems/class_systemManagement.inc:766
 #: admin/systems/class_serverService.inc:476
 msgid "Information"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:720
+#: admin/systems/class_systemManagement.inc:766
 #, php-format
 msgid ""
 "The object-type '%s' cannot be managed with your setup of GOsa, please "
 "install the required  plugins!"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:957
+#: admin/systems/class_systemManagement.inc:862
+msgid "Warning"
+msgstr ""
+
+#: admin/systems/class_systemManagement.inc:862
+#, php-format
+msgid ""
+"These systems are already configured by other object groups and cannot be "
+"added:"
+msgstr ""
+
+#: admin/systems/class_systemManagement.inc:1055
 msgid "Internal error"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:957
+#: admin/systems/class_systemManagement.inc:1055
 msgid "Cannot set mode to 'active'!"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:1187
+#: admin/systems/class_systemManagement.inc:1312
 #, php-format
 msgid "You are not allowed to create a snapshot for %s."
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:1234
-#: admin/systems/class_systemManagement.inc:1255
+#: admin/systems/class_systemManagement.inc:1359
+#: admin/systems/class_systemManagement.inc:1380
 #, php-format
 msgid "You are not allowed to restore a snapshot for %s."
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:1538
+#: admin/systems/class_systemManagement.inc:1664
 #, php-format
 msgid "Inherited from %s"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:1592
+#: admin/systems/class_systemManagement.inc:1718
 msgid "RDN for system storage."
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:1601
+#: admin/systems/class_systemManagement.inc:1727
 msgid "Incoming"
 msgstr ""
 

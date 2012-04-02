@@ -1,6 +1,6 @@
 <div style="font-size: 18px;">
 {if !$is_incoming}
-    {t}Add {$SystemTypeName} to object group{/t}
+    {t}Apply template to{/t} {$SystemTypeName}
 {/if}
 </div>
 <br>
