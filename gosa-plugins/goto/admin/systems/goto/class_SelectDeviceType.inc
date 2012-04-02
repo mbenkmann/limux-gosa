@@ -24,22 +24,47 @@ class SelectDeviceType extends plugin
         }
         plugin::plugin ($config, NULL);
 
-        /* Get object groups */
-        $ldap = $this->config->get_ldap_link();
-        $ldap->cd ($this->config->current['BASE']);
-        $ldap->search("(&(objectClass=gosaGroupOfNames)(cn=*))",array("cn"));
-        $tmp= array();
-        while($attrs = $ldap->fetch()){
-            $tmp[$attrs['dn']]= $attrs['cn'][0];
-        }
-        asort($tmp, SORT_LOCALE_STRING);
-        $this->ObjectGroups= $tmp;
-
         $this->SystemTypes =array("gotoWorkstation"=>_("Workstation"), "gotoTerminal"=>_("Terminal"), "goServer"=>_("Server"));
         if(class_available("opsi")){
             $this->SystemTypes["FAKE_OC_OpsiHost"]= _("Windows workstation");
         }
     }
+
+    function get_object_groups($type) {
+      $map = array("gotoWorkstation" => "W","gotoTerminal" => "T","goServer" => "S", "FAKE_OC_OpsiHost" => "O");
+
+      $ldap = $this->config->get_ldap_link();
+      $ldap->cd ($this->config->current['BASE']);
+      $ldap->search("(&(objectClass=gosaGroupOfNames)(cn=*))",array("gosaGroupObjects","cn"));
+      $tmp= array("W" => array(),"T" => array(), "S" => array(),"O" => array());
+      while($attrs = $ldap->fetch()){
+        $tmp[preg_replace("/[\[\] ]/","",$attrs['gosaGroupObjects'][0])][$attrs['dn']] = $attrs['cn'][0];
+      }
+
+      if (isset($tmp[$map[$type]])) {
+        return $tmp[$map[$type]];
+      } else {
+        return array();
+      }
+    }
+
+    /* Prepare smarty object for this class */
+    function prepare_execute() {
+      $smarty = get_smarty();
+      $smarty->assign("dns_cnt" ,        set_post(count($this->dns)));
+      $ogroups = $this->get_object_groups($this->SystemType);
+      $smarty->assign("ogroups",         set_post($ogroups));
+      $smarty->assign("OgroupKeys",      set_post(array_flip($ogroups)));
+      $smarty->assign("ObjectGroup",      set_post($this->ObjectGroup));
+      $smarty->assign("SystemTypes"     ,set_post($this->SystemTypes));
+      $smarty->assign("SystemTypeKeys"  ,set_post(array_flip($this->SystemTypes))); 
+      $smarty->assign("ObjectGroup",     set_post($this->ObjectGroup));
+      $smarty->assign("SystemType",      set_post($this->SystemType));
+
+      return $smarty;
+    }
+      
+
 
     function execute()
     {
@@ -47,27 +72,9 @@ class SelectDeviceType extends plugin
         plugin::execute();
 
 
-        /* Get object groups */
-        $ldap = $this->config->get_ldap_link();
-        $ldap->cd ($this->config->current['BASE']);
-        $ldap->search("(&(objectClass=gosaGroupOfNames)(cn=*))",array("gosaGroupObjects","cn"));
-        $tmp= array("W" => array(),"T" => array(), "S" => array(),"O" => array());
-        while($attrs = $ldap->fetch()){
-            $tmp[preg_replace("/[\[\] ]/","",$attrs['gosaGroupObjects'][0])][$attrs['dn']] = $attrs['cn'][0];
-        }
-
-        /* Fill templating stuff */
-        $smarty= get_smarty();
-        $display= "";
-
-        $map = array("gotoWorkstation" => "W","gotoTerminal" => "T","goServer" => "S", "FAKE_OC_OpsiHost" => "O");
-        $smarty->assign("dns_cnt" ,        set_post(count($this->dns)));
-        $smarty->assign("ogroups",         set_post($tmp[$map[$this->SystemType]]));
-        $smarty->assign("SystemTypes"     ,set_post($this->SystemTypes));
-        $smarty->assign("SystemTypeKeys"  ,set_post(array_flip($this->SystemTypes))); 
-        $smarty->assign("ObjectGroup",     set_post($this->ObjectGroup));
-        $smarty->assign("SystemType",      set_post($this->SystemType));
-        $display.= $smarty->fetch(get_template_path('SelectDeviceType.tpl', TRUE,dirname(__FILE__)));
+        /* Get ogroups */
+        $smarty= $this->prepare_execute();
+        $display= $smarty->fetch(get_template_path('SelectDeviceType.tpl', TRUE,dirname(__FILE__)));
         return($display);
     }
 
