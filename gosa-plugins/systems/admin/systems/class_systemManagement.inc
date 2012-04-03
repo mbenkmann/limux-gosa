@@ -70,6 +70,8 @@ class systemManagement extends management
     protected $objectInfo = array();
     protected $opsi = NULL;
     protected $activationQueue  = array();
+    protected $reinstallationQueue = array( "mode" => NULL,
+      "targets" => array() );
 
     function __construct($config,$ui)
     {
@@ -877,17 +879,22 @@ class systemManagement extends management
           if (!isset($_POST['inherit_attributes'])) {
             $data['skip_inheritance'] = TRUE;
           }
-          if (isset($_POST['trigger_reinstall'])) {
-            $data['trigger_reinstall'] = TRUE;
-            $data['skip_activation'] = FALSE;
-          }
+          if (isset($_POST['template_action'])) {
+            $template_action = get_post("template_action");
+            $this->reinstallationQueue["mode"] = $template_action;
+            $this->reinstallationQueue["targets"][] = $dn; 
+            if ($template_action != "none") {
+              $data['skip_activation'] = FALSE;
+            }
+          } 
           if (isset($_POST['is_incoming'])) {
             $data['is_incoming'] = 1;
           }
           $tmp[$dn] = $data;
         }
         $this->activationQueue = $tmp;
-        return($this->handleActivationQueue());
+        $this->handleActivationQueue();
+        $this->handleReinstallationQueue();
       }
       $this->activationQueue = array();
     }
@@ -940,6 +947,45 @@ class systemManagement extends management
     }
 
 
+    function handleReinstallationQueue()
+    {
+      @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__,
+        'Entries left: '.count($this->reinstallationQueue), "<b>Handling reinstallation queue</b>");
+
+      if (!count($this->reinstallationQueue["targets"])) return("");
+      if ($this->reinstallationQueue["mode"] == NULL) return("");
+
+      $triggered = TRUE;
+      if ($this->reinstallationQueue["mode"] == "plan_reinstall") {
+        $triggered = FALSE;
+      }
+      $targets = array();
+      foreach($this->reinstallationQueue["targets"] as $dn) {
+            $obj = $this->headpage->getEntry($dn);
+            if(isset($obj['macAddress'][0])) {
+              $targets[] = array( "mac" => $obj['macAddress'][0], "cn" => $obj['cn'][0]);
+            }
+      }
+
+      $this->reinstallationQueue = array( "targets" => array(), "mode" => NULL);
+
+      $o_queue = new gosaSupportDaemon();
+      $this->dialogObject = new DaemonEvent_reinstall($this->config);
+      $this->dialogObject->add_targets($targets);
+
+      if ($triggered) {
+        $this->dialogObject->set_type(TRIGGERED_EVENT);
+        $o_queue->append($this->dialogObject);
+        if ($o_queue->is_error()) {
+          msg_dialog::display(_("Service infrastructure"),msgPool::siError($o_queue->get_error()),ERROR_DIALOG);
+        } else {
+          $this->closeDialogs();
+        }
+      } else {
+        $this->dialogObject->set_type(SCHEDULED_EVENT);
+      }
+    }
+
     /*! \brief  Activate queued goto systems.
      */
     function handleActivationQueue()
@@ -955,7 +1001,8 @@ class systemManagement extends management
         $headpage = $this->getHeadpage();
         $ldap->cd($this->config->current['BASE']);
 
-        $reinstall_targets = array();
+        $trigger_reinstall = array();
+        $plan_reinstall = array();
 
         // Walk through systems to activate
         while(count($this->activationQueue)){
@@ -1116,29 +1163,10 @@ class systemManagement extends management
                                 "", "<b>Open dialogs now</b>");
                         return;
                     }
-
-                    if(isset($data['trigger_reinstall'])) {
-                      $reinstall_targets[] = $dn;
-                    }
                 }
             }
         }
 
-        // Create reinstallation job if reinstallation_targets are available
-        if (count($reinstall_targets) != 0) {
-          $targets = array();
-          foreach($reinstall_targets as $dn) {
-            $obj = $this->headpage->getEntry($dn);
-            if(isset($obj['macAddress'][0])) {
-              $targets[] = array( "mac" => $obj['macAddress'][0], "cn" => $obj['cn'][0]);
-            }
-            $o_queue = new gosaSupportDaemon();
-            $evt = new DaemonEvent_reinstall($this->config);
-            $evt->add_targets($targets);
-            $evt->set_type(TRIGGERED_EVENT);
-            $o_queue->append($evt);
-          }
-        }
     }
 
 

@@ -9,7 +9,7 @@ class applyObjectGroup extends SelectDeviceType
                                  // opt-in for system reinstallation after save
   var $always_inherit = FALSE;   // If set to TRUE no inheritance checkbox will
                                  // be shown
-
+  var $template_action = "none";
   var $PreviousType = NULL;
 
   function execute()
@@ -35,6 +35,12 @@ class applyObjectGroup extends SelectDeviceType
     $smarty->assign("always_inherit", $this->always_inherit);
     $smarty->assign("devicetype_selection_tpl", get_template_path("devicetype_selection.tpl",TRUE,dirname(__FILE__)));
     $smarty->assign("ogroup_selection_tpl", get_template_path("ogroup_selection.tpl",TRUE,dirname(__FILE__)));
+    $smarty->assign("template_actions", array(
+      "none" => _("None"),
+      "trigger_reinstall" => _("Trigger Reinstall"),
+      "plan_reinstall" => _("Schedule Reinstall")));
+
+    $smarty->assign("template_action", set_post($this->template_action));
 
     $display.= $smarty->fetch(get_template_path('ApplyObjectGroup.tpl', TRUE));
     return($display);
@@ -45,7 +51,9 @@ class applyObjectGroup extends SelectDeviceType
     if (isset($_POST['SystemType'])) {
       $this->PreviousType = $this->SystemType;
     }
-
+    if (isset($_POST['template_action'])) {
+      $this->template_action = get_post('template_action');
+    }
     SelectDeviceType::save_object(); 
   }
 

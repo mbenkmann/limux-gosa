@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: messages\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-02 14:50+0200\n"
+"POT-Creation-Date: 2012-04-04 16:11+0200\n"
 "PO-Revision-Date: 2010-09-17 11:08+0100\n"
 "Last-Translator: Fabian Hickert <Fabian.Hickert@GONICUS.DE>\n"
 "Language-Team: deutsch <de@li.org>\n"
@@ -128,6 +128,7 @@ msgid "Continue"
 msgstr "Fortsetzen"
 
 #: admin/systems/class_askOgroup.inc:37 admin/systems/class_askOgroup.inc:67
+#: admin/systems/class_applyOgroup.inc:39
 msgid "None"
 msgstr "Keine"
 
@@ -159,15 +160,20 @@ msgstr ""
 "Dieser Dialog ermöglicht Ihnen einen Satz von vordefinierten Einstellungen "
 "für die gewählten Systeme zu übernehmen."
 
-#: admin/systems/ApplyObjectGroup.tpl:45
-msgid "Trigger installation of the selected system(s)"
-msgstr "Löse Installation der gewählten Systeme aus"
+#: admin/systems/ApplyObjectGroup.tpl:44 admin/systems/server.tpl:73
+msgid "Action"
+msgstr "Aktion"
 
 #: admin/systems/ApplyObjectGroup.tpl:47
-msgid "Trigger reinstallation of the selected system(s)"
-msgstr "Löse Neuinstallation der gewählten Systeme aus"
+msgid ""
+"Note that object group membership will change when applying the selection. "
+"Systems added during reinstall scheduling will not get the selected template "
+"applied."
+msgstr "Beachten Sie, dass die Objektgruppen-Mitgliedschaft mit Anwenden der "
+"Auswahl geändert wird. Die ausgewählte Vorlage wird nicht auf zusätzlich "
+"hinzugefügte Systeme bei der Neuinstallations-Planung angewendet"
 
-#: admin/systems/ApplyObjectGroup.tpl:65
+#: admin/systems/ApplyObjectGroup.tpl:63
 msgid "Apply"
 msgstr "Anwenden"
 
@@ -188,7 +194,7 @@ msgstr "Leerer Dienst"
 #: admin/systems/class_servGeneric.inc:267
 #: admin/systems/class_servGeneric.inc:447
 #: admin/systems/class_systemManagement.inc:333
-#: admin/systems/class_systemManagement.inc:1267
+#: admin/systems/class_systemManagement.inc:1283
 msgid "LDAP error"
 msgstr "LDAP-Fehler"
 
@@ -213,6 +219,14 @@ msgstr "Allgemeine Benutzereinstellungen"
 msgid "Device name"
 msgstr "Gerätename"
 
+#: admin/systems/class_applyOgroup.inc:40
+msgid "Trigger Reinstall"
+msgstr "Neu-Installation auslösen"
+
+#: admin/systems/class_applyOgroup.inc:41
+msgid "Schedule Reinstall"
+msgstr "Neu-Installation planen"
+
 #: admin/systems/class_termDNS.inc:315 admin/systems/class_termDNS.inc:362
 #: admin/systems/class_componentGeneric.inc:166
 #: admin/systems/class_servGeneric.inc:301
@@ -221,9 +235,9 @@ msgstr "Gerätename"
 #: admin/systems/class_systemManagement.inc:774
 #: admin/systems/class_systemManagement.inc:780
 #: admin/systems/class_systemManagement.inc:867
-#: admin/systems/class_systemManagement.inc:902
-#: admin/systems/class_systemManagement.inc:987
-#: admin/systems/class_systemManagement.inc:1002
+#: admin/systems/class_systemManagement.inc:905
+#: admin/systems/class_systemManagement.inc:991
+#: admin/systems/class_systemManagement.inc:1006
 #: admin/systems/class_serverService.inc:235
 #: admin/systems/class_serverService.inc:280
 #: admin/systems/class_serverService.inc:488
@@ -684,8 +698,8 @@ msgid "Opsi"
 msgstr "OPSI"
 
 #: admin/systems/system-filter.xml:121
-#: admin/systems/class_systemManagement.inc:1705
-#: admin/systems/class_systemManagement.inc:1706
+#: admin/systems/class_systemManagement.inc:1721
+#: admin/systems/class_systemManagement.inc:1722
 msgid "Incoming objects"
 msgstr "Eingehende Objekte"
 
@@ -816,9 +830,9 @@ msgstr ""
 
 #: admin/systems/class_systemManagement.inc:646
 #: admin/systems/class_systemManagement.inc:745
-#: admin/systems/class_systemManagement.inc:1312
-#: admin/systems/class_systemManagement.inc:1359
-#: admin/systems/class_systemManagement.inc:1380
+#: admin/systems/class_systemManagement.inc:1328
+#: admin/systems/class_systemManagement.inc:1375
+#: admin/systems/class_systemManagement.inc:1396
 msgid "Permission"
 msgstr "Berechtigung"
 
@@ -847,35 +861,35 @@ msgstr ""
 "Die folgenden Systeme sind bereits für die Konfiguration über eine "
 "Objektgruppe vorgesehen und können nicht hinzugefügt werden:"
 
-#: admin/systems/class_systemManagement.inc:1055
+#: admin/systems/class_systemManagement.inc:1059
 msgid "Internal error"
 msgstr "Interner Fehler"
 
-#: admin/systems/class_systemManagement.inc:1055
+#: admin/systems/class_systemManagement.inc:1059
 msgid "Cannot set mode to 'active'!"
 msgstr "Kann Modus nicht auf 'aktiv' setzen!"
 
-#: admin/systems/class_systemManagement.inc:1312
+#: admin/systems/class_systemManagement.inc:1328
 #, php-format
 msgid "You are not allowed to create a snapshot for %s."
 msgstr "Ihnen ist es nicht erlaubt, einen Snapshot für %s zu erstellen."
 
-#: admin/systems/class_systemManagement.inc:1359
-#: admin/systems/class_systemManagement.inc:1380
+#: admin/systems/class_systemManagement.inc:1375
+#: admin/systems/class_systemManagement.inc:1396
 #, php-format
 msgid "You are not allowed to restore a snapshot for %s."
 msgstr "Ihnen ist es nicht erlaubt, einen Snapshot für %s wiederherzustellen."
 
-#: admin/systems/class_systemManagement.inc:1664
+#: admin/systems/class_systemManagement.inc:1680
 #, php-format
 msgid "Inherited from %s"
 msgstr "Geerbt von %s"
 
-#: admin/systems/class_systemManagement.inc:1718
+#: admin/systems/class_systemManagement.inc:1734
 msgid "RDN for system storage."
 msgstr "RDN zur Ablage von Systemen."
 
-#: admin/systems/class_systemManagement.inc:1727
+#: admin/systems/class_systemManagement.inc:1743
 msgid "Incoming"
 msgstr "Eingehend"
 
@@ -890,10 +904,6 @@ msgstr "Modus"
 #: admin/systems/server.tpl:35
 msgid "Select terminal mode"
 msgstr "Wählen Sie den Terminal-Modus"
-
-#: admin/systems/server.tpl:73
-msgid "Action"
-msgstr "Aktion"
 
 #: admin/systems/server.tpl:76
 msgid ""
@@ -917,6 +927,12 @@ msgstr "Kann den Dienst-Status nicht setzen bis der Server gespeichert wurde."
 #: admin/systems/class_serverService.inc:488
 msgid "Cannot update service status!"
 msgstr "Kann Dienst-Status nicht aktualisieren!"
+
+#~ msgid "Trigger installation of the selected system(s)"
+#~ msgstr "Löse Installation der gewählten Systeme aus"
+
+#~ msgid "Trigger reinstallation of the selected system(s)"
+#~ msgstr "Löse Neuinstallation der gewählten Systeme aus"
 
 #~ msgid "Memory test"
 #~ msgstr "Speichertest"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-02 14:50+0200\n"
+"POT-Creation-Date: 2012-04-04 16:11+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -120,6 +120,7 @@ msgid "Continue"
 msgstr ""
 
 #: admin/systems/class_askOgroup.inc:37 admin/systems/class_askOgroup.inc:67
+#: admin/systems/class_applyOgroup.inc:39
 msgid "None"
 msgstr ""
 
@@ -147,15 +148,18 @@ msgid ""
 "applied to the selected target(s)."
 msgstr ""
 
-#: admin/systems/ApplyObjectGroup.tpl:45
-msgid "Trigger installation of the selected system(s)"
+#: admin/systems/ApplyObjectGroup.tpl:44 admin/systems/server.tpl:73
+msgid "Action"
 msgstr ""
 
 #: admin/systems/ApplyObjectGroup.tpl:47
-msgid "Trigger reinstallation of the selected system(s)"
+msgid ""
+"Note that object group membership will change when applying the selection. "
+"Systems added during reinstall scheduling will not get the selected template "
+"applied."
 msgstr ""
 
-#: admin/systems/ApplyObjectGroup.tpl:65
+#: admin/systems/ApplyObjectGroup.tpl:63
 msgid "Apply"
 msgstr ""
 
@@ -176,7 +180,7 @@ msgstr ""
 #: admin/systems/class_servGeneric.inc:267
 #: admin/systems/class_servGeneric.inc:447
 #: admin/systems/class_systemManagement.inc:333
-#: admin/systems/class_systemManagement.inc:1267
+#: admin/systems/class_systemManagement.inc:1283
 msgid "LDAP error"
 msgstr ""
 
@@ -201,6 +205,14 @@ msgstr ""
 msgid "Device name"
 msgstr ""
 
+#: admin/systems/class_applyOgroup.inc:40
+msgid "Trigger Reinstall"
+msgstr ""
+
+#: admin/systems/class_applyOgroup.inc:41
+msgid "Schedule Reinstall"
+msgstr ""
+
 #: admin/systems/class_termDNS.inc:315 admin/systems/class_termDNS.inc:362
 #: admin/systems/class_componentGeneric.inc:166
 #: admin/systems/class_servGeneric.inc:301
@@ -209,9 +221,9 @@ msgstr ""
 #: admin/systems/class_systemManagement.inc:774
 #: admin/systems/class_systemManagement.inc:780
 #: admin/systems/class_systemManagement.inc:867
-#: admin/systems/class_systemManagement.inc:902
-#: admin/systems/class_systemManagement.inc:987
-#: admin/systems/class_systemManagement.inc:1002
+#: admin/systems/class_systemManagement.inc:905
+#: admin/systems/class_systemManagement.inc:991
+#: admin/systems/class_systemManagement.inc:1006
 #: admin/systems/class_serverService.inc:235
 #: admin/systems/class_serverService.inc:280
 #: admin/systems/class_serverService.inc:488
@@ -667,8 +679,8 @@ msgid "Opsi"
 msgstr ""
 
 #: admin/systems/system-filter.xml:121
-#: admin/systems/class_systemManagement.inc:1705
-#: admin/systems/class_systemManagement.inc:1706
+#: admin/systems/class_systemManagement.inc:1721
+#: admin/systems/class_systemManagement.inc:1722
 msgid "Incoming objects"
 msgstr ""
 
@@ -786,9 +798,9 @@ msgstr ""
 
 #: admin/systems/class_systemManagement.inc:646
 #: admin/systems/class_systemManagement.inc:745
-#: admin/systems/class_systemManagement.inc:1312
-#: admin/systems/class_systemManagement.inc:1359
-#: admin/systems/class_systemManagement.inc:1380
+#: admin/systems/class_systemManagement.inc:1328
+#: admin/systems/class_systemManagement.inc:1375
+#: admin/systems/class_systemManagement.inc:1396
 msgid "Permission"
 msgstr ""
 
@@ -815,35 +827,35 @@ msgid ""
 "added:"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:1055
+#: admin/systems/class_systemManagement.inc:1059
 msgid "Internal error"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:1055
+#: admin/systems/class_systemManagement.inc:1059
 msgid "Cannot set mode to 'active'!"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:1312
+#: admin/systems/class_systemManagement.inc:1328
 #, php-format
 msgid "You are not allowed to create a snapshot for %s."
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:1359
-#: admin/systems/class_systemManagement.inc:1380
+#: admin/systems/class_systemManagement.inc:1375
+#: admin/systems/class_systemManagement.inc:1396
 #, php-format
 msgid "You are not allowed to restore a snapshot for %s."
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:1664
+#: admin/systems/class_systemManagement.inc:1680
 #, php-format
 msgid "Inherited from %s"
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:1718
+#: admin/systems/class_systemManagement.inc:1734
 msgid "RDN for system storage."
 msgstr ""
 
-#: admin/systems/class_systemManagement.inc:1727
+#: admin/systems/class_systemManagement.inc:1743
 msgid "Incoming"
 msgstr ""
 
@@ -857,10 +869,6 @@ msgstr ""
 
 #: admin/systems/server.tpl:35
 msgid "Select terminal mode"
-msgstr ""
-
-#: admin/systems/server.tpl:73
-msgid "Action"
 msgstr ""
 
 #: admin/systems/server.tpl:76
