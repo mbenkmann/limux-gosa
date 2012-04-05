@@ -71,6 +71,10 @@ class filterSYSTEMS {
             $state = 'none';
             foreach(array('gotoWorkstation','gotoTerminal','goServer') as $type){
                 if(in_array_strict($type, $entry['objectClass'])){
+                    
+                    if(isset($entry['gotoMode'][0]) && preg_match("/locked/i", $entry['gotoMode'][0])){
+                        $state = "locked";
+                    }
 
                     if(isset($entry['FAIstate'][0])){
                         switch (preg_replace('/:.*$/', '', $entry['FAIstate'][0])) {
@@ -85,8 +89,6 @@ class filterSYSTEMS {
                                 $state= 'busy';
                                 break;
                         }
-                    }elseif(isset($entry['gotoMode'][0]) && preg_match("/locked/i", $entry['gotoMode'][0])){
-                        $state = "locked";
                     }
                 }
             }

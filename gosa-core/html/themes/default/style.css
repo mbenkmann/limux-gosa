@@ -891,6 +891,14 @@ div.listContainer {
   background-color:#F5F5F5;
 }
 
+.listScrollContent tr.entry-busy:nth-child(odd) {
+  background-color:#EEF;
+}
+
+.listScrollContent tr.entry-busy:nth-child(even) {
+  background-color:#E5E5F5;
+}
+
 .listScrollContent tr.entry-locked:nth-child(odd) {
   background-color:#FFC;
 }
