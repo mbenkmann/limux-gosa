@@ -37,18 +37,16 @@
     </tr>
 </table>    
 
-{if $reinstall_allowed && !$is_incoming}
+{if $reinstall_allowed}
 <br>
+<hr>
 <div align="left">
-<input type="checkbox" name="trigger_reinstall" value="1">
-{if $is_incoming}
-{t}Trigger installation of the selected system(s){/t}
-{else}
-{t}Trigger reinstallation of the selected system(s){/t}
-{/if}
+{t}Action{/t}:&nbsp;
+{html_options name="template_action" options=$template_actions selected=$template_action}
+<br><br>
+<b><i>{t}Note that object group membership will change when applying the selection. Systems added during reinstall scheduling will not get the selected template applied.{/t}</b></i>
 </div>
 {/if}
-
 
 <hr>
 {if !$is_incoming}
