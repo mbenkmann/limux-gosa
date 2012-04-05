@@ -3755,7 +3755,7 @@ msgstr "Liste der Benutzer"
 
 #: addons/goto/events/DaemonEvent_update.tpl:4
 msgid "Goto daemon event: Update system"
-msgstr "GOto-Ereignis: Aktualisierung"
+msgstr "GOto-Ereignis: Softwareupdate"
 
 #: addons/goto/events/DaemonEvent_rescan.tpl:4
 msgid "Goto daemon event: Rescan hardware info"
@@ -4060,7 +4060,7 @@ msgstr "Verteilungs-Status"
 #: addons/goto/class_gotomasses.inc:27
 msgid "Monitor and schedule system deployment and update processes"
 msgstr ""
-"Überwachung und Planung von Systemverteilungs- und Aktualisierungsprozessen"
+"Überwachung und Planung von Systemverteilungs- und Softwareupdateprozessen"
 
 #: addons/goto/class_gotomasses.inc:160
 msgid "immediately"
