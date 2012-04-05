@@ -677,12 +677,15 @@ class ogroup extends plugin
         }
 
         $ldap = $this->config->get_ldap_link();
-        if(LDAP::fix($this->dn) != LDAP::fix($new_dn)){
-            $ldap->cat ($new_dn, array('dn'));
-        }
-
-        if($ldap->count() !=0){
+        $ldap->cd($this->config->current['BASE']);
+        $ldap->search('(&(objectClass=gosaGroupOfNames)(cn=' . LDAP::prepare4filter($this->cn) . '))', array('dn'), TRUE);
+        
+        
+        if($ldap->count() !=0) {
+          $ldap->fetch();
+          if (mb_strtolower($ldap->getDN()) != mb_strtolower($this->orig_dn)) {
             $message[]= msgPool::duplicated(_("Name"));
+          }
         } 
 
         // Check if a wrong base was supplied
