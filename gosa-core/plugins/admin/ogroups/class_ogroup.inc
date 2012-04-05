@@ -678,7 +678,7 @@ class ogroup extends plugin
 
         $ldap = $this->config->get_ldap_link();
         $ldap->cd($this->config->current['BASE']);
-        $ldap->search('(&(objectClass=gosaGroupOfNames)(cn=' . LDAP::prepare4filter($this->cn) . '))', array('dn'));
+        $ldap->search('(&(objectClass=gosaGroupOfNames)(cn=' . LDAP::prepare4filter($this->cn) . '))', array('dn'), TRUE);
         
         
         if($ldap->count() !=0) {
