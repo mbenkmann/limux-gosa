@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-10 18:15+0200\n"
+"POT-Creation-Date: 2012-04-10 18:25+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -107,7 +107,7 @@ msgid "Import script"
 msgstr ""
 
 #: personal/environment/environment.tpl:4
-#: admin/systems/goto/class_workstationStartup.inc:621
+#: admin/systems/goto/class_workstationStartup.inc:624
 msgid "Profiles"
 msgstr ""
 
@@ -203,7 +203,7 @@ msgstr ""
 #: admin/systems/services/shares/goShareServer.tpl:3
 #: admin/systems/goto/workstationStartup.tpl:251
 #: admin/systems/goto/class_terminalStartup.inc:530
-#: admin/systems/goto/class_workstationStartup.inc:1025
+#: admin/systems/goto/class_workstationStartup.inc:1028
 #: admin/systems/goto/terminalStartup.tpl:103
 msgid "Shares"
 msgstr ""
@@ -365,8 +365,8 @@ msgstr ""
 #: admin/groups/apps/class_groupApplication.inc:764
 #: admin/systems/ppd/class_printerPPDDialog.inc:54
 #: admin/systems/ppd/class_printerPPDDialog.inc:120
-#: admin/systems/goto/class_workstationStartup.inc:1317
-#: admin/systems/goto/class_workstationStartup.inc:1319
+#: admin/systems/goto/class_workstationStartup.inc:1320
+#: admin/systems/goto/class_workstationStartup.inc:1322
 #: admin/systems/goto/class_workstationService.inc:82
 #: admin/systems/goto/class_terminalService.inc:121
 msgid "Configuration error"
@@ -429,6 +429,7 @@ msgstr ""
 #: admin/systems/services/kiosk/class_goKioskService.inc:139
 #: admin/systems/ppd/remove_ppd.tpl:3
 #: admin/systems/goto/class_workstationStartup.inc:96
+#: admin/systems/goto/class_workstationStartup.inc:559
 msgid "Warning"
 msgstr ""
 
@@ -581,7 +582,7 @@ msgstr ""
 #: admin/systems/goto/Device/class_InstallRecipe.inc:437
 #: admin/systems/goto/Device/class_InstallRecipe.inc:457
 #: admin/systems/goto/class_terminalStartup.inc:424
-#: admin/systems/goto/class_workstationStartup.inc:839
+#: admin/systems/goto/class_workstationStartup.inc:842
 #: admin/systems/goto/class_workstationService.inc:492
 #: admin/systems/goto/class_printGeneric.inc:688
 #: admin/systems/goto/class_printGeneric.inc:1023
@@ -1247,9 +1248,9 @@ msgstr ""
 #: admin/ogroups/goto/class_termgroup.inc:205
 #: admin/systems/goto/class_workstationGeneric.inc:236
 #: admin/systems/goto/class_workstationGeneric.inc:664
-#: admin/systems/goto/class_workstationStartup.inc:888
-#: admin/systems/goto/class_workstationStartup.inc:1056
-#: admin/systems/goto/class_workstationStartup.inc:1124
+#: admin/systems/goto/class_workstationStartup.inc:891
+#: admin/systems/goto/class_workstationStartup.inc:1059
+#: admin/systems/goto/class_workstationStartup.inc:1127
 #: admin/systems/goto/class_workstationService.inc:674
 #: admin/systems/goto/class_terminalGeneric.inc:200
 #: admin/systems/goto/class_terminalGeneric.inc:616
@@ -2818,7 +2819,7 @@ msgstr ""
 
 #: admin/systems/goto/workstationStartup.tpl:15
 #: admin/systems/goto/class_terminalStartup.inc:532
-#: admin/systems/goto/class_workstationStartup.inc:1021
+#: admin/systems/goto/class_workstationStartup.inc:1024
 #: admin/systems/goto/terminalStartup.tpl:34
 msgid "Boot kernel"
 msgstr ""
@@ -2839,7 +2840,7 @@ msgstr ""
 #: admin/systems/goto/class_terminalStartup.inc:166
 #: admin/systems/goto/class_terminalStartup.inc:529
 #: admin/systems/goto/class_workstationStartup.inc:274
-#: admin/systems/goto/class_workstationStartup.inc:1020
+#: admin/systems/goto/class_workstationStartup.inc:1023
 #: admin/systems/goto/terminalStartup.tpl:6
 msgid "LDAP server"
 msgstr ""
@@ -3102,7 +3103,7 @@ msgstr ""
 #: admin/systems/goto/Device/class_InstallRecipe.inc:489
 #: admin/systems/goto/Device/InstallRecipe.tpl:140
 #: admin/systems/goto/Device/InstallRecipe.tpl:143
-#: admin/systems/goto/class_workstationStartup.inc:610
+#: admin/systems/goto/class_workstationStartup.inc:613
 msgid "Partition table"
 msgstr ""
 
@@ -3359,12 +3360,12 @@ msgid ""
 msgstr ""
 
 #: admin/systems/goto/class_terminalStartup.inc:370
-#: admin/systems/goto/class_workstationStartup.inc:712
+#: admin/systems/goto/class_workstationStartup.inc:715
 msgid "Fatal error"
 msgstr ""
 
 #: admin/systems/goto/class_terminalStartup.inc:507
-#: admin/systems/goto/class_workstationStartup.inc:1011
+#: admin/systems/goto/class_workstationStartup.inc:1014
 msgid "Startup"
 msgstr ""
 
@@ -3377,12 +3378,12 @@ msgid "Script to check for available kernels"
 msgstr ""
 
 #: admin/systems/goto/class_terminalStartup.inc:531
-#: admin/systems/goto/class_workstationStartup.inc:1024
+#: admin/systems/goto/class_workstationStartup.inc:1027
 msgid "Kernel modules"
 msgstr ""
 
 #: admin/systems/goto/class_terminalStartup.inc:533
-#: admin/systems/goto/class_workstationStartup.inc:1022
+#: admin/systems/goto/class_workstationStartup.inc:1025
 msgid "Kernel parameter"
 msgstr ""
 
@@ -3434,51 +3435,58 @@ msgid ""
 "configuration!"
 msgstr ""
 
-#: admin/systems/goto/class_workstationStartup.inc:597
+#: admin/systems/goto/class_workstationStartup.inc:559
+#, php-format
+msgid ""
+"The selected FAI server does not carry the previously inherited release, FAI "
+"release got reset from %s to %s!"
+msgstr ""
+
+#: admin/systems/goto/class_workstationStartup.inc:600
 msgid "Not available in current setup"
 msgstr ""
 
-#: admin/systems/goto/class_workstationStartup.inc:612
+#: admin/systems/goto/class_workstationStartup.inc:615
 msgid "Packages"
 msgstr ""
 
-#: admin/systems/goto/class_workstationStartup.inc:614
+#: admin/systems/goto/class_workstationStartup.inc:617
 msgid "Scripts"
 msgstr ""
 
-#: admin/systems/goto/class_workstationStartup.inc:617
+#: admin/systems/goto/class_workstationStartup.inc:620
 msgid "Variables"
 msgstr ""
 
-#: admin/systems/goto/class_workstationStartup.inc:619
+#: admin/systems/goto/class_workstationStartup.inc:622
 msgid "Hooks"
 msgstr ""
 
-#: admin/systems/goto/class_workstationStartup.inc:623
+#: admin/systems/goto/class_workstationStartup.inc:626
 msgid "Templates"
 msgstr ""
 
-#: admin/systems/goto/class_workstationStartup.inc:1012
+#: admin/systems/goto/class_workstationStartup.inc:1015
 msgid "System startup"
 msgstr ""
 
-#: admin/systems/goto/class_workstationStartup.inc:1027
+#: admin/systems/goto/class_workstationStartup.inc:1030
 msgid "FAI classes"
 msgstr ""
 
-#: admin/systems/goto/class_workstationStartup.inc:1028
+#: admin/systems/goto/class_workstationStartup.inc:1031
 msgid "Debian mirror"
 msgstr ""
 
-#: admin/systems/goto/class_workstationStartup.inc:1029
+#: admin/systems/goto/class_workstationStartup.inc:1032
 msgid "Debian release"
 msgstr ""
 
-#: admin/systems/goto/class_workstationStartup.inc:1031
+#: admin/systems/goto/class_workstationStartup.inc:1034
 msgid "FAI status flag"
 msgstr ""
 
-#: admin/systems/goto/class_workstationStartup.inc:1319
+#: admin/systems/goto/class_workstationStartup.inc:1322
 msgid "'repositoryBranchHook' returned no result!"
 msgstr ""
 

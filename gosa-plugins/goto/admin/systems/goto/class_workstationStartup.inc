@@ -550,11 +550,14 @@ class workstartup extends plugin
             if($this->FAIdebianMirror == "inherited"){
                 $release = $this->InheritedFAIrelease;
             }else{
-                if ($this->InheritedFAIdebianMirror != "auto" && empty($this->FAIclass) &&
-                    isset($this->cache['SERVERS'][$this->FAIdebianMirror][$this->InheritedFAIrelease])) {
+                if ($this->InheritedFAIdebianMirror != "auto" && empty($this->FAIclass)) {
                     /* FAIdebianMirror got set from inherited to something else, try to 
-                       carry over the inhertied release if it is available on the mirror */
-                    $this->FAIrelease = $this->InheritedFAIrelease;
+                       carry over the inherited release if it is available on the mirror */
+                    if (isset($this->cache['SERVERS'][$this->FAIdebianMirror][$this->InheritedFAIrelease])) {
+                        $this->FAIrelease = $this->InheritedFAIrelease;
+                    } else {
+                        msg_dialog::display(_("Warning"), sprintf(_("The selected FAI server does not carry the previously inherited release, FAI release got reset from %s to %s!"), $this->InheritedFAIrelease, $this->FAIrelease), WARNING_DIALOG);
+                    }
                 }
                 $release = $this->FAIrelease;
             }
