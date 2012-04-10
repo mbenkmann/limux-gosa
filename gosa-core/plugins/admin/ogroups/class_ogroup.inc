@@ -59,6 +59,7 @@ class ogroup extends plugin
     var $objcache= array();
     var $memberList= array();
     var $member= array();
+    var $original_members = array();
     var $orig_dn= "";
     var $orig_cn= "";
     var $orig_base= "";
@@ -97,6 +98,7 @@ class ogroup extends plugin
                 }
             }
         }
+        $this->original_members = $this->member;
         $this->is_account= TRUE;
 
         /* Set base */
@@ -746,6 +748,33 @@ class ogroup extends plugin
         /* New accounts need proper 'dn', propagate it to remaining objects */
         if ($this->dn == 'new'){
             $this->dn= 'cn='.$this->cn.','.get_ou("group", "ogroupRDN").$this->base;
+        }
+        
+        /* Compare original members and current members to determine added and
+           removed members */
+        $added   = array_keys(array_diff($this->member, $this->original_members));
+        $removed = array_keys(array_diff($this->original_members, $this->member));
+
+        /* Copy inherited values into removed members */
+        foreach ($removed as $m_dn) {
+            
+            $ldap->cat($m_dn);
+            $m_attrs = $ldap->fetch();
+            
+            $ldap->cd($m_dn);
+
+            foreach ($this->parent->by_object as $class => $og_obj) {
+                /* Based on tab definitions in tabs_ogroups.inc */
+                if (!preg_match('/^(term|work)/', $class)) {
+                    continue;
+                }
+                
+                foreach ($og_obj->attributes as $a) {
+                    if (isset($og_obj->attrs[$a]) && !isset($m_attrs[$a])) {
+                        $ldap->modify(array($a => $og_obj->attrs[$a]));
+                    }
+                }
+            }
         }
 
         /* Save data. Using 'modify' implies that the entry is already present, use 'add' for
