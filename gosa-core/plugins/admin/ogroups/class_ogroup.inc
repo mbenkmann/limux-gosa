@@ -721,6 +721,11 @@ class ogroup extends plugin
 
         return ($message);
     }
+    
+    public function getAddedMembers()
+    {
+        return array_keys(array_diff($this->member, $this->original_members));
+    }
 
 
     /* Save to LDAP */
@@ -750,9 +755,8 @@ class ogroup extends plugin
             $this->dn= 'cn='.$this->cn.','.get_ou("group", "ogroupRDN").$this->base;
         }
         
-        /* Compare original members and current members to determine added and
+        /* Compare original members and current members to determine 
            removed members */
-        $added   = array_keys(array_diff($this->member, $this->original_members));
         $removed = array_keys(array_diff($this->original_members, $this->member));
 
         /* Copy inherited values into removed members */
@@ -818,6 +822,30 @@ class ogroup extends plugin
         }
 
         return ($ret);
+    }
+    
+    public function inheritAll($members)
+    {
+        $ldap= $this->config->get_ldap_link();
+        foreach ($members as $m_dn) {
+            $ldap->cat($m_dn);
+            $m_attrs = $ldap->fetch();
+            
+            $ldap->cd($m_dn);
+
+            foreach ($this->parent->by_object as $class => $og_obj) {
+                /* Based on tab definitions in tabs_ogroups.inc */
+                if (!preg_match('/^(term|work)/', $class)) {
+                    continue;
+                }
+                
+                foreach ($og_obj->attributes as $a) {
+                    if (isset($og_obj->attrs[$a]) && isset($m_attrs[$a])) {
+                        $ldap->modify(array($a => array()));
+                    }
+                }
+            }
+        }
     }
 
     function remove_from_parent()

@@ -172,7 +172,38 @@ class ogroupManagement extends management
 
         }
     }
-
+    
+    protected function saveChanges()
+    {
+        $ogroup = $this->tabObject->by_object['ogroup'];
+        $has_systems = isset($this->tabObject->by_object['termgroup']);
+        $added = $ogroup->getAddedMembers();
+        
+        /* No new (system) members, just save changes */
+        if (!$has_systems || empty($added)) {
+            return parent::saveChanges();
+        }
+        
+        /* Save new member inheritance dialog */
+        if ($this->dialogObject) {
+            $enabled = $this->dialogObject->getEnabledMembers();
+            $ogroup->inheritAll($enabled);
+            return parent::saveChanges();
+        }
+        
+        /* Validate object group attributes now to prevent error messages later */
+        $this->tabObject->save_object();
+        $msgs = $this->tabObject->check();
+        if (count($msgs)){
+            msg_dialog::displayChecks($msgs); 
+            return("");
+        }
+        
+        /* Show new member inheritance dialog */
+        $this->dialogObject = new MemberInheritanceDialog($this->config, $added);
+        $this->displayApplyBtn = false;
+    }
+    
     static function filterProperties($row, $gosaGroupObjects)
     {
 
