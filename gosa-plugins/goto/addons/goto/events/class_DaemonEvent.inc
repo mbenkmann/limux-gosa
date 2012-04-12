@@ -696,6 +696,27 @@ class DaemonEvent
           return -1;
       }
     }
+    
+    public function perform_ldap_changes()
+    {
+    }
+    
+    protected function update_ldap_for_targets($attributes)
+    {
+        $ldap = $this->config->get_ldap_link();
+        
+        foreach ($this->a_targets as $target) {
+            $mac = LDAP::prepare4filter($target['mac']);   
+            
+            $ldap->cd($this->config->current['BASE']);
+            $ldap->search("(macAddress=$mac)", array('dn'), TRUE);
+            
+            while ($entry = $ldap->fetch()) {
+                $ldap->cd($entry['dn']);
+                $ldap->modify($attributes);
+            }
+        }
+    }
 }
 
 // vim:tabstop=2:expandtab:shiftwidth=2:filetype=php:syntax:ruler:

@@ -64,6 +64,12 @@ class DaemonEvent_localboot extends DaemonEvent
     {
         DaemonEvent::save_object();
     }
+    
+    /* Set FAISTATE for immediate feedback */
+    public function perform_ldap_changes()
+    {
+        $this->update_ldap_for_targets(array('FAIstate' => 'localboot'));
+    }
 } 
 // vim:tabstop=2:expandtab:shiftwidth=2:filetype=php:syntax:ruler:
 ?>
