@@ -76,7 +76,7 @@ class DaemonEvent_reinstall extends DaemonEvent
     /* Set FAISTATE for immediate feedback */
     public function perform_ldap_changes()
     {
-        $this->update_faistate_for_targets('install');
+        $this->update_ldap_for_targets(array('FAIstate' => 'install'));
     }
 } 
 // vim:tabstop=2:expandtab:shiftwidth=2:filetype=php:syntax:ruler:

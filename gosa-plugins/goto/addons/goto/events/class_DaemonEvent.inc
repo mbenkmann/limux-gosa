@@ -700,8 +700,8 @@ class DaemonEvent
     public function perform_ldap_changes()
     {
     }
-
-    protected function update_faistate_for_targets($faistate)
+    
+    protected function update_ldap_for_targets($attributes)
     {
         $ldap = $this->config->get_ldap_link();
         
@@ -713,7 +713,7 @@ class DaemonEvent
             
             while ($entry = $ldap->fetch()) {
                 $ldap->cd($entry['dn']);
-                $ldap->modify(array('FAIstate' => $faistate));
+                $ldap->modify($attributes);
             }
         }
     }

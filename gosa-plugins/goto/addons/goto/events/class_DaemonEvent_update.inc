@@ -67,7 +67,7 @@ class DaemonEvent_update extends DaemonEvent
     /* Set FAISTATE for immediate feedback */
     public function perform_ldap_changes()
     {
-        $this->update_faistate_for_targets('softupdate');
+        $this->update_ldap_for_targets(array('FAIstate' => 'softupdate'));
     }
 } 
 // vim:tabstop=2:expandtab:shiftwidth=2:filetype=php:syntax:ruler:
