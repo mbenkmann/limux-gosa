@@ -63,6 +63,11 @@ class DaemonEvent_lock extends DaemonEvent
     {
         DaemonEvent::save_object();
     }
+    
+    public function perform_ldap_changes()
+    {
+        $this->update_ldap_for_targets(array('gotoMode' => 'locked'));
+    }
 } 
 // vim:tabstop=2:expandtab:shiftwidth=2:filetype=php:syntax:ruler:
 ?>

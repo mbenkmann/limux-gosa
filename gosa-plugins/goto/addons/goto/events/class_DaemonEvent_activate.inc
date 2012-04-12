@@ -63,6 +63,11 @@ class DaemonEvent_activate extends DaemonEvent
     {
         DaemonEvent::save_object();
     }
+    
+    public function perform_ldap_changes()
+    {
+        $this->update_ldap_for_targets(array('gotoMode' => 'active'));
+    }
 } 
 // vim:tabstop=2:expandtab:shiftwidth=2:filetype=php:syntax:ruler:
 ?>
