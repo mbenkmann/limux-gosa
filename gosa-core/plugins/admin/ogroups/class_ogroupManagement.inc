@@ -174,21 +174,30 @@ class ogroupManagement extends management
     }
     
     protected function saveChanges()
+    {        
+        /* User clicked 'OK' in member inheritance dialog */
+        if ($this->dialogObject) {
+            return $this->memberInheritanceDialogAnswered();
+        }
+        
+        /* User clicked 'OK' in object group tabs */        
+        $this->applyOnly = false;
+        return $this->displayMemberInheritanceDialog();
+    }
+    
+    private function displayMemberInheritanceDialog()
     {
         $ogroup = $this->tabObject->by_object['ogroup'];
         $has_systems = isset($this->tabObject->by_object['termgroup']);
         $added = $ogroup->getAddedMembers();
         
-        /* No new (system) members, just save changes */
+        /* No new (system) members, just apply changes */
         if (!$has_systems || empty($added)) {
-            return parent::saveChanges();
-        }
-        
-        /* Save new member inheritance dialog */
-        if ($this->dialogObject) {
-            $enabled = $this->dialogObject->getEnabledMembers();
-            $ogroup->inheritAll($enabled);
-            return parent::saveChanges();
+            if ($this->applyOnly) {
+                return parent::applyChanges();
+            } else {
+                return parent::saveChanges();
+            }
         }
         
         /* Validate object group attributes now to prevent error messages later */
@@ -202,6 +211,28 @@ class ogroupManagement extends management
         /* Show new member inheritance dialog */
         $this->dialogObject = new MemberInheritanceDialog($this->config, $added);
         $this->displayApplyBtn = false;
+    }
+    
+    private function memberInheritanceDialogAnswered()
+    {
+        $ogroup = $this->tabObject->by_object['ogroup'];
+        $enabled = $this->dialogObject->getEnabledMembers();
+        $ogroup->inheritAll($enabled);
+        
+        if ($this->applyOnly) {
+            $this->dialogObject = null;
+            $this->displayApplyBtn = true;
+            return parent::applyChanges();
+        } else {
+            return parent::saveChanges();
+        }        
+    }
+    
+    protected function applyChanges($re_init = TRUE)
+    {
+        /* User clicked 'Apply' in object group tabs */
+        $this->applyOnly = true;
+        return $this->displayMemberInheritanceDialog();
     }
     
     static function filterProperties($row, $gosaGroupObjects)
