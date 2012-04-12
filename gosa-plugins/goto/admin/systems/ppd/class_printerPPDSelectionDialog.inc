@@ -112,14 +112,20 @@ class printerPPDSelectionDialog extends plugin
 
         }else{
             $data[] = array('TYPE' => 'VENDOR' , 'ID' => '..');
-            $lData[] = array('data'=>array(".. ["._("back")."]"));
+            $lData[] = array(
+                'data'=>array(".. ["._("back")."]"),
+                'actions'=>array('delete' => false)
+            );
 
             $this->ppdList->setDeleteable(true);
             foreach($list as $key => $ppd){
                 $name = $ppd['ppd']['name'];
                 if(preg_match("/^".$this->Vendor."/", $name)){
                     $data[$key] = array('TYPE' => 'PPD' , 'ID' => $key);
-                    $lData[$key] = array('data'=>array($name));
+                    $lData[$key] = array(
+                      'data'=>array($name),
+                      'actions'=>array('delete' => is_writable($ppd['link'])),
+                    );
                 }
             }
         }
