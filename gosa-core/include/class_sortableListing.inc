@@ -142,6 +142,7 @@ class sortableListing {
         // Transfer information
         $this->displayData= array();
         $this->modes= array();
+        $this->actions = array();
         $this->mapping= array();
         foreach ($data as $key => $value) {
             $this->displayData[]= $value['data'];
