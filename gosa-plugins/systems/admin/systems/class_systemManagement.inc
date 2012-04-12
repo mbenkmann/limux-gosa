@@ -571,6 +571,7 @@ class systemManagement extends management
                     if($o_queue->is_error()){
                         msg_dialog::display(_("Service infrastructure"),msgPool::siError($o_queue->get_error()),ERROR_DIALOG);
                     }else{
+                        $this->dialogObject->perform_ldap_changes();
                         $this->closeDialogs();
                     }
                 }else{

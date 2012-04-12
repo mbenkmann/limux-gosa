@@ -72,6 +72,12 @@ class DaemonEvent_reinstall extends DaemonEvent
         $display.= $this->get_footer();
         return($display);
     }
+    
+    /* Set FAISTATE for immediate feedback */
+    public function perform_ldap_changes()
+    {
+        $this->update_faistate_for_targets('install');
+    }
 } 
 // vim:tabstop=2:expandtab:shiftwidth=2:filetype=php:syntax:ruler:
 ?>
