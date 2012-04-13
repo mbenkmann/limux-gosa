@@ -115,6 +115,10 @@ class faiPackage extends plugin
 
     /* Check weither its allowed to directly add packages */
     $direct_packages_add = $config->search("faiManagement","direct_packages_add",array("menu"));
+    /* Force Release and Sections to the currently selected Defaults */
+    $this->FAIdebianRelease = $this->getRelease();
+    $this->FAIdebianSection = $this->getSections();
+
     if (preg_match("/^true$/i", $direct_packages_add) || preg_match("/yes/i", $direct_packages_add)) {
       $this->direct_packages_add = TRUE;
     }
@@ -212,23 +216,9 @@ class faiPackage extends plugin
     
     if(!$this->is_account){
 
-      /* Assemble release name */
-      $release = $this->parent->parent->fai_release;
-      $tmp= preg_replace('/[,]*'.preg_quote(get_ou("faiManagement", "faiBaseRDN"), '/').'.*$/i', '', $release);
-      $tmp= preg_replace('/ou=/', '', $tmp);
-      $rev= array_reverse(explode(',', $tmp));
-      $this->FAIdebianRelease= "/";
-      foreach ($rev as $part){
-        $this->FAIdebianRelease.= "/$part";
-      }
-      $this->FAIdebianRelease= preg_replace('#^[/]*#', '', $this->FAIdebianRelease);
+      $this->FAIdebianRelease = $this->getRelease();
 
-      /* Assemble sections */
-      $repos= $this->getServerInfos();
-      if(isset($repos[$this->FAIdebianRelease])){
-        $this->FAIdebianSection= $repos[$this->FAIdebianRelease];
-        $this->FAIdebianSection= array_unique($this->FAIdebianSection);
-      }
+      $this->FAIdebianSection = $this->getSections();
 
       /* Assign Repository settings*/ 
       $this->is_account     = true;
@@ -922,6 +912,44 @@ class faiPackage extends plugin
     return($ret);
   }
 
+  /*! \brief Assemble release name 
+    Returns the currently used Debian Release.
+   */ 
+  function getRelease()
+  {
+    /* Assemble release name */
+    if (isset($this->parent->parent->fai_release)) {
+      $release = $this->parent->parent->fai_release;
+    } else {
+      $release = $this->dn;
+      # Remove CN
+      $tmp = preg_replace('/cn='.$this->cn.',/', '', $release);
+      # Remove ou=packages
+      $release = preg_replace('/'.preg_quote(get_ou("faiPackage", "faiPackageRDN"), '/').'/', '', $tmp);
+    }
+    $tmp= preg_replace('/[,]*'.preg_quote(get_ou("faiManagement", "faiBaseRDN"), '/').'.*$/', '', $release);
+    $tmp= preg_replace('/ou=/', '', $tmp);
+    $rev= array_reverse(explode(',', $tmp));
+    $release = "/";
+    foreach ($rev as $part){
+      $release .= "/$part";
+    }
+    return(preg_replace('#^[/]*#', '', $release));
+  }
+
+  /*! \brief Assemble sections
+    Returns the currently used Debian archive sections.
+   */ 
+  function getSections()
+  {
+    $ret = array();
+    $repos= $this->getServerInfos();
+    if(isset($repos[$this->FAIdebianRelease])){
+      $ret = $repos[$this->FAIdebianRelease];
+      $ret = array_unique($ret);
+    }
+    return $ret;
+  }
 
   /*! \brief  Used for copy & paste.
     Returns a HTML input mask, which allows to change the cn of this entry.
