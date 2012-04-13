@@ -1628,7 +1628,7 @@ class plugin
 
     $ldap = $this->config->get_ldap_link();
     $ldap->cd ($this->config->current['BASE']);
-    $ldap->search("(&(objectClass=gosaGroupOfNames)(cn=*))",array("gosaGroupObjects","cn"));
+    $ldap->search("(&(objectClass=gosaGroupOfNames)(cn=*))",array("gosaGroupObjects","cn"), TRUE);
     $tmp= array("W" => array(),"T" => array(), "S" => array(),"O" => array());
     while($attrs = $ldap->fetch()){
       $tmp[preg_replace("/[\[\] ]/","",$attrs['gosaGroupObjects'][0])][$attrs['dn']] = $attrs['cn'][0];
