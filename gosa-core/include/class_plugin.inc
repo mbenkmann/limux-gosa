@@ -1640,6 +1640,76 @@ class plugin
       return array();
     }
   }
+  
+  protected function get_my_object_group()
+  {
+    $ogroups = get_list(
+      "(&(objectClass=gosaGroupOfNames)(member=".LDAP::prepare4filter($this->dn)."))", 
+      "ogroups",
+      array('dn')
+    );
+    if (isset($ogroups[0])) {
+      return $ogroups[0]['dn'];
+    } else {
+      return null;
+    }
+  }
+  
+  protected function update_object_group_from_form()
+  {
+    if (empty($_POST['ObjectGroup']) || $_POST['ObjectGroup'] === 'none') {
+      return;
+    }
+    
+    $new_og_dn = $_POST['ObjectGroup'];
+    $old_og_dn = $this->get_my_object_group();
+    
+    if ($old_og_dn) {
+      $this->remove_from_ogroup($old_og_dn);
+    }
+    
+    $this->add_to_ogroup($new_og_dn);
+  }
+  
+  private function add_to_ogroup($og_dn)
+  {
+    $ldap = $this->config->get_ldap_link();
+    $ldap->cat($og_dn);
+    $attrs = $ldap->fetch();
+    
+    if (isset($attrs['member'])) {
+      $members = $attrs['member'];
+      unset($members['count']);
+    } else {
+      $members = array();
+    }
+    
+    $members[] = $this->dn;
+    
+    $ldap->cd($og_dn);
+    $ldap->modify(array('member' => $members));    
+  }
+  
+  private function remove_from_ogroup($og_dn)
+  {
+    $ldap = $this->config->get_ldap_link();
+    $ldap->cat($og_dn);
+    $attrs = $ldap->fetch();
+    
+    $new_members = array();
+    foreach ($attrs['member'] as $index => $m_dn) {
+      if ($index != 'count' && $this->dn !== $m_dn) {
+        $new_members[] = $m_dn;
+      }
+    }
+        
+    $ldap->cd($og_dn);
+    $ldap->modify(array('member' => $new_members));    
+    if (!$ldap->success()){
+        msg_dialog::display(_("LDAP error"), msgPool::ldaperror($ldap->get_error(), $this->dn, LDAP_DEL, get_class()));
+    }
+    
+  }
 
 
   /*! \brief    Calls external hooks which are defined for this plugin (gosa.conf)
