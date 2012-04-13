@@ -30,24 +30,6 @@ class SelectDeviceType extends plugin
         }
     }
 
-    function get_object_groups($type) {
-      $map = array("gotoWorkstation" => "W","gotoTerminal" => "T","goServer" => "S", "FAKE_OC_OpsiHost" => "O");
-
-      $ldap = $this->config->get_ldap_link();
-      $ldap->cd ($this->config->current['BASE']);
-      $ldap->search("(&(objectClass=gosaGroupOfNames)(cn=*))",array("gosaGroupObjects","cn"));
-      $tmp= array("W" => array(),"T" => array(), "S" => array(),"O" => array());
-      while($attrs = $ldap->fetch()){
-        $tmp[preg_replace("/[\[\] ]/","",$attrs['gosaGroupObjects'][0])][$attrs['dn']] = $attrs['cn'][0];
-      }
-
-      if (isset($tmp[$map[$type]])) {
-        return $tmp[$map[$type]];
-      } else {
-        return array();
-      }
-    }
-
     /* Prepare smarty object for this class */
     function prepare_execute() {
       $smarty = get_smarty();
