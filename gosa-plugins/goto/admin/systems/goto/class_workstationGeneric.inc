@@ -348,6 +348,11 @@ class workgeneric extends plugin
         if(is_object($this->kerberos_key_service)){
             $smarty->assign("host_key",$this->kerberos_key_service->execute_by_prefix("host/"));
         }
+        
+        $ogroups = $this->get_object_groups('gotoWorkstation');
+        $smarty->assign("ogroups",         set_post($ogroups));
+        $smarty->assign("OgroupKeys",      set_post(array_flip($ogroups)));
+        $smarty->assign("ObjectGroup",     set_post($this->get_my_object_group()));
 
         /* Show main page */
         $smarty->assign("currently_installing", $this->currently_installing);
@@ -563,6 +568,8 @@ class workgeneric extends plugin
                 $this->gotoMode == "active" &&
                 tests::is_ip($this->netConfigDNS->ipHostNumber)) || $this->auto_activate;
         plugin::save();
+        
+        $this->update_object_group_from_form();
 
         /* Strip out 'default' values */
         foreach (array("gotoSyslogServer") as $val){

@@ -49,6 +49,15 @@
 {/render}
      </td>
     </tr>
+	  <tr>
+	   <td><LABEL for="ObjectGroup">{t}Object group{/t}</LABEL></td>
+	   <td>
+       <select name="ObjectGroup" title="{t}Select object group{/t}" size="1" style="width: 250px;">
+           <option value='none'>{t}none{/t}</option>
+           {html_options values=$OgroupKeys output=$ogroups selected=$ObjectGroup}
+       </select>
+	   </td>
+	  </tr>
     <tr>
     <td><LABEL for="comments">{t}Comment{/t}</LABEL></td>
     <td>
