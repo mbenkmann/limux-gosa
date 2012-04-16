@@ -16,7 +16,8 @@ class MemberInheritanceDialog
         $this->memberList->setWidth("100%");
         $this->memberList->setHeight("300px");
         $this->memberList->setColspecs(array('20px', '*'));
-        $this->memberList->setHeader(array("&nbsp;", _("System")));
+        $this->memberList->setHeader(array("<input type='checkbox' id='member-checkbox-all' checked>",                 
+                                     _("System")));
         $this->memberList->setDefaultSortColumn(1);
         $this->memberList->setAcl('r'); // All ACLs, we filter on our own here.
         
@@ -29,7 +30,7 @@ class MemberInheritanceDialog
         $entry = $ldap->fetch();
         $cn = $entry['cn'][0];
         
-        $checkbox_html = "<input class='center' type='checkbox' checked".
+        $checkbox_html = "<input class='center member-checkbox' type='checkbox' checked".
                          " name='members[]' value='" . set_post($dn). "'>";
         
         return array('data' => array($checkbox_html, $cn));
