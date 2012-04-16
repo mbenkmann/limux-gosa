@@ -773,11 +773,18 @@ class ogroup extends plugin
                     continue;
                 }
                 
+                $new_attrs = array();
+                                
                 foreach ($og_obj->attributes as $a) {
                     if (isset($og_obj->attrs[$a]) && !isset($m_attrs[$a])) {
-                        $ldap->modify(array($a => $og_obj->attrs[$a]));
+                        $og_value = $og_obj->attrs[$a];
+                        unset($og_value['count']);
+                        
+                        $new_attrs[$a] = $og_value;
                     }
                 }
+                
+                $ldap->modify($new_attrs);
             }
         }
 
