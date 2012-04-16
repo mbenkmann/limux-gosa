@@ -543,8 +543,6 @@ class workstartup extends plugin
 
             $smarty->assign("FAIservers"  ,    set_post($this->cache['SERVERS']));
             $smarty->assign("FAIdebianMirror", set_post($this->FAIdebianMirror));
-            $smarty->assign("FAIrelease"  ,    set_post($this->FAIrelease));
-            $smarty->assign("FAIclasses"  ,    set_post($this->selectable_classes()));
 
             /* Get classes for release from cache.
              * Or build cache
@@ -552,18 +550,39 @@ class workstartup extends plugin
             if($this->FAIdebianMirror == "inherited"){
                 $release = $this->InheritedFAIrelease;
             }else{
+                if ($this->InheritedFAIdebianMirror != "auto" && empty($this->FAIclass)) {
+                    /* FAIdebianMirror got set from inherited to something else, try to 
+                       carry over the inherited release if it is available on the mirror */
+                    if (isset($this->cache['SERVERS'][$this->FAIdebianMirror][$this->InheritedFAIrelease])) {
+                        $this->FAIrelease = $this->InheritedFAIrelease;
+                    } else {
+                        msg_dialog::display(_("Warning"), sprintf(_("The selected FAI server does not carry the previously inherited release, FAI release got reset from %s to %s!"), $this->InheritedFAIrelease, $this->FAIrelease), WARNING_DIALOG);
+                    }
+                }
                 $release = $this->FAIrelease;
             }
 
             $smarty->assign("gotoBootKernels", set_post($this->cache['KERNELS'][$release]));
+            $smarty->assign("FAIrelease"  ,    set_post($this->FAIrelease));
             $smarty->assign("InheritedFAIrelease", set_post($this->InheritedFAIrelease));
 
             /* Get classes */
             if($this->FAIdebianMirror == "inherited"){
                 $tmp = $this->InheritedFAIclass;
             }else{
-                $tmp = $this->FAIclass;
+                if ($this->InheritedFAIdebianMirror != "auto" && empty($this->FAIclass)) { 
+                    /* FAIdebianMirror got set from inherited to something else, carry over
+                       all previously inherited FAI classes */
+                    foreach($this->InheritedFAIclass as $class) {
+                        $this->FAIclass[$class] = $class;
+                    }
+                    $tmp = $this->InheritedFAIclass;
+                } else {
+                    $tmp = $this->FAIclass;
+                }
             }
+
+            $smarty->assign("FAIclasses"  ,    set_post($this->selectable_classes()));
 
             /* Get invalid classes */
             $invalid = $this->get_invalid_classes($tmp);
