@@ -1,5 +1,10 @@
-{t}The members checked in the list below will inherit all settings from this object group{/t}:
+<div class="mainlist-header">
+  <p>{t}Inheriting settings for new object group members{/t}</p>
+</div>
 
+<p>
+  {t}The members checked in the list below will inherit all settings from this object group{/t}:
+</p>
 {$list}
 
 <script>
