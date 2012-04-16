@@ -1657,18 +1657,24 @@ class plugin
   
   protected function update_object_group_from_form()
   {
-    if (empty($_POST['ObjectGroup']) || $_POST['ObjectGroup'] === 'none') {
+    if (empty($_POST['ObjectGroup'])) {
       return;
     }
     
-    $new_og_dn = $_POST['ObjectGroup'];
+    $new_og_dn = ($_POST['ObjectGroup'] === 'none' ? null : $_POST['ObjectGroup']);
     $old_og_dn = $this->get_my_object_group();
+    
+    if ($old_og_dn === $new_og_dn) {
+      return;
+    }
     
     if ($old_og_dn) {
       $this->remove_from_ogroup($old_og_dn);
     }
     
-    $this->add_to_ogroup($new_og_dn);
+    if ($new_og_dn) {
+      $this->add_to_ogroup($new_og_dn);
+    }
   }
   
   private function add_to_ogroup($og_dn)
