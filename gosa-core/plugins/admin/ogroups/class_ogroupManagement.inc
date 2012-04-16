@@ -210,7 +210,18 @@ class ogroupManagement extends management
         
         /* Show new member inheritance dialog */
         $this->dialogObject = new MemberInheritanceDialog($this->config, $added);
-        $this->displayApplyBtn = false;
+    }
+    
+    protected function _getTabFooter()
+    {
+        if (!$this->dialogObject) {
+            return parent::_getTabFooter();
+        }
+        
+        $str = "<p style=\"text-align:right\">\n";
+        $str.= "<button type=\"submit\" name=\"edit_finish\">".msgPool::okButton()."</button>\n";
+        $str.= "&nbsp;\n";
+        return $str;
     }
     
     private function memberInheritanceDialogAnswered()
@@ -221,7 +232,6 @@ class ogroupManagement extends management
         
         if ($this->applyOnly) {
             $this->dialogObject = null;
-            $this->displayApplyBtn = true;
             return parent::applyChanges();
         } else {
             return parent::saveChanges();
