@@ -51,7 +51,11 @@ class MemberInheritanceDialog
         
     public function getEnabledMembers()
     {
-        return get_post('members');
+        if (isset($_POST['members'])) {
+            return get_post('members');
+        } else {
+            return array();
+        }
     }
     
 }
