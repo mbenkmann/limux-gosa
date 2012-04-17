@@ -62,7 +62,8 @@ class application extends plugin
         $this->base= dn2base($ui->dn);
       }
     } else {
-      $this->base= preg_replace ("/^[^,]+,".preg_quote(get_ou("application", "applicationRDN"), '/')."/i", "", $this->dn);
+      preg_match ("/".preg_quote(get_ou("application", "applicationRDN"), '/')."(.+$)/", $this->dn, $match);
+      $this->base= $match[1];
     }
 
     $this->orig_cn = $this->cn;
