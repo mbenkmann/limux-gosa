@@ -1666,34 +1666,25 @@ class plugin
     
     if ($old_og_dn === $new_og_dn) {
       return;
+    } 
+    
+    /* Remove from object group and copy inherited settings */
+    if ($old_og_dn && !$new_og_dn) {
+      $ogroup = new ogrouptabs($this->config, $this->config->data['TABS']['OGROUPTABS'], $old_og_dn);
+      unset($ogroup->by_object['ogroup']->memberList[$this->dn]);
+      unset($ogroup->by_object['ogroup']->member[$this->dn]);
+      $ogroup->save();
+      return;
     }
     
+    /* Remove from object group and keep inheritance */
     if ($old_og_dn) {
       $this->remove_from_ogroup($old_og_dn);
     }
     
-    if ($new_og_dn) {
-      $this->add_to_ogroup($new_og_dn);
-    }
-  }
-  
-  private function add_to_ogroup($og_dn)
-  {
-    $ldap = $this->config->get_ldap_link();
-    $ldap->cat($og_dn);
-    $attrs = $ldap->fetch();
-    
-    if (isset($attrs['member'])) {
-      $members = $attrs['member'];
-      unset($members['count']);
-    } else {
-      $members = array();
-    }
-    
-    $members[] = $this->dn;
-    
-    $ldap->cd($og_dn);
-    $ldap->modify(array('member' => $members));    
+    $og = new ogroup($this->config, $new_og_dn);
+    $og->AddDelMembership($this->dn);
+    $og->save();
   }
   
   private function remove_from_ogroup($og_dn)
@@ -1713,10 +1704,8 @@ class plugin
     $ldap->modify(array('member' => $new_members));    
     if (!$ldap->success()){
         msg_dialog::display(_("LDAP error"), msgPool::ldaperror($ldap->get_error(), $this->dn, LDAP_DEL, get_class()));
-    }
-    
+    }    
   }
-
 
   /*! \brief    Calls external hooks which are defined for this plugin (gosa.conf)
    *            Replaces placeholder by class values of this plugin instance.

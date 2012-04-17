@@ -425,6 +425,8 @@ class servgeneric extends plugin
             $this->attrs= $attrs;
         }
 
+        $this->update_object_group_from_form();
+
         /* Write back to ldap */
         $ldap= $this->config->get_ldap_link();
         if ($this->orig_dn == 'new'){
@@ -456,8 +458,6 @@ class servgeneric extends plugin
 
         /* Optionally execute a command after we're done */
         $this->handle_post_events($mode,array("macAddress" => $this->netConfigDNS->macAddress,"ipHostNumber" => $this->netConfigDNS->ipHostNumber));
-
-        $this->update_object_group_from_form();
 
         if ($activate){
 

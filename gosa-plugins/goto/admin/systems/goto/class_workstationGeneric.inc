@@ -569,8 +569,6 @@ class workgeneric extends plugin
                 tests::is_ip($this->netConfigDNS->ipHostNumber)) || $this->auto_activate;
         plugin::save();
         
-        $this->update_object_group_from_form();
-
         /* Strip out 'default' values */
         foreach (array("gotoSyslogServer") as $val){
 
@@ -619,6 +617,8 @@ class workgeneric extends plugin
         if($this->cn == "wdefault"){
             $this->netConfigDNS->macAddress = "-";
         }
+
+        $this->update_object_group_from_form();
 
         /* Write back to ldap */
         $ldap= $this->config->get_ldap_link();
