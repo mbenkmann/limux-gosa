@@ -239,6 +239,11 @@ class servgeneric extends plugin
         if(is_object($this->kerberos_key_service)){
             $smarty->assign("host_key",$this->kerberos_key_service->execute_by_prefix("host/"));
         }
+        $ogroups = $this->get_object_groups('goServer');
+        $smarty->assign("ogroups",         set_post($ogroups));
+        $smarty->assign("OgroupKeys",      set_post(array_flip($ogroups)));
+        $smarty->assign("ObjectGroup",     set_post($this->get_my_object_group()));
+        
 
         return($smarty->fetch (get_template_path('server.tpl', TRUE)));
     }
@@ -419,6 +424,8 @@ class servgeneric extends plugin
             }
             $this->attrs= $attrs;
         }
+
+        $this->update_object_group_from_form();
 
         /* Write back to ldap */
         $ldap= $this->config->get_ldap_link();
