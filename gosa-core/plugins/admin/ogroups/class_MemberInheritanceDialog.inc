@@ -20,6 +20,7 @@ class MemberInheritanceDialog
                                      _("System")));
         $this->memberList->setDefaultSortColumn(1);
         $this->memberList->setAcl('r'); // All ACLs, we filter on our own here.
+        $this->memberList->setReorderable(TRUE);
         
     }
     
@@ -50,7 +51,11 @@ class MemberInheritanceDialog
         
     public function getEnabledMembers()
     {
-        return get_post('members');
+        if (isset($_POST['members'])) {
+            return get_post('members');
+        } else {
+            return array();
+        }
     }
     
 }
