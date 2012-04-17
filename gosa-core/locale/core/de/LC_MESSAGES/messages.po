@@ -7026,3 +7026,9 @@ msgstr "Willkommen bei GOsa"
 #~ msgstr ""
 #~ "#~ \"Mitglieder kopieren. Warnung: Systeme können nur von einer einzelnen "
 #~ "\"#~ \"Gruppe erben!\""
+
+msgid "The members checked in the list below will inherit all settings from this object group"
+msgstr "Die aktivierten Mitglieder in dieser Liste werden alle Einstellungen dieser Objektgruppe erben"
+
+msgid "Inheriting settings for new object group members"
+msgstr "Einstellungen in neue Objektgruppen-Mitglieder übernehmen"
