@@ -1623,6 +1623,89 @@ class plugin
     }
   }
 
+  protected function get_object_groups($type) {
+    $map = array("gotoWorkstation" => "W","gotoTerminal" => "T","goServer" => "S", "FAKE_OC_OpsiHost" => "O");
+
+    $ldap = $this->config->get_ldap_link();
+    $ldap->cd ($this->config->current['BASE']);
+    $ldap->search("(&(objectClass=gosaGroupOfNames)(cn=*))",array("gosaGroupObjects","cn"), TRUE);
+    $tmp= array("W" => array(),"T" => array(), "S" => array(),"O" => array());
+    while($attrs = $ldap->fetch()){
+      $tmp[preg_replace("/[\[\] ]/","",$attrs['gosaGroupObjects'][0])][$attrs['dn']] = $attrs['cn'][0];
+    }
+
+    if (isset($tmp[$map[$type]])) {
+      return $tmp[$map[$type]];
+    } else {
+      return array();
+    }
+  }
+  
+  protected function get_my_object_group()
+  {
+    $ogroups = get_list(
+      "(&(objectClass=gosaGroupOfNames)(member=".LDAP::prepare4filter($this->dn)."))", 
+      "ogroups",
+      array('dn')
+    );
+    if (isset($ogroups[0])) {
+      return $ogroups[0]['dn'];
+    } else {
+      return null;
+    }
+  }
+  
+  protected function update_object_group_from_form()
+  {
+    if (empty($_POST['ObjectGroup'])) {
+      return;
+    }
+    
+    $new_og_dn = ($_POST['ObjectGroup'] === 'none' ? null : $_POST['ObjectGroup']);
+    $old_og_dn = $this->get_my_object_group();
+    
+    if ($old_og_dn === $new_og_dn) {
+      return;
+    } 
+    
+    /* Remove from object group and copy inherited settings */
+    if ($old_og_dn && !$new_og_dn) {
+      $ogroup = new ogrouptabs($this->config, $this->config->data['TABS']['OGROUPTABS'], $old_og_dn);
+      unset($ogroup->by_object['ogroup']->memberList[$this->dn]);
+      unset($ogroup->by_object['ogroup']->member[$this->dn]);
+      $ogroup->save();
+      return;
+    }
+    
+    /* Remove from object group and keep inheritance */
+    if ($old_og_dn) {
+      $this->remove_from_ogroup($old_og_dn);
+    }
+    
+    $og = new ogroup($this->config, $new_og_dn);
+    $og->AddDelMembership($this->dn);
+    $og->save();
+  }
+  
+  private function remove_from_ogroup($og_dn)
+  {
+    $ldap = $this->config->get_ldap_link();
+    $ldap->cat($og_dn);
+    $attrs = $ldap->fetch();
+    
+    $new_members = array();
+    foreach ($attrs['member'] as $index => $m_dn) {
+      if ($index != 'count' && $this->dn !== $m_dn) {
+        $new_members[] = $m_dn;
+      }
+    }
+        
+    $ldap->cd($og_dn);
+    $ldap->modify(array('member' => $new_members));    
+    if (!$ldap->success()){
+        msg_dialog::display(_("LDAP error"), msgPool::ldaperror($ldap->get_error(), $this->dn, LDAP_DEL, get_class()));
+    }    
+  }
 
   /*! \brief    Calls external hooks which are defined for this plugin (gosa.conf)
    *            Replaces placeholder by class values of this plugin instance.
