@@ -20,6 +20,7 @@ class MemberInheritanceDialog
                                      _("System")));
         $this->memberList->setDefaultSortColumn(1);
         $this->memberList->setAcl('r'); // All ACLs, we filter on our own here.
+        $this->memberList->setReorderable(TRUE);
         
     }
     
