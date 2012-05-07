@@ -416,6 +416,25 @@ class faiManagement extends management
       }
     }
   }
+  
+  /*! \brief Returns profiles the given class is in */
+  private function getProfilesOfClass($class)
+  {
+    $ldap = $this->config->get_ldap_link();
+    $ldap->cd($this->config->current['BASE']); 
+    
+    $ldap->search('(objectClass=FAIprofile)', array(), TRUE);
+               
+    $profiles = array();
+    while ($profile = $ldap->fetch()) {
+      $profile_classes = explode(' ', $profile['FAIclass'][0]);
+      if (in_array_strict($class, $profile_classes)) {
+        $profiles[] = $profile['cn'][0];
+      }
+    }
+    
+    return array_unique($profiles);
+  }
 
 
   /*! \brief   Someone wants to remove some object(s)
@@ -427,7 +446,7 @@ class faiManagement extends management
     $this->cancelEdit();
 
     // Do not allow to remove objects with state freeezed
-    $errors = $disallowed = array();
+    $errors = $disallowed = $used_in_profiles = array();
   
     foreach($to_delete as $obj){
       $type = $this->get_type($obj);
@@ -439,6 +458,11 @@ class faiManagement extends management
       }else{
         $this->dns[] = $obj['dn'];
       }
+      
+      $profiles = $this->getProfilesOfClass($obj['cn'][0]);
+      foreach ($profiles as $profile) {
+        $used_in_profiles[] = array($profile, $obj['cn'][0]);
+      }
     }
     if(count($errors)){
       msg_dialog::display(_("Branch locked"),
@@ -447,6 +471,21 @@ class faiManagement extends management
     if(count($disallowed)){ 
       msg_dialog::display(_("Permission error"), msgPool::permDelete($disallowed), ERROR_DIALOG);
     }
+    
+    if (count($used_in_profiles)) {
+      $formatted_list = ' ';
+    
+      foreach ($used_in_profiles as $v) {
+        list($profile, $class) = $v;
+        $formatted_list .= '<li>' . sprintf(_("Class <strong>%s</strong> in profile <strong>%s</strong>"), $class, $profile) . '</li>';
+      }
+      
+      msg_dialog::display(_("Classes used in profiles"),
+          _("The following entries are used in profiles, you can't remove them:") . 
+          " <ul>" . $formatted_list . "</ul>", ERROR_DIALOG);
+    }
+    
+    
 
     // Check entry locking
     $smarty = get_smarty();
