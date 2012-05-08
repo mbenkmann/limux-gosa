@@ -663,7 +663,7 @@ class userManagement extends management
 
             // Adapt template values.
             $template_dn              = get_post('template');
-            $this->tabObject->adapt_from_template($template_dn, array("uid","cn","givenName","sn"));
+            $this->tabObject->adapt_from_template($template_dn, array("uid","cn","givenName","sn","homeDirectory"));
             $template_base            = preg_replace("/^[^,]+,".preg_quote(get_people_ou(), '/i')."/", '', $template_dn);
             $this->tabObject->by_object['user']->base= $template_base;
 
