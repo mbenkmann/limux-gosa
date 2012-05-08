@@ -716,7 +716,7 @@ class userManagement extends management
                 $acl = $this->ui->get_permissions($dn,  $this->aclCategory."/".$this->aclPlugin);
                 if (preg_match('/w/', $acl)){
                     $this->tabObject= new $tab($this->config, $this->config->data['TABS'][$this->tabType], $dn, $this->aclCategory);
-                    $this->tabObject->adapt_from_template($template, array("sn", "givenName", "uid"));
+                    $this->tabObject->adapt_from_template($template, array("sn", "givenName", "uid", "homeDirectory"));
                     $this->tabObject->save();
                 } else {
                     msg_dialog::display(_("Permission error"), msgPool::permModify($dn), ERROR_DIALOG);
