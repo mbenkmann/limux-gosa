@@ -2047,3 +2047,12 @@ msgstr "Dienste"
 
 #~ msgid "Add repository"
 #~ msgstr "Repository hinzufügen"
+
+msgid "Classes used in profiles"
+msgstr "Klassen werden in Profilen benutzt"
+
+msgid "The following entries are used in profiles, you can't remove them:"
+msgstr "Die folgenden Einträge werden in Profilen benutzt und können nicht entfernt werden:"
+
+msgid "Class <strong>%s</strong> in profile <strong>%s</strong>"
+msgstr "Klasse <strong>%s</strong> in Profil <strong>%s</strong>"
