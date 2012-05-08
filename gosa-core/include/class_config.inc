@@ -691,7 +691,7 @@ class config  {
         /* Get samba servers from LDAP, in case of samba3 */
         $this->data['SERVERS']['SAMBA']= array();
         $ldap->cd ($this->current['BASE']);
-        $ldap->search ("(objectClass=sambaDomain)", array(), TRUE);
+        $ldap->search ("(objectClass=sambaDomain)", array(), TRUE, TRUE);
         while ($attrs= $ldap->fetch()){
             $this->data['SERVERS']['SAMBA'][$attrs['sambaDomainName'][0]]= array( "SID" =>"","RIDBASE" =>"");
             if(isset($attrs["sambaSID"][0])){
