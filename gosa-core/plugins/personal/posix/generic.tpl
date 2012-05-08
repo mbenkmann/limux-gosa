@@ -4,6 +4,7 @@
 
    <h3>{t}Generic{/t}</h3>
    <table summary="{t}Generic settings{/t}">
+   {if !$is_template}
     <tr>
      <td><label for="homeDirectory">{t}Home directory{/t}</label>{$must}</td>
      <td>
@@ -12,6 +13,7 @@
       {/render}
      </td>
     </tr>
+    {/if}
     <tr>
      <td><label for="loginShell">{t}Shell{/t}</label></td>
      <td>
