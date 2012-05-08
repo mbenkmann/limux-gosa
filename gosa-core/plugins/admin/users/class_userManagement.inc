@@ -663,7 +663,7 @@ class userManagement extends management
 
             // Adapt template values.
             $template_dn              = get_post('template');
-            $this->tabObject->adapt_from_template($template_dn, array("uid","cn","givenName","sn"));
+            $this->tabObject->adapt_from_template($template_dn, array("uid","cn","givenName","sn","homeDirectory"));
             $template_base            = preg_replace("/^[^,]+,".preg_quote(get_people_ou(), '/i')."/", '', $template_dn);
             $this->tabObject->by_object['user']->base= $template_base;
 
@@ -716,7 +716,7 @@ class userManagement extends management
                 $acl = $this->ui->get_permissions($dn,  $this->aclCategory."/".$this->aclPlugin);
                 if (preg_match('/w/', $acl)){
                     $this->tabObject= new $tab($this->config, $this->config->data['TABS'][$this->tabType], $dn, $this->aclCategory);
-                    $this->tabObject->adapt_from_template($template, array("sn", "givenName", "uid"));
+                    $this->tabObject->adapt_from_template($template, array("sn", "givenName", "uid", "homeDirectory"));
                     $this->tabObject->save();
                 } else {
                     msg_dialog::display(_("Permission error"), msgPool::permModify($dn), ERROR_DIALOG);

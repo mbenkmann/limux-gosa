@@ -503,6 +503,7 @@ class posixAccount extends plugin
     $smarty->assign("sshPublicKey", $this->ssh?1:0);
 
     $smarty->assign("multiple_support" , $this->multiple_support_active);
+    $smarty->assign("is_template" , $this->is_template);
     $display.= $smarty->fetch (get_template_path('generic.tpl', TRUE, dirname(__FILE__)));
     return($display);
   }
@@ -865,11 +866,15 @@ class posixAccount extends plugin
     $this->attributes = $tmp_attributes;
 
     /* must: homeDirectory */
-    if ($this->homeDirectory == ""){
-      $message[]= msgPool::required(_("Home directory"));
-    }
-    if (!tests::is_path($this->homeDirectory)){
-      $message[]= msgPool::invalid(_("Home directory"), "", "", "/home/yourname" );
+    if ($this->is_template) {
+      $this->homeDirectory = 'HOME_DIRECTORY_TEMPLATE';
+    } else {
+      if ($this->homeDirectory == ""){
+        $message[]= msgPool::required(_("Home directory"));
+      }
+      if (!tests::is_path($this->homeDirectory)){
+        $message[]= msgPool::invalid(_("Home directory"), "", "", "/home/yourname" );
+      }
     }
 
     /* Check ID's if they are forced by user */
