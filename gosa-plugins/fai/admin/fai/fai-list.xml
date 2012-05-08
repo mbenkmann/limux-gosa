@@ -6,6 +6,7 @@
     <departmentRootVisible>false</departmentRootVisible>
     <baseMode>false</baseMode>
     <multiSelect>true</multiSelect>
+    <noAclChecks>true</noAclChecks>
     <template>fai-list.tpl</template>
     <module>fai</module>
     <label>List of deployment classes and products</label>
