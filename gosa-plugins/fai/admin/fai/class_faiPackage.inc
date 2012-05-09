@@ -225,7 +225,7 @@ class faiPackage extends plugin
     }
 
     // Display warning if release is not available, but only when the dialog is first opened
-    if (!isset($_POST['pluginModified']) && !empty($this->FAIdebianRelease)) {
+    if (!isset($_POST['pluginModified']) && !empty($this->FAIdebianRelease) && !preg_match("/freeze/",$this->FAIstate)) {
       $this->genPkgs();
       if (empty($this->buffer)) {
         msg_dialog::display(sprintf(_("Release unavailable: %s"), $this->FAIdebianRelease), 
