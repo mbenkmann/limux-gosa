@@ -72,7 +72,7 @@ class faiScript extends plugin
     $this->scriptListWidget->setInstantDelete(false);
     $this->scriptListWidget->setEditable(true);
     $this->scriptListWidget->setWidth("100%");
-    $this->scriptListWidget->setHeight("140px");
+    $this->scriptListWidget->setHeight("100%");
     $this->scriptListWidget->setHeader(array(_("Name"),_("Description")));
   }
 

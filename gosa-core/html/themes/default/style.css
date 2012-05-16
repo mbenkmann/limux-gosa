@@ -38,8 +38,6 @@ body, html {
   font-size:13px;
   font-family:"LiberationSans",Arial,Verdana,sans-serif;
   height:100%;
-  min-width:1000px;
-  min-height:700px;
 }
 
 span.highlight {
@@ -274,7 +272,6 @@ div.navigation {
   float:left;
   position:absolute;
   width:150px;
-  min-height:600px;
   padding-left:6px;
 }
 
@@ -282,8 +279,6 @@ div.plugin-area {
   position:relative;
   margin-left:164px;
   padding-right:6px;
-  min-height:600px;
-  min-width:700px;
   cursor:default;
 }
 
@@ -1745,7 +1740,6 @@ h2 {
 div.acl-viewer-container {
   border:1px solid #CCC;
   padding:1px;
-  height:100%;
   min-height:480px;
   overflow-x:hidden;
   overflow-y:auto;

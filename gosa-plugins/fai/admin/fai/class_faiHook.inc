@@ -64,7 +64,7 @@ class faiHook extends plugin
     $this->hookListWidget->setInstantDelete(false);
     $this->hookListWidget->setEditable(true);
     $this->hookListWidget->setWidth("100%");
-    $this->hookListWidget->setHeight("140px");
+    $this->hookListWidget->setHeight("100%");
     $this->hookListWidget->setHeader(array(_("Name"),_("Description")));
   }
 

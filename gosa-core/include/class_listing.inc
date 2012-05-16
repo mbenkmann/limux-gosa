@@ -310,7 +310,7 @@ class listing {
             $height= $this->height;
         }
 
-        $result.= "<div class='listContainer' id='d_scrollbody' style='height:{$height}px; overflow: auto;min-height:".($height+25)."px;'>\n";
+        $result.= "<div class='listContainer' id='d_scrollbody' style='height:{$height}px; overflow: auto;'>\n";
         $result.= "<table summary='$this->headline' style='width:100%;table-layout:fixed' cellspacing='0' cellpadding='0' id='t_scrolltable'>\n";
         $this->numColumns= count($this->colprops) + (($this->multiSelect|$this->singleSelect)?1:0);
 
