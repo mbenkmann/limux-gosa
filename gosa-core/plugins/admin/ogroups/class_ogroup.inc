@@ -727,38 +727,19 @@ class ogroup extends plugin
         return array_keys(array_diff($this->member, $this->original_members));
     }
 
-
-    /* Save to LDAP */
-    function save()
+    private function copyValuesToRemovedMembers()
     {
-        // Do not save members if we don't want to. 
-        // This may be the case if we've copied an ogroup containing systems!
-        if(!$this->copyMembers){
-            $this->member = array();
-            $this->reload();
-        }
-
-        plugin::save();
-
-        /* Move members to target array */
-        if(!$this->wasDyGroup && !$this->isRestrictedByDynGroup()){
-            $this->attrs['member'] =array();
-            foreach ($this->member as $key => $desc){
-                $this->attrs['member'][]= LDAP::fix($key);
-            }
-        }
-
         $ldap= $this->config->get_ldap_link();
-
-        /* New accounts need proper 'dn', propagate it to remaining objects */
-        if ($this->dn == 'new'){
-            $this->dn= 'cn='.$this->cn.','.get_ou("group", "ogroupRDN").$this->base;
-        }
         
+        /* Ensure we _can_ copy values */
+        if (!$this->parent) {
+            return;
+        }
+                  
         /* Compare original members and current members to determine 
-           removed members */
+        removed members */
         $removed = array_keys(array_diff($this->original_members, $this->member));
-
+      
         /* Copy inherited values into removed members */
         foreach ($removed as $m_dn) {
             
@@ -787,6 +768,37 @@ class ogroup extends plugin
                 $ldap->modify($new_attrs);
             }
         }
+    }
+
+    /* Save to LDAP */
+    function save()
+    {
+        // Do not save members if we don't want to. 
+        // This may be the case if we've copied an ogroup containing systems!
+        if(!$this->copyMembers){
+            $this->member = array();
+            $this->reload();
+        }
+
+        plugin::save();
+
+        /* Move members to target array */
+        if(!$this->wasDyGroup && !$this->isRestrictedByDynGroup()){
+            $this->attrs['member'] =array();
+            foreach ($this->member as $key => $desc){
+                $this->attrs['member'][]= LDAP::fix($key);
+            }
+        }
+
+        $ldap= $this->config->get_ldap_link();
+
+        /* New accounts need proper 'dn', propagate it to remaining objects */
+        if ($this->dn == 'new'){
+            $this->dn= 'cn='.$this->cn.','.get_ou("group", "ogroupRDN").$this->base;
+        }
+
+
+        $this->copyValuesToRemovedMembers();
 
         /* Save data. Using 'modify' implies that the entry is already present, use 'add' for
            new entries. So do a check first... */
