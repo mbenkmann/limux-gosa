@@ -114,6 +114,8 @@ class servgeneric extends plugin
                 }
             }
         }
+        
+        $this->ogroup = $this->get_my_object_group();
 
         /* Save dn for later references */
         $this->orig_dn   = $this->dn;
@@ -241,8 +243,8 @@ class servgeneric extends plugin
         }
         $ogroups = $this->get_object_groups('goServer');
         $smarty->assign("ogroups",         set_post($ogroups));
-        $smarty->assign("OgroupKeys",      set_post(array_flip($ogroups)));
-        $smarty->assign("ObjectGroup",     set_post($this->get_my_object_group()));
+        $smarty->assign("OgroupKeys",      set_post(array_flip($ogroups)));        
+        $smarty->assign("ogroup",          set_post($this->ogroup));
         
 
         return($smarty->fetch (get_template_path('server.tpl', TRUE)));
@@ -314,6 +316,11 @@ class servgeneric extends plugin
         if (isset($_POST['goComment'])) {
           $this->goComment = get_post("goComment");
         }
+
+        if(isset($_POST['ogroup'])) {
+          $this->ogroup = $_POST['ogroup'];
+        }        
+        
 
         /* Hanle kerberos host key plugin */
         if(is_object($this->kerberos_key_service)){
@@ -425,7 +432,6 @@ class servgeneric extends plugin
             $this->attrs= $attrs;
         }
 
-        $this->update_object_group_from_form();
 
         /* Write back to ldap */
         $ldap= $this->config->get_ldap_link();
@@ -455,6 +461,8 @@ class servgeneric extends plugin
         }
         $this->netConfigDNS->cn = $this->cn;
         $this->netConfigDNS->save();
+        
+        $this->update_object_group_from_form();
 
         /* Optionally execute a command after we're done */
         $this->handle_post_events($mode,array("macAddress" => $this->netConfigDNS->macAddress,"ipHostNumber" => $this->netConfigDNS->ipHostNumber));
