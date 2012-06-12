@@ -57,6 +57,7 @@ class printgeneric extends plugin
     var $view_logged    = FALSE;
     var $parent;
 
+    var $foreign_driver = FALSE;
 
     // Memeber dialog object
     var $userSelect;
@@ -415,7 +416,7 @@ class printgeneric extends plugin
                 $this->dialog = $this->PPDdialogToSave;
             }else{
                 $this->initial_PPD_URL = "";
-                if(is_array($this->gotoPrinterPPD)){
+                if(is_array($this->gotoPrinterPPD) || $this->foreign_driver){
                     $this->dialog = new printerPPDDialog($this->config, $this->dn,"");
                 }else{
                     $this->dialog = new printerPPDDialog($this->config, $this->dn,$this->gotoPrinterPPD);
@@ -587,6 +588,7 @@ class printgeneric extends plugin
             $smarty->assign("displayServerPath",true);
             if(!empty($this->gotoPrinterPPD)){
                 if($orig_server_name != "" && $server_name != $orig_server_name) {
+                  $this->foreign_driver = TRUE;
                   $smarty->assign("driverInfo", "<b>".sprintf(_("Printer got configured on remote server '%s', Editing Driver will overwrite settings."),$orig_server_name)."</b>");
             }else {
                 if((!file_exists($path.$this->gotoPrinterPPD))){
@@ -881,7 +883,7 @@ class printgeneric extends plugin
             }
         }
         if($this->orig_dn != $this->dn && $this->orig_dn != "new"){
-            if(!empty($this->gotoPrinterPPD)) {
+            if(!empty($this->gotoPrinterPPD) && !$this->foreign_driver) {
                 $this->PPDdialogToSave = new printerPPDDialog($this->config, $this->dn,$this->gotoPrinterPPD);
                 $this->PPDdialogToSave->cn = $this->cn;
                 $this->PPDdialogToSave->generateProperties();
@@ -891,7 +893,7 @@ class printgeneric extends plugin
 
         /* Remove previously selected ppd file.*/
         if($this->initial_PPD != $this->gotoPrinterPPD && $this->initially_was_account){
-            if(!empty($this->initial_PPD)){
+            if(!empty($this->initial_PPD) && !$this->foreign_driver){
                 $tmp = new printerPPDDialog($this->config, $this->dn,$this->initial_PPD);
                 $tmp->removeModifiedPPD();
             }
