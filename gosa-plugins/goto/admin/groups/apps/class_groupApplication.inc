@@ -709,6 +709,7 @@ class appgroup extends plugin
             foreach($cur as $key => $name){
                 if($name['NAME'] == $part){
                     $parent_id = $cur[$key]['UNIQID'];
+                    $cur[$key]['STATUS'] = 'ADDED';
                     $cur = &$cur[$key]['ENTRIES'];
 
                     $found =TRUE;
