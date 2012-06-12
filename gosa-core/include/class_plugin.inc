@@ -1657,11 +1657,11 @@ class plugin
   
   protected function update_object_group_from_form()
   {
-    if (empty($_POST['ObjectGroup'])) {
+    if (empty($this->ogroup)) {
       return;
     }
     
-    $new_og_dn = ($_POST['ObjectGroup'] === 'none' ? null : $_POST['ObjectGroup']);
+    $new_og_dn = ($this->ogroup === 'none' ? null : $this->ogroup);
     $old_og_dn = $this->get_my_object_group();
     
     if ($old_og_dn === $new_og_dn) {

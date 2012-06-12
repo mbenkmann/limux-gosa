@@ -50,11 +50,11 @@
      </td>
     </tr>
 	  <tr>
-	   <td><LABEL for="ObjectGroup">{t}Object group{/t}</LABEL></td>
+	   <td><LABEL for="ogroup">{t}Object group{/t}</LABEL></td>
 	   <td>
-       <select name="ObjectGroup" title="{t}Select object group{/t}" size="1" style="width: 250px;">
+       <select name="ogroup" title="{t}Select object group{/t}" size="1" style="width: 250px;">
            <option value='none'>{t}none{/t}</option>
-           {html_options values=$OgroupKeys output=$ogroups selected=$ObjectGroup}
+           {html_options values=$OgroupKeys output=$ogroups selected=$ogroup}
        </select>
 	   </td>
 	  </tr>

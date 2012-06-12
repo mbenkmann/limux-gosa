@@ -143,6 +143,8 @@ class workgeneric extends plugin
             if($server == "default") continue;
             $this->gotoNtpServers[$server] = $server;
         }
+        
+        $this->ogroup = $this->get_my_object_group();
 
         $this->modes["active"]= _("Activated");
         $this->modes["locked"]= _("Locked");
@@ -194,18 +196,20 @@ class workgeneric extends plugin
         plugin::set_acl_category($cat);
         $this->netConfigDNS->set_acl_category($cat);
     }
+    
+    public function inherit_ogroup($ogroup)
+    {
+        $this->member_of_ogroup = TRUE;
+        $this->ogroup = $ogroup;
+        $this->parent->by_object['workservice']->ogroup = $ogroup;
+        $this->set_everything_to_inherited();
+    }
 
     function execute()
     {
         /* Call parent execute */
         plugin::execute();
-
-        if ($this->ogroup) {
-          $this->member_of_ogroup = TRUE;
-          $this->parent->by_object['workservice']->ogroup = $this->ogroup;
-          $this->set_everything_to_inherited();
-        }
-
+        
         if($this->is_account && !$this->view_logged){
             $this->view_logged = TRUE;
             new log("view","workstation/".get_class($this),$this->dn);
@@ -352,7 +356,7 @@ class workgeneric extends plugin
         $ogroups = $this->get_object_groups('gotoWorkstation');
         $smarty->assign("ogroups",         set_post($ogroups));
         $smarty->assign("OgroupKeys",      set_post(array_flip($ogroups)));
-        $smarty->assign("ObjectGroup",     set_post($this->get_my_object_group()));
+        $smarty->assign("ogroup",          set_post($this->ogroup));
 
         /* Show main page */
         $smarty->assign("currently_installing", $this->currently_installing);
@@ -445,6 +449,10 @@ class workgeneric extends plugin
         if(isset($_POST['goComment'])) {
           $this->goComment = $_POST['goComment'];
         }
+
+        if(isset($_POST['ogroup'])) {
+          $this->ogroup = $_POST['ogroup'];
+        }        
 
         /* Hanle kerberos host key plugin */
         if(is_object($this->kerberos_key_service)){
@@ -618,8 +626,6 @@ class workgeneric extends plugin
             $this->netConfigDNS->macAddress = "-";
         }
 
-        $this->update_object_group_from_form();
-
         /* Write back to ldap */
         $ldap= $this->config->get_ldap_link();
         if ($this->orig_dn == 'new'){
@@ -673,12 +679,7 @@ class workgeneric extends plugin
             }
         }
 
-        /* If $this->ogroup is set add the new system to the requested ogroup */
-        if ($this->ogroup) {
-          $og = new ogroup($this->config, $this->ogroup);
-          $og->AddDelMembership($this->dn);
-          $og->save();
-        }
+        $this->update_object_group_from_form();
     }
 
 
