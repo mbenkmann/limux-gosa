@@ -262,12 +262,8 @@ class faiProfile extends plugin
 
             $this->classList->save_object();    
             $action = $this->classList->getAction();
-            if($action['action'] == 'reorder'){
+            if($action['action'] == 'reorder' || $action['action'] == 'delete'){
                 $this->FAIclasses = $this->classList->getMaintainedData();
-            }
-            if($action['action'] == 'delete'){
-                $s_entry = $this->classList->getKey($action['targets'][0]);
-                unset($this->FAIclasses[$s_entry]);
             }
         }
     }
