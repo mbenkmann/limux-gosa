@@ -1500,10 +1500,6 @@ class user extends plugin
       $this->pw_storage= $tmp->get_hash();
     }
 
-    /* Get base */
-    $this->base= preg_replace('/^[^,]+,'.preg_quote(get_people_ou(), '/').'/i', '', $dn);
-    $this->baseSelector->setBase($this->base);
-
     if($this->governmentmode){
 
       /* Walk through govattrs */
