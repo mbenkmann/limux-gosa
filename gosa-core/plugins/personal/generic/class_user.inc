@@ -877,6 +877,12 @@ class user extends plugin
        */
       $this->cn = $this->givenName." ".$this->sn;
     }
+    
+    if ($this->is_template && !empty($_POST['templateSn'])
+        && $this->acl_is_writeable('templateSn')) 
+    {
+      $this->sn = $_POST['templateSn'];
+    }
   }
 
   function rebind($ldap, $referral)
@@ -1500,10 +1506,6 @@ class user extends plugin
       $this->pw_storage= $tmp->get_hash();
     }
 
-    /* Get base */
-    $this->base= preg_replace('/^[^,]+,'.preg_quote(get_people_ou(), '/').'/i', '', $dn);
-    $this->baseSelector->setBase($this->base);
-
     if($this->governmentmode){
 
       /* Walk through govattrs */
@@ -1700,6 +1702,7 @@ class user extends plugin
         "plProvidedAcls" => array(
 
           "sn"                => _("Surname"),
+          "templateSn"        => _("Template name"),
           "givenName"         => _("Given name"),
           "uid"               => _("Login"),
 
