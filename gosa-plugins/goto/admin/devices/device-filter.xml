@@ -16,7 +16,7 @@
     <tag>default</tag>
     <label>Default filter</label>
     <query>
-      <backend>LDAP</backend>
+      <backend>DEVICES</backend>
       <filter>(&amp;(objectClass=gotoDevice)(cn=$))</filter>
     </query>
     <autocomplete>
