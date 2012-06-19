@@ -1100,7 +1100,9 @@ another location! */
             if($this->FAIdebianMirror != "inherited" && !isset($this->cache['SERVERS'][$this->FAIdebianMirror][$this->FAIrelease])){
 
                 if($this->FAIrelease != ""){
-                    trigger_error("There was a problem with the selected FAIrelease. This release ('".$this->FAIrelease."') is not available");
+		    $old_release = $this->FAIrelease;
+                    $this->FAIrelease = key($this->cache['SERVERS'][$this->FAIdebianMirror]);
+                    msg_dialog::display(_("Warning"), sprintf(_("There was a problem with the selected FAIrelease. This release ('%s') is not available, release set to '%s' instead"), $old_release, $this->FAIrelease), WARNING_DIALOG);
                 }
                 $this->FAIrelease = key($this->cache['SERVERS'][$this->FAIdebianMirror]);
             }
