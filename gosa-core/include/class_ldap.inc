@@ -170,13 +170,17 @@ class LDAP
             $map_file = $config->get_cfg_value("core", "ldapEncodingMap");
             
             if ($map_file) {
-                LDAP::$characterMap = parse_ini_file($map_file);
-                if (!LDAP::$characterMap) {
+                $json = file_get_contents($map_file);
+                if (!$json) {
                     die("Could not load LDAP encoding mapping file: $map_file");
+                }
+                LDAP::$characterMap = json_decode($json, TRUE);
+                if (!LDAP::$characterMap) {
+                    die("Failed to parse LDAP encoding map: $map_file");
                 }
             } else {
                 LDAP::$characterMap = detectLdapSpecialCharHandling();
-            
+                            
                 // Check if character-detection was successfull, if it wasn't use a fallback.
                 if(LDAP::$characterMap !== NULL){
                     LDAP::$characterMapRegFrom = array();
