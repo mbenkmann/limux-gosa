@@ -883,8 +883,8 @@ class systemManagement extends management
           if (isset($_POST['template_action'])) {
             $template_action = get_post("template_action");
             $this->reinstallationQueue["mode"] = $template_action;
-            $this->reinstallationQueue["targets"][] = $dn; 
-            if ($template_action != "none") {
+            $this->reinstallationQueue["targets"][] = $dn;
+            if ($template_action === "trigger_reinstall") {
               $data['skip_activation'] = FALSE;
             }
           } 
