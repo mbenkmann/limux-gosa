@@ -291,8 +291,29 @@ class servRepositorySetup  extends plugin
                 $i++;
             }
         }
-
-        $ret = array_merge($ret,$this->GetHookElements());
+        
+        /*
+        Mix in elements provided by hook. The hook provides names only. We search for these names from base c=de,
+        because the hook provided elements reside high up in the tree.
+        */
+        foreach($this->GetHookElements() as $servername) {
+            $ldap->cd("c=de");
+            $ldap->search("(&(objectClass=FAIrepositoryServer)(cn=$servername))",array("cn", "FAIrepository"));
+            while($attr = $ldap->fetch()){
+                $i = 0;
+                if($attr['cn'][0] == $this->cn || !isset($attr['FAIrepository'][0])) continue;
+                $ret[$attr['cn'][0]] = array($attr['cn'][0]);
+                while (isset($attr['FAIrepository'][$i])) {
+                    list($url, $foo, $release, $sections) = explode("|", $attr['FAIrepository'][$i]);
+                    $sections = explode(",", $sections);
+                    $entry['cn'] = $attr['cn'][0];
+                    $entry['release'] = $release;
+                    $entry['sections'] = $sections;
+                    array_push($ret[$attr['cn'][0]], $entry);
+                    $i++;
+                }
+            }
+        }
 
         $ret['none']= " ";
         asort($ret);
@@ -305,7 +326,15 @@ class servRepositorySetup  extends plugin
     function GetHookElements()
     {
         $ret = array();
-        $cmd = $this->config->get_cfg_value("servrepository", "repositoryBranchHook");
+        
+        /*
+          Die Funktion config->search() ist deprecated und man sollte stattdessen get_cfg_value() verwenden.
+          ABER WENN MAN DIESE ANPASSUNG MACHT MUSS MAN TESTEN OB ES NOCH FUNKTIONIERT. Der folgende Befehl
+          funktioniert NICHT:
+            $cmd = $this->config->get_cfg_value("servrepository", "repositoryBranchHook");
+          Ich habe keine Ahnung warum, aber liefert immer einen leeren String zurück.
+        */
+        $cmd = $this->config->search("servrepository", "repositoryBranchHook",array('tabs'));
         if(!empty($cmd)){
             $res = shell_exec($cmd);
             $res2 = trim($res);

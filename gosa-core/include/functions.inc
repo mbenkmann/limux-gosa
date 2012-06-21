@@ -24,7 +24,7 @@
  * Common functions and named definitions. */
 
 /* Define globals for revision comparing */
-$svn_path = '$HeadURL$';
+$svn_path = '$HeadURL: https://oss.gonicus.de/repositories/gosa/trunk/gosa-core/include/functions.inc $';
 $svn_revision = '$Revision$';
 
 /* Configuration file location */

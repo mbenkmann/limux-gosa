@@ -10,9 +10,13 @@ class faiHookEntry extends plugin
 
   var $orig_cn       = "";
   var $tasks         = array(
+                         "action",
                          "chboot",
                          "configure",
                          "debconf",
+                         "defclass",
+                         "defvar",
+                         "dirinstall",
                          "error",
                          "extrbase",
                          "faiend",

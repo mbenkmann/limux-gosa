@@ -159,7 +159,7 @@
   </definition>
 
   <table>
-    <layout>|20px;c|||150px|150px|150px;l|80px|170px;r|</layout>
+    <layout>|20px;c|180px|180px|140px|140px|140px;l|70px|140px;r|</layout>
 
     <department>
       <value>%{filter:objectType(dn,objectClass)}</value>
