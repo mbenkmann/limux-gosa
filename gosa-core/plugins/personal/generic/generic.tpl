@@ -81,7 +81,7 @@
    <table summary="{t}Account settings{/t}"> 
     <tr>
      <td><label for="sn">{t}Template name{/t}{$must}</label></td>
-     <td>{render acl=$snACL}<input type="text" id="sn" name="sn" maxlength=60 value="{$sn}">{/render}</td>
+     <td>{render acl=$templateSnACL}<input type="text" id="templateSn" name="templateSn" maxlength=60 value="{$sn}">{/render}</td>
     </tr>
 
    {/if}

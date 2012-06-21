@@ -921,7 +921,7 @@ class systemManagement extends management
 
         $this->closeDialogs();
         management::newEntry($action,$target,$all,$tabclass,$tabtype,$acl_cat);
-        $this->tabObject->by_object[$tabname]->ogroup = $ogroup;
+        $this->tabObject->by_object[$tabname]->inherit_ogroup($ogroup);
       }
     }
 

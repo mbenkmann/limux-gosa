@@ -167,29 +167,42 @@ class LDAP
         LDAP::$readableMapRegTo = array(",", "(", ")", "/", '"',",", ",", "(", ")", "/", '"', '"');
 
         if(LDAP::$characterMap === NULL){
-            LDAP::$characterMap = detectLdapSpecialCharHandling();
-
-            // Check if character-detection was successfull, if it wasn't use a fallback.
-            if(LDAP::$characterMap !== NULL){
-                LDAP::$characterMapRegFrom = array();
-                LDAP::$characterMapRegTo = array();
-                LDAP::$readableMapRegFrom = array();
-                LDAP::$readableMapRegTo = array();
-                foreach(LDAP::$characterMap as $from => $to){
-                   
-                    // Append entry character conversion  
-                    LDAP::$characterMapRegFrom[] = "/".preg_quote(LDAP::convert($from),'/')."/";
-                    LDAP::$characterMapRegTo[] = addslashes($to);
-
-                    // Append entry make readable array
-                    LDAP::$readableMapRegFrom[] = "/".preg_quote($to,'/')."/";
-                    LDAP::$readableMapRegFrom[] = "/".preg_quote(LDAP::convert($to),'/')."/";
-                    LDAP::$readableMapRegTo[] = stripslashes($from);
-                    LDAP::$readableMapRegTo[] = stripslashes($from);
+            $map_file = $config->get_cfg_value("core", "ldapEncodingMap");
+            
+            if ($map_file) {
+                $json = file_get_contents($map_file);
+                if (!$json) {
+                    die("Could not load LDAP encoding mapping file: $map_file");
                 }
-            }else{
-                // To avoid querying a hundred times without any success, stop here.
-                LDAP::$characterMap = array();
+                LDAP::$characterMap = json_decode($json, TRUE);
+                if (!LDAP::$characterMap) {
+                    die("Failed to parse LDAP encoding map: $map_file");
+                }
+            } else {
+                LDAP::$characterMap = detectLdapSpecialCharHandling();
+                            
+                // Check if character-detection was successfull, if it wasn't use a fallback.
+                if(LDAP::$characterMap !== NULL){
+                    LDAP::$characterMapRegFrom = array();
+                    LDAP::$characterMapRegTo = array();
+                    LDAP::$readableMapRegFrom = array();
+                    LDAP::$readableMapRegTo = array();
+                    foreach(LDAP::$characterMap as $from => $to){
+                   
+                        // Append entry character conversion  
+                        LDAP::$characterMapRegFrom[] = "/".preg_quote(LDAP::convert($from),'/')."/";
+                        LDAP::$characterMapRegTo[] = addslashes($to);
+
+                        // Append entry make readable array
+                        LDAP::$readableMapRegFrom[] = "/".preg_quote($to,'/')."/";
+                        LDAP::$readableMapRegFrom[] = "/".preg_quote(LDAP::convert($to),'/')."/";
+                        LDAP::$readableMapRegTo[] = stripslashes($from);
+                        LDAP::$readableMapRegTo[] = stripslashes($from);
+                    }
+                }else{
+                    // To avoid querying a hundred times without any success, stop here.
+                    LDAP::$characterMap = array();
+                }
             }
         }
         
