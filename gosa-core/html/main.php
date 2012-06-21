@@ -418,9 +418,13 @@ $smarty->assign ("pathMenu", $plist->genPathMenu());
 $smarty->assign("contents", $display);
 $smarty->assign("sessionLifetime", $config->get_cfg_value('core','sessionLifetime'));
 
-/* Incomplete POST requests are still passed to PHP: https://bugs.php.net/bug.php?id=61471 */
+/* If there's some post, take a look if everything is there... */
 if (isset($_POST) && count($_POST)){
   if (!isset($_POST['php_c_check'])){
+    msg_dialog::display(
+            _("Configuration Error"),
+            sprintf(_("Fatal error: not all POST variables have been transfered by PHP - please inform your administrator!")),
+            FATAL_ERROR_DIALOG);
     exit();
   }
 }
