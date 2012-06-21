@@ -421,10 +421,8 @@ $smarty->assign("sessionLifetime", $config->get_cfg_value('core','sessionLifetim
 /* If there's some post, take a look if everything is there... */
 if (isset($_POST) && count($_POST)){
   if (!isset($_POST['php_c_check'])){
-    msg_dialog::display(
-            _("Configuration Error"),
-            sprintf(_("Fatal error: not all POST variables have been transfered by PHP - please inform your administrator!")),
-            FATAL_ERROR_DIALOG);
+    msg_dialog::display(_("Warning"), _("Not all POST variables have been transfered by PHP - Returning to main menu!"), INFO_DIALOG);
+    header ("Location: main.php");
     exit();
   }
 }
