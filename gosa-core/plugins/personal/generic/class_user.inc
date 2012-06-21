@@ -801,6 +801,12 @@ class user extends plugin
   /* Save data to object */
   function save_object()
   {
+    if ($this->is_template && !empty($_POST['templateSn'])
+        && $this->acl_is_writeable('templateSn')) 
+    {
+      $this->sn = $_POST['templateSn'];
+    }
+    
     if(isset($_POST['generic']) || isset($_POST['multiple_user_posted'])){
 
       /* Make a backup of the current selected base */
@@ -876,12 +882,6 @@ class user extends plugin
       /* Save current cn
        */
       $this->cn = $this->givenName." ".$this->sn;
-    }
-    
-    if ($this->is_template && !empty($_POST['templateSn'])
-        && $this->acl_is_writeable('templateSn')) 
-    {
-      $this->sn = $_POST['templateSn'];
     }
   }
 
