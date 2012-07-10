@@ -24,7 +24,7 @@
  * Common functions and named definitions. */
 
 /* Define globals for revision comparing */
-$svn_path = '$HeadURL: https://oss.gonicus.de/repositories/gosa/trunk/gosa-core/include/functions.inc $';
+$svn_path = '$HeadURL: LHM $';
 $svn_revision = '$Revision$';
 
 /* Configuration file location */
@@ -2099,6 +2099,11 @@ function get_gosa_version()
     // The trunk version
     if(preg_match("#/trunk/#i", $svn_path)){
         return (sprintf(_("GOsa development snapshot (Rev %s)"), bold($revision)));
+    }
+
+    // The LHM Version
+    if(preg_match("#LHM#i", $svn_path)){
+        return (sprintf(_("GOsa 2.7 (Rev %s)"), bold($revision)));
     }
 
     return (sprintf(_("GOsa $release"), $revision));
