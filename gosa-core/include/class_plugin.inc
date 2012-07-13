@@ -1695,7 +1695,7 @@ class plugin
     
     $new_members = array();
     foreach ($attrs['member'] as $index => $m_dn) {
-      if ($index != 'count' && $this->dn !== $m_dn) {
+      if ($index !== 'count' && $this->dn !== $m_dn) {
         $new_members[] = $m_dn;
       }
     }
