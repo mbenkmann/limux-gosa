@@ -32,7 +32,7 @@ class userGroupSelect extends management
     {
         $this->config = $config;
         $this->ui = $ui;
-        $this->storagePoints = array(get_ou("core", "userRDN"), get_ou("core", "groupRDN"));
+        $this->storagePoints = array(get_ou("core", "groupRDN"), get_ou("core", "userRDN"));
 
         // Build filter
         if (session::global_is_set(get_class($this)."_filter")){
