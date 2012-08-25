@@ -1,0 +1,50 @@
+/*
+Copyright (c) 2012 Matthias S. Benkmann
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+MA  02110-1301, USA.
+*/
+
+package util
+
+import (
+         "os"
+         "log"
+         "fmt"
+         "time"
+       )
+
+// The *log.Logger used by util.Log(). By default it simply prints logged
+// messages to Stderr without adding any kind of prefix, time, etc.
+var Logger = log.New(os.Stderr, "", 0)
+
+// Outputs a message to util.Logger formatted as with fmt.Printf().
+// The level parameter assigns an importance to the message, where 0
+// is the most important (such as fatal errors) and increasing numbers
+// mark messages of lesser importance. The idea is that a message of 
+// level N should only be printed when the program was started with
+// N -v (i.e. verbose) switches. So level 0 marks messages that should
+// always be logged. Level 1 are informative messages the user may
+// not care about. Level 2 and above are typically used for debug
+// messages, where level 2 are debug messages that may help the user
+// pinpoint a problem and level 3 are debug messages only useful to
+// developers. There is usually no need for higher levels.
+func Log(level int, format string, args ...interface{}) {
+  message := fmt.Sprintf(format, args...)
+  t := time.Now()
+  output := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d %v",
+      t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), message)
+  Logger.Println(output)
+}
