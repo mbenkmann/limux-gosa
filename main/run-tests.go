@@ -26,5 +26,6 @@ import (
        )
 
 func main() {
-  tests.Xml_test()
+  tests.Util_test()
+  //tests.Xml_test()
 }
