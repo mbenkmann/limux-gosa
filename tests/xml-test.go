@@ -22,47 +22,14 @@ package tests
 
 import (
          "fmt"
-         "os"
          "../xml"
        )
 
-// true => show test output even for PASSED tests.
-var show_output = false
-
-// counts the number of tests run.
-var count = 0
-
-// How many tests passed.
-var pass  = 0
-
-// How many tests failed.
-var fail  = 0
-
-// Compares x with expected and prints PASSED if equal and FAILED if not.
-func check(x interface{}, expected interface{}) {
-  count++
-  fmt.Printf("Test %2v ", count)
-  if fmt.Sprintf("%v", expected) == fmt.Sprintf("%v", x) {
-    fmt.Println("PASSED")
-    pass++
-    if show_output {
-      fmt.Printf("OUTPUT  : %v\n", x)
-    }
-  } else {
-    fmt.Println("FAILED")
-    fail++
-    fmt.Printf("OUTPUT  : %v\nEXPECTED: %v\n", x, expected)
-  }
-}
-
 // Unit tests for the package susi/xml.
 func Xml_test() {
-  if len(os.Args) < 2 || os.Args[1] != "-v" {
-    fmt.Printf("\nPass '-v' on the command line to see test output\n\n")
-  }
   
-  show_output = (len(os.Args) > 1 && os.Args[1] == "-v")
-
+  fmt.Printf("\n=== xml ===\n\n")
+  
   x := xml.NewHash("foo")
   check(x, "<foo></foo>")
   

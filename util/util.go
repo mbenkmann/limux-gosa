@@ -57,7 +57,7 @@ func WriteAll(w io.Writer, data []byte) (n int, err error) {
       return n, err
     }
     
-    if n == 0 {
+    if bytes_written == 0 {
       tries--
       if tries <= 0 {
         if err == nil {
@@ -68,7 +68,7 @@ func WriteAll(w io.Writer, data []byte) (n int, err error) {
       
       // The first time we don't sleep. The 2nd time we sleep 1ms. The 3rd time 2ms.
       // The 4th time 4ms. Then 8ms, 16ms, 32ms, 64ms,...
-      var wait time.Duration = (1 << (write_all_max_tries-1)) >> uint(tries)
+      var wait time.Duration = (1 << (write_all_max_tries-2)) >> uint(tries)
       time.Sleep(wait * time.Millisecond)
       
     } else {
