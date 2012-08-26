@@ -28,27 +28,27 @@ import (
 var Show_output = false
 
 // counts the number of tests run.
-var count = 0
+var Count = 0
 
 // How many tests passed.
-var pass  = 0
+var Pass  = 0
 
 // How many tests failed.
-var fail  = 0
+var Fail  = 0
 
 // Compares x with expected and prints PASSED if equal and FAILED if not.
 func check(x interface{}, expected interface{}) {
-  count++
-  fmt.Printf("Test %2v ", count)
+  Count++
+  fmt.Printf("Test %2v ", Count)
   if fmt.Sprintf("%v", expected) == fmt.Sprintf("%v", x) {
     fmt.Println("PASSED")
-    pass++
+    Pass++
     if Show_output {
       fmt.Printf("OUTPUT  : %v\n", x)
     }
   } else {
     fmt.Println("FAILED")
-    fail++
+    Fail++
     fmt.Printf("OUTPUT  : %v\nEXPECTED: %v\n", x, expected)
   }
 }

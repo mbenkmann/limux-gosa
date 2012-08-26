@@ -45,6 +45,9 @@ func Xml_test() {
   bar.Add("server", "srv1")
   check(x, "<foo>Dies ist ein 2ter Test<bar><server>srv1</server></bar></foo>")
   
+  x_clone := x.Clone()
+  x_str := x.String()
+  
   srv4 := bar.Add("server", "srv2", "srv3", "srv4")
   check(x, "<foo>Dies ist ein 2ter Test<bar><server>srv1</server><server>srv2</server><server>srv3</server><server>srv4</server></bar></foo>")
   
@@ -95,8 +98,15 @@ func Xml_test() {
   _, xmlerr = xml.StringToHash("<-foo></-foo>")
   check(xmlerr, "StringToHash(): XML syntax error on line 1: invalid XML name: -foo")
   
+  check(x_clone, x_str)
+  check(x_clone.Verify(), nil)
+  check(x.Verify(), nil)
+  //TODO: The preceding check must fail because /last-sibling is currently not
+  // handled properly
   
-  // -----------------------------------------
-  fmt.Printf("\n=== Results ===\n\n#Tests: %2v\nPassed: %2v\nFailed: %2v\n", count, pass, fail)
+  // TODO: Name(), AddClone(), AddWithOwnership (including panic), RemoveFirst(),
+  // RemoveNext(), Subtags()
+  
+  // TODO: FileToHash, ReaderToHash
 }
 
