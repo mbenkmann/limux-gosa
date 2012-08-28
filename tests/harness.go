@@ -22,6 +22,9 @@ package tests
 
 import (
          "fmt"
+         "strings"
+         "reflect"
+         "runtime"
        )
 
 // true => show test output even for PASSED tests.
@@ -36,11 +39,36 @@ var Pass  = 0
 // How many tests failed.
 var Fail  = 0
 
+// It's ridiculously hard to check if a value is nil in Go.
+// At the time of this writing the following prints "false":
+//
+//   var x *int
+//   var y interface{} = x
+//   fmt.Println(y == nil)
+//
+// Apparently a nil pointer wrapped in an interface{} is not equal to nil.
+// And that despite the fact that fmt.Println(y) prints "<nil>".
+func isNil(x interface{}) (ret bool) {
+  if x == nil { return true }
+  defer func() {
+    if recover() != nil { ret = false } 
+  }()
+  return reflect.ValueOf(x).IsNil()
+}
+
 // Compares x with expected and prints PASSED if equal and FAILED if not.
 func check(x interface{}, expected interface{}) {
   Count++
-  fmt.Printf("Test %2v ", Count)
-  if fmt.Sprintf("%v", expected) == fmt.Sprintf("%v", x) {
+  _, file, line, _ := runtime.Caller(1)
+  file = file[strings.LastIndex(file, "/")+1:]
+  fmt.Printf("Test %2v (%v:%v) ", Count, file, line)
+  
+  // The isNil() test is here because otherwise in the case x is a nil pointer,
+  // the evaluation of Sprintf() will run into a SIGSEGV. 
+  // Sprintf() catches this error and converts it to the string "<nil>" so that it is
+  // no problem when running the tests standalone. However when running the tests
+  // under gdb, it's annoying to have gdb stop at the SIGSEGV.
+  if (isNil(expected) && isNil(x)) || fmt.Sprintf("%v", expected) == fmt.Sprintf("%v", x) {
     fmt.Println("PASSED")
     Pass++
     if Show_output {
