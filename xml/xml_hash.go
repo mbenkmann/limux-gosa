@@ -26,6 +26,7 @@ import (
          "os"
          "io"
          "fmt"
+         "sort"
          "bufio"
          "bytes"
          "strings"
@@ -69,17 +70,22 @@ func NewHash(name string) *Hash {
 func (self *Hash) Name() string { return self.name }
 
 // Returns a deep copy of this xml.Hash that is completely independent.
+// The clone will not have any siblings, even if the original had some.
 func (self *Hash) Clone() *Hash {
   hash := &Hash{name:self.name, text:self.text, refs:map[string]*Hash{}}
   for k, v := range self.refs {
-    /*if k != "/last-sibling" && k != "/next" {
+    if k != "/last-sibling" && k != "/next" {
       hash.refs[k] = v.cloneWithSiblings()
-    }*/
-    hash.refs[k] = v.Clone()
+    }
   }
   return hash
 }
 
+// Returns a deep copy of this Hash including (if it has "/next") a clone
+// of all of its siblings. "/last-sibling" will be set on the clone if it has
+// at least 1 sibling, even if the original Hash did not have "/last-sibling" set.
+// This means that cloneWithSiblings() called on a 2nd child will nevertheless
+// return a correctly linked Hash.
 func (self *Hash) cloneWithSiblings() *Hash {
   clone := self.Clone()
   prev  := clone
@@ -100,6 +106,13 @@ func (self *Hash) Verify() error {
   return self.verify(have_seen, false)
 }
 
+// Verifies that this Hash's structure is intact and returns an error if not.
+//  have_seen - if either this Hash or any of its descendants or siblings is
+//              in this map, an error will be reported. All the Hash's siblings
+//              and descendants will be added to this map during the check. This
+//              detects cycles in the data structure.
+//  must_be_first_sibling - set to true if this Hash is a first (or only) child.
+//                          Used to check if "/last-sibling" is properly set.
 func (self *Hash) verify(have_seen map[*Hash]bool, must_be_first_sibling bool) error {
   if have_seen[self] {
     return fmt.Errorf("Loop/backreference at %v", self.name)
@@ -165,6 +178,8 @@ func (self *Hash) verify(have_seen map[*Hash]bool, must_be_first_sibling bool) e
   return nil
 }
 
+// Recursively verifies the correctness of the subtrees rooted at this Hash's
+// children. See Verify().
 func (self *Hash) verifyChildren(have_seen map[*Hash]bool) error {
   for k, v := range self.refs {
     if k != "/next" && k != "/last-sibling" {
@@ -237,7 +252,8 @@ func (self *Hash) AddClone(xml *Hash) *Hash {
 
 // Takes the xml object (not a copy) and integrates it into this Hash
 // as a child.
-// ATTENTION! xml must not be child of another Hash.
+// ATTENTION! xml must not be child of another Hash (which implies that it
+// must not have any siblings).
 func (self* Hash) AddWithOwnership(xml *Hash) {
   if xml == nil || xml == self || xml.refs["/next"] != nil {
     panic("AddWithOwnership: Sanity check failed!")
@@ -346,9 +362,32 @@ func (self *Hash) Get(subtag ...string) []string {
 }
 
 // Returns a textual representation of the XML-tree rooted at the receiver.
+// Subtags are listed in alphabetical order preceded by the element's text (if any).
+// Use SortedString() if you want more control over the tag order.
 func (self *Hash) String() string {
+  return self.SortedString()
+}
+
+// Like String() but you can pass a list of tags that should be sorted before 
+// their siblings. These subelements will be listed in the order they appear
+// in the sortorder arguments list.
+// All other subelements will appear after the listed ones in alphabetical order.
+// An element's text always precedes subelements.
+//
+// NOTE:
+//  Currently this function does not test for duplicate names in sortorder and
+//  will copy the relevant tags multiple times in that case. This behaviour may
+//  change in the future. The caller must ensure that sortorder does not contain
+//  the same name more than once.
+func (self *Hash) SortedString(sortorder ...string) string {
   var buffy bytes.Buffer
-  fmt.Fprintf(&buffy, "<%s>%s</%s>", self.name, self.InnerXML(), self.name)
+  buffy.WriteByte('<')
+  buffy.WriteString(self.Name())
+  buffy.WriteByte('>')
+  buffy.WriteString(self.InnerXML(sortorder...))
+  buffy.WriteString("</")
+  buffy.WriteString(self.Name())
+  buffy.WriteByte('>')
   return buffy.String()
 }
 
@@ -365,13 +404,45 @@ func (self *Hash) Text(subtag ...string) string {
 }
 
 // Like String() without the surrounding tags for the receiver's element itself.
-func (self *Hash) InnerXML() string {
+// You can pass a list of tags that should be sorted before their siblings. These
+// subelements will be listed in the order they appear in the sortorder arguments 
+// list.
+// All other subelements will appear after the listed ones in alphabetical order.
+// An element's text always precedes subelements.
+//
+// NOTE:
+//  Currently this function does not test for duplicate names in sortorder and
+//  will copy the relevant tags multiple times in that case. This behaviour may
+//  change in the future. The caller must ensure that sortorder does not contain
+//  the same name more than once.
+func (self *Hash) InnerXML(sortorder ...string) string {
   var buffy bytes.Buffer
   encxml.Escape(&buffy, []byte(self.text))
-  for name := range self.refs {
-    if name != "" && name[0] != '/' {
-      for child := self.refs[name]; child != nil; child = child.Next() {
-        buffy.Write([]byte(child.String()))
+  keys := make([]string, len(self.refs))
+  i := 0
+  for key := range self.refs {
+    if key != "" && key[0] != '/' {
+      keys[i] = key
+      i++
+    }
+  }
+  keys = keys[0:i]
+  sort.Strings(keys)
+  
+  for _, name := range sortorder {
+    i = sort.SearchStrings(keys, name)
+    if i < len(keys) {
+      keys[i] = ""  // remove key from the remaining keys list
+    }
+    for child := self.First(name); child != nil; child = child.Next() {
+      buffy.WriteString(child.SortedString(sortorder...))
+    }
+  }
+  
+  for _, name := range keys {
+    if name != "" {
+      for child := self.First(name); child != nil; child = child.Next() {
+        buffy.WriteString(child.SortedString(sortorder...))
       }
     }
   }
