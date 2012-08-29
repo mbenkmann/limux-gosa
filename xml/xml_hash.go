@@ -334,7 +334,9 @@ func (self *Hash) Next() *Hash {
   return self.refs["/next"]
 }
 
-// Returns the names of all subtags of this Hash.
+// Returns the names of all subtags of this Hash (unsorted!).
+// If the Hash has multiple subelements with the same tag, the tag is
+// only listed once. I.e. all strings in the result list are always different.
 func (self *Hash) Subtags() []string {
   result := make([]string, 0, len(self.refs))
   for k, _ := range self.refs {
@@ -361,6 +363,18 @@ func (self *Hash) Get(subtag ...string) []string {
   return result
 }
 
+// With no arguments Text() returns the single text child of the receiver element;
+// with arguments Text(s1, s2,...) returns the concatenation of Get(s1, s2,...)
+// separated by \u241e (symbol for record separator).
+func (self *Hash) Text(subtag ...string) string {
+  if len(subtag) == 0 {
+    var buffy bytes.Buffer
+    encxml.Escape(&buffy, []byte(self.text))
+    return buffy.String()
+  }
+  return strings.Join(self.Get(subtag...), "\u241e")
+}
+
 // Returns a textual representation of the XML-tree rooted at the receiver.
 // Subtags are listed in alphabetical order preceded by the element's text (if any).
 // Use SortedString() if you want more control over the tag order.
@@ -375,10 +389,8 @@ func (self *Hash) String() string {
 // An element's text always precedes subelements.
 //
 // NOTE:
-//  Currently this function does not test for duplicate names in sortorder and
-//  will copy the relevant tags multiple times in that case. This behaviour may
-//  change in the future. The caller must ensure that sortorder does not contain
-//  the same name more than once.
+//  If sortorder contains the same name more than once, the earliest position in
+//  the list will win. Subelements will not be duplicated in the output.
 func (self *Hash) SortedString(sortorder ...string) string {
   var buffy bytes.Buffer
   buffy.WriteByte('<')
@@ -391,19 +403,7 @@ func (self *Hash) SortedString(sortorder ...string) string {
   return buffy.String()
 }
 
-// With no arguments Text() returns the single text child of the receiver element;
-// with arguments Text(s1, s2,...) returns the concatenation of Get(s1, s2,...)
-// separated by \u241e (symbol for record separator).
-func (self *Hash) Text(subtag ...string) string {
-  if len(subtag) == 0 {
-    var buffy bytes.Buffer
-    encxml.Escape(&buffy, []byte(self.text))
-    return buffy.String()
-  }
-  return strings.Join(self.Get(subtag...), "\u241e")
-}
-
-// Like String() without the surrounding tags for the receiver's element itself.
+// Like SortedString() without the surrounding tags for the receiver's element itself.
 // You can pass a list of tags that should be sorted before their siblings. These
 // subelements will be listed in the order they appear in the sortorder arguments 
 // list.
@@ -411,10 +411,8 @@ func (self *Hash) Text(subtag ...string) string {
 // An element's text always precedes subelements.
 //
 // NOTE:
-//  Currently this function does not test for duplicate names in sortorder and
-//  will copy the relevant tags multiple times in that case. This behaviour may
-//  change in the future. The caller must ensure that sortorder does not contain
-//  the same name more than once.
+//  If sortorder contains the same name more than once, the earliest position in
+//  the list will win. Subelements will not be duplicated in the output.
 func (self *Hash) InnerXML(sortorder ...string) string {
   var buffy bytes.Buffer
   encxml.Escape(&buffy, []byte(self.text))
@@ -429,20 +427,26 @@ func (self *Hash) InnerXML(sortorder ...string) string {
   keys = keys[0:i]
   sort.Strings(keys)
   
-  for _, name := range sortorder {
-    i = sort.SearchStrings(keys, name)
-    if i < len(keys) {
-      keys[i] = ""  // remove key from the remaining keys list
-    }
-    for child := self.First(name); child != nil; child = child.Next() {
-      buffy.WriteString(child.SortedString(sortorder...))
+  var name string
+  for _, name = range sortorder {
+    // WARNING! Do not use sort.SearchStrings, here. The binary search breaks
+    // after replacing a key with "" as done below.
+    for i = 0; i < len(keys) ; i++ {
+      if keys[i] == name {
+        keys[i] = ""  // remove key from the remaining keys list
+        for child := self.First(name); child != nil; child = child.Next() {
+          childstr := child.SortedString(sortorder...)
+          buffy.WriteString(childstr)
+        }
+      }
     }
   }
   
-  for _, name := range keys {
+  for _, name = range keys {
     if name != "" {
       for child := self.First(name); child != nil; child = child.Next() {
-        buffy.WriteString(child.SortedString(sortorder...))
+        childstr := child.SortedString(sortorder...)
+        buffy.WriteString(childstr)
       }
     }
   }
@@ -518,7 +522,7 @@ func FileToHash(path string) (xml *Hash, err error) {
 func ReaderToHash(r io.Reader) (xml *Hash, err error) {
   bread := bufio.NewReader(r)
   xmlstr, err := bread.ReadString(0)
-  if err != nil {
+  if err != nil && err != io.EOF {
     return NewHash("xml"), err
   } 
   
