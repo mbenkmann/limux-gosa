@@ -22,6 +22,8 @@ package tests
 
 import (
          "fmt"
+         "sort"
+         "bytes"
          "../xml"
        )
 
@@ -184,8 +186,65 @@ func testHash() {
   
   check(family.Verify(), nil)
   
-  // TODO:  RemoveNext(), Subtags(), ReaderToHash, 
-  // SortedString/InnerXML (with sortorder, including elements not contained)
+  ducks    := xml.NewHash("ducks")
+  donald   := ducks.Add("duck", "donald")
+  daisy    := ducks.Add("duck", "daisy")
+  darkwing := ducks.Add("duck", "darkwing")
+  check(ducks.First("duck") == donald, true)
+  check(donald.Next() == daisy, true)
+  check(daisy.Next() == darkwing, true)
+  check(darkwing.Next() == nil, true)
+  check(darkwing.RemoveNext(ducks) == nil, true)
+  check(donald.RemoveNext(ducks) == daisy, true)
+  check(daisy.Verify(), nil)
+  check(daisy.Next(), nil)
+  check(ducks, "<ducks><duck>donald</duck><duck>darkwing</duck></ducks>")
+  ducks.AddWithOwnership(daisy)
+  check(darkwing.RemoveNext(ducks) == daisy, true)
+  check(daisy.Verify(), nil)
+  check(daisy.Next(), nil)
+  check(ducks.Verify(), nil)
+  check(donald.RemoveNext(ducks) == darkwing, true)
+  check(darkwing.Verify(), nil)
+  check(darkwing.Next(), nil)
+  check(ducks.Verify(), nil)
+  check(ducks, "<ducks><duck>donald</duck></ducks>")
+  
+  xyzzy := xml.NewHash("x")
+  xyzzy.Add("y","a")
+  xyzzy.Add("y","b")
+  xyzzy.Add("y","c")
+  xyzzy.First("y").Add("A")
+  xyzzy.First("y").Add("B")
+  xyzzy.First("y").Add("C")
+  xyzzy.First("y").Add("D")
+  subtags := xyzzy.First("y").Subtags()
+  sort.Strings(subtags)
+  check(subtags, []string{"A","B","C","D"})
+  
+  xmlreader := bytes.NewBufferString("<xml>\n<foo>\nbar</foo>\n</xml>\x00Should be ignored\n")
+  x, xmlerr = xml.ReaderToHash(xmlreader)
+  check(xmlerr, "StringToHash(): XML syntax error on line 4: illegal character code U+0000")
+  
+  xmlreader = bytes.NewBufferString("<xml>\n<foo>\nbar</foo>\n</xml>")
+  x, xmlerr = xml.ReaderToHash(xmlreader)
+  check(xmlerr, nil)
+  check(x,"<xml>\n\n<foo>\nbar</foo></xml>")
+  
+  x = xml.NewHash("xml")
+  letters := "eacdb"
+  for i := range letters {
+    child := x.Add(letters[i:i+1])
+    for i := range letters {
+      child.Add(letters[i:i+1])
+    }
+  }
+  check(x.Verify(), nil)
+  check(x.SortedString(),"<xml><a><a></a><b></b><c></c><d></d><e></e></a><b><a></a><b></b><c></c><d></d><e></e></b><c><a></a><b></b><c></c><d></d><e></e></c><d><a></a><b></b><c></c><d></d><e></e></d><e><a></a><b></b><c></c><d></d><e></e></e></xml>")
+  check(x.SortedString("a"),"<xml><a><a></a><b></b><c></c><d></d><e></e></a><b><a></a><b></b><c></c><d></d><e></e></b><c><a></a><b></b><c></c><d></d><e></e></c><d><a></a><b></b><c></c><d></d><e></e></d><e><a></a><b></b><c></c><d></d><e></e></e></xml>")
+  check(x.SortedString("a","b"),"<xml><a><a></a><b></b><c></c><d></d><e></e></a><b><a></a><b></b><c></c><d></d><e></e></b><c><a></a><b></b><c></c><d></d><e></e></c><d><a></a><b></b><c></c><d></d><e></e></d><e><a></a><b></b><c></c><d></d><e></e></e></xml>")
+  check(x.SortedString("a","a"),"<xml><a><a></a><b></b><c></c><d></d><e></e></a><b><a></a><b></b><c></c><d></d><e></e></b><c><a></a><b></b><c></c><d></d><e></e></c><d><a></a><b></b><c></c><d></d><e></e></d><e><a></a><b></b><c></c><d></d><e></e></e></xml>")
+  check(x.SortedString("foo","e","x","c","d","y"),"<xml><e><e></e><c></c><d></d><a></a><b></b></e><c><e></e><c></c><d></d><a></a><b></b></c><d><e></e><c></c><d></d><a></a><b></b></d><a><e></e><c></c><d></d><a></a><b></b></a><b><e></e><c></c><d></d><a></a><b></b></b></xml>")
 }
 
 func testDB() {

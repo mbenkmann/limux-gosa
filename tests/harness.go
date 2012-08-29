@@ -39,6 +39,12 @@ var Pass  = 0
 // How many tests failed.
 var Fail  = 0
 
+// How many tests that were expected to fail did so.
+var ExpectedFail = 0
+
+// How many tests that were expected to fail did instead pass.
+var UnexpectedPass = 0
+
 // It's ridiculously hard to check if a value is nil in Go.
 // At the time of this writing the following prints "false":
 //
@@ -77,6 +83,33 @@ func check(x interface{}, expected interface{}) {
   } else {
     fmt.Println("FAILED")
     Fail++
+    fmt.Printf("OUTPUT  : %v\nEXPECTED: %v\n", x, expected)
+  }
+}
+
+// Like check() but failure is expected and the counts will adjusted accordingly.
+func checkFail(x interface{}, expected interface{}) {
+  Count++
+  _, file, line, _ := runtime.Caller(1)
+  file = file[strings.LastIndex(file, "/")+1:]
+  fmt.Printf("Test %2v (%v:%v) ", Count, file, line)
+  
+  // The isNil() test is here because otherwise in the case x is a nil pointer,
+  // the evaluation of Sprintf() will run into a SIGSEGV. 
+  // Sprintf() catches this error and converts it to the string "<nil>" so that it is
+  // no problem when running the tests standalone. However when running the tests
+  // under gdb, it's annoying to have gdb stop at the SIGSEGV.
+  if (isNil(expected) && isNil(x)) || fmt.Sprintf("%v", expected) == fmt.Sprintf("%v", x) {
+    fmt.Println("PASSED")
+    Pass++
+    UnexpectedPass++
+    if Show_output {
+      fmt.Printf("OUTPUT  : %v\n", x)
+    }
+  } else {
+    fmt.Println("FAILED")
+    Fail++
+    ExpectedFail++
     fmt.Printf("OUTPUT  : %v\nEXPECTED: %v\n", x, expected)
   }
 }

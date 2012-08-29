@@ -49,6 +49,6 @@ func main() {
   // 4. Kill the slapd and go-susi processes
   
   // -----------------------------------------
-  fmt.Printf("\n=== Results ===\n\n#Tests: %2v\nPassed: %2v\nFailed: %2v\n", 
-  tests.Count, tests.Pass, tests.Fail)
+  fmt.Printf("\n=== Results ===\n\n#Tests: %3v\nPassed: %3v (%v unexpected)\nFailed: %3v (%v expected)\n", 
+  tests.Count, tests.Pass, tests.UnexpectedPass, tests.Fail, tests.ExpectedFail)
 }
