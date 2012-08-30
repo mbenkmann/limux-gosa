@@ -36,11 +36,6 @@ import (
        )
 
 
-func fallback(msg string) string {
-  //TODO
-  return msg
-}
-
 // Takes a possibly encrypted message and processes it, returning a reply
 // or the empty string if none is necessary/possible.
 // tcpAddr is the address of the message's sender.
