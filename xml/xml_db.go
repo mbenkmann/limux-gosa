@@ -35,6 +35,7 @@ import (
 // stores the data in a file.
 type Storer interface{
   // Stores the given string and returns an error if something went wrong.
+  // ATTENTION! Must be goroutine-safe!
   Store(string) error
 }
 
@@ -44,6 +45,7 @@ type DB struct {
   data *Hash
   // if not nil, the data stored in the database is persisted by calling
   // persist.Store(xmlstr) with a string representation of the database.
+  // ATTENTION! Must be goroutine-safe.
   persist Storer
   // to avoid persisting the database on every write access, a delay
   // can be set here. This is the maximum time between a write access to
@@ -61,6 +63,8 @@ type DB struct {
 // 
 //  persist: If nil, the database will exist in memory only. Otherwise this
 //           object will be used to make changes to the database persistent.
+//           ATTENTION! The object must be goroutine-safe. The DB does NOT
+//           guarantee that only one job is running.
 //
 //  persistDelay: The maximum time that may pass between writing to
 //                the in-memory db and the job to persist the database. The job
@@ -144,14 +148,26 @@ func (db* DB) AddClone(item *Hash) (*DB) {
 // Interface for selecting certain items from the database.
 type HashFilter interface{
   // Returns true if the given item should be in the result set. 
-  // Always returns false for a nil argument.
+  // IMPORTANT! Must return false for a nil argument.
   Accepts(item *Hash) bool
 }
 
-// HashFilter that accepts all non-nil items.
-type All struct{}
+// the type of FilterAll
+type filterall struct{}
 // Always returns true for non-nil items.
-func (*All) Accepts(item *Hash) bool { return item != nil }
+func (*filterall) Accepts(item *Hash) bool { return item != nil }
+// HashFilter that accepts all non-nil items.
+var FilterAll *filterall = &filterall{}
+
+// the type of FilterNone
+type filternone struct{}
+// Always returns false.
+func (*filternone) Accepts(item *Hash) bool { return false }
+// HashFilter that does not accept any item.
+var FilterNone *filternone = &filternone{}
+
+
+
 
 // Returns a *Hash whose outer tag has the same name as that of the db and
 // whose child elements are deep copies of the database items selected by filter.

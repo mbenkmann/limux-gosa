@@ -23,6 +23,7 @@ package tests
 import (
          "fmt"
          "sort"
+         "time"
          "bytes"
          "../xml"
        )
@@ -30,13 +31,66 @@ import (
 // Unit tests for the package susi/xml.
 func Xml_test() {
   
-  fmt.Printf("\n=== xml ===\n\n")
-  
+  fmt.Printf("\n=== xml.Hash ===\n\n")
   testHash()
+  
+  fmt.Printf("\n=== xml.DB ===\n\n")
   testDB()
 }
 
+type StringChannel chan string
+type ChannelStorer struct {
+  StringChannel
+}
+
+func (self *ChannelStorer) Store(data string) error {
+  self.StringChannel <- data
+  return nil
+}
+
+func testDB() {
+  db := xml.NewDB("fruits", nil, 0)
+  banana := xml.NewHash("fruit", "banana")
+  db.AddClone(banana)
+  banana.SetText("yellow banana") // must affect database entry
+  check(db.Query(xml.FilterAll), "<fruits><fruit>banana</fruit></fruits>")
+  check(db.Query(xml.FilterNone), "<fruits></fruits>")
+  
+  delay := time.Duration(2*time.Second)
+  cstore := &ChannelStorer{make(chan string)}
+  persistdb := xml.NewDB("vehicles", cstore, delay)
+  start := time.Now()
+  persistdb.AddClone(xml.NewHash("vehicle", "car"))
+  s := "Timeout waiting for persist job"
+  select {
+    case s = <- cstore.StringChannel : // s received
+    case <-time.After(delay + 500 * time.Millisecond) : // timeout
+  }
+  if time.Since(start) < delay - 500 * time.Millisecond {
+    s = "Persist job started too soon"
+  }
+  check(s, "<vehicles><vehicle>car</vehicle></vehicles>")
+  
+  // TODO: NewDB, DB.AddClone(), Init(), Persist(), Query(), Remove()
+  // TODO: Stress test with concurrent goroutines
+
+}
+
+
+
 func testHash() { 
+  f := xml.NewHash("fruit", "banana")
+  check(f, "<fruit>banana</fruit>")
+  
+  f = xml.NewHash("fruit", "banana","")
+  check(f, "<fruit><banana></banana></fruit>")
+  
+  f = xml.NewHash("fruit", "yellow","banana")
+  check(f, "<fruit><yellow>banana</yellow></fruit>")
+  
+  f = xml.NewHash("fruit", "yellow","long","banana")
+  check(f, "<fruit><yellow><long>banana</long></yellow></fruit>")
+  
   x := xml.NewHash("foo")
   check(x, "<foo></foo>")
   
@@ -245,12 +299,5 @@ func testHash() {
   check(x.SortedString("a","b"),"<xml><a><a></a><b></b><c></c><d></d><e></e></a><b><a></a><b></b><c></c><d></d><e></e></b><c><a></a><b></b><c></c><d></d><e></e></c><d><a></a><b></b><c></c><d></d><e></e></d><e><a></a><b></b><c></c><d></d><e></e></e></xml>")
   check(x.SortedString("a","a"),"<xml><a><a></a><b></b><c></c><d></d><e></e></a><b><a></a><b></b><c></c><d></d><e></e></b><c><a></a><b></b><c></c><d></d><e></e></c><d><a></a><b></b><c></c><d></d><e></e></d><e><a></a><b></b><c></c><d></d><e></e></e></xml>")
   check(x.SortedString("foo","e","x","c","d","y"),"<xml><e><e></e><c></c><d></d><a></a><b></b></e><c><e></e><c></c><d></d><a></a><b></b></c><d><e></e><c></c><d></d><a></a><b></b></d><a><e></e><c></c><d></d><a></a><b></b></a><b><e></e><c></c><d></d><a></a><b></b></b></xml>")
-}
-
-func testDB() {
-  
-  // Stress test with concurrent goroutines
-  
-  // TODO: NewDB, DB.AddClone(), Init(), Persist(), Query(), Remove()
 }
 

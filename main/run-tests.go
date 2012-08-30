@@ -29,10 +29,6 @@ import (
        )
 
 func main() {
-  if len(os.Args) < 2 || os.Args[1] != "-v" {
-    fmt.Printf("\nPass '-v' on the command line to see test output\n\n")
-  }
-  
   tests.Show_output = (len(os.Args) > 1 && os.Args[1] == "-v")
 
   tests.Util_test()
@@ -51,4 +47,8 @@ func main() {
   // -----------------------------------------
   fmt.Printf("\n=== Results ===\n\n#Tests: %3v\nPassed: %3v (%v unexpected)\nFailed: %3v (%v expected)\n", 
   tests.Count, tests.Pass, tests.UnexpectedPass, tests.Fail, tests.ExpectedFail)
+  
+  if len(os.Args) < 2 || os.Args[1] != "-v" {
+    fmt.Printf("\nPass '-v' on the command line to see test output\n\n")
+  }
 }
