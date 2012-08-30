@@ -62,8 +62,18 @@ type Hash struct {
 }
 
 // Returns a new *Hash with outer-most element <name>.
-func NewHash(name string) *Hash {
-  return &Hash{name:name, refs:map[string]*Hash{}}
+// If N contents strings are passed, the effect will be
+// as if hash.Add(N1).Add(N2)...Add(N-1).SetText(N) is called.
+func NewHash(name string, contents ...string) *Hash {
+  hash := &Hash{name:name, refs:map[string]*Hash{}}
+  sub := hash
+  for i:= 0; i < len(contents)-1; i++ {
+    sub = sub.Add(contents[i])
+  }
+  if len(contents) > 0 {
+    sub.SetText(contents[len(contents)-1])
+  }
+  return hash
 }
 
 // Returns the name of the outer tag of the Hash.
