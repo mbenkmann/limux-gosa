@@ -102,7 +102,7 @@ func (f *FileStorer) Store(data string) (err error) {
   // the file after writing
   
   // Write out the data to the temp file
-  _, err = fmt.Fprintln(temp, data)
+  _, err = fmt.Fprint(temp, data)
   temp.Close()
   if err == nil {
     // atomically replace the old with the new file
@@ -118,7 +118,8 @@ func (f *FileStorer) Store(data string) (err error) {
 // ATTENTION! The database uses the data pointer directly. You must not
 // access it after passing it to Init() or you will bypass the database's lock.
 //
-// NOTE: Calling this method will NOT cause a persist job to be triggered.
+// NOTE: Calling this method will NOT cause a persist job to be triggered nor
+// will it cancel an already pending persist job.
 func (db *DB) Init(data *Hash) {
   db.mutex.Lock()
   defer db.mutex.Unlock()
@@ -167,8 +168,6 @@ func (*filternone) Accepts(item *Hash) bool { return false }
 var FilterNone *filternone = &filternone{}
 
 
-
-
 // Returns a *Hash whose outer tag has the same name as that of the db and
 // whose child elements are deep copies of the database items selected by filter.
 func (db* DB) Query(filter HashFilter) *Hash {
@@ -176,7 +175,7 @@ func (db* DB) Query(filter HashFilter) *Hash {
   db.mutex.RLock()
   defer db.mutex.RUnlock()
   
-  result := NewHash(db.data.name)
+  result := NewHash(db.data.Name())
   for _, subtag := range db.data.Subtags() {
     for item := db.data.First(subtag) ; item != nil; item = item.Next() {
       if filter.Accepts(item) {
@@ -196,7 +195,7 @@ func (db* DB) Remove(filter HashFilter) *Hash {
   db.mutex.Lock()
   defer db.mutex.Unlock()
   
-  result := NewHash(db.data.name)
+  result := NewHash(db.data.Name())
   for _, subtag := range db.data.Subtags() {
     for ; filter.Accepts(db.data.First(subtag)) ; {
       result.AddWithOwnership(db.data.RemoveFirst(subtag))

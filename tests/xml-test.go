@@ -21,10 +21,12 @@ MA  02110-1301, USA.
 package tests
 
 import (
+         "os"
          "fmt"
          "sort"
          "time"
          "bytes"
+         "io/ioutil"
          "../xml"
        )
 
@@ -48,19 +50,44 @@ func (self *ChannelStorer) Store(data string) error {
   return nil
 }
 
+type FilterAllButC struct{}
+func (*FilterAllButC) Accepts(x *xml.Hash) bool {
+  if x == nil || x.Text() == "c" { return false }
+  return true
+}
+
 func testDB() {
+  tempfile, _ := ioutil.TempFile("", "xml-test-")
+  tempname := tempfile.Name()
+  tempfile.Close()
+  fstor := xml.FileStorer{tempname}
+  teststring := "This is a test!\nLine 2"
+  check(fstor.Store(teststring), nil)
+  checkdata, err := ioutil.ReadFile(tempname)
+  check(err, nil)
+  check(string(checkdata), teststring)
+  os.Remove(tempname)
+  
   db := xml.NewDB("fruits", nil, 0)
   banana := xml.NewHash("fruit", "banana")
   db.AddClone(banana)
-  banana.SetText("yellow banana") // must affect database entry
+  banana.SetText("yellow banana") // must not affect database entry
   check(db.Query(xml.FilterAll), "<fruits><fruit>banana</fruit></fruits>")
   check(db.Query(xml.FilterNone), "<fruits></fruits>")
   
   delay := time.Duration(2*time.Second)
   cstore := &ChannelStorer{make(chan string)}
-  persistdb := xml.NewDB("vehicles", cstore, delay)
+  persistdb := xml.NewDB("pairs", cstore, delay)
   start := time.Now()
-  persistdb.AddClone(xml.NewHash("vehicle", "car"))
+  letters := "abcdefghijklmnopqrstuvwxyz"
+  checkstr := "<pairs>"
+  for i:= 0; i < 26; i++ {
+    for j:= 0; j < 26 ; j++ {
+      tag := string(letters[i])+string(letters[j])
+      checkstr = checkstr + "<" + tag + "></" + tag + ">"
+      go persistdb.AddClone(xml.NewHash(tag))
+    }
+  }
   s := "Timeout waiting for persist job"
   select {
     case s = <- cstore.StringChannel : // s received
@@ -69,11 +96,37 @@ func testDB() {
   if time.Since(start) < delay - 500 * time.Millisecond {
     s = "Persist job started too soon"
   }
-  check(s, "<vehicles><vehicle>car</vehicle></vehicles>")
+  checkstr = checkstr + "</pairs>"
+  check(s, checkstr)
   
-  // TODO: NewDB, DB.AddClone(), Init(), Persist(), Query(), Remove()
-  // TODO: Stress test with concurrent goroutines
-
+  s = ""
+  select {
+    case <- cstore.StringChannel : s = "Spurious persist job detected"
+    case <-time.After(delay + 500 * time.Millisecond) : // timeout
+  }
+  check(s, "")
+  
+  start = time.Now()
+  all := persistdb.Remove(xml.FilterAll)
+  check(all, checkstr)
+  s = "Timeout waiting for persist job"
+  select {
+    case s = <- cstore.StringChannel : // s received
+    case <-time.After(delay + 500 * time.Millisecond) : // timeout
+  }
+  if time.Since(start) < delay - 500 * time.Millisecond {
+    s = "Persist job started too soon"
+  }
+  check(s, "<pairs></pairs>")
+  
+  persistdb.Init(all)
+  check(persistdb.Query(xml.FilterAll), checkstr)
+  
+  
+  x,_ := xml.StringToHash("<letters><let>a</let><let>b</let><let>c</let><let>d</let><let>c</let><let>e</let></letters>")
+  db.Init(x)
+  check(db.Remove(&FilterAllButC{}), "<letters><let>a</let><let>b</let><let>d</let><let>e</let></letters>")
+  check(db.Query(xml.FilterAll), "<letters><let>c</let><let>c</let></letters>")
 }
 
 
@@ -278,7 +331,7 @@ func testHash() {
   
   xmlreader := bytes.NewBufferString("<xml>\n<foo>\nbar</foo>\n</xml>\x00Should be ignored\n")
   x, xmlerr = xml.ReaderToHash(xmlreader)
-  check(xmlerr, "StringToHash(): XML syntax error on line 4: illegal character code U+0000")
+  check(xmlerr, "StringToHash(): XML syntax error on line 5: illegal character code U+0000")
   
   xmlreader = bytes.NewBufferString("<xml>\n<foo>\nbar</foo>\n</xml>")
   x, xmlerr = xml.ReaderToHash(xmlreader)
