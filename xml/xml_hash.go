@@ -25,9 +25,9 @@ package xml
 import ( 
          "os"
          "io"
+         "io/ioutil"
          "fmt"
          "sort"
-         "bufio"
          "bytes"
          "strings"
        )
@@ -530,12 +530,11 @@ func FileToHash(path string) (xml *Hash, err error) {
 // This function will read until EOF (or another error).
 // If an error occurs the returned Hash may contain partial data.
 func ReaderToHash(r io.Reader) (xml *Hash, err error) {
-  bread := bufio.NewReader(r)
-  xmlstr, err := bread.ReadString(0)
-  if err != nil && err != io.EOF {
+  xmldata, err := ioutil.ReadAll(r)
+  if err != nil {
     return NewHash("xml"), err
   } 
   
-  return StringToHash(xmlstr)
+  return StringToHash(string(xmldata))
 }
 
