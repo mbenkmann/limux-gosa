@@ -59,6 +59,7 @@ func main() {
     // Send log output to both stderr AND the log file
     util.Logger = log.New(io.MultiWriter( os.Stderr, logfile ), "",0)
   }
+  util.LogLevel = config.LogLevel
   
   tcp_addr, err := net.ResolveTCPAddr("ip4", config.ServerListenAddress)
   if err != nil {

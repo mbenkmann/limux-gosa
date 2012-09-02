@@ -30,6 +30,9 @@ import (
 // messages to Stderr without adding any kind of prefix, time, etc.
 var Logger = log.New(os.Stderr, "", 0)
 
+// Only messages with a level <= this number will be printed.
+var LogLevel = 0
+
 // Outputs a message to util.Logger formatted as with fmt.Printf().
 // The level parameter assigns an importance to the message, where 0
 // is the most important (such as fatal errors) and increasing numbers
@@ -42,6 +45,7 @@ var Logger = log.New(os.Stderr, "", 0)
 // pinpoint a problem and level 3 are debug messages only useful to
 // developers. There is usually no need for higher levels.
 func Log(level int, format string, args ...interface{}) {
+  if (level > LogLevel) { return }
   message := fmt.Sprintf(format, args...)
   t := time.Now()
   output := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d %v",

@@ -24,7 +24,6 @@ package config
 import (
          "io"
          "os"
-         "fmt"
          "bufio"
          "strings"
          "crypto/aes"
@@ -45,12 +44,30 @@ var ServerListenAddress = ":20081"
 // Where to send log messages (in addition to stderr).
 var LogFilePath = "/var/log/go-susi.log"
 
-// Parses the relevant configuration files and sets the config variables
-// accordingly.       
+// Path of the server config file.
+var ServerConfigPath = "/etc/gosa-si/server.conf"
+
+// Only log messages with level <= this number will be output.
+var LogLevel int
+
+// Parses the relevant configuration files and os.Args and sets 
+// the config variables accordingly.
 func ReadConfig() {
-  file, err := os.Open("/etc/gosa-si/server.conf")
+  LogLevel = 0
+  for _, arg := range os.Args[1:] {
+    if strings.HasPrefix(arg, "-v") {
+      LogLevel = len(arg) - 1
+    } else if strings.HasPrefix(arg, "--test=") {
+      LogFilePath = arg[7:] + "/go-susi.log"
+      ServerConfigPath = arg[7:] + "/server.conf"
+    } else {
+      util.Log(0, "ERROR! ReadConfig: Unknown command line switch: %v", arg)
+    }
+  }
+  
+  file, err := os.Open(ServerConfigPath)
   if err != nil {
-    fmt.Fprintf(os.Stderr, "ERROR! ReadConfig: %v", err)
+    util.Log(0, "ERROR! ReadConfig: %v", err)
     return
   }
   defer file.Close()
@@ -82,7 +99,7 @@ func ReadConfig() {
   }
   
   if err != io.EOF {
-    fmt.Fprintf(os.Stderr, "ERROR! ReadString: %v", err)
+    util.Log(0, "ERROR! ReadString: %v", err)
     // Do not return. Try working with whatever we got out of the file.
   }
   
