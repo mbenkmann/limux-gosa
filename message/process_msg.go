@@ -45,12 +45,15 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string) {
     if decrypted := GosaDecrypt(msg, key); decrypted != "" {
       util.Log(2, "DEBUG! Decrypted message from %v with key %v: %v", tcpAddr, key, decrypted)
       xml, err := xml.StringToHash(decrypted)
+      
       if err != nil {
+        // something went wrong parsing the XML
+      
         util.Log(0,"ERROR! %v", err)
         reply = fallback(msg)
         logFallbackReply(reply, key)
         return reply
-      }
+      } 
       
       // At this point we have successfully decrypted and parsed the message
       return ProcessXMLMessage(msg, xml, tcpAddr, key)
@@ -69,17 +72,18 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string) {
 // xml: the message
 // tcpAddr: the sender
 // key: the key that successfully decrypted the message
-func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply string) {
+func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, key string) string {
+  var reply string
   switch xml.Text("header") {
-    //case "gosa_query_jobdb": reply = gosa_query_jobdb(xml)
+    case "gosa_query_jobdb": reply = gosa_query_jobdb(encrypted, xml)
   default:
-          //encrypted := GosaEncrypt(xml.String(), key)  // for testing the we can properly encrypt the message
+          //encrypted := GosaEncrypt(xml.String(), key)  // for testing that we can properly encrypt the message
           reply = fallback(encrypted)
           logFallbackReply(reply, key)
+          return reply
   }
   
-  
-  return reply
+  return GosaEncrypt(reply, key)
 }
 
 // util.Logs the message, decrypted if possible.

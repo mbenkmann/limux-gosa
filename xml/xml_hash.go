@@ -514,7 +514,7 @@ func StringToHash(xmlstr string) (xml *Hash, xmlerr error) {
   return
 }
 
-// Reads a string from r and uses StringToHash() to parse it to a Hash.
+// Reads a string from path and uses StringToHash() to parse it to a Hash.
 // This function will read until EOF (or another error).
 // If an error occurs the returned Hash may contain partial data.
 func FileToHash(path string) (xml *Hash, err error) {

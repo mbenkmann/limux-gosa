@@ -61,6 +61,8 @@ func main() {
   }
   util.LogLevel = config.LogLevel
   
+  message.InitJobDB()
+  
   tcp_addr, err := net.ResolveTCPAddr("ip4", config.ServerListenAddress)
   if err != nil {
     util.Log(0, "ERROR! ResolveTCPAddr: %v", err)

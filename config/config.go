@@ -47,7 +47,12 @@ var LogFilePath = "/var/log/go-susi.log"
 // Path of the server config file.
 var ServerConfigPath = "/etc/gosa-si/server.conf"
 
+// Path to database of scheduled jobs.
+var JobDBPath = "/var/lib/go-susi/jobdb.xml"
+
 // Only log messages with level <= this number will be output.
+// Note: The actual variable controlling the loglevel is util.LogLevel.
+// This is just the value read from the config file.
 var LogLevel int
 
 // Parses the relevant configuration files and os.Args and sets 
@@ -55,11 +60,18 @@ var LogLevel int
 func ReadConfig() {
   LogLevel = 0
   for _, arg := range os.Args[1:] {
+  
     if strings.HasPrefix(arg, "-v") {
+    
       LogLevel = len(arg) - 1
+      
     } else if strings.HasPrefix(arg, "--test=") {
-      LogFilePath = arg[7:] + "/go-susi.log"
-      ServerConfigPath = arg[7:] + "/server.conf"
+    
+      testdir := arg[7:]
+      LogFilePath = testdir + "/go-susi.log"
+      ServerConfigPath = testdir + "/server.conf"
+      JobDBPath = testdir + "/jobdb.xml"
+      
     } else {
       util.Log(0, "ERROR! ReadConfig: Unknown command line switch: %v", arg)
     }
