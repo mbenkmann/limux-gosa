@@ -65,8 +65,13 @@ func gosa_query_jobdb(encrypted string, xmlmsg *xml.Hash) string {
                           fallback_xml = xml.NewHash("xml")
   }
   
-  filter := xml.XMLToFilter(xmlmsg.First("where"))
+  filter, err := xml.WhereFilter(xmlmsg.First("where"))
+  if err != nil {
+    util.Log(0, "ERROR! gosa_query_jobdb(): Error parsing <where>: %v", err)
+    filter = xml.FilterNone
+  }
   jobdb_xml := JobDB.Query(filter)
+  TODO_limit_and_orderby()
   makeAnswerList(jobdb_xml, fallback_xml)
   
   return jobdb_xml.String()

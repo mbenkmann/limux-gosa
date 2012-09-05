@@ -146,28 +146,6 @@ func (db* DB) AddClone(item *Hash) (*DB) {
   return db
 }
 
-// Interface for selecting certain items from the database.
-type HashFilter interface{
-  // Returns true if the given item should be in the result set. 
-  // IMPORTANT! Must return false for a nil argument.
-  Accepts(item *Hash) bool
-}
-
-// the type of FilterAll
-type filterall struct{}
-// Always returns true for non-nil items.
-func (*filterall) Accepts(item *Hash) bool { return item != nil }
-// HashFilter that accepts all non-nil items.
-var FilterAll *filterall = &filterall{}
-
-// the type of FilterNone
-type filternone struct{}
-// Always returns false.
-func (*filternone) Accepts(item *Hash) bool { return false }
-// HashFilter that does not accept any item.
-var FilterNone *filternone = &filternone{}
-
-
 // Returns a *Hash whose outer tag has the same name as that of the db and
 // whose child elements are deep copies of the database items selected by filter.
 func (db* DB) Query(filter HashFilter) *Hash {
