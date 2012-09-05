@@ -167,8 +167,8 @@ class filter {
 
     function getTextfield($tag, $value= "", $element= null)
     {
-        $size= 30;
-        $maxlength= 30;
+        $size= 31;
+        $maxlength= 31;
         $result= "<input class='filter_textfield' placeholder='"._("Search")."...' id='$tag' name='$tag' type='text' size='$size' maxlength='{$maxlength}' value='".$value."'>";
         if ($element && isset($element['autocomplete'])) {
             $frequency= "0.5";
