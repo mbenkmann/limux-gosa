@@ -463,6 +463,38 @@ func (self *Hash) InnerXML(sortorder ...string) string {
   return buffy.String()
 }
 
+// Returns a *Hash whose outer tag has the same name as that of self and
+// whose child elements are deep copies of the children selected by filter.
+func (self *Hash) Query(filter HashFilter) *Hash {
+  result := NewHash(self.Name())
+  for _, subtag := range self.Subtags() {
+    for item := self.First(subtag) ; item != nil; item = item.Next() {
+      if filter.Accepts(item) {
+        result.AddClone(item)
+      }
+    }
+  }
+  return result
+}
+
+// Removes the children selected by the filter from the hash.
+// Returns a *Hash whose outer tag has the same name as self and
+// whose child elements are the removed items.
+func (self *Hash) Remove(filter HashFilter) *Hash {
+  result := NewHash(self.Name())
+  for _, subtag := range self.Subtags() {
+    for ; filter.Accepts(self.First(subtag)) ; {
+      result.AddWithOwnership(self.RemoveFirst(subtag))
+    }
+    for item := self.First(subtag) ; item != nil ; item = item.Next() {
+      for ; filter.Accepts(item.Next()) ; {
+        result.AddWithOwnership(item.RemoveNext(self))
+      }
+    }
+  }
+  
+  return result
+}
 
 // Parses an XML string that must have a single tag surrounding everything,
 // with no text outside.

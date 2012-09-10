@@ -148,20 +148,11 @@ func (db* DB) AddClone(item *Hash) (*DB) {
 
 // Returns a *Hash whose outer tag has the same name as that of the db and
 // whose child elements are deep copies of the database items selected by filter.
-func (db* DB) Query(filter HashFilter) *Hash {
+func (db *DB) Query(filter HashFilter) *Hash {
   // This is just a READ lock!
   db.mutex.RLock()
   defer db.mutex.RUnlock()
-  
-  result := NewHash(db.data.Name())
-  for _, subtag := range db.data.Subtags() {
-    for item := db.data.First(subtag) ; item != nil; item = item.Next() {
-      if filter.Accepts(item) {
-        result.AddClone(item)
-      }
-    }
-  }
-  return result
+  return db.data.Query(filter)
 }
 
 // Removes the items selected by the filter from the database.
@@ -169,21 +160,11 @@ func (db* DB) Query(filter HashFilter) *Hash {
 // whose child elements are the removed items.
 //
 // NOTE: Calling this method will trigger a persist job if none is pending.
-func (db* DB) Remove(filter HashFilter) *Hash {
+func (db *DB) Remove(filter HashFilter) *Hash {
   db.mutex.Lock()
   defer db.mutex.Unlock()
   
-  result := NewHash(db.data.Name())
-  for _, subtag := range db.data.Subtags() {
-    for ; filter.Accepts(db.data.First(subtag)) ; {
-      result.AddWithOwnership(db.data.RemoveFirst(subtag))
-    }
-    for item := db.data.First(subtag) ; item != nil ; item = item.Next() {
-      for ; filter.Accepts(item.Next()) ; {
-        result.AddWithOwnership(item.RemoveNext(db.data))
-      }
-    }
-  }
+  result := db.data.Remove(filter)
   
   if !db.blockPersistJobs {
     db.blockPersistJobs = true
