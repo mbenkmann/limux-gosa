@@ -152,13 +152,14 @@ class ogroup extends plugin
         // Prepare lists
         $this->memberListing = new sortableListing();
         $this->memberListing->setDeleteable(true);
+        $this->memberListing->setMassdelete(true);
         $this->memberListing->setInstantDelete(false);
         $this->memberListing->setEditable(false);
         $this->memberListing->setWidth("100%");
         $this->memberListing->setHeight("300px");
-        $this->memberListing->setHeader(array("~",_("Name")));
-        $this->memberListing->setColspecs(array('20px','*','20px'));
-        $this->memberListing->setDefaultSortColumn(1);
+        $this->memberListing->setHeader(array("X","~",_("Name")));
+        $this->memberListing->setColspecs(array("20px",'20px','*','20px'));
+        $this->memberListing->setDefaultSortColumn(2);
 
         $this->reload();
     }
@@ -376,7 +377,7 @@ class ogroup extends plugin
                 }
             }
             $data[$key] = $dn;
-            $lData[$key] = array('data'=> array(image($image),$name));
+            $lData[$key] = array('data'=> array("",image($image),$name));
         }
 
         if($this->isRestrictedByDynGroup()){
