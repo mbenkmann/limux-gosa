@@ -21,6 +21,7 @@ package message
 
 import (
          "time"
+         "strconv"
          "../xml"
          "../config"
          "../util"
@@ -41,6 +42,7 @@ func gosa_query_jobdb(encrypted string, xmlmsg *xml.Hash) string {
   }()
   
   var fallback_xml *xml.Hash
+  var xmlerr error
   timeout := time.NewTimer(5 * time.Second)
   select {
     case fb := <- fallback_jobdb :  
@@ -55,7 +57,7 @@ func gosa_query_jobdb(encrypted string, xmlmsg *xml.Hash) string {
                             decrypted = "<xml></xml>"
                           }
                           
-                          fallback_xml, xmlerr := xml.StringToHash(decrypted)
+                          fallback_xml, xmlerr = xml.StringToHash(decrypted)
                           if xmlerr != nil {
                             util.Log(0, "ERROR! gosa_query_jobdb(): Error parsing fallback jobdb: %v", xmlerr)
                           }
@@ -71,7 +73,6 @@ func gosa_query_jobdb(encrypted string, xmlmsg *xml.Hash) string {
     filter = xml.FilterNone
   }
   jobdb_xml := JobDB.Query(filter)
-  TODO_limit_and_orderby()
   makeAnswerList(jobdb_xml, fallback_xml)
   
   return jobdb_xml.String()
@@ -81,6 +82,28 @@ func gosa_query_jobdb(encrypted string, xmlmsg *xml.Hash) string {
 // <answerXX> with <id>XX</id>. If additional are provided, they will be merged
 // into lst.
 func makeAnswerList(lst *xml.Hash, additional... *xml.Hash) {
-  TODO()  
+  var id uint64
+  id = 1
+  for _, tag := range lst.Subtags() {
+    for answer := lst.RemoveFirst(tag) ; answer != nil; answer = lst.RemoveFirst(tag) {
+      answer.Rename("answer"+strconv.FormatUint(id, 10))
+      answer.FirstOrAdd("id").SetText("%d",id)
+      lst.AddWithOwnership(answer)
+      id++
+    }
+  }
+  
+  for _, other := range additional {
+    for _, tag := range other.Subtags() {
+      for answer := other.RemoveFirst(tag) ; answer != nil; answer = other.RemoveFirst(tag) {
+        answer.Rename("answer"+strconv.FormatUint(id, 10))
+        answer.FirstOrAdd("id").SetText("%d",id)
+        lst.AddWithOwnership(answer)
+        id++
+      }
+    } 
+  }
+  
+  lst.Rename("xml")
 }
 
