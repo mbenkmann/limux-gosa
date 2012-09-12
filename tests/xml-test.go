@@ -251,6 +251,12 @@ func testDB() {
   db.Init(x)
   check(db.Remove(&FilterAllButC{}), "<letters><let>a</let><let>b</let><let>d</let><let>e</let></letters>")
   check(db.Query(xml.FilterAll), "<letters><let>c</let><let>c</let></letters>")
+  check(db.Replace(xml.FilterNone, true, xml.NewHash("let","d")),"<letters></letters>")
+  check(db.Query(xml.FilterAll), "<letters><let>c</let><let>c</let></letters>")
+  check(db.Replace(xml.FilterNone, false, xml.NewHash("let","d")), "<letters></letters>")
+  check(db.Query(xml.FilterAll), "<letters><let>c</let><let>c</let><let>d</let></letters>")
+  check(db.Replace(&FilterAllButC{}, true, xml.NewHash("let","e"), xml.NewHash("let","f")), "<letters><let>d</let></letters>")
+  check(db.Query(xml.FilterAll), "<letters><let>c</let><let>c</let><let>e</let><let>f</let></letters>")
 }
 
 

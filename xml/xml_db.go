@@ -126,22 +126,19 @@ func (db *DB) Init(data *Hash) {
   db.data = data
 }
 
-// Adds a deep-copy clone of item into the database.
+// Adds deep-copy clones of all items into the database.
 // Returns the database reference (for chaining).
 //
 // NOTE: Calling this method will trigger a persist job if none is pending.
-func (db* DB) AddClone(item *Hash) (*DB) {
+func (db* DB) AddClone(items... *Hash) (*DB) {
   db.mutex.Lock()
   defer db.mutex.Unlock()
   
-  db.data.AddClone(item)
-  if !db.blockPersistJobs {
-    db.blockPersistJobs = true
-    go func() {
-      time.Sleep(db.persistDelay)
-      db.Persist()
-    }()
+  for _, item := range items {
+    db.data.AddClone(item)
   }
+  
+  db.persistJob()
   
   return db
 }
@@ -166,6 +163,34 @@ func (db *DB) Remove(filter HashFilter) *Hash {
   
   result := db.data.Remove(filter)
   
+  db.persistJob()
+  
+  return result
+}
+
+// Performs Remove(filter) and AddClone(items) as one atomic operation.
+// The returned value are the removed items as for Remove().
+// If must_match is true, the AddClone(items) will only be performed if at
+// least one item matches the filter.
+func (db *DB) Replace(filter HashFilter, must_match bool, items... *Hash) *Hash {
+  db.mutex.Lock()
+  defer db.mutex.Unlock()
+  
+  result := db.data.Remove(filter)
+  
+  if must_match == false || len(result.Subtags()) > 0 {
+    for _, item := range items {
+      db.data.AddClone(item)
+    }
+  }
+  
+  db.persistJob()
+  
+  return result
+}
+
+// Launches a persist job unless blocked. REQUIRES HOLDING THE DB LOCK!
+func (db *DB) persistJob() {
   if !db.blockPersistJobs {
     db.blockPersistJobs = true
     go func() {
@@ -173,8 +198,6 @@ func (db *DB) Remove(filter HashFilter) *Hash {
       db.Persist()
     }()
   }
-  
-  return result
 }
 
 // If the DB has a persist object set, its Store() will be called 
