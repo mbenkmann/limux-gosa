@@ -80,6 +80,12 @@ func NewHash(name string, contents ...string) *Hash {
 // Returns the name of the outer tag of the Hash.
 func (self *Hash) Name() string { return self.name }
 
+// Changes the name of the outer tag of the Hash (which MUST NOT be
+// the child of another Hash!).
+func (self *Hash) Rename(name string) {
+  self.name = name
+}
+
 // Returns a deep copy of this xml.Hash that is completely independent.
 // The clone will not have any siblings, even if the original had some.
 func (self *Hash) Clone() *Hash {
@@ -337,9 +343,24 @@ func (self *Hash) RemoveNext(parent *Hash) *Hash {
 }
 
 // Returns the first subtag with the given name or nil if none exists.
+// See also FirstOrAdd().
 func (self *Hash) First(subtag string) *Hash {
   return self.refs[subtag]
 }
+
+// Returns the first child named subtag if one exists; otherwise performs
+// Add(subtag, text...) and then returns the first child added (This is different
+// from Add() which returns the last child!).
+// See also First().
+func (self *Hash) FirstOrAdd(subtag string, text... string) *Hash {
+  ele := self.First(subtag)
+  if ele == nil {
+    self.Add(subtag, text...)
+    ele = self.First(subtag)
+  }
+  return ele
+}
+
 
 // Returns the next sibling with the same tag name or nil if none exists.
 func (self *Hash) Next() *Hash {

@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA  02110-1301, USA.
 */
 
-// Unit tests run by run_tests.go.
+// Unit tests run by run-tests.go.
 package tests
 
 import (
@@ -476,5 +476,15 @@ func testHash() {
   check(x.SortedString("a","b"),"<xml><a><a></a><b></b><c></c><d></d><e></e></a><b><a></a><b></b><c></c><d></d><e></e></b><c><a></a><b></b><c></c><d></d><e></e></c><d><a></a><b></b><c></c><d></d><e></e></d><e><a></a><b></b><c></c><d></d><e></e></e></xml>")
   check(x.SortedString("a","a"),"<xml><a><a></a><b></b><c></c><d></d><e></e></a><b><a></a><b></b><c></c><d></d><e></e></b><c><a></a><b></b><c></c><d></d><e></e></c><d><a></a><b></b><c></c><d></d><e></e></d><e><a></a><b></b><c></c><d></d><e></e></e></xml>")
   check(x.SortedString("foo","e","x","c","d","y"),"<xml><e><e></e><c></c><d></d><a></a><b></b></e><c><e></e><c></c><d></d><a></a><b></b></c><d><e></e><c></c><d></d><a></a><b></b></d><a><e></e><c></c><d></d><a></a><b></b></a><b><e></e><c></c><d></d><a></a><b></b></b></xml>")
+  
+  x = xml.NewHash("foo")
+  check(x.FirstOrAdd("id","1","2","3"),"<id>1</id>")
+  check(x,"<foo><id>1</id><id>2</id><id>3</id></foo>")
+  check(x.FirstOrAdd("id","4","5","6"),"<id>1</id>")
+  check(x,"<foo><id>1</id><id>2</id><id>3</id></foo>")
+  check(x.FirstOrAdd("id"),"<id>1</id>")
+  check(x.FirstOrAdd("bar"),"<bar></bar>")
+  x.Rename("foobar")
+  check(x,"<foobar><bar></bar><id>1</id><id>2</id><id>3</id></foobar>")
 }
 
