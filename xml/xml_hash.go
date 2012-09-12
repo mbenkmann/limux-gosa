@@ -63,7 +63,8 @@ type Hash struct {
 
 // Returns a new *Hash with outer-most element <name>.
 // If N contents strings are passed, the effect will be
-// as if hash.Add(N1).Add(N2)...Add(N-1).SetText(N) is called.
+// as if hash.Add(N1).Add(N2)...Add(N-1).SetText(N) is called (but the
+// element returned is always the outermost).
 func NewHash(name string, contents ...string) *Hash {
   hash := &Hash{name:name, refs:map[string]*Hash{}}
   sub := hash
@@ -217,8 +218,9 @@ func (self *Hash) SetText(format string, args ...interface{}) string {
   return self.text
 }
 
-// Adds <subtag>text</subtag> children (an empty <subtag></subtag> is added
-// even if no text is provided) and returns the last subtag added.
+// For each text, a <subtag>text</subtag> child is added (an empty 
+// <subtag></subtag> is added even if no text is provided) and 
+// returns the last subtag added.
 func (self *Hash) Add(subtag string, text ...string) *Hash {
   if len(text) == 0 {
     text = []string{""}

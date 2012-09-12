@@ -26,12 +26,15 @@ import (
          "sort"
          "time"
          "bytes"
+         "strings"
          "io/ioutil"
          "../xml"
        )
 
 // Unit tests for the package susi/xml.
 func Xml_test() {
+  fmt.Printf("\n=== xml.HashFilter ===\n\n")
+  testFilter()
   
   fmt.Printf("\n=== xml.Hash ===\n\n")
   testHash()
@@ -39,6 +42,127 @@ func Xml_test() {
   fmt.Printf("\n=== xml.DB ===\n\n")
   testDB()
 }
+
+// "&" starts a new <clause>  (the 1st clause is implicit)
+// "!or" or "!and" start a new <phrase>
+// everything else is "operator" "comparevalue" pairs
+func query(x *xml.Hash, q... string) string {
+  qry := xml.NewHash("where")
+  clause := qry.Add("clause")
+  for i:=0; i < len(q) ; {
+    if q[i] == "&" {
+      clause = qry.Add("clause")
+      i++
+    }
+    if q[i][0] == '!' {
+      clause.Add("connector",q[i][1:])
+      i++
+    }
+    phrase := clause.Add("phrase")
+    phrase.Add("operator", q[i])
+    phrase.Add("n", q[i+1])
+    i += 2
+  }
+  
+  filter, err := xml.WhereFilter(qry)
+  if err != nil { return fmt.Sprintf("%v",err) }
+  
+  result := []string{}
+  for item := x.Query(filter).First("item"); item != nil; item = item.Next() {
+    result = append(result, item.Text("n"))
+  }
+  return strings.Join(result, " ")
+}
+
+func testFilter() {
+  lst := []string{"1","10","10x","2","2x","20","3","30","30x","100x","100"}
+  x := xml.NewHash("db")
+  for _, dat := range lst {
+    x.Add("item").Add("n", dat)
+  }
+  check(query(x,"eq","10"),"10")
+  check(query(x,"!or","eq","2","eq","3"), "2 3")
+  check(query(x,"!or","eq","2","eq","3", "&","like","2%" ), "2")
+  foo, err := xml.WhereFilter(xml.NewHash("foo"))
+  check(foo, nil)
+  check(err, "Wrapper element must be 'where', not 'foo'")
+  check(query(x,"!foo","eq","2","eq","3"), "Only 'and' and 'or' are allowed as <connector>, not 'foo'")
+  y, _ := xml.StringToHash("<where><clause><phrase><foo/><bar/></phrase></clause></where>")
+  foo, err = xml.WhereFilter(y)
+  check(foo, nil)
+  check(err,"<phrase> may only contain one other element besides <operator>")
+  y, _ = xml.StringToHash("<where><clause><phrase></phrase></clause></where>")
+  foo, err = xml.WhereFilter(y)
+  check(foo, nil)
+  check(err,"<phrase> must have one other element besides <operator>")
+  y, _ = xml.StringToHash("<where></where>")
+  foo, err = xml.WhereFilter(y)
+  check(err, nil)
+  check(x.Query(foo), x)
+  check(query(x,"!or","foo","2"), "Unsupported <operator>: foo")
+  
+  check(xml.FilterAnd([]xml.HashFilter{xml.FilterNone}).Accepts(nil), false)
+  check(xml.FilterAnd([]xml.HashFilter{xml.FilterAll}).Accepts(nil), false)
+  check(xml.FilterAnd([]xml.HashFilter{}).Accepts(nil), false)
+  check(xml.FilterOr([]xml.HashFilter{xml.FilterNone}).Accepts(nil), false)
+  check(xml.FilterOr([]xml.HashFilter{xml.FilterAll}).Accepts(nil), false)
+  check(xml.FilterOr([]xml.HashFilter{}).Accepts(nil), false)
+  check(xml.FilterNone.Accepts(nil), false)
+  check(xml.FilterAll.Accepts(nil), false)
+  check(xml.FilterNot(xml.FilterAll).Accepts(nil), false)
+  check(xml.FilterNot(xml.FilterNone).Accepts(nil), false)
+  check(xml.FilterAnd([]xml.HashFilter{}).Accepts(xml.NewHash("foo")), true)
+  check(xml.FilterOr([]xml.HashFilter{}).Accepts(xml.NewHash("foo")), false)
+  
+  filters := []xml.HashFilter{xml.FilterAll}
+  filt := xml.FilterAnd(filters)
+  check(filt.Accepts(xml.NewHash("foo")), true)
+  filters[0] = xml.FilterNone
+  check(filt.Accepts(xml.NewHash("foo")), true) // check that changing filters has NOT affected filt
+  
+  filters = []xml.HashFilter{xml.FilterAll}
+  filt = xml.FilterOr(filters)
+  check(filt.Accepts(xml.NewHash("foo")), true)
+  filters[0] = xml.FilterNone
+  check(filt.Accepts(xml.NewHash("foo")), true) // check that changing filters has NOT affected filt
+  
+  check(xml.FilterRegexp("foo","bar").Accepts(xml.NewHash("foo")), false)
+  check(xml.FilterRegexp("foo","").Accepts(xml.NewHash("foo")), false)
+  y, _ = xml.StringToHash("<foo><bar>x</bar><bar>y</bar></foo>")
+  check(xml.FilterRegexp("bar","a|Y").Accepts(y), false)
+  check(xml.FilterRegexp("bar","(?i)a|Y").Accepts(y), true)
+  check(xml.FilterRegexp("bar","(?i)a|B").Accepts(y), false)
+  check(xml.FilterRegexp("bar","x|y").Accepts(y), true)
+  check(xml.FilterNot(xml.FilterRegexp("bar","(?i)a|Y")).Accepts(y), false)
+  check(xml.FilterNot(xml.FilterRegexp("bar","(?i)a|B")).Accepts(y), true)
+  check(xml.FilterNot(xml.FilterRegexp("bar","x|y")).Accepts(y), false)
+  
+  check(query(x, "!and", "like", "1%", "unlike", "__X"), "1 10 100x 100")
+  check(query(x, "!and", "unlike", "1%", "like", "__X"), "30x")
+  check(query(x, "unlike", "."), "1 10 10x 2 2x 20 3 30 30x 100x 100")
+  check(query(x, "eq", "."), "")
+  check(query(x, "eq", "1"), "1")
+  check(query(x, "eq", "x"), "")
+  check(query(x, "like", "1"), "1")
+  check(query(x, "like", "x"), "")
+  
+  check(query(x, "ge", "2"), "10 2 2x 20 3 30 30x 100")
+  check(query(x, "ge", "2 "), "2x 20 3 30 30x")
+  check(query(x, "ge", "2x"), "2x 3 30 30x")
+  
+  check(query(x, "gt", "2"), "10 2x 20 3 30 30x 100")
+  check(query(x, "gt", "2 "), "2x 20 3 30 30x")
+  check(query(x, "gt", "2x"), "3 30 30x")
+  
+  check(query(x, "lt", "2"), "1 10x 100x")
+  check(query(x, "lt", "2 "), "1 10 10x 2 100x 100")
+  check(query(x, "lt", "2x"), "1 10 10x 2 20 100x 100")
+  
+  check(query(x, "le", "2"), "1 10x 2 100x")
+  check(query(x, "le", "2 "), "1 10 10x 2 100x 100")
+  check(query(x, "le", "2x"), "1 10 10x 2 2x 20 100x 100")
+}
+
 
 type StringChannel chan string
 type ChannelStorer struct {

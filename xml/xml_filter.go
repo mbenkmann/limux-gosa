@@ -34,7 +34,7 @@ import (
 // Replaces "%" with ".*" and "_" with ".".
 var replaceLikeMetaChars = strings.NewReplacer("%",".*","_",".")
 
-// Interface for selecting certain items from the database.
+// Interface for selecting certain items from a hash.
 type HashFilter interface{
   // Returns true if the given item should be in the result set. 
   // IMPORTANT! Must return false for a nil argument.
@@ -70,7 +70,7 @@ func (self *filterand) Accepts(item *Hash) bool {
 // filter will accept everything but nil.
 func FilterAnd(filter []HashFilter) HashFilter {
   var f filterand = make([]HashFilter, len(filter))
-  copy(f, filter)
+  copy(f, filter) // create copy because someone could change the original array
   return &f
 }
 
@@ -89,7 +89,7 @@ func (self *filteror) Accepts(item *Hash) bool {
 // filter will accept nothing.
 func FilterOr(filter []HashFilter) HashFilter {
   var f filteror = make([]HashFilter, len(filter))
-  copy(f, filter)
+  copy(f, filter) // create copy because someone could change the original array
   return &f
 }
 
@@ -166,7 +166,7 @@ func (self *filterrel) Accepts(item *Hash) bool {
 // or greater-than relationships. The comparison is attempted numerically first
 // and if either compare_value or the column value can not be converted to a number
 // a lexicographic comparison is performed (on the bytes of the strings, not the
-// utf-8 code points).
+// code points).
 func FilterRel(column, compare_value string, accept1, accept2 int) HashFilter {
   num, err := strconv.ParseInt(compare_value, 10, 64)
   if err != nil { num = math.MinInt64 }
@@ -176,17 +176,17 @@ func FilterRel(column, compare_value string, accept1, accept2 int) HashFilter {
 
 // Returns a HashFilter for the where expression passed as argument. In
 // case of an error, nil and the error are returned.
-//
 // A where expression looks like this:
+//
 //   <where>
-//        <clause>
-//            <connector>or</connector>
-//            <phrase>
-//                <operator>eq</operator>
-//                <macaddress>00:1d:60:7e:9b:f6</macaddress>
-//            </phrase>
-//        </clause>
-//   </where>
+//         <clause>
+//             <connector>or</connector>
+//             <phrase>
+//                <operator>eq</operator>
+//                <macaddress>00:1d:60:7e:9b:f6</macaddress>
+//             </phrase>
+//         </clause>
+//   </where>
 //
 // The tags have the following meaning:
 //  <clause> (0 or more) A filter condition. All <clause> filter conditions 
@@ -217,7 +217,7 @@ func WhereFilter(where *Hash) (HashFilter, error) {
     return nil, fmt.Errorf("Wrapper element must be 'where', not '%v'", where.Name())
   }
   
-  clauses := make([]HashFilter, 1, 0)
+  clauses := make([]HashFilter, 0, 1)
   for clause := where.First("clause"); clause != nil; clause = clause.Next() {
     connector := strings.ToLower(clause.Text("connector"))
     if connector == "" { connector = "and" }
@@ -225,7 +225,7 @@ func WhereFilter(where *Hash) (HashFilter, error) {
       return nil, fmt.Errorf("Only 'and' and 'or' are allowed as <connector>, not '%v'", connector)
     }
     
-    phrases := make([]HashFilter, 1, 0)
+    phrases := make([]HashFilter, 0, 1)
     for phrase := clause.First("phrase"); phrase != nil; phrase = phrase.Next() {
       operator := strings.ToLower(phrase.Text("operator"))
       if operator == "" { operator = "eq" }
