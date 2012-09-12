@@ -207,9 +207,12 @@ class faiVariable extends plugin
     }
 
     $c_dn = $this->acl_base_for_current_object($this->dn);
-    $smarty->assign("is_createable", preg_match("/c/",$this->ui->get_permissions($c_dn,"fai/faiVariableEntry")) && !preg_match("/freeze/", $this->FAIstate));
-    $smarty->assign("is_removeable",  preg_match("/d/",$this->ui->get_permissions($c_dn,"fai/faiVariableEntry")) && !preg_match("/freeze/", $this->FAIstate));
-
+    $smarty->assign("is_createable", preg_match("/c/",$this->ui->get_permissions($c_dn,"fai/faiVariableEntry")) && !preg_match("/freeze/", $this->FAIstate) && !$this->read_only);
+    $smarty->assign("is_removeable",  preg_match("/d/",$this->ui->get_permissions($c_dn,"fai/faiVariableEntry")) && !preg_match("/freeze/", $this->FAIstate) && !$this->read_only);
+    if($this->read_only)
+      $smarty->assign("read_only",true);
+    else
+      $smarty->assign("read_only",false);
     $tmp = $this->plInfo();
     foreach($tmp['plProvidedAcls'] as $name => $translation) {
       $smarty->assign($name."ACL",$this->getacl($name,preg_match("/freeze/i",$this->FAIstate)));

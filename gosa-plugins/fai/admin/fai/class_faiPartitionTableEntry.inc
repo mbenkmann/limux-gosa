@@ -126,9 +126,9 @@ class faiPartitionTableEntry extends plugin
       $acl = $this->getacl($name, preg_match("/freeze/i",$this->FAIstate));
       $smarty->assign($name."ACL",$acl);
     }
-   
-    $smarty->assign("sub_object_is_createable",$this->acl_is_createable());
+    $smarty->assign("sub_object_is_createable",$this->acl_is_createable() && !$this->read_only);
     $smarty->assign("freeze",preg_match("/freeze/i",$this->FAIstate));
+    $smarty->assign("read_only",$this->read_only);
  
     /* Fetch template and show the result
      */
