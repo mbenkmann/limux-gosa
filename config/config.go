@@ -24,6 +24,8 @@ package config
 import (
          "io"
          "os"
+         "net"
+         "fmt"
          "bufio"
          "strings"
          "crypto/aes"
@@ -41,6 +43,12 @@ var ModuleKeys = []string{"dummy-key"}
 // the local machine. ":<port>" allows connections from anywhere.
 var ServerListenAddress = ":20081"
 
+// IP address part of <source> element.
+var IP = "127.0.0.1"
+
+// The address sent in the <source> element.
+var ServerSourceAddress = "127.0.0.1:20081"
+
 // Where to send log messages (in addition to stderr).
 var LogFilePath = "/var/log/go-susi.log"
 
@@ -49,6 +57,16 @@ var ServerConfigPath = "/etc/gosa-si/server.conf"
 
 // Path to database of scheduled jobs.
 var JobDBPath = "/var/lib/go-susi/jobdb.xml"
+
+// This machine's hostname.
+var Hostname = "localhost"
+
+// This machine's domain name.
+var Domain = "localdomain"
+
+// The MAC address to send in the <macaddress> element.
+var MAC = "01:02:03:04:05:06"
+
 
 // Only log messages with level <= this number will be output.
 // Note: The actual variable controlling the loglevel is util.LogLevel.
@@ -127,5 +145,67 @@ func ReadConfig() {
     }
   }
   
+}
+
+// Reads network parameters.
+func ReadNetwork() {
+  var err error
+  
+  var ifaces []net.Interface
+  ifaces, err = net.Interfaces()
+  if err == nil {
+    
+    // find the first non-loopback interface that is up
+    for _, iface := range ifaces {
+      if iface.Flags & net.FlagLoopback != 0 { continue }
+      if iface.Flags & net.FlagUp == 0 { continue }
+      
+      var addrs []net.Addr
+      addrs, err = iface.Addrs()
+      if err == nil {
+        MAC = iface.HardwareAddr.String()
+        
+        // find the first IP address for that interface
+        for _, addr := range addrs {
+          ip, _, err2 := net.ParseCIDR(addr.String())
+          if err2 == nil && !ip.IsLoopback() {
+            IP = ip.String()
+            ServerSourceAddress = IP + ServerListenAddress[strings.Index(ServerListenAddress,":"):]
+            goto FoundIP
+          }
+        }
+        err = fmt.Errorf("Could not determine IP for interface %v", MAC)
+        FoundIP:
+      }
+    }
+  }
+  
+  if err != nil {
+    util.Log(0, "ERROR! ReadNetwork: %v", err)
+  }
+  
+  var hostname string
+  hostname, err = os.Hostname()
+  if err == nil {
+    Hostname = hostname
+    var names []string
+    names, err = net.LookupAddr(IP)
+    if err == nil {
+      for _, name := range names {
+        if strings.HasPrefix(name, hostname + ".") {
+          Domain = name[len(hostname)+1:]
+          goto DomainFound
+        }
+      }
+      err = fmt.Errorf("Could not determine domain for hostname '%v'. Lookup of IP %v returned %v", Hostname, IP, names)
+    DomainFound:
+    }
+  }
+  
+  if err != nil {
+    util.Log(0, "ERROR! ReadNetwork: %v", err)
+  }
+  
+  util.Log(1, "INFO! Hostname: %v  Domain: %v  MAC: %v  Server: %v", Hostname, Domain, MAC, ServerSourceAddress)
 }
 
