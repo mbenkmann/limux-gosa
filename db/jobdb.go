@@ -17,7 +17,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA  02110-1301, USA.
 */
 
-package message
+// API for the various databases used by go-susi.
+package db
 
 import (
          "os"
@@ -28,23 +29,34 @@ import (
        )
 
 // Stores jobs to be executed at some point in the future.
-var JobDB *xml.DB
+var jobDB *xml.DB
 
 // Initializes JobDB with data from the file config.JobDBPath if it exists.
-func InitJobDB() {
+func JobsInit() {
   jobdb_storer := &xml.FileStorer{config.JobDBPath}
   var delay time.Duration = 0
-  JobDB = xml.NewDB("jobdb", jobdb_storer, delay)
+  jobDB = xml.NewDB("jobdb", jobdb_storer, delay)
   xml, err := xml.FileToHash(config.JobDBPath)
   if err != nil {
     if os.IsNotExist(err) { 
       /* File does not exist is not an error that needs to be reported */ 
     } else
     {
-      util.Log(0, "ERROR! InitJobDB() reading '%v': %v", config.JobDBPath, err)
+      util.Log(0, "ERROR! JobsInit() reading '%v': %v", config.JobDBPath, err)
     }
   } else
   {
-    JobDB.Init(xml)
+    jobDB.Init(xml)
   }
+}
+
+// Queries the JobDB according to where (see xml.WhereFilter() for the format)
+// and returns the results (as clones, not references into the database).
+func JobsQuery(where *xml.Hash) *xml.Hash {
+  filter, err := xml.WhereFilter(where)
+  if err != nil {
+    util.Log(0, "ERROR! JobsQuery: Error parsing <where>: %v", err)
+    filter = xml.FilterNone
+  }
+  return jobDB.Query(filter)
 }

@@ -37,6 +37,7 @@ import (
           "strings"
           "syscall"
           
+          "../db"
           "../util"
           "../config"
           "../message"
@@ -61,7 +62,8 @@ func main() {
   }
   util.LogLevel = config.LogLevel
   
-  message.InitJobDB()
+  config.ReadNetwork()
+  db.JobsInit()
   
   tcp_addr, err := net.ResolveTCPAddr("ip4", config.ServerListenAddress)
   if err != nil {
@@ -123,26 +125,30 @@ func acceptConnections(listener *net.TCPListener, tcp_connections chan<- *net.TC
 // Checks DNS for SRV _gosa-si._tcp records and informs those servers
 // of our presence.
 func register_at_foreign_servers() {
-  domain := "tvc.muenchen.de"
   var cname string
   var addrs []*net.SRV
-  cname, addrs, err := net.LookupSRV("gosa-si", "tcp", domain)
+  cname, addrs, err := net.LookupSRV("gosa-si", "tcp", config.Domain)
   if err != nil {
     util.Log(0, "ERROR! LookupSRV: %v", err) 
     return
   }
   
   if len(addrs) == 0 {
-    util.Log(1, "INFO! No other go-susi or gosa-si servers listed in DNS for domain '%v'", domain)
+    util.Log(1, "INFO! No other go-susi or gosa-si servers listed in DNS for domain '%v'", config.Domain)
   } else {
-    names := make([]string, len(addrs))
+    servers := make([]string, len(addrs))
     for i := range addrs {
-      names[i] = fmt.Sprintf("%v:%v", strings.TrimRight(addrs[i].Target,"."), addrs[i].Port)
+      servers[i] = fmt.Sprintf("%v:%v", strings.TrimRight(addrs[i].Target,"."), addrs[i].Port)
     }
-    util.Log(1, "INFO! DNS lists the following %v servers: %v", cname, strings.Join(names,", "))
+    util.Log(1, "INFO! DNS lists the following %v servers: %v", cname, strings.Join(servers,", "))
+    
+    // send new_server message to all listed servers (except ourselves)
+    for _, server := range servers {
+      if !strings.HasPrefix(server, config.Hostname + "." + config.Domain + ":") {
+        //message.Send_new_nerver(server)
+      }
+    }
   }
-  
-  // TODO: Ignore our own server's entry if present
 }
 
 // Handles one or more messages received over conn. Each message is a single
