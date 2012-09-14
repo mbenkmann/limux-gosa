@@ -22,6 +22,7 @@ package message
 import (
          "time"
          "strconv"
+         "strings"
          "../xml"
          "../config"
          "../util"
@@ -80,7 +81,7 @@ func gosa_query_jobdb(encrypted string, xmlmsg *xml.Hash) string {
 
 // Fixes lst so that the outer element is <xml> and the children are
 // <answerXX> with <id>XX</id>. If additional are provided, they will be merged
-// into lst.
+// into lst (only subelements named "answer*").
 func makeAnswerList(lst *xml.Hash, additional... *xml.Hash) {
   var id uint64
   id = 1
@@ -95,6 +96,7 @@ func makeAnswerList(lst *xml.Hash, additional... *xml.Hash) {
   
   for _, other := range additional {
     for _, tag := range other.Subtags() {
+      if !strings.HasPrefix(tag, "answer") { continue }
       for answer := other.RemoveFirst(tag) ; answer != nil; answer = other.RemoveFirst(tag) {
         answer.Rename("answer"+strconv.FormatUint(id, 10))
         answer.FirstOrAdd("id").SetText("%d",id)
