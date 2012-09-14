@@ -63,7 +63,7 @@ type Hash struct {
 
 // Returns a new *Hash with outer-most element <name>.
 // If N contents strings are passed, the effect will be
-// as if hash.Add(N1).Add(N2)...Add(N-1).SetText(N) is called (but the
+// as if hash.Add(contents[0]).Add(contents[1])...Add(contents[N-1]).SetText(contents[N]) is called (but the
 // element returned is always the outermost).
 func NewHash(name string, contents ...string) *Hash {
   hash := &Hash{name:name, refs:map[string]*Hash{}}
