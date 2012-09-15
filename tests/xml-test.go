@@ -161,6 +161,16 @@ func testFilter() {
   check(query(x, "le", "2"), "1 10x 2 100x")
   check(query(x, "le", "2 "), "1 10 10x 2 100x 100")
   check(query(x, "le", "2x"), "1 10 10x 2 2x 20 100x 100")
+  
+  y, _ = xml.StringToHash("<d><i><x> </x></i><i><x>foo</x></i><i><x>bar</x><y>bla</y><x>foo</x></i></d>")
+  check(y.Query(xml.FilterSimple()), y)
+  check(y.Query(xml.FilterSimple("foo")), y)
+  check(y.Query(xml.FilterSimple("foo","")), "<d></d>")
+  check(y.Query(xml.FilterSimple("x","")), "<d></d>")
+  check(y.Query(xml.FilterSimple("x"," ")), "<d><i><x> </x></i></d>")
+  check(y.Query(xml.FilterSimple("x","foo")), "<d><i><x>foo</x></i><i><x>bar</x><x>foo</x><y>bla</y></i></d>")
+  check(y.Query(xml.FilterSimple("x","foo", "y")), "<d><i><x>foo</x></i><i><x>bar</x><x>foo</x><y>bla</y></i></d>")
+  check(y.Query(xml.FilterSimple("x","foo", "y", "bla")), "<d><i><x>bar</x><x>foo</x><y>bla</y></i></d>")
 }
 
 

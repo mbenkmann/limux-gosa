@@ -173,6 +173,28 @@ func FilterRel(column, compare_value string, accept1, accept2 int) HashFilter {
   return &filterrel{column, compare_value, num, accept1, accept2}
 }
 
+type filtersimple []string
+
+func (self *filtersimple) Accepts(item *Hash) bool {
+  CheckCondition:
+  for i := 1; i < len(*self) ; i += 2 {
+    for _, val := range item.Get((*self)[i-1]) {
+      if val == (*self)[i] { continue CheckCondition }
+    }
+    return false
+  }
+  return true
+}
+
+// Returns a HashFilter that accepts an item if it has at least one subelement
+// named tag_value_pairs[N] with content tag_value_pairs[N+1] for all even N.
+// If an odd number of arguments is passed, the last argument will be ignored.
+// If no tag_value_pairs are passed, the resulting filter will accept all items.
+func FilterSimple(tag_value_pairs... string) HashFilter {
+  var f filtersimple = make([]string, len(tag_value_pairs))
+  copy(f, tag_value_pairs) // create copy because someone could change the original array
+  return &f
+}
 
 // Returns a HashFilter for the where expression passed as argument. In
 // case of an error, nil and the error are returned.
