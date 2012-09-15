@@ -79,6 +79,17 @@ func WriteAll(w io.Writer, data []byte) (n int, err error) {
   return n, nil
 }
 
+// Opens a connection to target (e.g. "foo.example.com:20081"), sends msg followed
+// by \r\n and then closes the connection.
+func SendLnTo(target string, msg string) {
+  conn, err := net.Dial("tcp", target)
+  if err != nil {
+    Log(0, "ERROR! Dial: %v", err)
+    return
+  }
+  defer conn.Close()
+  SendLn(conn, msg)  
+}
 
 // Sends strings via connection conn, followed by "\r\n"
 func SendLn(conn net.Conn, s string) {
