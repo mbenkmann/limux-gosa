@@ -31,10 +31,8 @@ import (
           "os/signal"
           "net"
           "log"
-          "fmt"
           "time"
           "bytes"
-          "strings"
           "syscall"
           
           "../db"
@@ -62,8 +60,9 @@ func main() {
   }
   util.LogLevel = config.LogLevel
   
-  config.ReadNetwork()
-  db.JobsInit()
+  config.ReadNetwork() // after config.ReadConfig()
+  db.ServersInit() // after config.ReadNetwork()
+  db.JobsInit() // after config.ReadConfig()
   
   tcp_addr, err := net.ResolveTCPAddr("ip4", config.ServerListenAddress)
   if err != nil {
@@ -90,7 +89,7 @@ func main() {
   util.Log(1, "INFO! Accepting connections on %v", tcp_addr);
   go acceptConnections(listener, tcp_connections)
   
-  go register_at_foreign_servers()
+  go message.Broadcast_new_server()
 
   /********************  main event loop ***********************/  
   var sig os.Signal
@@ -118,35 +117,6 @@ func acceptConnections(listener *net.TCPListener, tcp_connections chan<- *net.TC
       util.Log(0, "ERROR! AcceptTCP: %v", err) 
     } else {
       tcp_connections <- tcpConn
-    }
-  }
-}
-
-// Checks DNS for SRV _gosa-si._tcp records and informs those servers
-// of our presence.
-func register_at_foreign_servers() {
-  var cname string
-  var addrs []*net.SRV
-  cname, addrs, err := net.LookupSRV("gosa-si", "tcp", config.Domain)
-  if err != nil {
-    util.Log(0, "ERROR! LookupSRV: %v", err) 
-    return
-  }
-  
-  if len(addrs) == 0 {
-    util.Log(1, "INFO! No other go-susi or gosa-si servers listed in DNS for domain '%v'", config.Domain)
-  } else {
-    servers := make([]string, len(addrs))
-    for i := range addrs {
-      servers[i] = fmt.Sprintf("%v:%v", strings.TrimRight(addrs[i].Target,"."), addrs[i].Port)
-    }
-    util.Log(1, "INFO! DNS lists the following %v servers: %v", cname, strings.Join(servers,", "))
-    
-    // send new_server message to all listed servers (except ourselves)
-    for _, server := range servers {
-      if !strings.HasPrefix(server, config.Hostname + "." + config.Domain + ":") {
-        //message.Send_new_nerver(server)
-      }
     }
   }
 }

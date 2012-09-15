@@ -39,6 +39,9 @@ var InitializationVector = []byte(util.Md5sum("GONICUS GmbH")[0:aes.BlockSize])
 // The keys used to address different gosa-si modules.
 var ModuleKeys = []string{"dummy-key"}
 
+// Maps a module name surrounded by brackets (such as "[ServerPackages]") to its key.
+var ModuleKey = map[string]string{}
+
 // The address to listen on. "127.0.0.1:<port>" listens only for connections from
 // the local machine. ":<port>" allows connections from anywhere.
 var ServerListenAddress = ":20081"
@@ -57,6 +60,10 @@ var ServerConfigPath = "/etc/gosa-si/server.conf"
 
 // Path to database of scheduled jobs.
 var JobDBPath = "/var/lib/go-susi/jobdb.xml"
+
+// Path to database of peer servers.
+var ServerDBPath = "/var/lib/go-susi/serverdb.xml"
+
 
 // This machine's hostname.
 var Hostname = "localhost"
@@ -89,6 +96,7 @@ func ReadConfig() {
       LogFilePath = testdir + "/go-susi.log"
       ServerConfigPath = testdir + "/server.conf"
       JobDBPath = testdir + "/jobdb.xml"
+      ServerDBPath = testdir + "/serverdb.xml"
       
     } else {
       util.Log(0, "ERROR! ReadConfig: Unknown command line switch: %v", arg)
@@ -133,9 +141,10 @@ func ReadConfig() {
     // Do not return. Try working with whatever we got out of the file.
   }
   
-  for _, section := range conf {
+  for sectionname, section := range conf {
     if sectkey, ok := section["key"]; ok {
       ModuleKeys = append(ModuleKeys, sectkey)
+      ModuleKey[sectionname] = sectkey
     }
   }
   
