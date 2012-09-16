@@ -32,6 +32,7 @@ import (
           "net"
           "log"
           "time"
+          "path"
           "bytes"
           "syscall"
           
@@ -59,6 +60,8 @@ func main() {
     util.Logger = log.New(io.MultiWriter( os.Stderr, logfile ), "",0)
   }
   util.LogLevel = config.LogLevel
+  
+  os.MkdirAll(path.Dir(config.JobDBPath), 0750)
   
   config.ReadNetwork() // after config.ReadConfig()
   db.ServersInit() // after config.ReadNetwork()
