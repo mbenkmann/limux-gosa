@@ -34,10 +34,9 @@ import (
        )
 
 // Stores info about server peers. Entries in serverDB have the following
-// structure (<ip> and at least one <key> are required):
+// structure (<source> and at least one <key> are required):
 //
 //  <xml>
-//    <ip>172.16.2.143</ip>
 //    <source>172.16.2.143:20081</source>
 //    <key>currentserverkey</key>
 //    <key>previousserverkey</key>
@@ -87,7 +86,7 @@ func addDNSServers() {
     // add all servers listed in DNS to our database (skipping this server)
     for _, server := range servers {
       if !strings.HasPrefix(server, config.Hostname + "." + config.Domain + ":") {
-        host, _, _ := net.SplitHostPort(server)
+        host, port, _ := net.SplitHostPort(server)
         addrs, err := net.LookupIP(host)
         if err != nil || len(addrs) == 0 {
           if err != nil {
@@ -98,9 +97,10 @@ func addDNSServers() {
         } else 
         {
           ip := addrs[0].String()
+          source := ip + ":" + port
           
           // if we don't have an entry for the server, generate a dummy entry.
-          if len(ServerKeys(ip)) == 0 {
+          if len(ServerKeys(source)) == 0 {
             // There's no point in generating a random server key. 
             // First of all, the server key is only as secure as the ServerPackages
             // module key (because whoever has that can decrypt the message that
@@ -118,9 +118,9 @@ func addDNSServers() {
               key = config.IP + ip
             }
             key = config.ModuleKey["[ServerPackages]"] + strings.Replace(key, ".", "", -1)
-            server_xml := xml.NewHash("xml", "ip", ip)
+            server_xml := xml.NewHash("xml", "source", source)
             server_xml.Add("key", key)
-            serverDB.Replace(xml.FilterSimple("ip", ip), false, server_xml)
+            ServerUpdate(server_xml)
           }
         }
       }
@@ -128,11 +128,29 @@ func addDNSServers() {
   }
 }
 
+// Updates the data for server.
+// server has the following format:
+//   <xml>
+//     <source>1.2.3.4:20081</source>
+//     <key>...</key>
+//     ...
+//   </xml>
+func ServerUpdate(server *xml.Hash) {
+  source := server.Text("source")
+  keys := ServerKeys(source)
+  if len(keys) > 0 {
+    // Add previous key as 2nd key to server, because due to parallel processes
+    // we might still have pending messages encrypted with the previous key.
+    server.Add("key", keys[0])
+  }
+  serverDB.Replace(xml.FilterSimple("source", source), false, server)
+}
+
 // Returns all keys (0-length slice if none) known for the server identified by
-// the given IP address.
-func ServerKeys(ip string) []string {
+// the given address (ip:port).
+func ServerKeys(addr string) []string {
   result := make([]string, 0, 2)
-  for server := serverDB.Query(xml.FilterSimple("ip", ip)).First("xml");
+  for server := serverDB.Query(xml.FilterSimple("source", addr)).First("xml");
       server != nil;
       server = server.Next() {
     result = append(result, server.Get("key")...)
@@ -158,4 +176,9 @@ func ServerKeys(ip string) []string {
 //  </serverdb>
 func Servers() *xml.Hash {
   return serverDB.Query(xml.FilterAll)
+}
+
+// Returns all <source> addresses for all entries from the server DB.
+func ServerAddresses() []string {
+  return serverDB.ColumnValues("source")
 }
