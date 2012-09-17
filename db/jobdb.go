@@ -60,3 +60,27 @@ func JobsQuery(where *xml.Hash) *xml.Hash {
   }
   return jobDB.Query(filter)
 }
+
+// Returns a copy of the complete job database in the following format:
+//   <jobdb>
+//     <job>
+//       <plainname>grisham</plainname>
+//       <progress>none</progress>
+//       <status>done</status>
+//       <siserver>1.2.3.4:20081</siserver>
+//       <modified>1</modified>
+//       <targettag>00:0c:29:50:a3:52</targettag>
+//       <macaddress>00:0c:29:50:a3:52</macaddress>
+//       <timestamp>20120906164734</timestamp>
+//       <id>4</id>
+//       <headertag>trigger_action_wake</headertag>
+//       <result>none</result>
+//       <xmlmessage>PHhtbD48aGVhZGVyPmpvYl90cmlnZ2VyX2FjdGlvbl93YWtlPC9oZWFkZXI+PHNvdXJjZT5HT1NBPC9zb3VyY2U+PHRhcmdldD4wMDowYzoyOTo1MDphMzo1MjwvdGFyZ2V0Pjx0aW1lc3RhbXA+MjAxMjA5MDYxNjQ3MzQ8L3RpbWVzdGFtcD48bWFjYWRkcmVzcz4wMDowYzoyOTo1MDphMzo1MjwvbWFjYWRkcmVzcz48L3htbD4=</xmlmessage>
+//     </job>
+//     <job>
+//       ...
+//     </job>
+//   </jobdb>
+func Jobs() *xml.Hash {
+  return jobDB.Query(xml.FilterAll)
+}
