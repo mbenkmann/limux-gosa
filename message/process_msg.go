@@ -31,6 +31,7 @@ import (
          "crypto/aes"
          "encoding/base64"
          
+         "../db"
          "../xml"
          "../util"
          "../config"
@@ -77,6 +78,8 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
   var reply string
   switch xml.Text("header") {
     case "gosa_query_jobdb": reply = gosa_query_jobdb(encrypted, xml)
+    case "new_server": reply = new_server(encrypted, xml)
+    case "confirm_new_server": reply = confirm_new_server(encrypted, xml)
   default:
           //encrypted := GosaEncrypt(xml.String(), key)  // for testing that we can properly encrypt the message
           reply = fallback(encrypted)
@@ -149,6 +152,18 @@ func paddedMessage(msg string) []byte {
   buf := make([]byte, len(msg) + padding)
   copy(buf[padding:], msg)
   return buf
+}
+
+// Encrypts msg with the key for server (a string like "1.2.3.4:20081")
+// and returns the encrypted message. Returns an empty string if no key is known.
+func EncryptForServer(server string, msg string) string {
+  keys := db.ServerKeys(server)
+  if len(keys) == 0 {
+    util.Log(0, "ERROR! EncryptForServer: No key known for %v", server)
+    return ""
+  }
+  
+  return GosaEncrypt(msg, keys[0])
 }
 
 // Returns the base64 representation of the message after encryption with
