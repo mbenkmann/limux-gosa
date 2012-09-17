@@ -21,8 +21,6 @@ package message
 
 import (
          "time"
-         "strconv"
-         "strings"
          
          "../db"
          "../xml"
@@ -72,38 +70,9 @@ func gosa_query_jobdb(encrypted string, xmlmsg *xml.Hash) string {
   
   
   jobdb_xml := db.JobsQuery(xmlmsg.First("where"))
-  makeAnswerList(jobdb_xml, fallback_xml)
+  MakeAnswerList(jobdb_xml, fallback_xml)
   
   return jobdb_xml.String()
 }
 
-// Fixes lst so that the outer element is <xml> and the children are
-// <answerXX> with <id>XX</id>. If additional are provided, they will be merged
-// into lst (only subelements named "answer*").
-func makeAnswerList(lst *xml.Hash, additional... *xml.Hash) {
-  var id uint64
-  id = 1
-  for _, tag := range lst.Subtags() {
-    for answer := lst.RemoveFirst(tag) ; answer != nil; answer = lst.RemoveFirst(tag) {
-      answer.Rename("answer"+strconv.FormatUint(id, 10))
-      answer.FirstOrAdd("id").SetText("%d",id)
-      lst.AddWithOwnership(answer)
-      id++
-    }
-  }
-  
-  for _, other := range additional {
-    for _, tag := range other.Subtags() {
-      if !strings.HasPrefix(tag, "answer") { continue }
-      for answer := other.RemoveFirst(tag) ; answer != nil; answer = other.RemoveFirst(tag) {
-        answer.Rename("answer"+strconv.FormatUint(id, 10))
-        answer.FirstOrAdd("id").SetText("%d",id)
-        lst.AddWithOwnership(answer)
-        id++
-      }
-    } 
-  }
-  
-  lst.Rename("xml")
-}
 
