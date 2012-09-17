@@ -152,6 +152,20 @@ func (db *DB) Query(filter HashFilter) *Hash {
   return db.data.Query(filter)
 }
 
+// Returns all text contents from all database items' <column> subelements.
+func (db *DB) ColumnValues(column string) []string {
+  // This is just a READ lock!
+  db.mutex.RLock()
+  defer db.mutex.RUnlock()
+  result := make([]string, 0, 4)
+  for _, subtag := range db.data.Subtags() {
+    for item := db.data.First(subtag); item != nil; item = item.Next() {
+      result = append(result, item.Get(column)...)
+    }
+  }
+  return result
+}
+
 // Removes the items selected by the filter from the database.
 // Returns a *Hash whose outer tag has the same name as that of the db and
 // whose child elements are the removed items.

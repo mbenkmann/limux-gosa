@@ -267,6 +267,22 @@ func testDB() {
   check(db.Query(xml.FilterAll), "<letters><let>c</let><let>c</let><let>d</let></letters>")
   check(db.Replace(&FilterAllButC{}, true, xml.NewHash("let","e"), xml.NewHash("let","f")), "<letters><let>d</let></letters>")
   check(db.Query(xml.FilterAll), "<letters><let>c</let><let>c</let><let>e</let><let>f</let></letters>")
+  
+  x = xml.NewHash("fruits")
+  color := []string{"yellow", "green", "orange", "red"}
+  for i, f := range []string{"banana", "apple", "peach", "cherry"} {
+    fruit := x.Add("fruit")
+    fruit.Add("name", f)
+    fruit.Add("color", color[i])
+  }
+  x.Add("vehicle").Add("name", "car")
+  db.Init(x)
+  names := db.ColumnValues("name")
+  sort.Strings(names)
+  check(names, []string{"apple","banana", "car", "cherry", "peach"})
+  check(db.ColumnValues("color"), []string{"yellow", "green", "orange", "red"})
+  
+  db.Init(x)
 }
 
 
