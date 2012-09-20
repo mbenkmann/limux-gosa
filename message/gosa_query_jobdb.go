@@ -20,12 +20,9 @@ MA  02110-1301, USA.
 package message
 
 import (
-         "time"
          
          "../db"
          "../xml"
-         "../config"
-         "../util"
        )
 
 // Handles the message "gosa_query_jobdb".
@@ -34,44 +31,8 @@ import (
 // Returns:
 //  unencrypted reply
 func gosa_query_jobdb(encrypted string, xmlmsg *xml.Hash) string {
-  // NOTE: It's important that the channel is buffered to avoid leaking
-  // a goroutine in the case of timeout. See here:
-  // http://golang.org/doc/articles/concurrency_patterns.html
-  fallback_jobdb := make(chan string, 1)
-  go func() {
-    fallback_jobdb <- fallback(encrypted)
-  }()
-  
-  var fallback_xml *xml.Hash
-  var xmlerr error
-  timeout := time.NewTimer(5 * time.Second)
-  select {
-    case fb := <- fallback_jobdb :  
-                          timeout.Stop() // so that it can be GC'd immediately
-                          decrypted := ""
-                          for _, key := range config.ModuleKeys {
-                            decrypted = GosaDecrypt(fb, key)
-                            if decrypted != "" { break }
-                          }
-                          if decrypted == "" {
-                            util.Log(0, "ERROR! gosa_query_jobdb(): Could not decrypt fallback jobdb: %v", fb)
-                            decrypted = "<xml></xml>"
-                          }
-                          
-                          fallback_xml, xmlerr = xml.StringToHash(decrypted)
-                          if xmlerr != nil {
-                            util.Log(0, "ERROR! gosa_query_jobdb(): Error parsing fallback jobdb: %v", xmlerr)
-                          }
-                          
-    case <- timeout.C :
-                          util.Log(0, "ERROR! gosa_query_jobdb(): Timeout waiting for fallback jobdb")
-                          fallback_xml = xml.NewHash("xml")
-  }
-  
-  
   jobdb_xml := db.JobsQuery(xmlmsg.First("where"))
-  MakeAnswerList(jobdb_xml, fallback_xml)
-  
+  MakeAnswerList(jobdb_xml)
   return jobdb_xml.String()
 }
 

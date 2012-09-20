@@ -37,6 +37,7 @@ import (
          "../config"
        )
 
+var error_reply = "<xml>error</xml>"
 
 // Takes a possibly encrypted message and processes it, returning a reply
 // or the empty string if none is necessary/possible.
@@ -47,27 +48,19 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string) {
     if decrypted := GosaDecrypt(msg, key); decrypted != "" {
       util.Log(2, "DEBUG! Decrypted message from %v with key %v: %v", tcpAddr, key, decrypted)
       xml, err := xml.StringToHash(decrypted)
-      
       if err != nil {
-        // something went wrong parsing the XML
-      
         util.Log(0,"ERROR! %v", err)
-        reply = fallback(msg)
-        logFallbackReply(reply, key)
-        return reply
+        return error_reply
       } 
       
       // At this point we have successfully decrypted and parsed the message
       return ProcessXMLMessage(msg, xml, tcpAddr, key)
-      
     }
   }
   
   // This part is only reached if none of the keys opened the message
   util.Log(0, "ERROR! Could not decrypt message from %v: %v", tcpAddr, msg)
-  reply = fallback(msg)
-  logFallbackReply(reply, "")
-  return reply
+  return error_reply
 }
 
 // encrypted: the original encrypted message
@@ -81,10 +74,8 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
     case "new_server": reply = new_server(encrypted, xml)
     case "confirm_new_server": reply = confirm_new_server(encrypted, xml)
   default:
-          //encrypted := GosaEncrypt(xml.String(), key)  // for testing that we can properly encrypt the message
-          reply = fallback(encrypted)
-          logFallbackReply(reply, key)
-          return reply
+        util.Log(0, "ERROR! ProcessXMLMessage: Unknown message type '%v'", xml.Text("header"))
+        reply = error_reply
   }
   
   return GosaEncrypt(reply, key)
@@ -119,30 +110,6 @@ func MakeAnswerList(lst *xml.Hash, additional... *xml.Hash) {
   
   lst.Rename("xml")
 }
-
-
-// util.Logs the message, decrypted if possible.
-// 
-// key - a key that might open the message. If it doesn't, the other keys are
-// attempted as well.
-func logFallbackReply(encrypted string, key string) {
-  util.Log(2, "DEBUG! Reply from fallback server: %v", encrypted)
-  if decrypted := GosaDecrypt(encrypted, key); decrypted != "" {
-    util.Log(2, "DEBUG! Decrypted fallback reply with key %v: %v", key, decrypted)
-    return
-  }
-  
-  for _, key = range config.ModuleKeys {
-    if decrypted := GosaDecrypt(encrypted, key); decrypted != "" {
-      util.Log(2, "DEBUG! Decrypted fallback reply with key %v: %v", key, decrypted)
-      return      
-    }
-  }
-  
-  // This part is only reached if none of the keys opened the message
-  util.Log(2, "DEBUG! Could not decrypt fallback reply: %v", encrypted)
-}
-
 
 // Returns a byte slice that has the input string's bytes preceded
 // by up to (aes.BlockSize-1) 0-bytes so that the slice's length is 
