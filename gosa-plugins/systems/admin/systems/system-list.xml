@@ -347,7 +347,7 @@
         <depends>DaemonEvent_update</depends>
         <type>entry</type>
         <image>plugins/goto/images/update.png</image>
-        <label>Update</label>
+        <label>Software update</label>
       </action>
 
       <action>
@@ -421,7 +421,7 @@
         <depends>DaemonEvent_update</depends>
         <type>entry</type>
         <image>plugins/goto/images/update.png</image>
-        <label>Update</label>
+        <label>Software update</label>
       </action>
 
       <action>
