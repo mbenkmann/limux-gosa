@@ -23,6 +23,7 @@ import (
          
          "../db"
          "../xml"
+         "../config"
        )
 
 // Handles the message "gosa_query_jobdb".
@@ -33,6 +34,10 @@ import (
 func gosa_query_jobdb(encrypted string, xmlmsg *xml.Hash) string {
   jobdb_xml := db.JobsQuery(xmlmsg.First("where"))
   MakeAnswerList(jobdb_xml)
+  jobdb_xml.Add("header", "query_jobdb")
+  jobdb_xml.Add("source", config.ServerSourceAddress)
+  jobdb_xml.Add("target", xmlmsg.Text("source"))
+  jobdb_xml.Add("session_id", "1")
   return jobdb_xml.String()
 }
 
