@@ -70,9 +70,10 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string) {
 func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, key string) string {
   var reply string
   switch xml.Text("header") {
-    case "gosa_query_jobdb": reply = gosa_query_jobdb(encrypted, xml)
-    case "new_server": reply = new_server(encrypted, xml)
-    case "confirm_new_server": reply = confirm_new_server(encrypted, xml)
+    case "gosa_query_jobdb":    reply = gosa_query_jobdb(encrypted, xml)
+    case "new_server":          reply = new_server(encrypted, xml)
+    case "confirm_new_server":  reply = confirm_new_server(encrypted, xml)
+    case "foreign_job_updates": reply = foreign_job_updates(encrypted, xml)
   default:
         util.Log(0, "ERROR! ProcessXMLMessage: Unknown message type '%v'", xml.Text("header"))
         reply = error_reply

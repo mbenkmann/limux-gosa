@@ -84,3 +84,23 @@ func JobsQuery(where *xml.Hash) *xml.Hash {
 func Jobs() *xml.Hash {
   return jobDB.Query(xml.FilterAll)
 }
+
+// Replaces (or adds) the job identified by <headertag> and <macaddress> with
+// the new data.
+//   job: Has the following format 
+//        <job>
+//          <headertag>trigger_action_wake</headertag>
+//          <macaddress>00:0c:29:50:a3:52</macaddress>
+//          ...
+//        </job>
+func JobUpdate(job *xml.Hash) {
+  if job.Name() != "job" {
+    panic("Surrounding tag must be <job>...</job>")
+  }
+  
+  jobDB.Replace(xml.FilterSimple(
+                  "headertag", job.Text("headertag"), 
+                  "macaddress", job.Text("macaddress")), 
+                false, 
+                job)
+}

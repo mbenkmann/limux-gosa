@@ -20,6 +20,9 @@ MA  02110-1301, USA.
 package message
 
 import (
+         "strings"
+         
+         "../db"
          "../xml"
          "../util"
          "../config"
@@ -55,4 +58,32 @@ func Send_foreign_job_updates(target string, jobs *xml.Hash) {
   jobs.Add("source", config.ServerSourceAddress)
   jobs.Add("target", target)
   util.SendLnTo(target, EncryptForServer(target, jobs.String()))
+}
+
+// Handles the message "foreign_job_updates".
+//  encrypted: the original encrypted message
+//  xmlmsg: the decrypted and parsed message.
+// Returns:
+//  unencrypted reply
+func foreign_job_updates(encrypted string, xmlmsg *xml.Hash) string {
+  source := xmlmsg.Text("source")
+  for _, tag := range xmlmsg.Subtags() {
+    if !strings.HasPrefix(tag, "answer") { continue }
+    for answer := xmlmsg.First(tag); answer != nil; answer = answer.Next() {
+      job := answer.Clone()
+      job.Rename("job")
+      if job.Text("siserver") == "localhost" {
+        job.First("siserver").SetText(source)
+      }
+      
+      // remove all whitespace from xmlmessage
+      // This works around gosa-si's behaviour of introducing whitespace
+      // which breaks base64 decoding.
+      xmlmess := job.First("xmlmessage")
+      xmlmess.SetText(strings.Join(strings.Fields(xmlmess.Text()),""))
+      db.JobUpdate(job)
+    }
+  }
+  
+  return ""
 }
