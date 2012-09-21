@@ -64,6 +64,18 @@ func JobsQuery(where *xml.Hash) *xml.Hash {
   return jobDB.Query(filter)
 }
 
+// Removes from the JobDB the jobs matching where (see xml.WhereFilter() 
+// for the format) and returns the removed entries.
+func JobsRemove(where *xml.Hash) *xml.Hash {
+  filter, err := xml.WhereFilter(where)
+  if err != nil {
+    util.Log(0, "ERROR! JobsRemove: Error parsing <where>: %v", err)
+    filter = xml.FilterNone
+  }
+  return jobDB.Remove(filter)
+}
+
+
 // Returns a copy of the complete job database in the following format:
 //   <jobdb>
 //     <job>
