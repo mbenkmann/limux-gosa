@@ -83,17 +83,17 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
 }
 
 // Fixes lst so that the outer element is <xml> and the children are
-// <answerXX> with <id>XX</id>. If additional are provided, they will be merged
+// <answerXX> where each child has a unique number XX. 
+// If additional are provided, they will be merged
 // into lst (only subelements named "answer*").
 func MakeAnswerList(lst *xml.Hash, additional... *xml.Hash) {
-  var id uint64
-  id = 1
+  var count uint64
+  count = 1
   for _, tag := range lst.Subtags() {
     for answer := lst.RemoveFirst(tag) ; answer != nil; answer = lst.RemoveFirst(tag) {
-      answer.Rename("answer"+strconv.FormatUint(id, 10))
-      answer.FirstOrAdd("id").SetText("%d",id)
+      answer.Rename("answer"+strconv.FormatUint(count, 10))
       lst.AddWithOwnership(answer)
-      id++
+      count++
     }
   }
   
@@ -101,10 +101,9 @@ func MakeAnswerList(lst *xml.Hash, additional... *xml.Hash) {
     for _, tag := range other.Subtags() {
       if !strings.HasPrefix(tag, "answer") { continue }
       for answer := other.RemoveFirst(tag) ; answer != nil; answer = other.RemoveFirst(tag) {
-        answer.Rename("answer"+strconv.FormatUint(id, 10))
-        answer.FirstOrAdd("id").SetText("%d",id)
+        answer.Rename("answer"+strconv.FormatUint(count, 10))
         lst.AddWithOwnership(answer)
-        id++
+        count++
       }
     } 
   }
