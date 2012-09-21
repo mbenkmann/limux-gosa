@@ -23,6 +23,8 @@ package db
 import (
          "os"
          "time"
+         "strings"
+         
          "../xml"
          "../config"
          "../util"
@@ -86,7 +88,8 @@ func Jobs() *xml.Hash {
 }
 
 // Replaces (or adds) the job identified by <headertag> and <macaddress> with
-// the new data, or removes the job if the status is "done".
+// the new data, or removes the job if the status is "done". <headertag> and
+// <macaddress> are matched case-insensitive.
 //   job: Has the following format 
 //        <job>
 //          <headertag>trigger_action_wake</headertag>
@@ -98,15 +101,18 @@ func JobUpdate(job *xml.Hash) {
     panic("Surrounding tag must be <job>...</job>")
   }
   
+  headertag  := strings.ToLower(job.Text("headertag"))
+  macaddress := strings.ToLower(job.Text("macaddress"))
+  
   if job.Text("status") == "done" {
     jobDB.Remove(xml.FilterSimple(
-                  "headertag", job.Text("headertag"), 
-                  "macaddress", job.Text("macaddress")))
+                  "headertag", headertag,
+                  "macaddress", macaddress))
   } else
   {
     jobDB.Replace(xml.FilterSimple(
-                  "headertag", job.Text("headertag"), 
-                  "macaddress", job.Text("macaddress")), 
+                  "headertag", headertag,
+                  "macaddress", macaddress),
                 false, 
                 job)
   }

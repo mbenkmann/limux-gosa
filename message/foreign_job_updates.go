@@ -68,13 +68,18 @@ func Send_foreign_job_updates(target string, jobs *xml.Hash) {
 func foreign_job_updates(encrypted string, xmlmsg *xml.Hash) string {
   source := xmlmsg.Text("source")
   for _, tag := range xmlmsg.Subtags() {
+  
     if !strings.HasPrefix(tag, "answer") { continue }
+  
     for answer := xmlmsg.First(tag); answer != nil; answer = answer.Next() {
       job := answer.Clone()
       job.Rename("job")
+      
       if job.Text("siserver") == "localhost" {
         job.First("siserver").SetText(source)
       }
+      
+      job.First("macaddress").SetText(strings.ToLower(job.Text("macaddress")))
       
       // remove all whitespace from xmlmessage
       // This works around gosa-si's behaviour of introducing whitespace
