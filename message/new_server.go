@@ -63,10 +63,9 @@ func Send_new_server(header string, target string) {
 
 
 // Handles the message "new_server".
-//  encrypted: the original encrypted message
 //  xmlmsg: the decrypted and parsed message
 // Returns: empty string
-func new_server(encrypted string, xmlmsg *xml.Hash) string {
+func new_server(xmlmsg *xml.Hash) string {
   db.ServerUpdate(xmlmsg)
   server := xmlmsg.Text("source")
   go func() {
@@ -77,10 +76,9 @@ func new_server(encrypted string, xmlmsg *xml.Hash) string {
 }
 
 // Handles the message "confirm_new_server".
-//  encrypted: the original encrypted message
 //  xmlmsg: the decrypted and parsed message
 // Returns: empty string
-func confirm_new_server(encrypted string, xmlmsg *xml.Hash) string {
+func confirm_new_server(xmlmsg *xml.Hash) string {
   db.ServerUpdate(xmlmsg)
   return ""
 }

@@ -61,11 +61,10 @@ func Send_foreign_job_updates(target string, jobs *xml.Hash) {
 }
 
 // Handles the message "foreign_job_updates".
-//  encrypted: the original encrypted message
 //  xmlmsg: the decrypted and parsed message.
 // Returns:
 //  unencrypted reply
-func foreign_job_updates(encrypted string, xmlmsg *xml.Hash) string {
+func foreign_job_updates(xmlmsg *xml.Hash) string {
   source := xmlmsg.Text("source")
   for _, tag := range xmlmsg.Subtags() {
   
