@@ -27,7 +27,6 @@ import (
        )
 
 // Handles the message "gosa_query_jobdb".
-//  encrypted: the original encrypted message
 //  xmlmsg: the decrypted and parsed message
 // Returns:
 //  unencrypted reply
