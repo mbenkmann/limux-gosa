@@ -86,7 +86,7 @@ func Jobs() *xml.Hash {
 }
 
 // Replaces (or adds) the job identified by <headertag> and <macaddress> with
-// the new data.
+// the new data, or removes the job if the status is "done".
 //   job: Has the following format 
 //        <job>
 //          <headertag>trigger_action_wake</headertag>
@@ -98,9 +98,16 @@ func JobUpdate(job *xml.Hash) {
     panic("Surrounding tag must be <job>...</job>")
   }
   
-  jobDB.Replace(xml.FilterSimple(
+  if job.Text("status") == "done" {
+    jobDB.Remove(xml.FilterSimple(
+                  "headertag", job.Text("headertag"), 
+                  "macaddress", job.Text("macaddress")))
+  } else
+  {
+    jobDB.Replace(xml.FilterSimple(
                   "headertag", job.Text("headertag"), 
                   "macaddress", job.Text("macaddress")), 
                 false, 
                 job)
+  }
 }
