@@ -51,13 +51,22 @@ import (
 //           </...>
 //         </...>
 //
-// ATTENTION! The jobs hash will be modified by this function.
 func Send_foreign_job_updates(target string, jobs *xml.Hash) {
+  jobs = jobs.Clone()
   MakeAnswerList(jobs)
   jobs.Add("header", "foreign_job_updates")
   jobs.Add("source", config.ServerSourceAddress)
   jobs.Add("target", target)
   util.SendLnTo(target, EncryptForServer(target, jobs.String()))
+}
+
+// Asynchronously calls Send_foreign_job_updates(target, jobs) for all
+// target servers in the serverDB.
+func Broadcast_foreign_job_updates(jobs *xml.Hash) {
+  jobs = jobs.Clone() // because we work asynchronously
+  for _, server := range db.ServerAddresses() {
+    go Send_foreign_job_updates(server, jobs)
+  }
 }
 
 // Handles the message "foreign_job_updates".
