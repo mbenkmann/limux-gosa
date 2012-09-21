@@ -24,6 +24,7 @@ import (
          "os"
          "time"
          "strings"
+         "strconv"
          
          "../xml"
          "../config"
@@ -87,9 +88,16 @@ func Jobs() *xml.Hash {
   return jobDB.Query(xml.FilterAll)
 }
 
+var mapHeadertagToNumber = map[string]uint64{
+"job_trigger_action_lock": 1,
+"job_trigger_action_wake": 2,
+}
+
 // Replaces (or adds) the job identified by <headertag> and <macaddress> with
 // the new data, or removes the job if the status is "done". <headertag> and
-// <macaddress> are matched case-insensitive.
+// <macaddress> are normalized to lower-case and in the case of <macaddress>,
+// "-" separators will be converted to ":". An <id> will be generated for the
+// job and will overwrite an existing <id> if one is present.
 //   job: Has the following format 
 //        <job>
 //          <headertag>trigger_action_wake</headertag>
@@ -103,6 +111,17 @@ func JobUpdate(job *xml.Hash) {
   
   headertag  := strings.ToLower(job.Text("headertag"))
   macaddress := strings.ToLower(job.Text("macaddress"))
+  macaddress = strings.Replace(macaddress, "-", ":", -1)
+  macnum, err := strconv.ParseUint(strings.Replace(macaddress, ":", "", -1), 16, 64)
+  if err != nil {
+    util.Log(0, "ERROR! ParseUint: %v", err)
+    return
+  }
+  
+  headnum, ok := mapHeadertagToNumber[headertag]
+  if !ok { panic("Forgot to add "+headertag+" to mapHeadertagToNumber") }
+  var id uint64 = macnum + (headnum<<48)
+  job.FirstOrAdd("id").SetText("%d", id)
   
   if job.Text("status") == "done" {
     jobDB.Remove(xml.FilterSimple(
