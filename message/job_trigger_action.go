@@ -57,7 +57,20 @@ func job_trigger_action(xmlmsg *xml.Hash) string {
   job.Add("headertag", xmlmsg.Text("header")[len("job_"):])
   job.Add("result", "none")
   job.Add("xmlmessage", base64.StdEncoding.EncodeToString([]byte(xmlmsg.String())))
-  return ""
+  
+  db.JobUpdate(job)
+  
+  jobdb_xml := xml.NewHash("jobdb")
+  jobdb_xml.AddWithOwnership(job)
+  
+  Broadcast_foreign_job_updates(jobdb_xml)
+  
+  MakeAnswerList(jobdb_xml)
+  jobdb_xml.Add("header", "answer")
+  jobdb_xml.Add("source", config.ServerSourceAddress)
+  jobdb_xml.Add("target", xmlmsg.Text("source"))
+  jobdb_xml.Add("session_id", "1")
+  return jobdb_xml.String()
 }
 
 
