@@ -87,8 +87,6 @@ func foreign_job_updates(xmlmsg *xml.Hash) string {
         job.First("siserver").SetText(source)
       }
       
-      job.First("macaddress").SetText(strings.ToLower(job.Text("macaddress")))
-      
       // remove all whitespace from xmlmessage
       // This works around gosa-si's behaviour of introducing whitespace
       // which breaks base64 decoding.
