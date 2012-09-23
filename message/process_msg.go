@@ -37,7 +37,14 @@ import (
          "../config"
        )
 
-var error_reply = "<xml>error</xml>"
+// Returns an XML string to return to GOsa if there was an error processing
+// a message from GOsa. msg is an error message (will be formatted by Sprintf())
+func ErrorReply(msg interface{}) string {
+  // Use an XML hash so that msg will be properly escaped if it contains e.g. "<"
+  x := xml.NewHash("foo")
+  x.SetText("%v", msg)
+  return fmt.Sprintf("<xml><header>answer</header><source>%v</source><target>GOSA</target><answer1>1</answer1><error_string>%v</error_string></xml>", config.ServerSourceAddress, x.Text())
+}
 
 // Takes a possibly encrypted message and processes it, returning a reply
 // or the empty string if none is necessary/possible.
@@ -50,7 +57,7 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string) {
       xml, err := xml.StringToHash(decrypted)
       if err != nil {
         util.Log(0,"ERROR! %v", err)
-        return error_reply
+        return ErrorReply(err)
       } 
       
       // At this point we have successfully decrypted and parsed the message
@@ -60,7 +67,7 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string) {
   
   // This part is only reached if none of the keys opened the message
   util.Log(0, "ERROR! Could not decrypt message from %v: %v", tcpAddr, msg)
-  return error_reply
+  return ErrorReply("Could not decrypt message")
 }
 
 // encrypted: the original encrypted message
@@ -74,11 +81,16 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
     case "new_server":          reply = new_server(xml)
     case "confirm_new_server":  reply = confirm_new_server(xml)
     case "foreign_job_updates": reply = foreign_job_updates(xml)
+    case "job_trigger_action_lock":
+    case "job_trigger_action_wake":
+                                reply = job_trigger_action(xml)
+    // When adding a new job, don't forget to add it to jobdb.go:mapHeadertagToNumber
+    
     case "gosa_delete_jobdb_entry":
                                 reply = gosa_delete_jobdb_entry(xml)
   default:
         util.Log(0, "ERROR! ProcessXMLMessage: Unknown message type '%v'", xml.Text("header"))
-        reply = error_reply
+        reply = ErrorReply("Unknown message type")
   }
   
   return GosaEncrypt(reply, key)
