@@ -54,6 +54,9 @@ func job_trigger_action(xmlmsg *xml.Hash) string {
   timestamp := xmlmsg.Text("timestamp")
   if timestamp == "" { timestamp = "19700101000000" }
   job.Add("timestamp", timestamp)
+  for _, periodic := range xmlmsg.Get("periodic") {
+    job.FirstOrAdd("periodic").SetText(periodic) // last <periodic> wins if there are multiple
+  }
   job.Add("headertag", xmlmsg.Text("header")[len("job_"):])
   job.Add("result", "none")
   job.Add("xmlmessage", base64.StdEncoding.EncodeToString([]byte(xmlmsg.String())))

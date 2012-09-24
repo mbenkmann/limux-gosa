@@ -87,6 +87,7 @@ func JobsRemove(where *xml.Hash) *xml.Hash {
 //       <targettag>00:0c:29:50:a3:52</targettag>
 //       <macaddress>00:0c:29:50:a3:52</macaddress>
 //       <timestamp>20120906164734</timestamp>
+//       <periodic>7_days</periodic>
 //       <id>4</id>
 //       <headertag>trigger_action_wake</headertag>
 //       <result>none</result>
