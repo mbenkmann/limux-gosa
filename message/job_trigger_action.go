@@ -65,12 +65,12 @@ func job_trigger_action(xmlmsg *xml.Hash) string {
   
   Broadcast_foreign_job_updates(jobdb_xml)
   
-  MakeAnswerList(jobdb_xml)
-  jobdb_xml.Add("header", "answer")
-  jobdb_xml.Add("source", config.ServerSourceAddress)
-  jobdb_xml.Add("target", xmlmsg.Text("source"))
-  jobdb_xml.Add("session_id", "1")
-  return jobdb_xml.String()
+  answer := xml.NewHash("xml", "header", "answer")
+  answer.Add("source", config.ServerSourceAddress)
+  answer.Add("target", xmlmsg.Text("source"))
+  answer.Add("answer1", "0")
+  answer.Add("session_id", "1")
+  return answer.String()
 }
 
 
