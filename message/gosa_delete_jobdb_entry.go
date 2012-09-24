@@ -36,6 +36,7 @@ func gosa_delete_jobdb_entry(xmlmsg *xml.Hash) string {
   for _, tag := range jobdb_xml.Subtags() {
     for job := jobdb_xml.First(tag); job != nil; job = job.Next() {
       job.FirstOrAdd("status").SetText("done")
+      job.FirstOrAdd("periodic").SetText("none")
     }
   }
   
