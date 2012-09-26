@@ -80,9 +80,8 @@ var MAC = "01:02:03:04:05:06"
 // This is just the value read from the config file.
 var LogLevel int
 
-// Parses the relevant configuration files and os.Args and sets 
-// the config variables accordingly.
-func ReadConfig() {
+// Parses os.Args and sets config variables accordingly.
+func ReadArgs() {
   LogLevel = 0
   for _, arg := range os.Args[1:] {
   
@@ -99,10 +98,14 @@ func ReadConfig() {
       ServerDBPath = testdir + "/serverdb.xml"
       
     } else {
-      util.Log(0, "ERROR! ReadConfig: Unknown command line switch: %v", arg)
+      util.Log(0, "ERROR! ReadArgs: Unknown command line switch: %v", arg)
     }
   }
-  
+}
+
+// Parses the relevant configuration files and sets 
+// the config variables accordingly.
+func ReadConfig() {
   file, err := os.Open(ServerConfigPath)
   if err != nil {
     util.Log(0, "ERROR! ReadConfig: %v", err)

@@ -48,6 +48,7 @@ Starts the daemon.
 `
 
 func main() {
+  config.ReadArgs()
   config.ReadConfig()
   
   logfile, err := os.OpenFile(config.LogFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
