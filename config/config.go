@@ -83,7 +83,8 @@ var LogLevel int
 // Parses os.Args and sets config variables accordingly.
 func ReadArgs() {
   LogLevel = 0
-  for _, arg := range os.Args[1:] {
+  for i := 1; i < len(os.Args); i++ {
+    arg := os.Args[i]
   
     if strings.HasPrefix(arg, "-v") {
     
@@ -97,6 +98,13 @@ func ReadArgs() {
       JobDBPath = testdir + "/jobdb.xml"
       ServerDBPath = testdir + "/serverdb.xml"
       
+    } else if arg == "-c" {
+      i++
+      if i >= len(os.Args) {
+        util.Log(0, "ERROR! ReadArgs: missing argument to -c")
+      } else {
+        ServerConfigPath = os.Args[i]
+      }
     } else {
       util.Log(0, "ERROR! ReadArgs: Unknown command line switch: %v", arg)
     }
