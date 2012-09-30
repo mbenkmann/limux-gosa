@@ -36,7 +36,7 @@ var jobDB *xml.DB
 
 // Initializes JobDB with data from the file config.JobDBPath if it exists.
 func JobsInit() {
-  jobdb_storer := &xml.FileStorer{config.JobDBPath}
+  jobdb_storer := &LoggingFileStorer{xml.FileStorer{config.JobDBPath}}
   var delay time.Duration = 0
   jobDB = xml.NewDB("jobdb", jobdb_storer, delay)
   xml, err := xml.FileToHash(config.JobDBPath)

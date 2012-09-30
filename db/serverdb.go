@@ -46,7 +46,7 @@ var serverDB *xml.DB
 // Initializes serverDB with data from the file config.ServerDBPath if it exists,
 // as well as the list of peer servers from DNS and [ServerPackages]/address.
 func ServersInit() {
-  db_storer := &xml.FileStorer{config.ServerDBPath}
+  db_storer := &LoggingFileStorer{xml.FileStorer{config.ServerDBPath}}
   var delay time.Duration = 0
   serverDB = xml.NewDB("serverdb", db_storer, delay)
   xmldata, err := xml.FileToHash(config.ServerDBPath)
