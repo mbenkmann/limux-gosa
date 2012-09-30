@@ -186,18 +186,20 @@ func (db *DB) Remove(filter HashFilter) *Hash {
 // The returned value are the removed items as for Remove().
 // If must_match is true, the AddClone(items) will only be performed if at
 // least one item matches the filter.
+//
+// NOTE: Calling this method will trigger a persist job if none is pending.
 func (db *DB) Replace(filter HashFilter, must_match bool, items... *Hash) *Hash {
   db.mutex.Lock()
   defer db.mutex.Unlock()
   
   result := db.data.Remove(filter)
-  
+
   if must_match == false || len(result.Subtags()) > 0 {
     for _, item := range items {
       db.data.AddClone(item)
     }
   }
-  
+
   db.persistJob()
   
   return result
@@ -231,7 +233,7 @@ func (db *DB) Persist() (err error) {
   
   db.mutex.Lock()
   defer db.mutex.Unlock()
-  
+
   // TODO: Remove this after a testing period (let's say 2014).
   if db.data.Verify() != nil { panic("Corrupt DB detected. This is a bug.") }
   

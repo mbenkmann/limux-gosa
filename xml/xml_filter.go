@@ -176,6 +176,7 @@ func FilterRel(column, compare_value string, accept1, accept2 int) HashFilter {
 type filtersimple []string
 
 func (self *filtersimple) Accepts(item *Hash) bool {
+  if item == nil { return false }
   CheckCondition:
   for i := 1; i < len(*self) ; i += 2 {
     for _, val := range item.Get((*self)[i-1]) {
