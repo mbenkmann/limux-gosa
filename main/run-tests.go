@@ -24,15 +24,25 @@ package main
 import ( 
          "os"
          "fmt"
+         "strings"
          
          "../tests"
        )
 
 func main() {
-  tests.Show_output = (len(os.Args) > 1 && os.Args[1] == "-v")
+  systemtest := ""
+  for i:=1 ; i < len(os.Args) ; i++ {
+    if os.Args[i] == "-v" { tests.Show_output=true }
+    if strings.HasPrefix(os.Args[i],"--system=") { systemtest = os.Args[i][9:] }
+  }
 
-  tests.Util_test()
-  tests.Xml_test()
+  if systemtest != "" {
+    tests.SystemTest(systemtest, false)
+  } else
+  {
+    tests.Util_test()
+    tests.Xml_test()
+  }
   
   // TODO: Test go-susi
   // 1. Use exec to start a slapd listening on 127.0.0.1:35682 using slapd.conf and
@@ -48,7 +58,5 @@ func main() {
   fmt.Printf("\n=== Results ===\n\n#Tests: %3v\nPassed: %3v (%v unexpected)\nFailed: %3v (%v expected)\n", 
   tests.Count, tests.Pass, tests.UnexpectedPass, tests.Fail, tests.ExpectedFail)
   
-  if len(os.Args) < 2 || os.Args[1] != "-v" {
-    fmt.Printf("\nPass '-v' on the command line to see test output\n\n")
-  }
+  fmt.Printf("\nPass '-v' on the command line to see test output\nPass --system=<host>:<port> to test a running daemon\nPass --system=<programpath> to start daemon <programpath> and test it\n\n")
 }

@@ -64,8 +64,12 @@ func isNil(x interface{}) (ret bool) {
 
 // Compares x with expected and prints PASSED if equal and FAILED if not.
 func check(x interface{}, expected interface{}) {
+  checkLevel(x,expected,2)
+}
+
+func checkLevel(x interface{}, expected interface{}, level int) {
   Count++
-  _, file, line, _ := runtime.Caller(1)
+  _, file, line, _ := runtime.Caller(level)
   file = file[strings.LastIndex(file, "/")+1:]
   fmt.Printf("Test %2v (%v:%v) ", Count, file, line)
   
@@ -89,8 +93,12 @@ func check(x interface{}, expected interface{}) {
 
 // Like check() but failure is expected and the counts will adjusted accordingly.
 func checkFail(x interface{}, expected interface{}) {
+  checkFailLevel(x,expected,2)
+}
+
+func checkFailLevel(x interface{}, expected interface{}, level int) {
   Count++
-  _, file, line, _ := runtime.Caller(1)
+  _, file, line, _ := runtime.Caller(level)
   file = file[strings.LastIndex(file, "/")+1:]
   fmt.Printf("Test %2v (%v:%v) ", Count, file, line)
   
