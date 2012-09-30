@@ -171,6 +171,9 @@ func testFilter() {
   check(y.Query(xml.FilterSimple("x","foo")), "<d><i><x>foo</x></i><i><x>bar</x><x>foo</x><y>bla</y></i></d>")
   check(y.Query(xml.FilterSimple("x","foo", "y")), "<d><i><x>foo</x></i><i><x>bar</x><x>foo</x><y>bla</y></i></d>")
   check(y.Query(xml.FilterSimple("x","foo", "y", "bla")), "<d><i><x>bar</x><x>foo</x><y>bla</y></i></d>")
+  check(xml.FilterSimple("x","foo", "y", "bla").Accepts(nil), false)
+  check(xml.FilterSimple().Accepts(nil), false)
+  check(xml.FilterSimple("foo").Accepts(nil), false)
 }
 
 
