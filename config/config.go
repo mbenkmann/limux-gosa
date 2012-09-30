@@ -64,6 +64,8 @@ var JobDBPath = "/var/lib/go-susi/jobdb.xml"
 // Path to database of peer servers.
 var ServerDBPath = "/var/lib/go-susi/serverdb.xml"
 
+// host:port addresses of peer servers read from config file.
+var PeerServers = []string{}
 
 // This machine's hostname.
 var Hostname = "localhost"
@@ -165,6 +167,13 @@ func ReadConfig() {
     }
   }
   
+  if serverpackages, ok := conf["[ServerPackages]"]; ok {
+    if addresses, ok := serverpackages["address"]; ok {
+      for _,address := range strings.Split(addresses, ",") {
+        PeerServers = append(PeerServers, strings.TrimSpace(address))
+      }
+    }
+  }
 }
 
 // Reads network parameters.

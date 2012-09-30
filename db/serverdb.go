@@ -43,7 +43,8 @@ import (
 //  </xml>
 var serverDB *xml.DB
 
-// Initializes serverDB with data from the file config.ServerDBPath if it exists.
+// Initializes serverDB with data from the file config.ServerDBPath if it exists,
+// as well as the list of peer servers from DNS and [ServerPackages]/address.
 func ServersInit() {
   db_storer := &xml.FileStorer{config.ServerDBPath}
   var delay time.Duration = 0
@@ -62,7 +63,16 @@ func ServersInit() {
   }
   
   addDNSServers()
+  addConfigServers()
 }  
+
+// Adds servers listed in config file the serverDB.
+func addConfigServers() {
+  util.Log(1, "INFO! Config file lists the following peer servers: %v", strings.Join(config.PeerServers,", "))
+  for _, server := range config.PeerServers {
+    addServer(server)
+  }
+}
 
 // Adds servers listed in for service tcp/gosa-si to the serverDB.
 func addDNSServers() {
@@ -85,44 +95,59 @@ func addDNSServers() {
     
     // add all servers listed in DNS to our database (skipping this server)
     for _, server := range servers {
-      if !strings.HasPrefix(server, config.Hostname + "." + config.Domain + ":") {
-        host, port, _ := net.SplitHostPort(server)
-        addrs, err := net.LookupIP(host)
-        if err != nil || len(addrs) == 0 {
-          if err != nil {
-            util.Log(0, "ERROR! LookupIP: %v", err)
-          } else {
-            util.Log(0, "ERROR! No IP address for %v", host)
-          }
-        } else 
-        {
-          ip := addrs[0].String()
-          source := ip + ":" + port
-          
-          // if we don't have an entry for the server, generate a dummy entry.
-          if len(ServerKeys(source)) == 0 {
-            // There's no point in generating a random server key. 
-            // First of all, the server key is only as secure as the ServerPackages
-            // module key (because whoever has that can decrypt the message that
-            // contains the server key).
-            // Secondly the whole gosa-si protocol is not really secure. For instance
-            // there is lots of known plaintext and no salting of messages. And the
-            // really important messages are all encrypted with fixed keys anyway.
-            // So instead of pretending more security by generating a random key,
-            // we make debugging a little easier by generating a unique key derived
-            // from the ServerPackages module key.
-            var key string
-            if bytes.Compare([]byte(ip), []byte(config.IP)) < 0 {
-              key = ip + config.IP
-            } else {
-              key = config.IP + ip
-            }
-            key = config.ModuleKey["[ServerPackages]"] + strings.Replace(key, ".", "", -1)
-            server_xml := xml.NewHash("xml", "source", source)
-            server_xml.Add("key", key)
-            ServerUpdate(server_xml)
-          }
+      addServer(server)
+    }
+  }
+}
+
+// Adds server (host:port) to the database if it does not exist yet (and if it
+// is not identical to this go-susi).
+func addServer(server string) {
+  if !strings.HasPrefix(server, config.Hostname + "." + config.Domain + ":") {
+    host, port, _ := net.SplitHostPort(server)
+    addrs, err := net.LookupIP(host)
+    if err != nil || len(addrs) == 0 {
+      if err != nil {
+        util.Log(0, "ERROR! LookupIP: %v", err)
+      } else {
+        util.Log(0, "ERROR! No IP address for %v", host)
+      }
+    } else 
+    {
+      ip := "["+addrs[0].String()+"]" // this may be an IPv6 address
+      // try to find an IPv4 address
+      for _, a := range addrs {
+        if a.To4() != nil {
+          ip = a.To4().String()
+          break
         }
+      }
+      // translate loopback address to our own IP for consitency
+      if ip == "127.0.0.1" { ip = config.IP }
+      source := ip + ":" + port
+      
+      // if we don't have an entry for the server, generate a dummy entry.
+      if len(ServerKeys(source)) == 0 {
+        // There's no point in generating a random server key. 
+        // First of all, the server key is only as secure as the ServerPackages
+        // module key (because whoever has that can decrypt the message that
+        // contains the server key).
+        // Secondly the whole gosa-si protocol is not really secure. For instance
+        // there is lots of known plaintext and no salting of messages. And the
+        // really important messages are all encrypted with fixed keys anyway.
+        // So instead of pretending more security by generating a random key,
+        // we make debugging a little easier by generating a unique key derived
+        // from the ServerPackages module key.
+        var key string
+        if bytes.Compare([]byte(ip), []byte(config.IP)) < 0 {
+          key = ip + config.IP
+        } else {
+          key = config.IP + ip
+        }
+        key = config.ModuleKey["[ServerPackages]"] + strings.Replace(key, ".", "", -1)
+        server_xml := xml.NewHash("xml", "source", source)
+        server_xml.Add("key", key)
+        ServerUpdate(server_xml)
       }
     }
   }
@@ -143,6 +168,7 @@ func ServerUpdate(server *xml.Hash) {
     // we might still have pending messages encrypted with the previous key.
     server.Add("key", keys[0])
   }
+  util.Log(2, "DEBUG! ServerUpdate for %v: Keys are now %v", source, server.Get("key"))
   serverDB.Replace(xml.FilterSimple("source", source), false, server)
 }
 
