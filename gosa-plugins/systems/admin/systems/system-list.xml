@@ -272,7 +272,7 @@
       <name>new_gotoPrinter</name>
       <type>entry</type>
       <image>plugins/systems/images/select_printer.png[new]</image>
-      <label>Network printer</label>
+      <label>Printer</label>
       <depends>printgeneric</depends>
      </action>
 
