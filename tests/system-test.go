@@ -13,6 +13,7 @@ import (
          "os"
          "os/exec"
          "container/list"
+         "encoding/base64"
          
          "../xml"
          "../util"
@@ -72,7 +73,58 @@ func wait(t time.Time, header string) *queueElement {
   return &queueElement{xml.NewHash("xml"), time.Now(), "", "0.0.0.0"}
 }
 
+// sends the xml message x to the gosa-si/go-susi server being tested
+// (config.ServerSourceAddress) encrypted with the module key identified by keyid
+// (e.g. "[ServerPackages]"). Use keyid "" to select the server key exchanged via
+// new_server/confirm_new_server
+// If x does not have <target> and/or <source> elements, they will be added
+// with the values config.ServerSourceAddress and listen_address respectively.
+func send(keyid string, x *xml.Hash) {
+  var key string
+  if keyid == "" { key = keys[0] } else 
+  { 
+    key = config.ModuleKey[keyid] 
+  }
+  if x.First("source") == nil {
+    x.Add("source", listen_address)
+  }
+  if x.First("target") == nil {
+    x.Add("target", config.ServerSourceAddress)
+  }
+  util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(x.String(), key))
+}
 
+// Sends a GOSA message to the server being tested and
+// returns the reply.
+// Automatically adds <header>gosa_typ</header> (unless typ starts with "job_" 
+// or "gosa_" in which case <header>typ</header> will be used.)
+// and <source>GOSA</source> as well as <target>GOSA</target> (unless a subelement
+// of the respective name is already present).
+func gosa(typ string, x *xml.Hash) *xml.Hash {
+  if !strings.HasPrefix(typ, "gosa_") && !strings.HasPrefix(typ, "job_") {
+    typ = "gosa_" + typ
+  }
+  if x.First("header") == nil {
+    x.Add("header", typ)
+  }
+  if x.First("source") == nil {
+    x.Add("source", "GOSA")
+  }
+  if x.First("target") == nil {
+    x.Add("target", "GOSA")
+  }
+  conn, err := net.Dial("tcp", config.ServerSourceAddress)
+  if err != nil {
+    util.Log(0, "ERROR! Dial: %v", err)
+    return xml.NewHash("error")
+  }
+  defer conn.Close()
+  util.SendLn(conn, message.GosaEncrypt(x.String(), config.ModuleKey["[GOsaPackages]"]))
+  reply := message.GosaDecrypt(util.ReadLn(conn), config.ModuleKey["[GOsaPackages]"])
+  x, err = xml.StringToHash(reply)
+  if err != nil { x = xml.NewHash("error") }
+  return x
+}
 
 // Regexp for recognizing valid MAC addresses.
 var macAddressRegexp = regexp.MustCompile("^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$")
@@ -172,15 +224,66 @@ func SystemTest(daemon string, is_gosasi bool) {
   }
   check(clientsOk, true)
   
-  // send confirm_new_server
-  keys[0] = "foo"
-  send("[ServerPackages]", hash("xml(header(confirm_new_server)confirm_new_server()source(%v)target(%v)key(%v)loaded_modules(goSusi)macaddress(01:02:03:04:05:06))", listen_address, config.ServerSourceAddress, keys[0]))
+  // send confirm_new_server with a different key to check that c_n_s does not
+  // need to use the same key as new_server
+  keys[0] = "confirm_new_server_key"
+  send("[ServerPackages]", hash("xml(header(confirm_new_server)confirm_new_server()key(%v)loaded_modules(goSusi)macaddress(01:02:03:04:05:06))", keys[0]))
+  
+  // Wait a little to make sure the server has processed our confirm_new_server
+  // and activated our provided key
+  time.Sleep(1000*time.Millisecond)
 
-// TODO: Testfall für das Löschen eines <periodic> jobs via foreign_job_updates
+  // send job_trigger_action to check that we get a foreign_job_updates encrypted 
+  // with the key we set via confirm_new_server above
+  t0 := time.Now()
+  test_mac := "01:02:03:04:05:06"
+  test_name := "unknown"
+  test_timestamp := "20990914131742"
+  x := gosa("job_trigger_action_wake", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(7_days))",test_mac, test_timestamp, test_mac))
+  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  check(x.Text("header"), "answer")
+  check(x.Text("source"), config.ServerSourceAddress)
+  check(x.Text("target"), "GOSA")
+  check(x.Text("answer1"), "0")
+  
+  msg = wait(t0, "foreign_job_updates")
+  check(checkTags(msg.XML, "header,source,target,answer1"), "")
+  check(msg.Key, "confirm_new_server_key")
+  check(msg.XML.Text("header"), "foreign_job_updates")
+  check(msg.XML.Text("source"), config.ServerSourceAddress)
+  check(msg.XML.Text("target"), listen_address)
+  job := msg.XML.First("answer1")
+  if job == nil { job = xml.NewHash("answer1") } // prevent panic in case of error
+  check(checkTags(job, "plainname,periodic,progress,status,siserver,modified,targettag,macaddress,timestamp,id,headertag,result,xmlmessage"),"")
+  check(job.Text("plainname"), test_name)
+  check(job.Text("periodic"), "7_days")
+  check(job.Text("progress"), "none")
+  check(job.Text("status"), "waiting")
+  check(job.Text("siserver"), config.ServerSourceAddress)
+  check(job.Text("targettag"), test_mac)
+  check(job.Text("macaddress"), test_mac)
+  check(job.Text("headertag"), "trigger_action_wake")
+  check(job.Text("result"), "none")
+  decoded, _ := base64.StdEncoding.DecodeString(job.Text("xmlmessage"))
+  xmlmessage, err := xml.StringToHash(string(decoded))
+  check(err, nil)
+  check(checkTags(xmlmessage, "header,source,target,timestamp,periodic,macaddress"), "")
+  check(xmlmessage.Text("header"), "job_trigger_action_wake")
+  check(xmlmessage.Text("source"), "GOSA")
+  check(xmlmessage.Text("target"), test_mac)
+  check(xmlmessage.Text("timestamp"), test_timestamp)
+  check(xmlmessage.Text("periodic"), "7_days")
+  check(xmlmessage.Text("macaddress"), test_mac)
+  
+
+// TODO: Testfall für das Löschen eines <periodic> jobs via foreign_job_updates (z.B.
+//       den oben hinzugefügten Test-Job)
 //       (wegen des Problems dass ein done job mit periodic neu gestartet wird)
 
 // TODO: Testen, dass foreign_job_updates den <siserver> ändern kann.
 
+// TODO: weiter oben bei test_mac und test_name Daten aus den LDAP-Testdaten
+// eintragen
 
   // Give daemon time to process data and write logs before sending SIGTERM
   time.Sleep(1*time.Second)
@@ -300,12 +403,6 @@ func siFail(x interface{}, expected interface{}) {
   }
 }
 
-// sends the xml message x to the gosa-si/go-susi server being tested
-// (config.ServerSourceAddress) encrypted with the module key identified by keyid
-// (e.g. "[ServerPackages]")
-func send(keyid string, x *xml.Hash) {
-  util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(x.String(), config.ModuleKey[keyid]))
-}
 
 // Takes a format string like "xml(foo(%v)bar(%v))" and parameters and creates
 // a corresponding xml.Hash.
@@ -427,6 +524,7 @@ func handleConnection(conn net.Conn) {
   
   msg.Time = time.Now()
   msg.SenderIP = senderIP
+  //fmt.Printf("Received %v\n", msg.XML.String())
   
   queue_mutex.Lock()
   defer queue_mutex.Unlock()
