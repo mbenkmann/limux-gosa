@@ -29,7 +29,7 @@ import (
          "../config"
        )
 
-var macAddressRegexp = regexp.MustCompile("^[:xdigit:](:[:xdigit:]){5}$")
+var macAddressRegexp = regexp.MustCompile("^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$")
 
 // Handles all messages of the form "job_trigger_action_*".
 //  xmlmsg: the decrypted and parsed message
