@@ -32,7 +32,7 @@ type LoggingFileStorer struct {
 func (f *LoggingFileStorer) Store(data string) (err error) {
   err = f.FileStorer.Store(data)
   if err != nil {
-    util.Log(0, "ERROR! Cannot store database: %v %v", err, data)
+    util.Log(0, "ERROR! Cannot store database: %v", err, data)
   }
   return err
 }

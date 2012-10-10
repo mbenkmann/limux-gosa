@@ -102,8 +102,8 @@ func Jobs() *xml.Hash {
 }
 
 var mapHeadertagToNumber = map[string]uint64{
-"job_trigger_action_lock": 1,
-"job_trigger_action_wake": 2,
+"trigger_action_lock": 1,
+"trigger_action_wake": 2,
 }
 
 // Replaces (or adds) the job identified by <headertag> and <macaddress> with
