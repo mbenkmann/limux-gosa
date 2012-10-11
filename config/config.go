@@ -76,6 +76,19 @@ var Domain = "localdomain"
 // The MAC address to send in the <macaddress> element.
 var MAC = "01:02:03:04:05:06"
 
+type InterfaceInfo struct {
+  IP string   // IP address of this machine for this interface. If this string begins with "ERROR!", then it could not be determined
+  Hostname string // hostname (without domain) of the above IP. If it begins with "ERROR!" it could not be determined
+  Domain string   // domain of the above IP. If it begins with "ERROR!" it could not be determined
+  Interface net.Interface // low level interface data
+  HasPeers bool // true if DNS has SRV records for tcp/gosa-si (if Domain could not be determined, this will always be false)
+}
+
+// Information about each non-loopback interface that is UP.
+var Interfaces = []InterfaceInfo{}
+
+// index in Interfaces of the most appropriate interface to use. -1 if none could be determined
+var BestInterface = -1
 
 // Only log messages with level <= this number will be output.
 // Note: The actual variable controlling the loglevel is util.LogLevel.
@@ -168,7 +181,7 @@ func ReadConfig() {
   }
   
   if serverpackages, ok := conf["[ServerPackages]"]; ok {
-    if addresses, ok := serverpackages["address"]; ok {
+    if addresses, ok := serverpackages["address"]; ok && addresses != "" {
       for _,address := range strings.Split(addresses, ",") {
         PeerServers = append(PeerServers, strings.TrimSpace(address))
       }
@@ -182,57 +195,114 @@ func ReadNetwork() {
   
   var ifaces []net.Interface
   ifaces, err = net.Interfaces()
-  if err == nil {
+  if err != nil {
+    util.Log(0, "ERROR! ReadNetwork: %v", err)
+  } else
+  {
+    best_interface_weight := -1
     
-    // find the first non-loopback interface that is up
+    // find non-loopback interfaces that are up
     for _, iface := range ifaces {
       if iface.Flags & net.FlagLoopback != 0 { continue }
       if iface.Flags & net.FlagUp == 0 { continue }
       
+      ifaceInfo := InterfaceInfo{}
+      ifaceInfo.Interface = iface
+      
       var addrs []net.Addr
       addrs, err = iface.Addrs()
       if err == nil {
-        MAC = iface.HardwareAddr.String()
         
         // find the first IP address for that interface
         for _, addr := range addrs {
           ip, _, err2 := net.ParseCIDR(addr.String())
           if err2 == nil && !ip.IsLoopback() {
-            IP = ip.String()
-            ServerSourceAddress = IP + ServerListenAddress[strings.Index(ServerListenAddress,":"):]
+            ifaceInfo.IP = ip.String()
             goto FoundIP
           }
         }
-        err = fmt.Errorf("Could not determine IP for interface %v", MAC)
-        FoundIP:
+        err = fmt.Errorf("Could not determine IP for interface %v", iface.HardwareAddr.String())
+      FoundIP:
       }
-    }
-  }
-  
-  if err != nil {
-    util.Log(0, "ERROR! ReadNetwork: %v", err)
-  }
-  
-  var hostname string
-  hostname, err = os.Hostname()
-  if err == nil {
-    Hostname = hostname
-    var names []string
-    names, err = net.LookupAddr(IP)
-    if err == nil {
-      for _, name := range names {
-        if strings.HasPrefix(name, hostname + ".") {
-          Domain = name[len(hostname)+1:]
-          goto DomainFound
+      
+      if err != nil { 
+        ifaceInfo.IP = fmt.Sprintf("ERROR! %v", err)
+        ifaceInfo.Hostname = ifaceInfo.IP
+        ifaceInfo.Domain = ifaceInfo.IP
+      } else
+      {
+        var names []string
+        names, err = net.LookupAddr(ifaceInfo.IP)
+        //util.Log(2, "DEBUG! Names for %v: %v", ifaceInfo.IP, names)
+        if err == nil {
+          for _, name := range names {
+            name = strings.Trim(name, ".")
+            if name == "" { continue }
+            
+            // if we have no hostname yet, use the name from the address
+            // if this includes a "." we'll chop off the domain in the if below
+            if ifaceInfo.Hostname == "" { ifaceInfo.Hostname = name }
+            
+            i := strings.Index(name, ".")
+            if i > 0 {
+              ifaceInfo.Hostname = name[0:i]
+              ifaceInfo.Domain = name[i+1:]
+              goto DomainFound
+            }
+          }
+          err = fmt.Errorf("Could not determine domain. Lookup of IP %v returned %v", ifaceInfo.IP, names)
+        DomainFound:
+        } 
+        
+        if err != nil {
+          if ifaceInfo.Hostname == "" { ifaceInfo.Hostname = fmt.Sprintf("ERROR! %v", err) }
+          ifaceInfo.Domain = fmt.Sprintf("ERROR! %v", err)
         }
       }
-      err = fmt.Errorf("Could not determine domain for hostname '%v'. Lookup of IP %v returned %v", Hostname, IP, names)
-    DomainFound:
+      
+      if !strings.HasPrefix(ifaceInfo.Domain, "ERROR!") {
+        var addrs []*net.SRV
+        _, addrs, err := net.LookupSRV("gosa-si", "tcp", ifaceInfo.Domain)
+        if err != nil {
+          util.Log(0, "ERROR! LookupSRV(\"gosa-si\",\"tcp\",\"%v\"): %v", ifaceInfo.Domain, err) 
+        } else 
+        { 
+          ifaceInfo.HasPeers = (len(addrs) > 0)
+        }
+      }
+      
+      Interfaces = append(Interfaces, ifaceInfo)
+      
+      weight := 0
+      if !strings.HasPrefix(ifaceInfo.IP, "ERROR!") { weight += 1 }
+      if !strings.HasPrefix(ifaceInfo.Hostname, "ERROR!") { weight += 2 }
+      if !strings.HasPrefix(ifaceInfo.Domain, "ERROR!") { weight += 4 }
+      if ifaceInfo.HasPeers { weight += 8 }
+      
+      if BestInterface < 0 || weight > best_interface_weight { 
+        BestInterface = len(Interfaces) - 1 
+        best_interface_weight = weight
+      }
     }
   }
   
-  if err != nil {
-    util.Log(0, "ERROR! ReadNetwork: %v", err)
+  // use os.Hostname as default in case we can't get a host name from an interface
+  var hostname string
+  hostname, err = os.Hostname()
+  if err == nil { Hostname = hostname }
+
+  if BestInterface >= 0 {
+    MAC = Interfaces[BestInterface].Interface.HardwareAddr.String()
+    if !strings.HasPrefix(Interfaces[BestInterface].Hostname, "ERROR!") {
+      Hostname = Interfaces[BestInterface].Hostname
+    }
+    if !strings.HasPrefix(Interfaces[BestInterface].Domain, "ERROR!") {
+      Domain = Interfaces[BestInterface].Domain
+    }
+    if !strings.HasPrefix(Interfaces[BestInterface].IP, "ERROR!") {
+      IP = Interfaces[BestInterface].IP
+    }
+    ServerSourceAddress = IP + ServerListenAddress[strings.Index(ServerListenAddress,":"):]
   }
   
   util.Log(1, "INFO! Hostname: %v  Domain: %v  MAC: %v  Server: %v", Hostname, Domain, MAC, ServerSourceAddress)
