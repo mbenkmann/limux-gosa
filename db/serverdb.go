@@ -62,7 +62,7 @@ func ServersInit() {
     serverDB.Init(xmldata)
   }
   
-  addDNSServers()
+  addServersFromDNS()
   addConfigServers()
 }  
 
@@ -75,7 +75,7 @@ func addConfigServers() {
 }
 
 // Adds servers listed in for service tcp/gosa-si to the serverDB.
-func addDNSServers() {
+func addServersFromDNS() {
   var cname string
   var addrs []*net.SRV
   cname, addrs, err := net.LookupSRV("gosa-si", "tcp", config.Domain)
