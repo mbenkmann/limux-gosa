@@ -63,11 +63,11 @@ func ServersInit() {
   }
   
   addServersFromDNS()
-  addConfigServers()
+  addServersFromConfig()
 }  
 
 // Adds servers listed in config file the serverDB.
-func addConfigServers() {
+func addServersFromConfig() {
   util.Log(1, "INFO! Config file lists the following peer servers: %v", strings.Join(config.PeerServers,", "))
   for _, server := range config.PeerServers {
     addServer(server)
