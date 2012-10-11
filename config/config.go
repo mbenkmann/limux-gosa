@@ -26,6 +26,7 @@ import (
          "os"
          "net"
          "fmt"
+         "time"
          "bufio"
          "strings"
          "crypto/aes"
@@ -94,6 +95,10 @@ var BestInterface = -1
 // Note: The actual variable controlling the loglevel is util.LogLevel.
 // This is just the value read from the config file.
 var LogLevel int
+
+// Maximum time permitted for a read or write transmission. If this time
+// is exceeded, the transmission is aborted.
+var Timeout = 5 * time.Minute
 
 // Parses os.Args and sets config variables accordingly.
 func ReadArgs() {

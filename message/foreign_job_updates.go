@@ -59,7 +59,7 @@ func Send_foreign_job_updates(target string, jobs *xml.Hash) {
   jobs.Add("target", target)
   msg := jobs.String()
   util.Log(2, "DEBUG! Sending foreign_job_updates to %v: %v", target, msg)
-  util.SendLnTo(target, EncryptForServer(target, msg))
+  util.SendLnTo(target, EncryptForServer(target, msg), config.Timeout)
 }
 
 // Asynchronously calls Send_foreign_job_updates(target, jobs) for all

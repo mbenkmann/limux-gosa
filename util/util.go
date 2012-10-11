@@ -81,24 +81,28 @@ func WriteAll(w io.Writer, data []byte) (n int, err error) {
 
 // Opens a connection to target (e.g. "foo.example.com:20081"), sends msg followed
 // by \r\n and then closes the connection.
-func SendLnTo(target string, msg string) {
+// If timeout >= 0, then the connection will be terminated after at most this duration.
+func SendLnTo(target string, msg string, timeout time.Duration) {
   conn, err := net.Dial("tcp", target)
   if err != nil {
     Log(0, "ERROR! Dial: %v", err)
     return
   }
   defer conn.Close()
-  SendLn(conn, msg)  
+  SendLn(conn, msg, timeout)
 }
 
 // Sends strings via connection conn, followed by "\r\n"
-func SendLn(conn net.Conn, s string) {
+// If timeout >= 0, then the connection will be terminated after at most this duration.
+func SendLn(conn net.Conn, s string, timeout time.Duration) {
   sendbuf := make([]byte, len(s)+2)
   copy(sendbuf, s)
   sendbuf[len(s)]='\r'
   sendbuf[len(s)+1]='\n'
 
-  conn.SetWriteDeadline(time.Now().Add(5*time.Minute))
+  if timeout >= 0 {
+    conn.SetWriteDeadline(time.Now().Add(timeout))
+  }
   _, err := WriteAll(conn, sendbuf)
   if err != nil {
     Log(0, "ERROR! WriteAll: %v", err)
@@ -107,13 +111,17 @@ func SendLn(conn net.Conn, s string) {
 
 // Reads from the connection until \n is seen (or timeout or error) and
 // returns the first line with trailing \n and \r removed.
-func ReadLn(conn net.Conn) string {
+// If timeout >= 0, then the connection will be terminated after at most this duration.
+func ReadLn(conn net.Conn, timeout time.Duration) string {
   var buf = make([]byte, 65536)
   i := 0
   n := 1
+  
+  if timeout >= 0 {
+    conn.SetReadDeadline(time.Now().Add(timeout))
+  }
   var err error
   for n != 0 {
-    conn.SetReadDeadline(time.Now().Add(5*time.Minute))
     n, err = conn.Read(buf[i:])
     if err != nil && err != io.EOF {
       Log(0, "ERROR! Read: %v", err)
