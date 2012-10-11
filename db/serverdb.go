@@ -68,7 +68,7 @@ func ServersInit() {
 
 // Adds servers listed in config file the serverDB.
 func addServersFromConfig() {
-  util.Log(1, "INFO! Config file lists the following peer servers: %v", strings.Join(config.PeerServers,", "))
+  util.Log(1, "INFO! Config file lists %v peer server(s): %v", len(config.PeerServers), strings.Join(config.PeerServers,", "))
   for _, server := range config.PeerServers {
     addServer(server)
   }
