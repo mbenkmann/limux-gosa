@@ -91,7 +91,7 @@ func send(keyid string, x *xml.Hash) {
   if x.First("target") == nil {
     x.Add("target", config.ServerSourceAddress)
   }
-  util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(x.String(), key))
+  util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(x.String(), key), config.Timeout)
 }
 
 // Sends a GOSA message to the server being tested and
@@ -119,8 +119,8 @@ func gosa(typ string, x *xml.Hash) *xml.Hash {
     return xml.NewHash("error")
   }
   defer conn.Close()
-  util.SendLn(conn, message.GosaEncrypt(x.String(), config.ModuleKey["[GOsaPackages]"]))
-  reply := message.GosaDecrypt(util.ReadLn(conn), config.ModuleKey["[GOsaPackages]"])
+  util.SendLn(conn, message.GosaEncrypt(x.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+  reply := message.GosaDecrypt(util.ReadLn(conn, config.Timeout), config.ModuleKey["[GOsaPackages]"])
   x, err = xml.StringToHash(reply)
   if err != nil { x = xml.NewHash("error") }
   return x
@@ -190,6 +190,8 @@ func SystemTest(daemon string, is_gosasi bool) {
   config.ReadConfig()
   config.ReadNetwork()
   
+  config.Timeout = reply_timeout
+  
   listen_address = config.IP + ":" + listen_port
   
   if daemon != "" {
@@ -247,33 +249,48 @@ func SystemTest(daemon string, is_gosasi bool) {
   check(x.Text("answer1"), "0")
   
   msg = wait(t0, "foreign_job_updates")
-  check(checkTags(msg.XML, "header,source,target,answer1"), "")
-  check(msg.Key, "confirm_new_server_key")
-  check(msg.XML.Text("header"), "foreign_job_updates")
+  check_foreign_job_updates(msg, "confirm_new_server_key", test_name, "7_days", test_mac, "trigger_action_wake", test_timestamp)
+  
+  // Send new_server and check that we receive confirm_new_server in response
+  t0 = time.Now()
+  keys[0] = "new_server_key"
+  send("[ServerPackages]", hash("xml(header(new_server)new_server()key(%v)loaded_modules(goSusi)macaddress(01:02:03:04:05:06))", keys[0]))
+  msg = wait(t0, "confirm_new_server")
+  check(checkTags(msg.XML,"header,confirm_new_server,source,target,key,loaded_modules*,client*,macaddress"), "")
+  check(msg.Key, config.ModuleKey["[ServerPackages]"])
+  check(strings.Split(msg.XML.Text("source"),":")[0], msg.SenderIP)
   check(msg.XML.Text("source"), config.ServerSourceAddress)
   check(msg.XML.Text("target"), listen_address)
-  job := msg.XML.First("answer1")
-  if job == nil { job = xml.NewHash("answer1") } // prevent panic in case of error
-  check(checkTags(job, "plainname,periodic,progress,status,siserver,modified,targettag,macaddress,timestamp,id,headertag,result,xmlmessage"),"")
-  check(job.Text("plainname"), test_name)
-  check(job.Text("periodic"), "7_days")
-  check(job.Text("progress"), "none")
-  check(job.Text("status"), "waiting")
-  check(job.Text("siserver"), config.ServerSourceAddress)
-  check(job.Text("targettag"), test_mac)
-  check(job.Text("macaddress"), test_mac)
-  check(job.Text("headertag"), "trigger_action_wake")
-  check(job.Text("result"), "none")
-  decoded, _ := base64.StdEncoding.DecodeString(job.Text("xmlmessage"))
-  xmlmessage, err := xml.StringToHash(string(decoded))
-  check(err, nil)
-  check(checkTags(xmlmessage, "header,source,target,timestamp,periodic,macaddress"), "")
-  check(xmlmessage.Text("header"), "job_trigger_action_wake")
-  check(xmlmessage.Text("source"), "GOSA")
-  check(xmlmessage.Text("target"), test_mac)
-  check(xmlmessage.Text("timestamp"), test_timestamp)
-  check(xmlmessage.Text("periodic"), "7_days")
-  check(xmlmessage.Text("macaddress"), test_mac)
+  check(msg.XML.Text("key"), "new_server_key")
+  check(len(msg.XML.Get("confirm_new_server"))==1 && msg.XML.Text("confirm_new_server")=="", true)
+  siFail(strings.Contains(msg.XML.Text("loaded_modules"), "goSusi"), true)
+  check(macAddressRegexp.MatchString(msg.XML.Text("macaddress")), true)
+  clientsOk = true
+  for _, client := range msg.XML.Get("client") {
+    if !clientRegexp.MatchString(client) { clientsOk = false }
+  }
+  check(clientsOk, true)
+  
+  // go-susi also sends foreign_job_updates in response to new_server
+  msg = wait(t0, "foreign_job_updates")
+  siFail(checkTags(msg.XML, "header,source,target,answer1"), "")
+  if checkTags(msg.XML, "header,source,target,answer1") == "" {
+    check_foreign_job_updates(msg, "new_server_key", test_name, "7_days", test_mac, "trigger_action_wake", test_timestamp)
+  }
+
+  t0 = time.Now()
+  test_mac2 := "11:22:33:44:55:66"
+  test_name2 := "unknown"
+  test_timestamp2 := "20770101000000"
+  x = gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(1_minutes))",test_mac, test_timestamp, test_mac))
+  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  check(x.Text("header"), "answer")
+  check(x.Text("source"), config.ServerSourceAddress)
+  check(x.Text("target"), "GOSA")
+  check(x.Text("answer1"), "0")
+  
+  msg = wait(t0, "foreign_job_updates")
+  check_foreign_job_updates(msg, "new_server_key", test_name2, "1_minutes", test_mac2, "trigger_action_lock", test_timestamp2)
   
 
 // TODO: Testfall für das Löschen eines <periodic> jobs via foreign_job_updates (z.B.
@@ -287,6 +304,37 @@ func SystemTest(daemon string, is_gosasi bool) {
 
   // Give daemon time to process data and write logs before sending SIGTERM
   time.Sleep(1*time.Second)
+}
+
+func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_periodic, test_mac, action, test_timestamp string) {
+  check(checkTags(msg.XML, "header,source,target,answer1"), "")
+  check(msg.Key, test_key)
+  check(msg.XML.Text("header"), "foreign_job_updates")
+  check(msg.XML.Text("source"), config.ServerSourceAddress)
+  check(msg.XML.Text("target"), listen_address)
+  job := msg.XML.First("answer1")
+  if job == nil { job = xml.NewHash("answer1") } // prevent panic in case of error
+  check(checkTags(job, "plainname,periodic?,progress,status,siserver,modified,targettag,macaddress,timestamp,id,headertag,result,xmlmessage"),"")
+  check(job.Text("plainname"), test_name)
+  check(job.Text("periodic"), test_periodic)
+  check(job.Text("progress"), "none")
+  check(job.Text("status"), "waiting")
+  check(job.Text("siserver"), config.ServerSourceAddress)
+  check(job.Text("targettag"), test_mac)
+  check(job.Text("macaddress"), test_mac)
+  check(job.Text("timestamp"), test_timestamp)
+  check(job.Text("headertag"), action)
+  check(job.Text("result"), "none")
+  decoded, _ := base64.StdEncoding.DecodeString(job.Text("xmlmessage"))
+  xmlmessage, err := xml.StringToHash(string(decoded))
+  check(err, nil)
+  check(checkTags(xmlmessage, "header,source,target,timestamp,periodic?,macaddress"), "")
+  check(xmlmessage.Text("header"), "job_" + action)
+  check(xmlmessage.Text("source"), "GOSA")
+  check(xmlmessage.Text("target"), test_mac)
+  check(xmlmessage.Text("timestamp"), test_timestamp)
+  check(xmlmessage.Text("periodic"), test_periodic)
+  check(xmlmessage.Text("macaddress"), test_mac)
 }
 
 
