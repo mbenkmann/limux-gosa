@@ -48,7 +48,6 @@
       
       {if $bStatus}
         {image path='images/save.png' action='getFAItemplate' title='{t}Save template{/t}...'}
-        {image path='images/lists/edit.png' action='editFAItemplate' title='{t}Edit template{/t}...'}
       {/if}
      </td>
     </tr>
