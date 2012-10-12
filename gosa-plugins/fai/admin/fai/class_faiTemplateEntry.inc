@@ -87,30 +87,6 @@ class faiTemplateEntry extends plugin
       send_binary_content($this->FAItemplateFile,$this->cn.".FAItemplate");
     }
 
-    /* File edit requested */
-    if(isset($_POST['editFAItemplate'])){
-      $this->dialog = new faiTemplateEdit($this->config,$this->dn,$this->FAItemplateFile);
-      $this->dialog->read_only=$this->read_only;
-      $this->dialog->FAIstate = $this->FAIstate;
-    }
-
-    /* File edit requested, was canceled  */
-    if(isset($_POST['templateEditCancel'])){
-      $this->dialog = null;
-    }
-
-    /* File edit requested, was canceled  */
-    if($this->dialog instanceOf faiTemplateEdit && isset($_POST['templateEditSave'])){
-      $this->dialog->save_object();
-      $msgs = $this->dialog->check();
-      if(count($msgs)){
-        msg_dialog::displayChecks($msgs);
-      }else{
-        $this->FAItemplateFile = $this->dialog->save();
-        $this->dialog = null;
-      }
-    }
-
     /* Display opened dialog */
     if($this->dialog){
       $this->dialog->save_object();

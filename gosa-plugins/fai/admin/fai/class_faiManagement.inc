@@ -1377,7 +1377,6 @@ class faiManagement extends management
                           'faiScriptEntry',
                           'faiScript',
                           'faiSummaryTab',
-                          'faiTemplateEdit',
                           'faiTemplateEntry',
                           'faiTemplate',
                           'faiVariableEntry',
