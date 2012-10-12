@@ -91,6 +91,14 @@ class tests {
   }
 
 
+  /*! Check for CUPS URI. We just check for a valid URI scheme.
+      Probably it would be better to just check for ':/' - oh well...  */
+  public static function is_cups_uri($uri)
+  {
+    return preg_match ("/^[a-z][\-\.\+a-z0-9]*:\//i", $uri);
+  }
+
+
   /*! \brief Test if the given string is an IP */
   public static function is_ip($ip)
   {
