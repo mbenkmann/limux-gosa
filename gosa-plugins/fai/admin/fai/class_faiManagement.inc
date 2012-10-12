@@ -416,24 +416,45 @@ class faiManagement extends management
       }
     }
   }
-  
+
   /*! \brief Returns profiles the given class is in */
-  private function getProfilesOfClass($class)
+  private function getProfilesOfClass($class, $dn)
   {
     $ldap = $this->config->get_ldap_link();
-    $ldap->cd($this->config->current['BASE']); 
-    
-    $ldap->search('(objectClass=FAIprofile)', array(), TRUE);
-               
+
+    # Get COW bases => this strips the first RDN
+    $cow_bases = get_parent_dns($dn, $this->fai_base, TRUE);
+
+    # Drop FAI type base
+    unset($cow_bases[0]);
+
+    # Start at FAI root
+    $cow_bases = array_reverse($cow_bases);
+
+    # Look for profiles in all COW releases
     $profiles = array();
-    while ($profile = $ldap->fetch()) {
-      $profile_classes = explode(' ', $profile['FAIclass'][0]);
-      if (in_array_strict($class, $profile_classes)) {
-        $profiles[] = $profile['cn'][0];
+    foreach ($cow_bases as $base) {
+      $ldap->ls('(objectClass=FAIprofile)', 'ou=profiles,' . $base, array('FAIclass', 'FAIstate', 'cn'), TRUE);
+
+      while ($profile = $ldap->fetch()) {
+        $name = $profile['cn'][0];
+
+        # If FAI state is removed, drop profile from list.
+        if (array_key_exists('FAIstate', $profile)
+            && array_key_exists('removed', explode(',', $profile['FAIstate'][0]))) {
+          if (array_key_exists($name, $profiles))
+            unset($profiles[$name]);
+        }
+        else {
+          $p_classes = $profile['FAIclass'][0];
+          if (in_array_strict($class, explode(' ', $p_classes))
+              && !array_key_exists($name, $profiles))
+            $profiles[$name] = 1;
+        }
       }
     }
-    
-    return array_unique($profiles);
+
+    return array_keys($profiles);
   }
 
 
@@ -459,7 +480,7 @@ class faiManagement extends management
         $this->dns[] = $obj['dn'];
       }
       
-      $profiles = $this->getProfilesOfClass($obj['cn'][0]);
+      $profiles = $this->getProfilesOfClass($obj['cn'][0], $obj['dn']);
       foreach ($profiles as $profile) {
         $used_in_profiles[] = array($profile, $obj['cn'][0]);
       }
@@ -481,11 +502,9 @@ class faiManagement extends management
       }
       
       msg_dialog::display(_("Classes used in profiles"),
-          _("The following entries are used in profiles, you can't remove them:") . 
-          " <ul>" . $formatted_list . "</ul>", ERROR_DIALOG);
+          _("The following entries are used in profiles, you should't remove them:") . 
+          " <ul>" . $formatted_list . "</ul>", WARNING_DIALOG);
     }
-    
-    
 
     // Check entry locking
     $smarty = get_smarty();
