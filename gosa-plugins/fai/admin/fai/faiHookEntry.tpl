@@ -69,7 +69,7 @@
 <br>
 <div class="plugin-actions">
  
- {if !$freeze}
+ {if !$freeze and !$read_only}
   <button type='submit' name='SaveSubObject'>
   {msgPool type=applyButton}</button>&nbsp;
   

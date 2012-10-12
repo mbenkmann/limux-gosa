@@ -54,8 +54,8 @@ class faiProfile extends plugin
         }
         $this->old_cn   = $this->cn;
 
-        // Prepare lists
-        $this->classList = new sortableListing(array(),array(), TRUE);
+        // Prepare lists - no reorder if read-only is set
+        $this->classList = new sortableListing(array(),array(), !$this->read_only);
         $this->classList->setDeleteable(true);
         $this->classList->setEditable(false);
         $this->classList->setWidth("100%");
@@ -230,7 +230,8 @@ class faiProfile extends plugin
         $dn = $this->acl_base_for_current_object($this->dn);
         $smarty->assign("sub_object_is_addable",
                 preg_match("/c/",$this->ui->get_permissions($dn,"fai/faiScriptEntry")) &&
-                !preg_match("/freeze/",$this->FAIstate));
+                !preg_match("/freeze/",$this->FAIstate) &&
+                !$this->read_only);
 
         $tmp = $this->plInfo();
         foreach($tmp['plProvidedAcls'] as $name => $translated){

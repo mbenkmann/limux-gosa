@@ -90,6 +90,7 @@ class faiTemplateEntry extends plugin
     /* File edit requested */
     if(isset($_POST['editFAItemplate'])){
       $this->dialog = new faiTemplateEdit($this->config,$this->dn,$this->FAItemplateFile);
+      $this->dialog->read_only=$this->read_only;
       $this->dialog->FAIstate = $this->FAIstate;
     }
 

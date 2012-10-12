@@ -92,6 +92,7 @@ class faiHookEntry extends plugin
 
     /* Fill templating stuff */
     $smarty     = get_smarty();
+    $smarty->assign("read_only",$this->read_only);
     $display = "";
         
     if(isset($_POST['ImportUpload'])){

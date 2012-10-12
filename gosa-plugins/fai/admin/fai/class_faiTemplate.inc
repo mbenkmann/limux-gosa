@@ -150,6 +150,7 @@ class faiTemplate extends plugin
             $this->dialog= new $this->subClassName($this->config,$this->dn,$obj);
             $this->dialog->set_acl_base($this->acl_base);
             $this->dialog->FAIstate = $this->FAIstate;
+            $this->dialog->read_only=$this->read_only;
             $this->dialog->set_acl_category("fai");
 
             set_object_info($obj['dn']);
@@ -182,6 +183,7 @@ class faiTemplate extends plugin
         }
         $this->dialog= new $this->subClassName($this->config,$this->dn,$obj);
         $this->dialog->FAIstate = $this->FAIstate;
+        $this->dialog->read_only=$this->read_only;
         $this->dialog->acl = $this->acl;
         $this->dialog->set_acl_category("fai");
         set_object_info($obj['dn']);
@@ -199,6 +201,7 @@ class faiTemplate extends plugin
         $this->dialog= new $this->subClassName($this->config,"new");
         $this->dialog->set_acl_base($this->acl_base);
         $this->dialog->FAIstate = $this->FAIstate;
+        $this->dialog->read_only=$this->read_only;
         $this->dialog->set_acl_category("fai");
         $this->dialog->parent = &$this;
         $this->is_dialog=true;
@@ -314,7 +317,9 @@ class faiTemplate extends plugin
     $dn = $this->acl_base_for_current_object($this->dn);
     $smarty->assign("sub_object_is_addable", 
             preg_match("/c/",$this->ui->get_permissions($dn,"fai/faiTemplateEntry")) && 
-            !preg_match("/freeze/",$this->FAIstate));
+            !preg_match("/freeze/",$this->FAIstate) &&
+            !$this->read_only
+            );
 
     foreach($this->attributes as $attr){
       $smarty->assign($attr."ACL",$this->getacl($attr, preg_match("/freeze/",$this->FAIstate)));

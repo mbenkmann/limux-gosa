@@ -39,6 +39,7 @@ class faiTemplateEdit extends plugin
     $smarty->assign("write_protect",$this->write_protect);
     $smarty->assign("mb_extension",$this->mb_extension);
     $smarty->assign("FAIstate",$this->FAIstate);
+    $smarty->assign("read_only",$this->read_only);
     return($smarty->fetch(get_template_path('faiTemplateEdit.tpl', TRUE)));
   }
 

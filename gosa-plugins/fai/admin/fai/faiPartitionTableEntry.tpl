@@ -30,7 +30,7 @@
  {if $sub_object_is_createable}
   <button type='submit' name='AddPartition'>{t}Add partition{/t}</button>
   {else}
-  <button type='submit' name='restricted'>{t}Add partition{/t}</button>
+  <button type='submit' disabled name='restricted'>{t}Add partition{/t}</button>
   
  {/if}
  
@@ -41,7 +41,7 @@
 <br>
 <div class="plugin-actions">
  
- {if !$freeze}
+ {if !$freeze and !$read_only}
   <button type='submit' name='SaveDisk'>
   {msgPool type=saveButton}</button>
   
