@@ -29,9 +29,14 @@
                     </td>
                     <td>
                         <div style="height:10px;"> </div>
+<style type="text/css">
+#wrapper-base .treeList { max-width:600px; }
+</style>
+<div id="wrapper-base">
                         {render acl=$baseACL}
                             {$base}
                         {/render}
+</div>
                     </td>
                 </tr>
             </table>
