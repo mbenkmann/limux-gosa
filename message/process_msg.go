@@ -81,8 +81,8 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
     case "new_server":          reply = new_server(xml)
     case "confirm_new_server":  reply = confirm_new_server(xml)
     case "foreign_job_updates": reply = foreign_job_updates(xml)
-    case "job_trigger_action_lock":
-    case "job_trigger_action_wake":
+    case "job_trigger_action_lock",
+         "job_trigger_action_wake":
                                 reply = job_trigger_action(xml)
     // When adding a new job, don't forget to add it to jobdb.go:mapHeadertagToNumber
     
