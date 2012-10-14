@@ -108,16 +108,16 @@ func checkFailLevel(x interface{}, expected interface{}, level int) {
   // no problem when running the tests standalone. However when running the tests
   // under gdb, it's annoying to have gdb stop at the SIGSEGV.
   if (isNil(expected) && isNil(x)) || fmt.Sprintf("%v", expected) == fmt.Sprintf("%v", x) {
-    fmt.Println("PASSED")
+    fmt.Println("PASSED UNEXPECTEDLY")
     Pass++
     UnexpectedPass++
-    if Show_output {
-      fmt.Printf("OUTPUT  : %v\n", x)
-    }
+    fmt.Printf("OUTPUT  : %v\n", x)
   } else {
-    fmt.Println("FAILED")
+    fmt.Println("FAILED AS EXPECTED")
     Fail++
     ExpectedFail++
-    fmt.Printf("OUTPUT  : %v\nEXPECTED: %v\n", x, expected)
+    if Show_output {
+      fmt.Printf("OUTPUT  : %v\nSHOULD BE: %v\n", x, expected)
+    }
   }
 }
