@@ -7,6 +7,7 @@ import (
          "time"
          "sync"
          "regexp"
+         "runtime"
          "syscall"
          "strings"
          "io/ioutil"
@@ -282,7 +283,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   test_mac2 := "11:22:33:44:55:66"
   test_name2 := "unknown"
   test_timestamp2 := "20770101000000"
-  x = gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(1_minutes))",test_mac, test_timestamp, test_mac))
+  x = gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(1_minutes))",test_mac2, test_timestamp2, test_mac2))
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
   check(x.Text("header"), "answer")
   check(x.Text("source"), config.ServerSourceAddress)
@@ -307,6 +308,10 @@ func SystemTest(daemon string, is_gosasi bool) {
 }
 
 func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_periodic, test_mac, action, test_timestamp string) {
+  _, file, line, _ := runtime.Caller(1)
+  file = file[strings.LastIndex(file, "/")+1:]
+  fmt.Printf("== check_foreign_job_updates sub-tests (%v:%v) ==\n", file, line)
+      
   check(checkTags(msg.XML, "header,source,target,answer1"), "")
   check(msg.Key, test_key)
   check(msg.XML.Text("header"), "foreign_job_updates")
