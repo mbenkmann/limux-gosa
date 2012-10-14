@@ -26,6 +26,7 @@ import (
          
          "../db"
          "../xml"
+         "../util"
          "../config"
        )
 
@@ -36,6 +37,7 @@ var macAddressRegexp = regexp.MustCompile("^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$"
 // Returns:
 //  unencrypted reply
 func job_trigger_action(xmlmsg *xml.Hash) string {
+  util.Log(2, "DEBUG! job_trigger_action(%v)", xmlmsg)
   job := xml.NewHash("job")
   job.Add("progress", "none")
   job.Add("status", "waiting")
