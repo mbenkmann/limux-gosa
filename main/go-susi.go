@@ -176,7 +176,7 @@ func handle_request(conn *net.TCPConn) {
       
       if reply != "" {
         util.Log(2, "DEBUG! Sending reply to %v: %v", conn.RemoteAddr(), reply)
-        util.SendLn(conn, reply)
+        util.SendLn(conn, reply, config.Timeout)
       }
     }
   }
