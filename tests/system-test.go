@@ -265,6 +265,10 @@ func SystemTest(daemon string, is_gosasi bool) {
   msg = wait(t0, "foreign_job_updates")
   check_foreign_job_updates(msg, "new_server_key", test_name2, "1_minutes", test_mac2, "trigger_action_lock", test_timestamp2)
   
+  check_connection_drop_on_error()
+  
+  check_multiple_requests_over_one_connection()
+
 // TODO: Testfall für das Löschen eines <periodic> jobs via foreign_job_updates (z.B.
 //       den oben hinzugefügten Test-Job)
 //       (wegen des Problems dass ein done job mit periodic neu gestartet wird)
@@ -276,6 +280,47 @@ func SystemTest(daemon string, is_gosasi bool) {
 
   // Give daemon time to process data and write logs before sending SIGTERM
   time.Sleep(reply_timeout)
+}
+
+func check_multiple_requests_over_one_connection() {
+  open connection
+  for i = 1 to 3 do {
+    send gosa_query_jobdb
+    verify answer (no detailed check necessary because gosa_query_jobdb 
+              is verified separately, so just check if there is a non-empty answer1)
+  }
+  close connection  
+}
+
+
+// Check that go-susi forcibly closes the connection if it encounters an error
+func check_connection_drop_on_error() {
+  x := hash("xml(header(gibberish)source(GOSA)target(GOSA))")
+  
+  conn, err := net.Dial("tcp", config.ServerSourceAddress)
+  check(err, nil)
+  defer conn.Close()
+  
+  util.SendLn(conn, message.GosaEncrypt(x.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+  reply := message.GosaDecrypt(util.ReadLn(conn, config.Timeout), config.ModuleKey["[GOsaPackages]"])
+  x, err = xml.StringToHash(reply)
+  check(err, nil)
+  
+  check(len(x.Text("error_string")) > 0, true)
+  
+  // Server should drop connection immediately after sending error reply.
+  // Give it just a little bit of time.
+  time.Sleep(1 * time.Second)
+  
+  t0 := time.Now()
+  conn.SetDeadline(time.Now().Add(5*time.Second))
+  _, err = conn.Read(make([]byte, 1)) // should terminate with error immediately
+  check(err, io.EOF)
+  check(time.Since(t0) < 1 * time.Second, true)
+  
+  Add another test that tests the behaviour for a decryption error by sending
+  a message encrypted with an unknown key. Verify that the reply is an unencrypted
+  error string and that the connection is properly closed
 }
 
 // Checks that on startup go-susi sends new_server to the test server listed
