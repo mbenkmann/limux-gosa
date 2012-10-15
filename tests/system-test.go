@@ -151,6 +151,8 @@ var listen_address string
 // elements are copies of config.ModuleKeys
 var keys []string
 
+// start time of SystemTest()
+var StartTime time.Time
 
 // Runs the system test.
 //  daemon: either "", host:port or the path to a binary. 
@@ -169,7 +171,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   launched_daemon = !strings.Contains(daemon,":")
   if gosasi { reply_timeout *= 10 }
   
-  start_time := time.Now()
+  StartTime = time.Now()
   
   // start our own "server" that will take messages
   go listener()
@@ -209,60 +211,24 @@ func SystemTest(daemon string, is_gosasi bool) {
   for i := range config.ModuleKeys { keys[i+1] = config.ModuleKeys[i] }
   keys[0] = "none"
   
-  // Test if daemon sends us new_server upon startup
-  msg := wait(start_time, "new_server")
-  
-  // Verify that new_server message is according to spec
-  nonLaunchedFail(checkTags(msg.XML,"header,new_server,source,target,key,loaded_modules*,client*,macaddress"), "")
-  nonLaunchedFail(msg.Key, config.ModuleKey["[ServerPackages]"])
-  if launched_daemon {
-    siFail(strings.Split(msg.XML.Text("source"),":")[0], msg.SenderIP)
-    siFail(msg.XML.Text("source"), config.ServerSourceAddress)
-    siFail(msg.XML.Text("target"), listen_address)
-  }
-  nonLaunchedFail(len(msg.XML.Get("new_server"))==1 && msg.XML.Text("new_server")=="", true)
-  if launched_daemon {
-    siFail(strings.Contains(msg.XML.Text("loaded_modules"), "goSusi"), true)
-  }
-  nonLaunchedFail(macAddressRegexp.MatchString(msg.XML.Text("macaddress")), true)
-  clientsOk := true
-  for _, client := range msg.XML.Get("client") {
-    if !clientRegexp.MatchString(client) { clientsOk = false }
-  }
-  check(clientsOk, true)
-  
-  // send confirm_new_server with a different key to check that c_n_s does not
-  // need to use the same key as new_server
-  keys = append(keys, keys[0])
-  keys[0] = "confirm_new_server_key"
-  send("[ServerPackages]", hash("xml(header(confirm_new_server)confirm_new_server()key(%v)loaded_modules(goSusi)macaddress(01:02:03:04:05:06))",keys[0]))
-  
-  // Wait a little to make sure the server has processed our confirm_new_server
-  // and activated our provided key
-  time.Sleep(reply_timeout)
-
-  // send job_trigger_action to check that we get a foreign_job_updates encrypted 
-  // with the key we set via confirm_new_server above
-  t0 := time.Now()
   test_mac := "01:02:03:04:05:06"
   test_name := "none"
   test_timestamp := "20990914131742"
-  x := gosa("job_trigger_action_wake", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(7_days))",test_mac, test_timestamp, test_mac))
-  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
-  check(x.Text("header"), "answer")
-  siFail(x.Text("source"), config.ServerSourceAddress)
-  check(x.Text("target"), "GOSA")
-  check(x.Text("answer1"), "0")
-  
-  msg = wait(t0, "foreign_job_updates")
-  check_foreign_job_updates(msg, "confirm_new_server_key", test_name, "7_days", test_mac, "trigger_action_wake", test_timestamp)
+  if launched_daemon {
+    check_new_server_on_startup(test_mac, test_name, test_timestamp)
+  } else {
+    // We need this in the database for the later test whether go-susi reacts
+    // to new_server by sending its jobdb. This same call is contained in
+    // check_new_server_on_startup()
+    trigger_first_test_job(test_mac, test_name, test_timestamp)
+  }
   
   // Send new_server and check that we receive confirm_new_server in response
-  t0 = time.Now()
+  t0 := time.Now()
   keys = append(keys, keys[0])
   keys[0] = "new_server_key"
   send("[ServerPackages]", hash("xml(header(new_server)new_server()key(%v)loaded_modules(goSusi)macaddress(01:02:03:04:05:06))", keys[0]))
-  msg = wait(t0, "confirm_new_server")
+  msg := wait(t0, "confirm_new_server")
   check(checkTags(msg.XML,"header,confirm_new_server,source,target,key,loaded_modules*,client*,macaddress"), "")
   check(msg.Key, config.ModuleKey["[ServerPackages]"])
   check(strings.Split(msg.XML.Text("source"),":")[0], msg.SenderIP)
@@ -272,7 +238,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   check(len(msg.XML.Get("confirm_new_server"))==1 && msg.XML.Text("confirm_new_server")=="", true)
   siFail(strings.Contains(msg.XML.Text("loaded_modules"), "goSusi"), true)
   check(macAddressRegexp.MatchString(msg.XML.Text("macaddress")), true)
-  clientsOk = true
+  clientsOk := true
   for _, client := range msg.XML.Get("client") {
     if !clientRegexp.MatchString(client) { clientsOk = false }
   }
@@ -289,7 +255,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   test_mac2 := "11:22:33:44:55:66"
   test_name2 := "none"
   test_timestamp2 := "20770101000000"
-  x = gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(1_minutes))",test_mac2, test_timestamp2, test_mac2))
+  x := gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(1_minutes))",test_mac2, test_timestamp2, test_mac2))
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
   check(x.Text("header"), "answer")
   siFail(x.Text("source"), config.ServerSourceAddress)
@@ -299,7 +265,6 @@ func SystemTest(daemon string, is_gosasi bool) {
   msg = wait(t0, "foreign_job_updates")
   check_foreign_job_updates(msg, "new_server_key", test_name2, "1_minutes", test_mac2, "trigger_action_lock", test_timestamp2)
   
-
 // TODO: Testfall für das Löschen eines <periodic> jobs via foreign_job_updates (z.B.
 //       den oben hinzugefügten Test-Job)
 //       (wegen des Problems dass ein done job mit periodic neu gestartet wird)
@@ -311,6 +276,65 @@ func SystemTest(daemon string, is_gosasi bool) {
 
   // Give daemon time to process data and write logs before sending SIGTERM
   time.Sleep(reply_timeout)
+}
+
+// Checks that on startup go-susi sends new_server to the test server listed
+// in [ServerPackages]/address
+func check_new_server_on_startup(test_mac, test_name, test_timestamp string) {
+  // Test if daemon sends us new_server upon startup
+  msg := wait(StartTime, "new_server")
+  
+  // gosa-si ignored our address= entry because it thinks it refers to
+  // itself because GosaSupportDaemon.pm:is_local does not consider the port
+  siFail(len(msg.XML.Subtags()) > 0, true)
+  if len(msg.XML.Subtags()) > 0 {
+
+    // Verify that new_server message is according to spec
+    check(checkTags(msg.XML,"header,new_server,source,target,key,loaded_modules*,client*,macaddress"), "")
+    check(msg.Key, config.ModuleKey["[ServerPackages]"])
+
+    siFail(strings.Split(msg.XML.Text("source"),":")[0], msg.SenderIP)
+    siFail(msg.XML.Text("source"), config.ServerSourceAddress)
+    siFail(msg.XML.Text("target"), listen_address)
+
+    check(len(msg.XML.Get("new_server"))==1 && msg.XML.Text("new_server")=="", true)
+    siFail(strings.Contains(msg.XML.Text("loaded_modules"), "goSusi"), true)
+
+    check(macAddressRegexp.MatchString(msg.XML.Text("macaddress")), true)
+    clientsOk := true
+    for _, client := range msg.XML.Get("client") {
+      if !clientRegexp.MatchString(client) { clientsOk = false }
+    }
+    check(clientsOk, true)
+
+    // send confirm_new_server with a different key to check that c_n_s does not
+    // need to use the same key as new_server
+    keys = append(keys, keys[0])
+    keys[0] = "confirm_new_server_key"
+    send("[ServerPackages]", hash("xml(header(confirm_new_server)confirm_new_server()key(%v)loaded_modules(goSusi)macaddress(01:02:03:04:05:06))",keys[0]))
+
+    // Wait a little to make sure the server has processed our confirm_new_server
+    // and activated our provided key
+    time.Sleep(reply_timeout)
+
+    // send job_trigger_action to check that we get a foreign_job_updates encrypted 
+    // with the key we set via confirm_new_server above
+    t0 := time.Now()
+    
+    trigger_first_test_job(test_mac, test_name, test_timestamp)
+
+    msg = wait(t0, "foreign_job_updates")
+    check_foreign_job_updates(msg, "confirm_new_server_key", test_name, "7_days", test_mac, "trigger_action_wake", test_timestamp)
+  }
+}
+
+func trigger_first_test_job(test_mac, test_name, test_timestamp string) {
+  x := gosa("job_trigger_action_wake", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(7_days))",test_mac, test_timestamp, test_mac))
+  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  check(x.Text("header"), "answer")
+  siFail(x.Text("source"), config.ServerSourceAddress)
+  check(x.Text("target"), "GOSA")
+  check(x.Text("answer1"), "0")
 }
 
 func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_periodic, test_mac, action, test_timestamp string) {
