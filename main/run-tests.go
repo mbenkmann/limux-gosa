@@ -29,15 +29,18 @@ import (
          "../tests"
        )
 
+var gosasi = false
+
 func main() {
   systemtest := ""
   for i:=1 ; i < len(os.Args) ; i++ {
     if os.Args[i] == "-v" { tests.Show_output=true }
     if strings.HasPrefix(os.Args[i],"--system=") { systemtest = os.Args[i][9:] }
+    if os.Args[i] == "--gosa-si" { gosasi = true }
   }
 
   if systemtest != "" {
-    tests.SystemTest(systemtest, false)
+    tests.SystemTest(systemtest, gosasi)
   } else
   {
     tests.Util_test()
@@ -58,5 +61,5 @@ func main() {
   fmt.Printf("\n=== Results ===\n\n#Tests: %3v\nPassed: %3v (%v unexpected)\nFailed: %3v (%v expected)\n", 
   tests.Count, tests.Pass, tests.UnexpectedPass, tests.Fail, tests.ExpectedFail)
   
-  fmt.Printf("\nPass '-v' on the command line to see test output\nPass --system=<host>:<port> to test a running daemon\nPass --system=<programpath> to start daemon <programpath> and test it\n\n")
+  fmt.Printf("\nPass '-v' on the command line to see test output\nPass --system=<host>:<port> to test a running daemon\nPass --system=<programpath> to start daemon <programpath> and test it\nPass --gosa-si if the server to test is a gosa-si\n\n")
 }

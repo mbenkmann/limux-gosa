@@ -158,7 +158,7 @@ var keys []string
 //         If host:port, the daemon running at that address will be tested. 
 //         Some tests cannot be run in this case.
 //         If a program path is used, the program will be launched with
-//         -c tempfile  where tempfile is a generated config file that
+//         -f -c tempfile  where tempfile is a generated config file that
 //         specifies the SystemTest's listener as a peer server, so that
 //         e.g. new_server messages can be tested.
 //  is_gosasi: if true, test evaluation will be done for gosa-si. This does not
@@ -167,11 +167,15 @@ var keys []string
 func SystemTest(daemon string, is_gosasi bool) {
   gosasi = is_gosasi
   launched_daemon = !strings.Contains(daemon,":")
+  if gosasi { reply_timeout *= 10 }
   
   start_time := time.Now()
   
   // start our own "server" that will take messages
   go listener()
+  
+  config.ReadNetwork()
+  listen_address = config.IP + ":" + listen_port
   
   // if we got a program path (i.e. not host:port), create config and launch program
   if launched_daemon {
@@ -179,7 +183,7 @@ func SystemTest(daemon string, is_gosasi bool) {
     config.ServerConfigPath, confdir = createConfigFile()
     //defer os.RemoveAll(confdir)
     defer fmt.Printf("\nLog file directory: %v\n", confdir)
-    cmd := exec.Command(daemon, "-c", config.ServerConfigPath, "-vvv")
+    cmd := exec.Command(daemon, "-f", "-c", config.ServerConfigPath, "-vvvvvv")
     cmd.Stderr,_ = os.Create(confdir+"/go-susi+panic.log")
     err := cmd.Start()
     if err != nil { panic(err) }
@@ -189,11 +193,8 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   // this reads either the default config or the one we created above
   config.ReadConfig()
-  config.ReadNetwork()
   
   config.Timeout = reply_timeout
-  
-  listen_address = config.IP + ":" + listen_port
   
   if daemon != "" {
     config.ServerSourceAddress = daemon
@@ -206,6 +207,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   keys = make([]string, len(config.ModuleKeys)+1)
   for i := range config.ModuleKeys { keys[i+1] = config.ModuleKeys[i] }
+  keys[0] = "none"
   
   // Test if daemon sends us new_server upon startup
   msg := wait(start_time, "new_server")
@@ -213,9 +215,11 @@ func SystemTest(daemon string, is_gosasi bool) {
   // Verify that new_server message is according to spec
   nonLaunchedFail(checkTags(msg.XML,"header,new_server,source,target,key,loaded_modules*,client*,macaddress"), "")
   nonLaunchedFail(msg.Key, config.ModuleKey["[ServerPackages]"])
-  nonLaunchedFail(strings.Split(msg.XML.Text("source"),":")[0], msg.SenderIP)
-  nonLaunchedFail(msg.XML.Text("source"), config.ServerSourceAddress)
-  nonLaunchedFail(msg.XML.Text("target"), listen_address)
+  if launched_daemon {
+    siFail(strings.Split(msg.XML.Text("source"),":")[0], msg.SenderIP)
+    siFail(msg.XML.Text("source"), config.ServerSourceAddress)
+    siFail(msg.XML.Text("target"), listen_address)
+  }
   nonLaunchedFail(len(msg.XML.Get("new_server"))==1 && msg.XML.Text("new_server")=="", true)
   if launched_daemon {
     siFail(strings.Contains(msg.XML.Text("loaded_modules"), "goSusi"), true)
@@ -229,23 +233,24 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   // send confirm_new_server with a different key to check that c_n_s does not
   // need to use the same key as new_server
+  keys = append(keys, keys[0])
   keys[0] = "confirm_new_server_key"
-  send("[ServerPackages]", hash("xml(header(confirm_new_server)confirm_new_server()key(%v)loaded_modules(goSusi)macaddress(01:02:03:04:05:06))", keys[0]))
+  send("[ServerPackages]", hash("xml(header(confirm_new_server)confirm_new_server()key(%v)loaded_modules(goSusi)macaddress(01:02:03:04:05:06))",keys[0]))
   
   // Wait a little to make sure the server has processed our confirm_new_server
   // and activated our provided key
-  time.Sleep(1000*time.Millisecond)
+  time.Sleep(reply_timeout)
 
   // send job_trigger_action to check that we get a foreign_job_updates encrypted 
   // with the key we set via confirm_new_server above
   t0 := time.Now()
   test_mac := "01:02:03:04:05:06"
-  test_name := "unknown"
+  test_name := "none"
   test_timestamp := "20990914131742"
   x := gosa("job_trigger_action_wake", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(7_days))",test_mac, test_timestamp, test_mac))
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
   check(x.Text("header"), "answer")
-  check(x.Text("source"), config.ServerSourceAddress)
+  siFail(x.Text("source"), config.ServerSourceAddress)
   check(x.Text("target"), "GOSA")
   check(x.Text("answer1"), "0")
   
@@ -254,6 +259,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   // Send new_server and check that we receive confirm_new_server in response
   t0 = time.Now()
+  keys = append(keys, keys[0])
   keys[0] = "new_server_key"
   send("[ServerPackages]", hash("xml(header(new_server)new_server()key(%v)loaded_modules(goSusi)macaddress(01:02:03:04:05:06))", keys[0]))
   msg = wait(t0, "confirm_new_server")
@@ -281,12 +287,12 @@ func SystemTest(daemon string, is_gosasi bool) {
 
   t0 = time.Now()
   test_mac2 := "11:22:33:44:55:66"
-  test_name2 := "unknown"
+  test_name2 := "none"
   test_timestamp2 := "20770101000000"
   x = gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(1_minutes))",test_mac2, test_timestamp2, test_mac2))
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
   check(x.Text("header"), "answer")
-  check(x.Text("source"), config.ServerSourceAddress)
+  siFail(x.Text("source"), config.ServerSourceAddress)
   check(x.Text("target"), "GOSA")
   check(x.Text("answer1"), "0")
   
@@ -304,7 +310,7 @@ func SystemTest(daemon string, is_gosasi bool) {
 // eintragen
 
   // Give daemon time to process data and write logs before sending SIGTERM
-  time.Sleep(1*time.Second)
+  time.Sleep(reply_timeout)
 }
 
 func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_periodic, test_mac, action, test_timestamp string) {
@@ -315,22 +321,26 @@ func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_peri
   check(checkTags(msg.XML, "header,source,target,answer1"), "")
   check(msg.Key, test_key)
   check(msg.XML.Text("header"), "foreign_job_updates")
-  check(msg.XML.Text("source"), config.ServerSourceAddress)
-  check(msg.XML.Text("target"), listen_address)
+  siFail(msg.XML.Text("source"), config.ServerSourceAddress)
+  siFail(msg.XML.Text("target"), listen_address)
   job := msg.XML.First("answer1")
   if job == nil { job = xml.NewHash("answer1") } // prevent panic in case of error
   check(checkTags(job, "plainname,periodic?,progress,status,siserver,modified,targettag,macaddress,timestamp,id,headertag,result,xmlmessage"),"")
   check(job.Text("plainname"), test_name)
-  check(job.Text("periodic"), test_periodic)
+  siFail(job.Text("periodic"), test_periodic)
   check(job.Text("progress"), "none")
   check(job.Text("status"), "waiting")
-  check(job.Text("siserver"), config.ServerSourceAddress)
+  siFail(job.Text("siserver"), config.ServerSourceAddress)
   check(job.Text("targettag"), test_mac)
   check(job.Text("macaddress"), test_mac)
   check(job.Text("timestamp"), test_timestamp)
   check(job.Text("headertag"), action)
   check(job.Text("result"), "none")
-  decoded, _ := base64.StdEncoding.DecodeString(job.Text("xmlmessage"))
+  
+  // The strange Join/Fields combo gets rid of the whitespace which gosa-si introduces into xmlmessage
+  xmlmessage_txt := strings.Join(strings.Fields(job.Text("xmlmessage")),"")
+  siFail(xmlmessage_txt, job.Text("xmlmessage"))
+  decoded, _ := base64.StdEncoding.DecodeString(strings.Join(strings.Fields(job.Text("xmlmessage")),""))
   xmlmessage, err := xml.StringToHash(string(decoded))
   check(err, nil)
   check(checkTags(xmlmessage, "header,source,target,timestamp,periodic?,macaddress"), "")
@@ -386,8 +396,8 @@ bind_timelimit = 5
 
 [ServerPackages]
 key = ServerPackages
-dns-lookup = true
-address = localhost:`+listen_port+`
+dns-lookup = false
+address = ` +listen_address+`
 
 `), 0644)
   return fpath, tempdir
@@ -546,7 +556,7 @@ func handleConnection(conn net.Conn) {
     }
   }
   
-  if err == nil && (i < 2 || buf[i-1] != '\n' || buf[i-2] != '\r') {
+  if err == nil && (i < 2 || buf[i-1] != '\n' /*|| buf[i-2] != '\r'*/) {
     err = fmt.Errorf("Message not terminated by CRLF")
   }
   
@@ -572,6 +582,7 @@ func handleConnection(conn net.Conn) {
   // if we get a new_server or confirm_new_server message, update our server key  
   header := msg.XML.Text("header")
   if header == "new_server" || header == "confirm_new_server" {
+    keys = append(keys, keys[0])
     keys[0] = msg.XML.Text("key")
   }
   
