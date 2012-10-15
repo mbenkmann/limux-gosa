@@ -49,7 +49,10 @@ func ErrorReply(msg interface{}) string {
 // Takes a possibly encrypted message and processes it, returning a reply
 // or the empty string if none is necessary/possible.
 // tcpAddr is the address of the message's sender.
-func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string) {
+// Returns: 
+//  reply to return
+//  disconnect == true if connection should be terminated due to error
+func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string, disconnect bool) {
   util.Log(2, "DEBUG! Processing message: %v", msg)
   for _, key := range config.ModuleKeys {
     if decrypted := GosaDecrypt(msg, key); decrypted != "" {
@@ -57,7 +60,7 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string) {
       xml, err := xml.StringToHash(decrypted)
       if err != nil {
         util.Log(0,"ERROR! %v", err)
-        return ErrorReply(err)
+        return ErrorReply(err), true
       } 
       
       // At this point we have successfully decrypted and parsed the message
@@ -67,15 +70,18 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string) {
   
   // This part is only reached if none of the keys opened the message
   util.Log(0, "ERROR! Could not decrypt message from %v: %v", tcpAddr, msg)
-  return ErrorReply("Could not decrypt message")
+  return ErrorReply("Could not decrypt message"), true
 }
 
-// encrypted: the original encrypted message
-// xml: the message
-// tcpAddr: the sender
-// key: the key that successfully decrypted the message
-func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, key string) string {
-  var reply string
+// Arguments
+//   encrypted: the original encrypted message
+//   xml: the message
+//   tcpAddr: the sender
+//   key: the key that successfully decrypted the message
+// Returns:
+//   reply: reply to return
+//   disconnect: true if connection should be terminated due to error
+func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply string, disconnect bool) {
   switch xml.Text("header") {
     case "gosa_query_jobdb":    reply = gosa_query_jobdb(xml)
     case "new_server":          reply = new_server(xml)
@@ -93,7 +99,9 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
         reply = ErrorReply("Unknown message type")
   }
   
-  return GosaEncrypt(reply, key)
+  disconnect = strings.Contains(reply, "<error_string>")
+  reply = GosaEncrypt(reply, key)
+  return
 }
 
 // Fixes lst so that the outer element is <xml> and the children are

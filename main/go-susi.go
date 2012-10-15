@@ -171,12 +171,17 @@ func handle_request(conn *net.TCPConn) {
       }
       
       // process the message and get a reply (if applicable)
-      reply := message.ProcessEncryptedMessage(string(buf[start:start+eol]), conn.RemoteAddr().(*net.TCPAddr))
+      reply, disconnect := message.ProcessEncryptedMessage(string(buf[start:start+eol]), conn.RemoteAddr().(*net.TCPAddr))
       start += eol+1
       
       if reply != "" {
         util.Log(2, "DEBUG! Sending reply to %v: %v", conn.RemoteAddr(), reply)
         util.SendLn(conn, reply, config.Timeout)
+      }
+      
+      if disconnect {
+        util.Log(1, "INFO! Forcing disconnect because of error")
+        return
       }
     }
   }
