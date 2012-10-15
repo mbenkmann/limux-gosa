@@ -103,6 +103,9 @@ var Timeout = 5 * time.Minute
 // If true, existing data in /var/lib/go-susi will be discarded.
 var FreshDatabase = false
 
+// true => add peer servers from DNS to serverdb.
+var DNSLookup = true
+
 // Parses os.Args and sets config variables accordingly.
 func ReadArgs() {
   LogLevel = 0
@@ -176,7 +179,7 @@ func ReadConfig() {
   }
   
   if err != io.EOF {
-    util.Log(0, "ERROR! ReadString: %v", err)
+    util.Log(0, "ERROR! ReadConfig: %v", err)
     // Do not return. Try working with whatever we got out of the file.
   }
   
@@ -198,6 +201,13 @@ func ReadConfig() {
       for _,address := range strings.Split(addresses, ",") {
         PeerServers = append(PeerServers, strings.TrimSpace(address))
       }
+    }
+    if dnslookup, ok := serverpackages["dns-lookup"]; ok {
+      dnslookup = strings.TrimSpace(dnslookup)
+      if dnslookup != "false" && dnslookup != "true" {
+        util.Log(0, "ERROR! ReadConfig: [ServerPackages]/dns-lookup must be \"true\" or \"false\", not \"%v\"", dnslookup)
+      }
+      DNSLookup = (dnslookup == "true")
     }
   }
 }

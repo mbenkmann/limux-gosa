@@ -64,7 +64,11 @@ func ServersInit() {
     }
   }
   
-  addServersFromDNS()
+  if config.DNSLookup { 
+    addServersFromDNS() 
+  } else {
+    util.Log(1, "INFO! DNS lookup disabled. Will not add peer servers from DNS.")
+  }
   addServersFromConfig()
 }  
 
