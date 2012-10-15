@@ -23,9 +23,9 @@ package db
 // Returns the common name for the system with the given MAC address.
 // The name may or may not include a domain. In fact technically the name
 // may be anything.
-// Returns "unknown" if the name could not be determined. Since this is a valid
+// Returns "none" if the name could not be determined. Since this is a valid
 // system name, you should NOT special case this (e.g. use it to check if
 // the system is known).
 func SystemNameForMAC(macaddress string) string {
-  return "unknown"
+  return "none"
 }  
