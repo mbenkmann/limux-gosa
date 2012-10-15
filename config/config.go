@@ -100,16 +100,24 @@ var LogLevel int
 // is exceeded, the transmission is aborted.
 var Timeout = 5 * time.Minute
 
+// If true, existing data in /var/lib/go-susi will be discarded.
+var FreshDatabase = false
+
 // Parses os.Args and sets config variables accordingly.
 func ReadArgs() {
   LogLevel = 0
   for i := 1; i < len(os.Args); i++ {
     arg := os.Args[i]
   
-    if strings.HasPrefix(arg, "-v") {
+    if arg == "-v" || arg == "-vv" || arg == "-vvv" || arg == "-vvvv" || 
+       arg == "-vvvvv" || arg == "-vvvvvv" || arg == "-vvvvvvv" {
     
       LogLevel = len(arg) - 1
-      
+    
+    } else if arg == "-f" {
+    
+      FreshDatabase = true
+    
     } else if strings.HasPrefix(arg, "--test=") {
     
       testdir := arg[7:]

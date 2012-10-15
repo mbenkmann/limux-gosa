@@ -49,17 +49,19 @@ func ServersInit() {
   db_storer := &LoggingFileStorer{xml.FileStorer{config.ServerDBPath}}
   var delay time.Duration = 0
   serverDB = xml.NewDB("serverdb", db_storer, delay)
-  xmldata, err := xml.FileToHash(config.ServerDBPath)
-  if err != nil {
-    if os.IsNotExist(err) { 
-      /* File does not exist is not an error that needs to be reported */ 
+  if !config.FreshDatabase {
+    xmldata, err := xml.FileToHash(config.ServerDBPath)
+    if err != nil {
+      if os.IsNotExist(err) { 
+        /* File does not exist is not an error that needs to be reported */ 
+      } else
+      {
+        util.Log(0, "ERROR! ServerInit reading '%v': %v", config.ServerDBPath, err)
+      }
     } else
     {
-      util.Log(0, "ERROR! ServerInit reading '%v': %v", config.ServerDBPath, err)
+      serverDB.Init(xmldata)
     }
-  } else
-  {
-    serverDB.Init(xmldata)
   }
   
   addServersFromDNS()

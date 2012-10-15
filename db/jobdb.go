@@ -39,17 +39,19 @@ func JobsInit() {
   jobdb_storer := &LoggingFileStorer{xml.FileStorer{config.JobDBPath}}
   var delay time.Duration = 0
   jobDB = xml.NewDB("jobdb", jobdb_storer, delay)
-  xml, err := xml.FileToHash(config.JobDBPath)
-  if err != nil {
-    if os.IsNotExist(err) { 
-      /* File does not exist is not an error that needs to be reported */ 
+  if !config.FreshDatabase {
+    xml, err := xml.FileToHash(config.JobDBPath)
+    if err != nil {
+      if os.IsNotExist(err) { 
+        /* File does not exist is not an error that needs to be reported */ 
+      } else
+      {
+        util.Log(0, "ERROR! JobsInit() reading '%v': %v", config.JobDBPath, err)
+      }
     } else
     {
-      util.Log(0, "ERROR! JobsInit() reading '%v': %v", config.JobDBPath, err)
+      jobDB.Init(xml)
     }
-  } else
-  {
-    jobDB.Init(xml)
   }
 }
 
