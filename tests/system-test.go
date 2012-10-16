@@ -214,6 +214,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   test_mac := "01:02:03:04:05:06"
   test_name := "none"
   test_timestamp := "20990914131742"
+  test_periodic := "7_days"
   if launched_daemon {
     check_new_server_on_startup(test_mac, test_name, test_timestamp)
   } else {
@@ -227,7 +228,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   t0 := time.Now()
   keys = append(keys, keys[0])
   keys[0] = "new_server_key"
-  send("[ServerPackages]", hash("xml(header(new_server)new_server()key(%v)loaded_modules(goSusi)macaddress(01:02:03:04:05:06))", keys[0]))
+  send("[ServerPackages]", hash("xml(header(new_server)new_server()key(%v)loaded_modules(goSusi)macaddress(00:00:00:00:00:00))", keys[0]))
   msg := wait(t0, "confirm_new_server")
   check(checkTags(msg.XML,"header,confirm_new_server,source,target,key,loaded_modules*,client*,macaddress"), "")
   check(msg.Key, config.ModuleKey["[ServerPackages]"])
@@ -248,14 +249,15 @@ func SystemTest(daemon string, is_gosasi bool) {
   msg = wait(t0, "foreign_job_updates")
   siFail(checkTags(msg.XML, "header,source,target,answer1"), "")
   if checkTags(msg.XML, "header,source,target,answer1") == "" {
-    check_foreign_job_updates(msg, "new_server_key", test_name, "7_days", test_mac, "trigger_action_wake", test_timestamp)
+    check_foreign_job_updates(msg, "new_server_key", test_name, "7_days", "waiting", test_mac, "trigger_action_wake", test_timestamp)
   }
 
   t0 = time.Now()
   test_mac2 := "11:22:33:44:55:66"
   test_name2 := "none"
   test_timestamp2 := "20770101000000"
-  x := gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(1_minutes))",test_mac2, test_timestamp2, test_mac2))
+  test_periodic2 := "1_minutes"
+  x := gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(%v))",test_mac2, test_timestamp2, test_mac2, test_periodic2))
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
   check(x.Text("header"), "answer")
   siFail(x.Text("source"), config.ServerSourceAddress)
@@ -263,17 +265,102 @@ func SystemTest(daemon string, is_gosasi bool) {
   check(x.Text("answer1"), "0")
   
   msg = wait(t0, "foreign_job_updates")
-  check_foreign_job_updates(msg, "new_server_key", test_name2, "1_minutes", test_mac2, "trigger_action_lock", test_timestamp2)
+  check_foreign_job_updates(msg, "new_server_key", test_name2, "1_minutes", "waiting", test_mac2, "trigger_action_lock", test_timestamp2)
   
-  check_connection_drop_on_error()
+  check_connection_drop_on_error1()
+  check_connection_drop_on_error2()
   
   check_multiple_requests_over_one_connection()
-
+  
+  // query for trigger_action_lock on test_mac2
+  x = gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v)))))", test_mac2))
+  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  check(x.Text("header"), "query_jobdb")
+  siFail(x.Text("source"), config.ServerSourceAddress)
+  check(x.Text("target"), "GOSA")
+  a := x.First("answer1")
+  check(a != nil, true)
+  if a != nil {
+    check_answer(a, test_name2, "none", "waiting", config.ServerSourceAddress, test_mac2, test_timestamp2, test_periodic2, "trigger_action_lock")
+  }
+  
+  // query for trigger_action_wake on test_mac (via "ne test_mac2")
+  x = gosa("query_jobdb", hash("xml(where(clause(connector(and)phrase(operator(ne)macaddress(%v)))))", test_mac2))
+  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  check(x.Text("header"), "query_jobdb")
+  siFail(x.Text("source"), config.ServerSourceAddress)
+  check(x.Text("target"), "GOSA")
+  a = x.First("answer1")
+  check(a != nil, true)
+  if a != nil {
+    check_answer(a, test_name, "none", "waiting", config.ServerSourceAddress, test_mac, test_timestamp, test_periodic, "trigger_action_wake")
+  }
+  
+  // delete trigger_action_wake on test_mac (via "ne test_mac2" plus redundant "like ...")
+  t0 = time.Now()
+  x = gosa("delete_jobdb_entry", hash("xml(where(clause(connector(and)phrase(operator(like)headertag(trigger_action_%%))phrase(operator(ne)macaddress(%v)))))", test_mac2))
+  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  check(x.Text("header"), "answer")
+  siFail(x.Text("source"), config.ServerSourceAddress)
+  check(x.Text("target"), "GOSA")
+  check(x.Text("answer1"), "0")
+  
+  // query complete jobdb. The reply should only be one remaining job.
+  // Depending on timing this may fail on gosa-si because it allows jobs to
+  // be observed in "done" status. However on go-susi this should always
+  // give the expected result.
+  x = gosa("query_jobdb", hash("xml(where())"))
+  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  check(x.Text("header"), "query_jobdb")
+  siFail(x.Text("source"), config.ServerSourceAddress)
+  check(x.Text("target"), "GOSA")
+  a = x.First("answer1")
+  old_job := a.Clone()
+  check(a != nil, true)
+  if a != nil {
+    check_answer(a, test_name2, "none", "waiting", config.ServerSourceAddress, test_mac2, test_timestamp2, test_periodic2, "trigger_action_lock")
+  }
+  
+  // check for foreign_job_updates with status "done"
+  msg = wait(t0, "foreign_job_updates")
+  check_foreign_job_updates(msg, keys[0], test_name, "", "done", test_mac, "trigger_action_wake", test_timestamp)
+  
+  // Send foreign_job_updates with following changes:
+  //   change <siserver> of the existing job
+  //   add a new job
+  old_job.SetText("siserver", listen_address)
+  old_job.SetText("id", "100")
+  new_job := hash("answer2(plainname(foo)progress(none)status(waiting)siserver(localhost)modified(1)macaddress(00:0c:29:50:a3:52)timestamp(20660906164734)id(66)headertag(trigger_action_wake)result(none))")
+  new_job.SetText("xmlmessage", base64.StdEncoding.EncodeToString([]byte(hash("xml(header(job_trigger_action_wake)source(GOSA)target(00:0c:29:50:a3:52)timestamp(20660906164734)macaddress(00:0c:29:50:a3:52))").String())))
+  x = hash("xml(header(foreign_job_updates)source(%v)target(%v))",listen_address,config.ServerSourceAddress)
+  x.AddClone(old_job)
+  x.AddClone(new_job)
+  send("", x)
+  
+  // Check the jobdb for the above changes
+  x = gosa("query_jobdb", hash("xml(where())"))
+  check(checkTags(x, "header,source,target,answer1,answer2,session_id?"),"")
+  check(x.Text("header"), "query_jobdb")
+  siFail(x.Text("source"), config.ServerSourceAddress)
+  check(x.Text("target"), "GOSA")
+  a1 := x.First("answer1")
+  a2 := x.First("answer2")
+  if a1 != nil && a2 != nil{
+    if a1.Text("plainname") == "foo" { // make sure a1 is the old and a2 is new job
+      temp := a1
+      a1 = a2
+      a2 = temp
+    }
+    check_answer(a1, test_name2, "none", "waiting", listen_address, test_mac2, test_timestamp2, test_periodic2, "trigger_action_lock")
+    check_answer(a2, "foo", "none", "waiting", listen_address, "00:0c:29:50:a3:52", "20660906164734", "", "trigger_action_wake")
+  }
+  
+  
 // TODO: Testfall für das Löschen eines <periodic> jobs via foreign_job_updates (z.B.
 //       den oben hinzugefügten Test-Job)
 //       (wegen des Problems dass ein done job mit periodic neu gestartet wird)
-
-// TODO: Testen, dass foreign_job_updates den <siserver> ändern kann.
+//       Komplementären Testfall für ein normales "done" eines periodic Jobs,
+//       bei dem der Job tatsächlich neu gestartet werden soll.
 
 // TODO: weiter oben bei test_mac und test_name Daten aus den LDAP-Testdaten
 // eintragen
@@ -283,18 +370,25 @@ func SystemTest(daemon string, is_gosasi bool) {
 }
 
 func check_multiple_requests_over_one_connection() {
-  open connection
-  for i = 1 to 3 do {
-    send gosa_query_jobdb
-    verify answer (no detailed check necessary because gosa_query_jobdb 
-              is verified separately, so just check if there is a non-empty answer1)
+  get_all_jobs := hash("xml(header(gosa_query_jobdb)source(GOSA)target(GOSA)where())")
+  
+  conn, err := net.Dial("tcp", config.ServerSourceAddress)
+  check(err, nil)
+  defer conn.Close()
+  
+  for i :=0 ; i < 3; i++ {
+    util.SendLn(conn, message.GosaEncrypt(get_all_jobs.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+    reply := message.GosaDecrypt(util.ReadLn(conn, config.Timeout), config.ModuleKey["[GOsaPackages]"])
+    x, err := xml.StringToHash(reply)
+    check(err, nil)
+    check(checkTags(x,"header,source,target,session_id?,answer1,answer2"), "")
   }
-  close connection  
 }
 
 
-// Check that go-susi forcibly closes the connection if it encounters an error
-func check_connection_drop_on_error() {
+// Check that go-susi forcibly closes the connection if it encounters an
+// unknown <header>.
+func check_connection_drop_on_error1() {
   x := hash("xml(header(gibberish)source(GOSA)target(GOSA))")
   
   conn, err := net.Dial("tcp", config.ServerSourceAddress)
@@ -317,10 +411,33 @@ func check_connection_drop_on_error() {
   _, err = conn.Read(make([]byte, 1)) // should terminate with error immediately
   check(err, io.EOF)
   check(time.Since(t0) < 1 * time.Second, true)
+}
+
+// Check that go-susi forcibly closes the connection if it encounters an 
+// undecryptable message.
+func check_connection_drop_on_error2() {
+  x := hash("xml(header(gibberish)source(GOSA)target(GOSA))")
   
-  Add another test that tests the behaviour for a decryption error by sending
-  a message encrypted with an unknown key. Verify that the reply is an unencrypted
-  error string and that the connection is properly closed
+  conn, err := net.Dial("tcp", config.ServerSourceAddress)
+  check(err, nil)
+  defer conn.Close()
+  
+  util.SendLn(conn, message.GosaEncrypt(x.String(), "wuseldusel"), config.Timeout)
+  reply := util.ReadLn(conn, config.Timeout)
+  x, err = xml.StringToHash(reply)
+  check(err, nil)
+  
+  check(len(x.Text("error_string")) > 0, true)
+  
+  // Server should drop connection immediately after sending error reply.
+  // Give it just a little bit of time.
+  time.Sleep(1 * time.Second)
+  
+  t0 := time.Now()
+  conn.SetDeadline(time.Now().Add(5*time.Second))
+  _, err = conn.Read(make([]byte, 1)) // should terminate with error immediately
+  check(err, io.EOF)
+  check(time.Since(t0) < 1 * time.Second, true)
 }
 
 // Checks that on startup go-susi sends new_server to the test server listed
@@ -369,7 +486,7 @@ func check_new_server_on_startup(test_mac, test_name, test_timestamp string) {
     trigger_first_test_job(test_mac, test_name, test_timestamp)
 
     msg = wait(t0, "foreign_job_updates")
-    check_foreign_job_updates(msg, "confirm_new_server_key", test_name, "7_days", test_mac, "trigger_action_wake", test_timestamp)
+    check_foreign_job_updates(msg, "confirm_new_server_key", test_name, "7_days", "waiting", test_mac, "trigger_action_wake", test_timestamp)
   }
 }
 
@@ -382,7 +499,7 @@ func trigger_first_test_job(test_mac, test_name, test_timestamp string) {
   check(x.Text("answer1"), "0")
 }
 
-func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_periodic, test_mac, action, test_timestamp string) {
+func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_periodic, test_status, test_mac, action, test_timestamp string) {
   _, file, line, _ := runtime.Caller(1)
   file = file[strings.LastIndex(file, "/")+1:]
   fmt.Printf("== check_foreign_job_updates sub-tests (%v:%v) ==\n", file, line)
@@ -393,34 +510,73 @@ func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_peri
   siFail(msg.XML.Text("source"), config.ServerSourceAddress)
   siFail(msg.XML.Text("target"), listen_address)
   job := msg.XML.First("answer1")
-  if job == nil { job = xml.NewHash("answer1") } // prevent panic in case of error
-  check(checkTags(job, "plainname,periodic?,progress,status,siserver,modified,targettag,macaddress,timestamp,id,headertag,result,xmlmessage"),"")
-  check(job.Text("plainname"), test_name)
-  siFail(job.Text("periodic"), test_periodic)
-  check(job.Text("progress"), "none")
-  check(job.Text("status"), "waiting")
-  siFail(job.Text("siserver"), config.ServerSourceAddress)
-  check(job.Text("targettag"), test_mac)
-  check(job.Text("macaddress"), test_mac)
-  check(job.Text("timestamp"), test_timestamp)
-  check(job.Text("headertag"), action)
-  check(job.Text("result"), "none")
-  
-  // The strange Join/Fields combo gets rid of the whitespace which gosa-si introduces into xmlmessage
-  xmlmessage_txt := strings.Join(strings.Fields(job.Text("xmlmessage")),"")
-  siFail(xmlmessage_txt, job.Text("xmlmessage"))
-  decoded, _ := base64.StdEncoding.DecodeString(strings.Join(strings.Fields(job.Text("xmlmessage")),""))
-  xmlmessage, err := xml.StringToHash(string(decoded))
-  check(err, nil)
-  check(checkTags(xmlmessage, "header,source,target,timestamp,periodic?,macaddress"), "")
-  check(xmlmessage.Text("header"), "job_" + action)
-  check(xmlmessage.Text("source"), "GOSA")
-  check(xmlmessage.Text("target"), test_mac)
-  check(xmlmessage.Text("timestamp"), test_timestamp)
-  check(xmlmessage.Text("periodic"), test_periodic)
-  check(xmlmessage.Text("macaddress"), test_mac)
+  check(job != nil, true)
+  if job != nil {
+    check(checkTags(job, "plainname,periodic?,progress,status,siserver,modified,targettag,macaddress,timestamp,id,headertag,result,xmlmessage"),"")
+    check(job.Text("plainname"), test_name)
+    peri := job.Text("periodic")
+    if peri == "none" { peri = "" }
+    siFail(peri, test_periodic)
+    check(job.Text("progress"), "none")
+    check(job.Text("status"), test_status)
+    siFail(job.Text("siserver"), config.ServerSourceAddress)
+    check(job.Text("targettag"), test_mac)
+    check(job.Text("macaddress"), test_mac)
+    check(job.Text("timestamp"), test_timestamp)
+    check(job.Text("headertag"), action)
+    check(job.Text("result"), "none")
+    
+    // The strange Join/Fields combo gets rid of the whitespace which gosa-si introduces into xmlmessage
+    xmlmessage_txt := strings.Join(strings.Fields(job.Text("xmlmessage")),"")
+    siFail(xmlmessage_txt, job.Text("xmlmessage"))
+    decoded, _ := base64.StdEncoding.DecodeString(strings.Join(strings.Fields(job.Text("xmlmessage")),""))
+    xmlmessage, err := xml.StringToHash(string(decoded))
+    check(err, nil)
+    check(checkTags(xmlmessage, "header,source,target,timestamp,periodic?,macaddress"), "")
+    check(xmlmessage.Text("header"), "job_" + action)
+    check(xmlmessage.Text("source"), "GOSA")
+    check(xmlmessage.Text("target"), test_mac)
+    check(xmlmessage.Text("timestamp"), test_timestamp)
+    if test_periodic != "" { // do not test if periodic="" because this may be due to a delete in which case the xmlmessage doesn't match
+      check(xmlmessage.Text("periodic"), test_periodic)
+    }
+    check(xmlmessage.Text("macaddress"), test_mac)
+  }
 }
 
+func check_answer(a *xml.Hash, name, progress, status, siserver, mac, timestamp, periodic, headertag string) {
+  _, file, line, _ := runtime.Caller(1)
+  file = file[strings.LastIndex(file, "/")+1:]
+  fmt.Printf("== check_answer sub-tests (%v:%v) ==\n", file, line)
+      
+  check(checkTags(a, "plainname,periodic?,progress,status,siserver,modified,targettag,macaddress,timestamp,id,headertag,result,xmlmessage"),"")
+  check(a.Text("plainname"), name)
+  check(a.Text("progress"), progress)
+  check(a.Text("status"), status)
+  siFail(a.Text("siserver"), siserver)
+  check(a.Text("targettag"), mac)
+  check(a.Text("macaddress"), mac)
+  check(a.Text("timestamp"), timestamp)
+  siFail(a.Text("periodic"), periodic)
+  check(a.Text("headertag"), headertag)
+  check(a.Text("result"), "none")
+  
+  // The strange Join/Fields combo gets rid of the whitespace which gosa-si introduces into xmlmessage
+  xmlmessage_txt := strings.Join(strings.Fields(a.Text("xmlmessage")),"")
+  siFail(xmlmessage_txt, a.Text("xmlmessage"))
+  decoded, _ := base64.StdEncoding.DecodeString(strings.Join(strings.Fields(a.Text("xmlmessage")),""))
+  xmlmessage, err := xml.StringToHash(string(decoded))
+  check(err, nil)
+  if err == nil {
+    check(checkTags(xmlmessage, "header,source,target,timestamp,periodic?,macaddress"), "")
+    check(xmlmessage.Text("header"), "job_" + headertag)
+    check(xmlmessage.Text("source"), "GOSA")
+    check(xmlmessage.Text("target"), mac)
+    check(xmlmessage.Text("timestamp"), timestamp)
+    check(xmlmessage.Text("periodic"), periodic)
+    check(xmlmessage.Text("macaddress"), mac)
+  }
+}
 
 // creates a temporary config file and returns the path to it as well as the
 // path to the containing temporary directory.
