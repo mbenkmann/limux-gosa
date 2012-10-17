@@ -328,10 +328,10 @@ func SystemTest(daemon string, is_gosasi bool) {
   // Send foreign_job_updates with following changes:
   //   change <siserver> of the existing job
   //   add a new job
-  old_job.SetText("siserver", listen_address)
-  old_job.SetText("id", "100")
-  new_job := hash("answer2(plainname(foo)progress(none)status(waiting)siserver(localhost)modified(1)macaddress(00:0c:29:50:a3:52)timestamp(20660906164734)id(66)headertag(trigger_action_wake)result(none))")
-  new_job.SetText("xmlmessage", base64.StdEncoding.EncodeToString([]byte(hash("xml(header(job_trigger_action_wake)source(GOSA)target(00:0c:29:50:a3:52)timestamp(20660906164734)macaddress(00:0c:29:50:a3:52))").String())))
+  old_job.FirstOrAdd("siserver").SetText(listen_address)
+  old_job.FirstOrAdd("id").SetText("100")
+  new_job := hash("answer2(plainname(foo)progress(none)status(waiting)siserver(localhost)modified(1)macaddress(00:0c:29:50:a3:52)targettag(00:0c:29:50:a3:52)timestamp(20660906164734)id(66)headertag(trigger_action_wake)result(none))")
+  new_job.FirstOrAdd("xmlmessage").SetText(base64.StdEncoding.EncodeToString([]byte(hash("xml(header(job_trigger_action_wake)source(GOSA)target(00:0c:29:50:a3:52)timestamp(20660906164734)macaddress(00:0c:29:50:a3:52))").String())))
   x = hash("xml(header(foreign_job_updates)source(%v)target(%v))",listen_address,config.ServerSourceAddress)
   x.AddClone(old_job)
   x.AddClone(new_job)
