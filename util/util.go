@@ -27,6 +27,7 @@ import (
          "time"
          "bytes"
          "crypto/md5"
+         "runtime/debug"
        )
 
 // Returns the md5sum of its argument as a string of hex digits.
@@ -40,6 +41,19 @@ func Md5sum(s string) string {
 // ATTENTION! The wait time between tries increases exponetially, so don't
 // blindly increase this number.
 const write_all_max_tries = 8
+
+// Calls g wrapped in a panic handler that logs the panic and recovers from it.
+// Example:
+//   go util.WithPanicHandler(foobar)
+//   go util.WithPanicHandler(func(){ Send_foreign_job_updates(server, jobs) })
+func WithPanicHandler(g func()) {
+  defer func() {
+    if x := recover(); x != nil {
+      Log(0, "PANIC! %v\n%v", x, string(debug.Stack()))
+    }
+  }()
+  g()
+}
 
 // Writes data to w, with automatic handling of short writes.
 // A short write error will only be returned if multiple attempts

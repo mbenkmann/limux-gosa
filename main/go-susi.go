@@ -103,12 +103,12 @@ func main() {
       case sig = <-signals : 
                     util.Log(1, "Received signal \"%v\"", sig)
                     if sig == syscall.SIGUSR2 { 
-                      go message.Recreate_packages_db()
+                      go util.WithPanicHandler(message.Recreate_packages_db)
                     }
                     
       case conn= <-tcp_connections :
                     util.Log(1, "INFO! Incoming TCP request from %v", conn.RemoteAddr())
-                    go handle_request(conn)
+                    go util.WithPanicHandler(func(){handle_request(conn)})
     }
   }
 }

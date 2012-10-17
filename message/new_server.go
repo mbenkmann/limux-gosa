@@ -29,7 +29,7 @@ import (
 // Sends a new_server message to all known peer servers.
 func Broadcast_new_server() {
   for _, server := range db.ServerAddresses() {
-    go Send_new_server("new_server", server)
+    go util.WithPanicHandler(func(){ Send_new_server("new_server", server) })
   }
 }
 
@@ -68,10 +68,10 @@ func Send_new_server(header string, target string) {
 func new_server(xmlmsg *xml.Hash) string {
   db.ServerUpdate(xmlmsg)
   server := xmlmsg.Text("source")
-  go func() {
+  go util.WithPanicHandler(func() {
    Send_new_server("confirm_new_server", server)
    Send_foreign_job_updates(server, db.Jobs())
-  }()
+  })
   return ""
 }
 

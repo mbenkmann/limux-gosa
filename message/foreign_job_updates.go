@@ -67,7 +67,7 @@ func Send_foreign_job_updates(target string, jobs *xml.Hash) {
 func Broadcast_foreign_job_updates(jobs *xml.Hash) {
   jobs = jobs.Clone() // because we work asynchronously
   for _, server := range db.ServerAddresses() {
-    go Send_foreign_job_updates(server, jobs)
+    go util.WithPanicHandler(func(){ Send_foreign_job_updates(server, jobs) })
   }
 }
 
@@ -89,14 +89,14 @@ func foreign_job_updates(xmlmsg *xml.Hash) string {
         job.First("siserver").SetText(source)
       }
       
-      // remove all whitespace from xmlmessage
-      // This works around gosa-si's behaviour of introducing whitespace
-      // which breaks base64 decoding.
       xmlmess := job.First("xmlmessage")
       if xmlmess == nil {
         util.Log(0, "ERROR! <xmlmessage> missing from job descriptor")
       } else 
       {
+        // remove all whitespace from xmlmessage
+        // This works around gosa-si's behaviour of introducing whitespace
+        // which breaks base64 decoding.
         xmlmess.SetText(strings.Join(strings.Fields(xmlmess.Text()),""))
         db.JobUpdate(job)
       }
