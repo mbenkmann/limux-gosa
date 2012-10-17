@@ -93,8 +93,13 @@ func foreign_job_updates(xmlmsg *xml.Hash) string {
       // This works around gosa-si's behaviour of introducing whitespace
       // which breaks base64 decoding.
       xmlmess := job.First("xmlmessage")
-      xmlmess.SetText(strings.Join(strings.Fields(xmlmess.Text()),""))
-      db.JobUpdate(job)
+      if xmlmess == nil {
+        util.Log(0, "ERROR! <xmlmessage> missing from job descriptor")
+      } else 
+      {
+        xmlmess.SetText(strings.Join(strings.Fields(xmlmess.Text()),""))
+        db.JobUpdate(job)
+      }
     }
   }
   
