@@ -315,6 +315,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   siFail(x.Text("source"), config.ServerSourceAddress)
   check(x.Text("target"), "GOSA")
   a = x.First("answer1")
+  if a == nil { a = xml.NewHash("answer1") }
   old_job := a.Clone()
   check(a != nil, true)
   if a != nil {
@@ -374,6 +375,7 @@ func check_multiple_requests_over_one_connection() {
   
   conn, err := net.Dial("tcp", config.ServerSourceAddress)
   check(err, nil)
+  if err != nil { return }
   defer conn.Close()
   
   for i :=0 ; i < 3; i++ {
@@ -393,6 +395,7 @@ func check_connection_drop_on_error1() {
   
   conn, err := net.Dial("tcp", config.ServerSourceAddress)
   check(err, nil)
+  if err != nil { return }
   defer conn.Close()
   
   util.SendLn(conn, message.GosaEncrypt(x.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
@@ -420,6 +423,7 @@ func check_connection_drop_on_error2() {
   
   conn, err := net.Dial("tcp", config.ServerSourceAddress)
   check(err, nil)
+  if err != nil { return }
   defer conn.Close()
   
   util.SendLn(conn, message.GosaEncrypt(x.String(), "wuseldusel"), config.Timeout)
