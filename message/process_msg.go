@@ -54,17 +54,35 @@ func ErrorReply(msg interface{}) string {
 //  disconnect == true if connection should be terminated due to error
 func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string, disconnect bool) {
   util.Log(2, "DEBUG! Processing message: %v", msg)
-  for _, key := range config.ModuleKeys {
-    if decrypted := GosaDecrypt(msg, key); decrypted != "" {
-      util.Log(2, "DEBUG! Decrypted message from %v with key %v: %v", tcpAddr, key, decrypted)
-      xml, err := xml.StringToHash(decrypted)
-      if err != nil {
-        util.Log(0,"ERROR! %v", err)
-        return ErrorReply(err), true
-      } 
-      
-      // At this point we have successfully decrypted and parsed the message
-      return ProcessXMLMessage(msg, xml, tcpAddr, key)
+  
+  for attempt := 0 ; attempt < 3; attempt++ {
+    var keys_to_try []string
+    
+    switch attempt {
+      case 0: keys_to_try = config.ModuleKeys
+      case 1: host, _, err := net.SplitHostPort(tcpAddr.String())
+              if err != nil {
+                util.Log(0, "ERROR! SplitHostPort: %v")
+                keys_to_try = []string{}
+              } else {
+                keys_to_try = db.ServerKeys(host)
+              }
+      case 2: util.Log(1, "INFO! Last resort attempt to decrypt message from %v with all server keys", tcpAddr)
+              keys_to_try = db.ServerKeysForAllServers()
+    }
+    
+    for _, key := range keys_to_try {
+      if decrypted := GosaDecrypt(msg, key); decrypted != "" {
+        util.Log(2, "DEBUG! Decrypted message from %v with key %v: %v", tcpAddr, key, decrypted)
+        xml, err := xml.StringToHash(decrypted)
+        if err != nil {
+          util.Log(0,"ERROR! %v", err)
+          return ErrorReply(err), true
+        } 
+        
+        // At this point we have successfully decrypted and parsed the message
+        return ProcessXMLMessage(msg, xml, tcpAddr, key)
+      }
     }
   }
   
