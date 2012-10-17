@@ -30,7 +30,7 @@
                     <td>
                         <div style="height:10px;"> </div>
 <style type="text/css">
-#wrapper-base .treeList { max-width:600px; }
+#wrapper-base .treeList { max-width:700px; word-wrap:break-word; }
 </style>
 <div id="wrapper-base">
                         {render acl=$baseACL}
