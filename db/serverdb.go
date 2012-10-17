@@ -26,6 +26,7 @@ import (
          "fmt"
          "time"
          "bytes"
+         "regexp"
          "strings"
          
          "../xml"
@@ -179,15 +180,28 @@ func ServerUpdate(server *xml.Hash) {
 }
 
 // Returns all keys (0-length slice if none) known for the server identified by
-// the given address (ip:port).
+// the given address. If the address is an IP without a port, the result may
+// include keys from multiple servers running on the same machine. If the address
+// includes a port, only keys from that specific server will be returned.
 func ServerKeys(addr string) []string {
   result := make([]string, 0, 2)
-  for server := serverDB.Query(xml.FilterSimple("source", addr)).First("xml");
+  var filter xml.HashFilter
+  if strings.Index(addr, ":") >= 0 {
+    filter = xml.FilterSimple("source", addr)
+  } else {
+    filter = xml.FilterRegexp("source", "^"+regexp.QuoteMeta(addr+":")+"[0-9]+$")
+  }
+  for server := serverDB.Query(filter).First("xml");
       server != nil;
       server = server.Next() {
     result = append(result, server.Get("key")...)
   }
   return result
+}
+
+// Returns all server keys for all servers in the database.
+func ServerKeysForAllServers() []string {
+  return serverDB.ColumnValues("key")
 }
 
 // Returns a copy of the complete database in the following format:
