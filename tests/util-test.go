@@ -23,12 +23,19 @@ package tests
 import (
          "io"
          "fmt"
+         "log"
+         "net"
+         "time"
+         "bytes"
+         "strings"
          "math/rand"
+         "io/ioutil"
          
          "../util"
        )
 
 var util_test_rng = rand.New(rand.NewSource(0x0dd))
+var foobar = "foo"
 
 // tick is incremented on every Write(). Every crappyConnection will only
 // write more than 0 bytes if tick % 4 == 0.
@@ -125,8 +132,6 @@ func (self *brokenConnection) Write(data []byte) (n int, err error) {
   return n, io.ErrShortWrite
 }
 
-
-
 // Unit tests for the package go-susi/util.
 func Util_test() {
   fmt.Printf("\n==== util ===\n\n")
@@ -165,5 +170,90 @@ func Util_test() {
   check(string(*broken), string(buf[0:16]))
   check(n, 16)
   check(err, io.ErrClosedPipe)
+  
+  panicker := func() {
+    foobar = "bar"
+    panic("foo")
+  }
+  
+  var buffy bytes.Buffer
+  util.Logger = log.New(&buffy, "", 0)
+  
+  util.WithPanicHandler(panicker)
+  check(foobar, "bar")
+  check(len(buffy.String()) > 10, true)
+  
+  listener, err := net.Listen("tcp", "127.0.0.1:39390")
+  if err != nil { panic(err) }  
+  
+  go func() {
+    _, err := listener.Accept()
+    if err != nil { panic(err) }
+    time.Sleep(10*time.Second)
+  }()
+  long := make([]byte, 10000000)
+  longstr := string(long)
+  buffy.Reset()
+  t0 := time.Now()
+  util.SendLnTo("127.0.0.1:39390", longstr, 5 * time.Second)
+  duration := time.Since(t0)
+  check(duration > 4 * time.Second && duration < 6 * time.Second, true)
+  check(strings.Contains(buffy.String(), "ERROR"), true)
+  
+  go func() {
+    conn, err := listener.Accept()
+    if err != nil { panic(err) }
+    ioutil.ReadAll(conn)
+  }()
+  long = make([]byte, 10000000)
+  longstr = string(long)
+  buffy.Reset()
+  t0 = time.Now()
+  util.SendLnTo("127.0.0.1:39390", longstr, 5 * time.Second)
+  duration = time.Since(t0)
+  check(duration < 2 * time.Second, true)
+  check(buffy.String(), "")
+  
+  go func() {
+    _, err := net.Dial("tcp", "127.0.0.1:39390")
+    if err != nil { panic(err) }
+  }()
+  conn, err := listener.Accept()
+  if err != nil { panic(err) }
+  buffy.Reset()
+  t0 = time.Now()
+  util.ReadLn(conn, 5 * time.Second)
+  duration = time.Since(t0)
+  check(duration > 4 * time.Second && duration < 6 * time.Second, true)
+  check(strings.Contains(buffy.String(), "ERROR"), true)
+  
+  go func() {
+    conn, err := net.Dial("tcp", "127.0.0.1:39390")
+    if err != nil { panic(err) }
+    conn.Write([]byte{1,2,3,4})
+  }()
+  conn, err = listener.Accept()
+  if err != nil { panic(err) }
+  buffy.Reset()
+  t0 = time.Now()
+  util.ReadLn(conn, 5 * time.Second)
+  duration = time.Since(t0)
+  check(duration > 4 * time.Second && duration < 6 * time.Second, true)
+  check(strings.Contains(buffy.String(), "ERROR"), true)
+  
+  go func() {
+    conn, err := net.Dial("tcp", "127.0.0.1:39390")
+    if err != nil { panic(err) }
+    conn.Write([]byte("foo\r\n"))
+  }()
+  conn, err = listener.Accept()
+  if err != nil { panic(err) }
+  buffy.Reset()
+  t0 = time.Now()
+  st := util.ReadLn(conn, 0 * time.Second)
+  duration = time.Since(t0)
+  check(duration < 2 * time.Second, true)
+  check(buffy.String(), "")
+  check(st, "foo")
 }
 
