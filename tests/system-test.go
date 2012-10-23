@@ -80,6 +80,10 @@ func wait(t time.Time, header string) *queueElement {
 // new_server/confirm_new_server
 // If x does not have <target> and/or <source> elements, they will be added
 // with the values config.ServerSourceAddress and listen_address respectively.
+//
+// ATTENTION! This method does not wait for a reply from the server.
+// Therefore you will usually need to wait a little for the server to have
+// processed the message before checking for effects.
 func send(keyid string, x *xml.Hash) {
   var key string
   if keyid == "" { key = keys[0] } else 
@@ -338,6 +342,9 @@ func SystemTest(daemon string, is_gosasi bool) {
   x.AddClone(new_job)
   send("", x)
   
+  // Wait for message to be processed, because send() doesn't wait.
+  time.Sleep(reply_timeout)
+  
   // Check the jobdb for the above changes
   x = gosa("query_jobdb", hash("xml(where())"))
   check(checkTags(x, "header,source,target,answer1,answer2,session_id?"),"")
@@ -352,10 +359,39 @@ func SystemTest(daemon string, is_gosasi bool) {
       a1 = a2
       a2 = temp
     }
+    
+      //NOTE: After the rewrite of the job handling, this test will fail because
+      //the siserver can no longer be changed via f_j_u. If not done yet, document
+      //this in the manual and modify the test.
     check_answer(a1, test_name2, "none", "waiting", listen_address, test_mac2, test_timestamp2, test_periodic2, "trigger_action_lock")
+    
     check_answer(a2, "foo", "none", "waiting", listen_address, "00:0c:29:50:a3:52", "20660906164734", "", "trigger_action_wake")
   }
+
+  // clear jobdb  
+  x = gosa("delete_jobdb_entry", hash("xml(where())"))
   
+  // now add 2 jobs that are the same in all respects except the timestamp
+  x = gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(%v))",test_mac2, test_timestamp, test_mac2, test_periodic2))
+  check(x.Text("answer1"), "0")
+  x = gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(%v))",test_mac2, test_timestamp2, test_mac2, test_periodic2))
+  check(x.Text("answer1"), "0")
+  
+  x = gosa("query_jobdb", hash("xml(where())"))
+  siFail(checkTags(x, "header,source,target,answer1,answer2,session_id?"),"")
+  a1 = x.First("answer1")
+  a2 = x.First("answer2")
+  if a1 != nil && a2 != nil{
+    if a1.Text("timestamp") == test_timestamp2 { // make sure a1 has test_timestamp
+      temp := a1
+      a1 = a2
+      a2 = temp
+    }
+    
+    check_answer(a1, test_name2, "none", "waiting", config.ServerSourceAddress, test_mac2, test_timestamp, test_periodic2, "trigger_action_lock")
+    check_answer(a2, test_name2, "none", "waiting", config.ServerSourceAddress, test_mac2, test_timestamp2, test_periodic2, "trigger_action_lock")
+  }
+
   
 // TODO: Testfall für das Löschen eines <periodic> jobs via foreign_job_updates (z.B.
 //       den oben hinzugefügten Test-Job)
@@ -516,7 +552,7 @@ func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_peri
   job := msg.XML.First("answer1")
   check(job != nil, true)
   if job != nil {
-    check(checkTags(job, "plainname,periodic?,progress,status,siserver,modified,targettag,macaddress,timestamp,id,headertag,result,xmlmessage"),"")
+    check(checkTags(job, "plainname,periodic?,progress,status,siserver,modified,targettag,macaddress,timestamp,id,original_id?,headertag,result,xmlmessage"),"")
     check(job.Text("plainname"), test_name)
     peri := job.Text("periodic")
     if peri == "none" { peri = "" }
@@ -553,7 +589,7 @@ func check_answer(a *xml.Hash, name, progress, status, siserver, mac, timestamp,
   file = file[strings.LastIndex(file, "/")+1:]
   fmt.Printf("== check_answer sub-tests (%v:%v) ==\n", file, line)
       
-  check(checkTags(a, "plainname,periodic?,progress,status,siserver,modified,targettag,macaddress,timestamp,id,headertag,result,xmlmessage"),"")
+  check(checkTags(a, "plainname,periodic?,progress,status,siserver,modified,targettag,macaddress,timestamp,id,original_id?,headertag,result,xmlmessage"),"")
   check(a.Text("plainname"), name)
   check(a.Text("progress"), progress)
   check(a.Text("status"), status)

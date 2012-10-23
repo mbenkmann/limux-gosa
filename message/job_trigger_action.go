@@ -46,7 +46,7 @@ func job_trigger_action(xmlmsg *xml.Hash) string {
   job.Add("targettag", xmlmsg.Text("target"))
   macaddress := xmlmsg.Text("macaddress")
   if macaddress == "" { macaddress = xmlmsg.Text("target") }
-  macaddress = strings.ToLower(macaddress)
+  macaddress = strings.Replace(strings.ToLower(macaddress), "-", ":", -1)
   if !macAddressRegexp.MatchString(macaddress) {
     return ErrorReply("job_trigger_action* with invalid or missing MAC address")
   }
@@ -59,11 +59,11 @@ func job_trigger_action(xmlmsg *xml.Hash) string {
   for _, periodic := range xmlmsg.Get("periodic") {
     job.FirstOrAdd("periodic").SetText(periodic) // last <periodic> wins if there are multiple
   }
-  job.Add("headertag", xmlmsg.Text("header")[len("job_"):])
+  job.Add("headertag", strings.ToLower(xmlmsg.Text("header")[len("job_"):]))
   job.Add("result", "none")
   job.Add("xmlmessage", base64.StdEncoding.EncodeToString([]byte(xmlmsg.String())))
   
-  db.JobUpdate(job)
+  db.JobAddLocal(job)
   
   jobdb_xml := xml.NewHash("jobdb")
   jobdb_xml.AddWithOwnership(job)

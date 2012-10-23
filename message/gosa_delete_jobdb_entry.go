@@ -23,6 +23,7 @@ import (
          
          "../db"
          "../xml"
+         "../util"
          "../config"
        )
 
@@ -31,16 +32,15 @@ import (
 // Returns:
 //  unencrypted reply
 func gosa_delete_jobdb_entry(xmlmsg *xml.Hash) string {
-  jobdb_xml := db.JobsRemove(xmlmsg.First("where"))
-  
-  for _, tag := range jobdb_xml.Subtags() {
-    for job := jobdb_xml.First(tag); job != nil; job = job.Next() {
-      job.FirstOrAdd("status").SetText("done")
-      job.FirstOrAdd("periodic").SetText("none")
-    }
+  where := xmlmsg.First("where")
+  if where == nil { where = xml.NewHash("where") }
+  filter, err := xml.WhereFilter(where)
+  if err != nil {
+    util.Log(0, "ERROR! gosa_delete_jobdb_entry: Error parsing <where>: %v", err)
+    return ErrorReply(err)
   }
   
-  Broadcast_foreign_job_updates(jobdb_xml)
+  db.JobsRemove(filter)
   
   answer := xml.NewHash("xml", "header", "answer")
   answer.Add("source", config.ServerSourceAddress)

@@ -45,6 +45,7 @@ func main() {
   {
     tests.Util_test()
     tests.Xml_test()
+    tests.DB_test()
   }
   
   // TODO: Test go-susi
