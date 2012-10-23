@@ -55,6 +55,19 @@ func WithPanicHandler(g func()) {
   g()
 }
 
+// Returns a new channel that will return start as first item and then
+// always the next number.
+func Counter(start uint64) chan uint64 {
+  c := make(chan uint64)
+  go func() {
+    for {
+      c<-start
+      start++
+    }
+  }()
+  return c
+}
+
 // Writes data to w, with automatic handling of short writes.
 // A short write error will only be returned if multiple attempts
 // failed in a row.

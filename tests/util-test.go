@@ -25,6 +25,7 @@ import (
          "fmt"
          "log"
          "net"
+         "sort"
          "time"
          "bytes"
          "strings"
@@ -131,6 +132,12 @@ func (self *brokenConnection) Write(data []byte) (n int, err error) {
   
   return n, io.ErrShortWrite
 }
+
+type UintArray []uint64
+
+func (a *UintArray) Less(i, j int) bool { return (*a)[i] < (*a)[j] }
+func (a *UintArray) Len() int { return len(*a) }
+func (a *UintArray) Swap(i, j int) { (*a)[i], (*a)[j] = (*a)[j], (*a)[i] }
 
 // Unit tests for the package go-susi/util.
 func Util_test() {
@@ -255,5 +262,44 @@ func Util_test() {
   check(duration < 2 * time.Second, true)
   check(buffy.String(), "")
   check(st, "foo")
+  
+  counter := util.Counter(13)
+  var b1 UintArray = make([]uint64, 100)
+  var b2 UintArray = make([]uint64, 100)
+  done := make(chan bool)
+  fill := func(b UintArray) {
+    for i := 0; i < 100; i++ { 
+      b[i] = <-counter 
+      time.Sleep(1*time.Millisecond)
+    }
+    done <- true
+  }
+  go fill(b1)
+  go fill(b2)
+  <-done
+  <-done
+  check(sort.IsSorted(&b1), true)
+  check(sort.IsSorted(&b2), true)
+  var b3 UintArray = make([]uint64, 200)
+  i := 0
+  j := 0
+  k := 0
+  for ; i < 100 || j < 100 ; {
+    if i == 100 { b3[k] = b2[j]; j++; k++; continue }
+    if j == 100 { b3[k] = b1[i]; i++; k++; continue }
+    if b1[i] == b2[j] { check(b1[i] != b2[j], true); break }
+    if b1[i] < b2[j] { b3[k] = b1[i]; i++ } else { b3[k] = b2[j]; j++ }
+    k++
+  }
+  
+  one_streak := true
+  b5 := make([]uint64, 200)
+  for i:=0; i<200; i++ {
+    if i < 100 && b1[i] != uint64(13+i) && b2[i] != uint64(13+i) { one_streak = false }
+    b5[i] = uint64(13+i)
+  }
+  
+  check(b3, b5)
+  check(one_streak, false) // Check whether goroutines were actually executed concurrently rather than in sequence
 }
 
