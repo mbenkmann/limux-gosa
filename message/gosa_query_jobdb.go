@@ -23,6 +23,7 @@ import (
          
          "../db"
          "../xml"
+         "../util"
          "../config"
        )
 
@@ -31,7 +32,14 @@ import (
 // Returns:
 //  unencrypted reply
 func gosa_query_jobdb(xmlmsg *xml.Hash) string {
-  jobdb_xml := db.JobsQuery(xmlmsg.First("where"))
+  where := xmlmsg.First("where")
+  if where == nil { where = xml.NewHash("where") }
+  filter, err := xml.WhereFilter(where)
+  if err != nil {
+    util.Log(0, "ERROR! gosa_query_jobdb: Error parsing <where>: %v", err)
+    filter = xml.FilterNone
+  }
+  jobdb_xml := db.JobsQuery(filter)
   MakeAnswerList(jobdb_xml)
   jobdb_xml.Add("header", "query_jobdb")
   jobdb_xml.Add("source", config.ServerSourceAddress)

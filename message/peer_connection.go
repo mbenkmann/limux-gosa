@@ -95,6 +95,27 @@ func (conn *PeerConnection) handleConnection() {
   Siehe auch weiter unten: GetAllLocalJobsFromPeer()
   
   */
+
+  /* sollte eingehende Daten auf der Verbindung auslesen, um zu verhindern,
+  dass ein einzelnes warum auch immer gesendetes Datum (z.B. eine Antwort auf
+  ein Tell() obwohl Tell() keine Antwort erwartet, die ganze Synchronisation
+  zerstört. Vor dem absetzen eines Ask() sollten alle pending Daten ausgelesen
+  werden. Außerdem muss ich sicherstellen, dass ein Ask() auf das der Peer keine
+  Antwort liefert nicht umgekehrt die Synchronisation durcheinander bringt.
+  (TESTFÄLLE FÜR DIESE PROBLEME!)
+  In dem Fall komme ich um einen reset wohl nicht herum. Vielleicht sollte ich
+  ganz generell einen reset machen, wenn nicht in einer bestimmten Zeit eine
+  Antwort kommt oder wenn zwischendurch unerwartete Daten kommen.
+  Ich muss auf jeden Fall aufpassen, dass kein zweiter Ask() abgesetzt wird,
+  während einer noch pending ist. Eigentlich auch kein Tell().
+  Ich sollte vielleicht pro PeerConnection eine weitere goroutine starten, die
+  permanent ausliest, an \n zerteilt und die Zeilen in einen zweiten Channel schiebt.
+  Dann kann handleConnection() selecten auf dem request channel und dem Daten channel
+  und bei unerwarteten Daten auf dem Datenchannel sowie timeouts nach Ask() einen
+  reset einleitet.
+  Die Ausleser-goroutine sollte mit kurzem Timeout arbeiten um stalls (keine Daten
+  kommen mehr obwohl \n noch nicht gesehen wurde) zu erkennen.
+  */
   
   /* if overflow, first make sure there is an overflow (because maybe
   we removed a message after the overflow was set) by pushing dummy requests
