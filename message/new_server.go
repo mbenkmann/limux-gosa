@@ -56,9 +56,8 @@ func Send_new_server(header string, target string) {
   
   serverpackageskey := config.ModuleKey["[ServerPackages]"]
 
-  encrypted := GosaEncrypt(msg.String(), serverpackageskey)
-  util.Log(2, "DEBUG! Sending %v to %v encrypted with key %v: %v", header, target, serverpackageskey, encrypted)
-  util.SendLnTo(target, encrypted, config.Timeout)
+  util.Log(2, "DEBUG! Sending %v to %v encrypted with key %v", header, target, serverpackageskey)
+  Peer(target).Tell(msg.String(), serverpackageskey)
 }
 
 

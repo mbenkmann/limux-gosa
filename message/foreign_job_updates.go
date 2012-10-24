@@ -64,7 +64,12 @@ func Send_foreign_job_updates(target string, jobs *xml.Hash) {
   jobs.Add("target", target)
   msg := jobs.String()
   util.Log(2, "DEBUG! Sending foreign_job_updates to %v: %v", target, msg)
-  util.SendLnTo(target, EncryptForServer(target, msg), config.Timeout)
+  keys := db.ServerKeys(target)
+  if len(keys) == 0 {
+    util.Log(0, "ERROR! Send_foreign_job_updates: No key known for %v", target)
+  } else {
+    Peer(target).Tell(msg, keys[0])
+  }
 }
 
 // Asynchronously calls Send_foreign_job_updates(target, jobs) for all

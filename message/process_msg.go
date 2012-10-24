@@ -161,18 +161,6 @@ func paddedMessage(msg string) []byte {
   return buf
 }
 
-// Encrypts msg with the key for server (a string like "1.2.3.4:20081")
-// and returns the encrypted message. Returns an empty string if no key is known.
-func EncryptForServer(server string, msg string) string {
-  keys := db.ServerKeys(server)
-  if len(keys) == 0 {
-    util.Log(0, "ERROR! EncryptForServer: No key known for %v", server)
-    return ""
-  }
-  
-  return GosaEncrypt(msg, keys[0])
-}
-
 // Returns the base64 representation of the message after encryption with
 // the given key. The key is a word as used in gosa-si.conf whose md5sum will
 // be used as the actual AES key.
