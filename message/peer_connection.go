@@ -6,6 +6,7 @@ import (
          "sync"
          "time"
          
+         "../db"
          "../util"
          "../config"
        )
@@ -37,8 +38,17 @@ func (conn *PeerConnection) IsGoSusi() bool {
 }
 
 // Encrypts msg with key and sends it to the peer without waiting for a reply.
+// If key == "" the first key from db.ServerKeys(peer) is used.
 func (conn *PeerConnection) Tell(msg, key string) {
   if conn.err != nil { return }
+  if key == "" {
+   keys := db.ServerKeys(conn.addr)
+   if len(keys) == 0 {
+     util.Log(0, "ERROR! PeerConnection.Tell: No key known for peer %v", conn.addr)
+     return
+   }
+   key = keys[0]
+  }
   // if the request channel overflows, conn.overflow is set to true
   go util.WithPanicHandler(func(){util.SendLnTo(conn.addr, GosaEncrypt(msg, key), config.Timeout)})
 }
@@ -269,4 +279,27 @@ func Peer(addr string) *PeerConnection {
   }*/
   return conn
 }
+
+// Infinite loop to forward db.ForeignJobUpdates (see jobdb.go) 
+// to the respective targets.
+func init() {
+  go func() {
+    for fju := range db.ForeignJobUpdates {
+      target := fju.Text("target")
+      if target != "" {
+        Peer(target).Tell(fju.String(), "")
+      } else
+      { // send to ALL peers
+        connections_mutex.Lock()
+        for addr, peer := range connections {
+          fju.First("target").SetText(addr)
+          peer.Tell(fju.String(), "")
+        }
+        connections_mutex.Unlock()
+      }
+    }
+  }()
+}
+
+
 

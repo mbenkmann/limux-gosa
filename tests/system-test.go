@@ -544,7 +544,7 @@ func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_peri
   file = file[strings.LastIndex(file, "/")+1:]
   fmt.Printf("== check_foreign_job_updates sub-tests (%v:%v) ==\n", file, line)
       
-  check(checkTags(msg.XML, "header,source,target,answer1"), "")
+  check(checkTags(msg.XML, "header,source,target,answer1,sync?"), "")
   check(msg.Key, test_key)
   check(msg.XML.Text("header"), "foreign_job_updates")
   siFail(msg.XML.Text("source"), config.ServerSourceAddress)

@@ -65,6 +65,8 @@ var jobDB *xml.DB
 // The large size of the buffer is to make sure we don't delay even if a couple
 // 1000 machines are sending us progess updates at the same time (which we need to
 // forward to our peers).
+// The code that reads from this channel and forwards the messages to the
+// appropriate peers is in peer_connection.go:init()
 var ForeignJobUpdates = make(chan *xml.Hash, 16384)
 
 // A packaged request to perform some action on the jobDB.
@@ -204,6 +206,7 @@ func JobAddLocal(job *xml.Hash) {
     fju.Add("source", config.ServerSourceAddress)
     fju.Add("target") // empty target => all peers
     fju.Add("sync", "ordered")
+    request.Job.RemoveFirst("original_id")
     fju.AddWithOwnership(request.Job)
     ForeignJobUpdates <- fju
   }
@@ -220,16 +223,26 @@ func JobAddLocal(job *xml.Hash) {
 // NOTE: The filter must include the siserver==config.ServerSourceAddress check,
 // so that it only affects local jobs.
 func JobsRemoveLocal(filter xml.HashFilter) {
-  jobdb_xml := jobDB.Remove(filter)
-  
-  for _, tag := range jobdb_xml.Subtags() {
-    for job := jobdb_xml.First(tag); job != nil; job = job.Next() {
-      job.FirstOrAdd("status").SetText("done")
-      job.FirstOrAdd("periodic").SetText("none")
+  deljob := func(request *jobDBRequest) {
+    jobdb_xml := jobDB.Remove(request.Filter)
+    fju := xml.NewHash("xml","header","foreign_job_updates")
+    var count uint64 = 1
+    for _, tag := range jobdb_xml.Subtags() {
+      for job := jobdb_xml.RemoveFirst(tag); job != nil; job = jobdb_xml.RemoveFirst(tag) {
+        job.FirstOrAdd("status").SetText("done")
+        job.FirstOrAdd("periodic").SetText("none")
+        job.RemoveFirst("original_id")
+        job.Rename("answer"+strconv.FormatUint(count, 10))
+        count++
+        fju.AddWithOwnership(job)
+      }
     }
+    fju.Add("source", config.ServerSourceAddress)
+    fju.Add("target") // empty target => all peers
+    fju.Add("sync", "ordered")
+    ForeignJobUpdates <- fju
   }
-  
-  //message.Broadcast_foreign_job_updates(jobdb_xml)
+  jobDBRequests <- &jobDBRequest{ deljob, filter, nil, nil }
 }
 
 // Fields that can be updated via JobsModifyLocal() and JobsAddOrModifyForeign()
