@@ -269,7 +269,7 @@ func (self *Hash) AddClone(xml *Hash) *Hash {
 }
 
 // Takes the xml object (not a copy) and integrates it into this Hash
-// as a child.
+// as a child (at the end of the list of children with the same element name).
 // ATTENTION! xml must not be child of another Hash (which implies that it
 // must not have any siblings).
 func (self* Hash) AddWithOwnership(xml *Hash) {
