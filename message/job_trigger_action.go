@@ -65,11 +65,6 @@ func job_trigger_action(xmlmsg *xml.Hash) string {
   
   db.JobAddLocal(job)
   
-  jobdb_xml := xml.NewHash("jobdb")
-  jobdb_xml.AddWithOwnership(job)
-  
-  Broadcast_foreign_job_updates(jobdb_xml)
-  
   answer := xml.NewHash("xml", "header", "answer")
   answer.Add("source", config.ServerSourceAddress)
   answer.Add("target", xmlmsg.Text("source"))

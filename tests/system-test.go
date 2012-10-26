@@ -549,6 +549,7 @@ func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_peri
   check(msg.XML.Text("header"), "foreign_job_updates")
   siFail(msg.XML.Text("source"), config.ServerSourceAddress)
   siFail(msg.XML.Text("target"), listen_address)
+  siFail(msg.XML.Text("sync") == "ordered" || msg.XML.Text("sync") == "all", true)
   job := msg.XML.First("answer1")
   check(job != nil, true)
   if job != nil {

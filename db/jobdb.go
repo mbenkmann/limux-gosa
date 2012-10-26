@@ -228,6 +228,7 @@ func JobsRemoveLocal(filter xml.HashFilter) {
     fju := xml.NewHash("xml","header","foreign_job_updates")
     var count uint64 = 1
     for _, tag := range jobdb_xml.Subtags() {
+      // Use RemoveFirst() so that we can use Rename() and AddWithOwnership()
       for job := jobdb_xml.RemoveFirst(tag); job != nil; job = jobdb_xml.RemoveFirst(tag) {
         job.FirstOrAdd("status").SetText("done")
         job.FirstOrAdd("periodic").SetText("none")
@@ -248,7 +249,7 @@ func JobsRemoveLocal(filter xml.HashFilter) {
 // Fields that can be updated via JobsModifyLocal() and JobsAddOrModifyForeign()
 var updatableFields = []string{"progress", "status", "periodic", "timestamp", "result"}
 
-// Updates the fields <progress>, <status>, <periodic>, <timestamp> and <result>
+// Updates the updatableFields (see var above) 
 // of all jobs selected by filter with the respective values from update. 
 // Fields not present in update are left unchanged.
 // Calling this method triggers a foreign_job_updates broadcast.
@@ -256,73 +257,79 @@ var updatableFields = []string{"progress", "status", "periodic", "timestamp", "r
 // NOTE: The filter must include the siserver==config.ServerSourceAddress check,
 // so that it only affects local jobs.
 func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
-  
-  
-  //FIXME: This method is currently unsafe because it performs multiple
-  //       jobDB accesses without proper synchronization.
-  //       It will become goroutine-safe once the rewrite is done introducing
-  //       the request queue.
-  
-  for job := jobDB.Query(filter).First("job"); job != nil; job = job.Next() {
-    for _, field := range updatableFields {
-      x := update.First(field)
-      if x != nil {
-        job.FirstOrAdd(field).SetText(x.Text())
+  modifylocaljobs := func(request *jobDBRequest) {
+    jobdb_xml := jobDB.Query(request.Filter)
+    fju := xml.NewHash("xml","header","foreign_job_updates")
+    var count uint64 = 1
+    for _, tag := range jobdb_xml.Subtags() {
+      // Use RemoveFirst() so that we can use Rename() and AddWithOwnership()
+      for job := jobdb_xml.RemoveFirst(tag); job != nil; job = jobdb_xml.RemoveFirst(tag) {
+        for _, field := range updatableFields {
+          x := request.Job.First(field)
+          if x != nil {
+            job.FirstOrAdd(field).SetText(x.Text())
+          }
+        }
+        jobDB.Replace(xml.FilterSimple("id", job.Text("id")), true, job)
+        job.Rename("answer"+strconv.FormatUint(count, 10))
+        count++
+        fju.AddWithOwnership(job)
       }
     }
-    
-    jobDB.Replace(xml.FilterSimple("id", job.Text("id")), true, job)
+    fju.Add("source", config.ServerSourceAddress)
+    fju.Add("target") // empty target => all peers
+    fju.Add("sync", "ordered")
+    ForeignJobUpdates <- fju    
   }
   
-  //FIXME: Missing: foreign_job_updates broadcast!
+  jobDBRequests <- &jobDBRequest{ modifylocaljobs, filter, update.Clone(), nil }
 }
 
 // Removes the jobs selected by filter without further actions (in particular no
 // foreign_job_updates will be broadcast). Therefore this function must only be
 // used with a filter that checks siserver to avoid local jobs.
 func JobsRemoveForeign(filter xml.HashFilter) {
-  jobDB.Remove(filter)
+  deljob := func(request *jobDBRequest) {
+    jobDB.Remove(request.Filter)
+  }
+  jobDBRequests <- &jobDBRequest{ deljob, filter, nil, nil }
 }
 
 // If no job matching filter is in the jobDB, job is added to it (using its
 // <id> as <original_id> and generating a new <id>).
-// If one or more jobs match the filter, their fields 
-// <progress>, <status>, <periodic>, <timestamp> and <result> are updated
+// If one or more jobs match the filter, their updatableFields (see var further
+// above in this file) are updated
 // with the respective values from job. 
 // Fields not present in job are left unchanged.
+//
 // No foreign_job_updates will be broadcast. Therefore this function must only be
 // used with a filter that checks siserver to avoid local jobs.        
-//
-// NOTE: job may be modified by this function
 func JobsAddOrModifyForeign(filter xml.HashFilter, job *xml.Hash) {
-  
-  
-  //FIXME: This method is currently unsafe because it performs multiple
-  //       jobDB accesses without proper synchronization.
-  //       It will become goroutine-safe once the rewrite is done introducing
-  //       the request queue.
-  
-  found := jobDB.Query(filter).First("job")
-  
-  if found != nil { // if jobs found => update their fields
-    for ; found != nil; found = found.Next() {
-      for _, field := range updatableFields {
-        x := job.First(field)
-        if x != nil {
-          found.FirstOrAdd(field).SetText(x.Text())
+  addmodify := func(request *jobDBRequest) {
+    found := jobDB.Query(request.Filter).First("job")
+    
+    if found != nil { // if jobs found => update their fields
+      for ; found != nil; found = found.Next() {
+        for _, field := range updatableFields {
+          x := request.Job.First(field)
+          if x != nil {
+            found.FirstOrAdd(field).SetText(x.Text())
+          }
         }
+        
+        jobDB.Replace(xml.FilterSimple("id", found.Text("id")), true, found)
       }
-      
-      jobDB.Replace(xml.FilterSimple("id", found.Text("id")), true, found)
+    } else // no job matches filter => add job
+    {
+      job := request.Job
+      job.FirstOrAdd("original_id").SetText(job.Text("id"))
+      job.FirstOrAdd("id").SetText("%d", <-nextID)
+      plainname := SystemNameForMAC(job.Text("macaddress"))
+      job.FirstOrAdd("plainname").SetText(plainname)
+      jobDB.AddClone(job)  
     }
-  } else // no job matches filter => add job
-  {
-    job.FirstOrAdd("original_id").SetText(job.Text("id"))
-    job.FirstOrAdd("id").SetText("%d", <-nextID)
-    plainname := SystemNameForMAC(job.Text("macaddress"))
-    job.FirstOrAdd("plainname").SetText(plainname)
-    jobDB.AddClone(job)  
   }
+  jobDBRequests <- &jobDBRequest{ addmodify, filter, job, nil }
 }
 
 

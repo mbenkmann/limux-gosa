@@ -31,55 +31,12 @@ import (
          "../config"
        )
 
-var addressRegexp = regexp.MustCompile("^(0|(1([0-9]?[0-9]?))|(2([6-9]|([0-4][0-9]?)|(5[0-5]?))?))([.](0|(1([0-9]?[0-9]?))|(2([6-9]|([0-4][0-9]?)|(5[0-5]?))?))){3}:(0|([1-6][0-9]{0,4})|([7-9][0-9]{0,3}))$")
-
-// Sends a foreign_job_updates message to target containing the given jobs.
-//   target: e.g. "foo.example.com:20081"
-//   jobs: Must have the following format (<...> is an arbitrary tag)
-//         <...>
-//           <...>
-//               <plainname>grisham</plainname>
-//               <progress>none</progress>
-//               <status>done</status>
-//               <siserver>1.2.3.4:20081</siserver>
-//               <modified>1</modified>
-//               <targettag>00:0c:29:50:a3:52</targettag>
-//               <macaddress>00:0c:29:50:a3:52</macaddress>
-//               <timestamp>20120906164734</timestamp>
-//               <id>4</id>
-//               <headertag>trigger_action_wake</headertag>
-//               <result>none</result>
-//               <xmlmessage>PHhtbD48aGVhZGVyPmpvYl90cmlnZ2VyX2FjdGlvbl93YWtlPC9oZWFkZXI+PHNvdXJjZT5HT1NBPC9zb3VyY2U+PHRhcmdldD4wMDowYzoyOTo1MDphMzo1MjwvdGFyZ2V0Pjx0aW1lc3RhbXA+MjAxMjA5MDYxNjQ3MzQ8L3RpbWVzdGFtcD48bWFjYWRkcmVzcz4wMDowYzoyOTo1MDphMzo1MjwvbWFjYWRkcmVzcz48L3htbD4=</xmlmessage>
-//           </...>
-//           <...>
-//             ...
-//           </...>
-//         </...>
-//
-func Send_foreign_job_updates(target string, jobs *xml.Hash) {
-  jobs = jobs.Clone()
-  MakeAnswerList(jobs)
-  jobs.Add("header", "foreign_job_updates")
-  jobs.Add("source", config.ServerSourceAddress)
-  jobs.Add("target", target)
-  msg := jobs.String()
-  util.Log(2, "DEBUG! Sending foreign_job_updates to %v: %v", target, msg)
-  keys := db.ServerKeys(target)
-  if len(keys) == 0 {
-    util.Log(0, "ERROR! Send_foreign_job_updates: No key known for %v", target)
-  } else {
-    Peer(target).Tell(msg, keys[0])
-  }
-}
-
-// Asynchronously calls Send_foreign_job_updates(target, jobs) for all
-// target servers in the serverDB.
-func Broadcast_foreign_job_updates(jobs *xml.Hash) {
-  jobs = jobs.Clone() // because we work asynchronously
-  for _, server := range db.ServerAddresses() {
-    go util.WithPanicHandler(func(){ Send_foreign_job_updates(server, jobs) })
-  }
-}
+const re_1xx = "(1([0-9]?[0-9]?))"
+const re_2xx = "(2([6-9]|([0-4][0-9]?)|(5[0-5]?))?)"
+const re_xx  = "([3-9][0-9]?)"
+const re_port = "(0|([1-6][0-9]{0,4})|([7-9][0-9]{0,3}))"
+const ip_part = "(0|"+re_1xx+"|"+re_2xx+"|"+re_xx+")"
+var addressRegexp = regexp.MustCompile("^"+ip_part+"([.]"+ip_part+"){3}:"+re_port+"$")
 
 // Handles the message "foreign_job_updates".
 //  xmlmsg: the decrypted and parsed message.

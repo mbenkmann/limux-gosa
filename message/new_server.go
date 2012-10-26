@@ -69,7 +69,6 @@ func new_server(xmlmsg *xml.Hash) string {
   server := xmlmsg.Text("source")
   go util.WithPanicHandler(func() {
    Send_new_server("confirm_new_server", server)
-   Send_foreign_job_updates(server, db.JobsQuery(xml.FilterAll))
   })
   return ""
 }
