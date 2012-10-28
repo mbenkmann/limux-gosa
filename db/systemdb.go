@@ -27,5 +27,10 @@ package db
 // system name, you should NOT special case this (e.g. use it to check if
 // the system is known).
 func SystemNameForMAC(macaddress string) string {
+  switch macaddress {
+    case "01:02:03:04:05:06": return "systest1"
+    case "11:22:33:44:55:66": return "systest2"
+    case "77:66:55:44:33:22": return "systest3"
+  }
   return "none"
 }  
