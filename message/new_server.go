@@ -63,21 +63,45 @@ func Send_new_server(header string, target string) {
 
 // Handles the message "new_server".
 //  xmlmsg: the decrypted and parsed message
-// Returns: empty string
-func new_server(xmlmsg *xml.Hash) string {
+func new_server(xmlmsg *xml.Hash) {
+  setGoSusi(xmlmsg)
   db.ServerUpdate(xmlmsg)
   server := xmlmsg.Text("source")
   go util.WithPanicHandler(func() {
-   Send_new_server("confirm_new_server", server)
+    Send_new_server("confirm_new_server", server)
+    Peer(server).SyncAll()
   })
-  return ""
+  return
 }
 
 // Handles the message "confirm_new_server".
 //  xmlmsg: the decrypted and parsed message
-// Returns: empty string
-func confirm_new_server(xmlmsg *xml.Hash) string {
+func confirm_new_server(xmlmsg *xml.Hash) {
+  setGoSusi(xmlmsg)
+  Peer(xmlmsg.Text("source")).SyncAll()
   db.ServerUpdate(xmlmsg)
-  return ""
+}
+
+// Takes the new_server/confirm_new_server message xmlmsg and if
+// it contains <loaded_modules>goSusi</loaded_modules>, marks the
+// peer identified by the message's <source> as a go-susi. Otherwise
+// it is marked as a non-go-susi. This mark affects whether the more
+// efficient and more reliable server-server communication protocol
+// will be used to talk to that peer or if the inferior protocol for
+// compatibility with gosa-si will be used.
+// For instance after re-establishing a lost connection to a non-go-susi
+// server, an active gosa_query_jobdb request will be made to get an
+// up-to-date copy of its jobs list. This is not required when the peer
+// is a go-susi because go-susi automatically sends its jobs when necessary.
+func setGoSusi(xmlmsg *xml.Hash) {
+  server := xmlmsg.Text("source")
+  gosusi := false
+  for mod := xmlmsg.First("loaded_modules"); mod != nil; mod = mod.Next() {
+    if mod.Text() == "goSusi" {
+      gosusi = true
+      break
+    }
+  }
+  Peer(server).SetGoSusi(gosusi)
 }
 
