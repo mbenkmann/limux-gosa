@@ -7,6 +7,7 @@ import (
          "time"
          
          "../db"
+         "../xml"
          "../util"
          "../config"
        )
@@ -20,18 +21,42 @@ type PeerConnection struct {
 
 // Returns the time this peer has been down (0 if everything is okay).
 func (conn *PeerConnection) Downtime() time.Duration {
+/*
+After 7 days of downtime, the PeerConnection gives up, issues a JobsRemoveForeign
+for all jobs belonging to the peer and removes itself (LOCK!!) from the connections
+list, then the goroutine terminates.
+
+
+gosa_query_jobdb uses JobsQuery to query for the respective jobs, then it
+postprocesses the query and for each siserver that is down (cache the Downtime()
+to get consistent results for all jobs) replace the status with error and inserts
+a result with the message "SERVERNAME(from reverse lookup of ip) has been down for DURATION"
+
+
+gosa_delete_jobdb_entry can not delete jobs from servers that are down. This is
+a) good because it prevents overzealous admins from removing errors that other
+   admins haven't seen yet.
+b) an automatic result from the fact that foreign jobs are never removed directly
+   but converted to fju+full sync (which fails if the server is down, leaving the
+   old jobs intact)
+*/
   return 0
 }
 
 // Tells this connection if its peer 
 // advertises <loaded_modules>goSusi</loaded_modules>.
 func (conn *PeerConnection) SetGoSusi(is_gosusi bool) {
+  if is_gosusi {
+    util.Log(1, "INFO! Peer %v uses go-susi protocol", conn.addr)
+  } else {
+    util.Log(1, "INFO! Peer %v uses old gosa-si protocol", conn.addr)
+  }
   conn.is_gosusi = is_gosusi
 }
 
 // Returns true if this connection's peer 
 // advertises <loaded_modules>goSusi</loaded_modules>. If this method
-// returns fals the peer does either not support the goSusi protocol or
+// returns false the peer does either not support the goSusi protocol or
 // it is yet unknown whether it does.
 func (conn *PeerConnection) IsGoSusi() bool {
   return conn.is_gosusi
@@ -50,6 +75,7 @@ func (conn *PeerConnection) Tell(msg, key string) {
    key = keys[0]
   }
   // if the request channel overflows, conn.overflow is set to true
+  util.Log(2, "DEBUG! Telling %v: %v", conn.addr, msg)
   go util.WithPanicHandler(func(){util.SendLnTo(conn.addr, GosaEncrypt(msg, key), config.Timeout)})
 }
 
@@ -79,13 +105,88 @@ func (conn *PeerConnection) Ask(request, key string) <-chan string {
       c<-ErrorReply(err)
     } else {
       defer tcpconn.Close()
+      util.Log(2, "DEBUG! Asking %v: %v", conn.addr, request)
       util.SendLn(tcpconn, GosaEncrypt(request, key), config.Timeout)
       reply := GosaDecrypt(util.ReadLn(tcpconn, config.Timeout), key)
       if reply == "" { reply = "General communication error" } 
+      util.Log(2, "DEBUG! Reply from %v: %v", conn.addr, reply)
       c<-reply
     }
   })
   return c
+}
+
+// Calls SyncAll() after a few seconds delay if this connection's peer is not
+// a go-susi. This is used after foreign_job_updates has been sent, because
+// gosa-si (unlike go-susi) does not broadcast changes it has done in reaction
+// to foreign_job_updates.
+func (conn* PeerConnection) SyncNonGoSusi() {
+  if conn.IsGoSusi() { return }
+  go func() {
+    time.Sleep(5*time.Second) // 5s should be enough, even for gosa-si
+    conn.SyncAll()
+  }()
+}
+
+// Sends all local jobs to the peer. If the peer is not a go-susi, also
+// requests all of the peer's local jobs and converts them to a <sync>all</sync>
+// message and feeds it into foreign_job_updates().
+func (conn *PeerConnection) SyncAll() {
+  if conn.IsGoSusi() {
+    util.Log(1, "INFO! Full sync (go-susi protocol) with %v", conn.addr)
+    db.JobsSyncAll(conn.addr, nil)
+  } else 
+  { // peer is not go-susi (or not known to be one, yet)
+    go func() {
+      util.Log(1, "INFO! Full sync (gosa-si fallback) with %v", conn.addr)
+      
+      // Query the peer's database for 
+      // * all jobs the peer is responsible for
+      // * all jobs the peer thinks we are responsible for
+      query := xml.NewHash("xml","header","gosa_query_jobdb")
+      query.Add("source", "GOSA")
+      query.Add("target", "GOSA")
+      clause := query.Add("where").Add("clause")
+      clause.Add("connector", "or")
+      clause.Add("phrase").Add("siserver","localhost")
+      clause.Add("phrase").Add("siserver",conn.addr)
+      clause.Add("phrase").Add("siserver",config.ServerSourceAddress)
+      
+      jobs_str := <- conn.Ask(query.String(), config.ModuleKey["[GOsaPackages]"])
+      jobs, err := xml.StringToHash(jobs_str)
+      if err != nil {
+        util.Log(0, "ERROR! gosa_query_jobdb: Error decoding reply from peer %v: %v", conn.addr, err)
+        // Bail out. Otherwise we would end up removing all of the peer's jobs from
+        // our database if the peer is down. While that would be one way of dealing
+        // with this case, we prefer to keep those jobs and convert them into
+        // state "error" with an error message about the downtime. This happens
+        // in gosa_query_jobdb.go.
+        return 
+      }
+      
+      if jobs.First("error_string") != nil { 
+        util.Log(0, "ERROR! gosa_query_jobdb: Peer %v returned error: %v", conn.addr, jobs.Text("error_string"))
+        // Bail out. See explanation further above.
+        return 
+      }
+      
+      // Now we extract from jobs those that are the responsibility of the
+      // peer and synthesize a foreign_job_updates with <sync>all</sync> from them.
+      // This leaves in jobs those the peer believes belong to us.
+      
+      fju := jobs.Remove(xml.FilterOr([]xml.HashFilter{xml.FilterSimple("siserver","localhost"),xml.FilterSimple("siserver",conn.addr)}))
+      fju.Rename("xml")
+      fju.Add("header","foreign_job_updates")
+      fju.Add("source", conn.addr)
+      fju.Add("target", config.ServerSourceAddress)
+      fju.Add("sync", "all")
+      
+      util.Log(2, "DEBUG! Queuing synthetic fju: %v", fju)
+      foreign_job_updates(fju)
+      
+      db.JobsSyncAll(conn.addr, jobs)
+    }()
+  }
 }
 
 func (conn *PeerConnection) handleConnection() {
@@ -106,25 +207,11 @@ func (conn *PeerConnection) handleConnection() {
   
   */
 
-  /* sollte eingehende Daten auf der Verbindung auslesen, um zu verhindern,
-  dass ein einzelnes warum auch immer gesendetes Datum (z.B. eine Antwort auf
-  ein Tell() obwohl Tell() keine Antwort erwartet, die ganze Synchronisation
-  zerstört. Vor dem absetzen eines Ask() sollten alle pending Daten ausgelesen
-  werden. Außerdem muss ich sicherstellen, dass ein Ask() auf das der Peer keine
-  Antwort liefert nicht umgekehrt die Synchronisation durcheinander bringt.
-  (TESTFÄLLE FÜR DIESE PROBLEME!)
-  In dem Fall komme ich um einen reset wohl nicht herum. Vielleicht sollte ich
-  ganz generell einen reset machen, wenn nicht in einer bestimmten Zeit eine
-  Antwort kommt oder wenn zwischendurch unerwartete Daten kommen.
-  Ich muss auf jeden Fall aufpassen, dass kein zweiter Ask() abgesetzt wird,
-  während einer noch pending ist. Eigentlich auch kein Tell().
-  Ich sollte vielleicht pro PeerConnection eine weitere goroutine starten, die
-  permanent ausliest, an \n zerteilt und die Zeilen in einen zweiten Channel schiebt.
-  Dann kann handleConnection() selecten auf dem request channel und dem Daten channel
-  und bei unerwarteten Daten auf dem Datenchannel sowie timeouts nach Ask() einen
-  reset einleitet.
-  Die Ausleser-goroutine sollte mit kurzem Timeout arbeiten um stalls (keine Daten
-  kommen mehr obwohl \n noch nicht gesehen wurde) zu erkennen.
+  /* Ask() ist immer asynchron über neue Verbindung. 
+  Das eliminiert Synchronisationsprobleme durch verzögerte oder fehlende Antworten.
+  Trotzdem müssen rogue Daten der Tell-Verbindung ausgelesen (und geloggt) werden
+  zur Sicherheit.
+  
   */
   
   /* if overflow, first make sure there is an overflow (because maybe
@@ -188,7 +275,8 @@ Erweiterung foreign_job_updates:
   possibly return read value to caller
 } */
 
-func (conn *PeerConnection) GetAllLocalJobsFromPeer() {
+func (conn *PeerConnection) GetAllLocalJobsFromPeerWithDelay() {
+  
 // evtl. besser Gosa_query_jobdb_from(addr) in gosa_query_jobdb.go
 
 
@@ -286,14 +374,27 @@ func init() {
   go func() {
     for fju := range db.ForeignJobUpdates {
       target := fju.Text("target")
+      
+      // see explanation in jobdb.go for var ForeignJobUpdates
+      syncNonGoSusi := fju.RemoveFirst("SyncNonGoSusi")
+      if syncNonGoSusi != nil && target != "" && !Peer(target).IsGoSusi() { 
+        target = ""
+      }
+      
       if target != "" {
         Peer(target).Tell(fju.String(), "")
+        if syncNonGoSusi != nil {
+          Peer(target).SyncNonGoSusi()
+        }
       } else
       { // send to ALL peers
         connections_mutex.Lock()
         for addr, peer := range connections {
           fju.First("target").SetText(addr)
           peer.Tell(fju.String(), "")
+          if syncNonGoSusi != nil {
+            peer.SyncNonGoSusi()
+          }
         }
         connections_mutex.Unlock()
       }
