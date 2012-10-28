@@ -158,6 +158,25 @@ var keys []string
 // start time of SystemTest()
 var StartTime time.Time
 
+type Job struct {
+  Type string
+  MAC string
+  Plainname string
+  Timestamp string
+  Periodic string
+}
+
+// returns Type with the "job_" removed.
+func (self *Job) Trigger() string {
+  return self.Type[4:]
+}
+
+var Jobs = []Job{
+{"job_trigger_action_wake","01:02:03:04:05:06","systest1","20990914131742","7_days"},
+{"job_trigger_action_lock","11:22:33:44:55:66","systest2","20770101000000","1_minutes"},
+{"job_trigger_action_wake","77:66:55:44:33:22","systest3","20660906164734","none"},
+}
+
 // Runs the system test.
 //  daemon: either "", host:port or the path to a binary. 
 //         If "", the default from the config will be used.
@@ -215,17 +234,13 @@ func SystemTest(daemon string, is_gosasi bool) {
   for i := range config.ModuleKeys { keys[i+1] = config.ModuleKeys[i] }
   keys[0] = "none"
   
-  test_mac := "01:02:03:04:05:06"
-  test_name := "none"
-  test_timestamp := "20990914131742"
-  test_periodic := "7_days"
   if launched_daemon {
-    check_new_server_on_startup(test_mac, test_name, test_timestamp)
+    check_new_server_on_startup(Jobs[0])
   } else {
     // We need this in the database for the later test whether go-susi reacts
     // to new_server by sending its jobdb. This same call is contained in
     // check_new_server_on_startup()
-    trigger_first_test_job(test_mac, test_name, test_timestamp)
+    trigger_first_test_job(Jobs[0])
   }
   
   // Send new_server and check that we receive confirm_new_server in response
@@ -251,17 +266,13 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   // go-susi also sends foreign_job_updates in response to new_server
   msg = wait(t0, "foreign_job_updates")
-  siFail(checkTags(msg.XML, "header,source,target,answer1"), "")
+  siFail(checkTags(msg.XML, "header,source,target,answer1,sync?"), "")
   if checkTags(msg.XML, "header,source,target,answer1") == "" {
-    check_foreign_job_updates(msg, "new_server_key", test_name, "7_days", "waiting", test_mac, "trigger_action_wake", test_timestamp)
+    check_foreign_job_updates(msg, "new_server_key", Jobs[0].Plainname, Jobs[0].Periodic, "waiting", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
   }
 
   t0 = time.Now()
-  test_mac2 := "11:22:33:44:55:66"
-  test_name2 := "none"
-  test_timestamp2 := "20770101000000"
-  test_periodic2 := "1_minutes"
-  x := gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(%v))",test_mac2, test_timestamp2, test_mac2, test_periodic2))
+  x := gosa(Jobs[1].Type, hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(%v))",Jobs[1].MAC, Jobs[1].Timestamp, Jobs[1].MAC, Jobs[1].Periodic))
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
   check(x.Text("header"), "answer")
   siFail(x.Text("source"), config.ServerSourceAddress)
@@ -269,7 +280,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   check(x.Text("answer1"), "0")
   
   msg = wait(t0, "foreign_job_updates")
-  check_foreign_job_updates(msg, "new_server_key", test_name2, "1_minutes", "waiting", test_mac2, "trigger_action_lock", test_timestamp2)
+  check_foreign_job_updates(msg, "new_server_key", Jobs[1].Plainname, Jobs[1].Periodic, "waiting", Jobs[1].MAC, Jobs[1].Trigger(), Jobs[1].Timestamp)
   
   check_connection_drop_on_error1()
   check_connection_drop_on_error2()
@@ -277,7 +288,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   check_multiple_requests_over_one_connection()
   
   // query for trigger_action_lock on test_mac2
-  x = gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v)))))", test_mac2))
+  x = gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v)))))", Jobs[1].MAC))
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
   check(x.Text("header"), "query_jobdb")
   siFail(x.Text("source"), config.ServerSourceAddress)
@@ -285,11 +296,11 @@ func SystemTest(daemon string, is_gosasi bool) {
   a := x.First("answer1")
   check(a != nil, true)
   if a != nil {
-    check_answer(a, test_name2, "none", "waiting", config.ServerSourceAddress, test_mac2, test_timestamp2, test_periodic2, "trigger_action_lock")
+    check_answer(a, Jobs[1].Plainname, "none", "waiting", config.ServerSourceAddress, Jobs[1].MAC, Jobs[1].Timestamp, Jobs[1].Periodic, Jobs[1].Trigger())
   }
   
-  // query for trigger_action_wake on test_mac (via "ne test_mac2")
-  x = gosa("query_jobdb", hash("xml(where(clause(connector(and)phrase(operator(ne)macaddress(%v)))))", test_mac2))
+  // query for trigger_action_wake on test_mac (via "ne Jobs[1].MAC")
+  x = gosa("query_jobdb", hash("xml(where(clause(connector(and)phrase(operator(ne)macaddress(%v)))))", Jobs[1].MAC))
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
   check(x.Text("header"), "query_jobdb")
   siFail(x.Text("source"), config.ServerSourceAddress)
@@ -297,12 +308,12 @@ func SystemTest(daemon string, is_gosasi bool) {
   a = x.First("answer1")
   check(a != nil, true)
   if a != nil {
-    check_answer(a, test_name, "none", "waiting", config.ServerSourceAddress, test_mac, test_timestamp, test_periodic, "trigger_action_wake")
+    check_answer(a, Jobs[0].Plainname, "none", "waiting", config.ServerSourceAddress, Jobs[0].MAC, Jobs[0].Timestamp, Jobs[0].Periodic, Jobs[0].Trigger())
   }
   
   // delete trigger_action_wake on test_mac (via "ne test_mac2" plus redundant "like ...")
   t0 = time.Now()
-  x = gosa("delete_jobdb_entry", hash("xml(where(clause(connector(and)phrase(operator(like)headertag(trigger_action_%%))phrase(operator(ne)macaddress(%v)))))", test_mac2))
+  x = gosa("delete_jobdb_entry", hash("xml(where(clause(connector(and)phrase(operator(like)headertag(trigger_action_%%))phrase(operator(ne)macaddress(%v)))))", Jobs[1].MAC))
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
   check(x.Text("header"), "answer")
   siFail(x.Text("source"), config.ServerSourceAddress)
@@ -323,20 +334,19 @@ func SystemTest(daemon string, is_gosasi bool) {
   old_job := a.Clone()
   check(a != nil, true)
   if a != nil {
-    check_answer(a, test_name2, "none", "waiting", config.ServerSourceAddress, test_mac2, test_timestamp2, test_periodic2, "trigger_action_lock")
+    check_answer(a, Jobs[1].Plainname, "none", "waiting", config.ServerSourceAddress, Jobs[1].MAC, Jobs[1].Timestamp, Jobs[1].Periodic, Jobs[1].Trigger())
   }
   
   // check for foreign_job_updates with status "done"
   msg = wait(t0, "foreign_job_updates")
-  check_foreign_job_updates(msg, keys[0], test_name, "", "done", test_mac, "trigger_action_wake", test_timestamp)
+  check_foreign_job_updates(msg, keys[0], Jobs[0].Plainname, "", "done", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
   
   // Send foreign_job_updates with following changes:
-  //   change <siserver> of the existing job
+  //   change <progress> of the existing job
   //   add a new job
-  old_job.FirstOrAdd("siserver").SetText(listen_address)
-  old_job.FirstOrAdd("id").SetText("100")
-  new_job := hash("answer2(plainname(foo)progress(none)status(waiting)siserver(localhost)modified(1)macaddress(00:0c:29:50:a3:52)targettag(00:0c:29:50:a3:52)timestamp(20660906164734)id(66)headertag(trigger_action_wake)result(none))")
-  new_job.FirstOrAdd("xmlmessage").SetText(base64.StdEncoding.EncodeToString([]byte(hash("xml(header(job_trigger_action_wake)source(GOSA)target(00:0c:29:50:a3:52)timestamp(20660906164734)macaddress(00:0c:29:50:a3:52))").String())))
+  old_job.FirstOrAdd("progress").SetText("42")
+  new_job := hash("answer2(plainname(%v)progress(none)status(waiting)siserver(localhost)modified(1)macaddress(%v)targettag(%v)timestamp(%v)id(66)headertag(%v)result(none))",Jobs[2].Plainname,Jobs[2].MAC,Jobs[2].MAC,Jobs[2].Timestamp,Jobs[2].Trigger())
+  new_job.FirstOrAdd("xmlmessage").SetText(base64.StdEncoding.EncodeToString([]byte(hash("xml(header(%v)source(GOSA)target(%v)timestamp(%v)macaddress(%v))",Jobs[2].Type,Jobs[2].MAC,Jobs[2].Timestamp,Jobs[2].MAC).String())))
   x = hash("xml(header(foreign_job_updates)source(%v)target(%v))",listen_address,config.ServerSourceAddress)
   x.AddClone(old_job)
   x.AddClone(new_job)
@@ -354,27 +364,27 @@ func SystemTest(daemon string, is_gosasi bool) {
   a1 := x.First("answer1")
   a2 := x.First("answer2")
   if a1 != nil && a2 != nil{
-    if a1.Text("plainname") == "foo" { // make sure a1 is the old and a2 is new job
-      temp := a1
-      a1 = a2
-      a2 = temp
+    if a1.Text("plainname") == Jobs[2].Plainname { // make sure a1 is the old and a2 is new job
+      a1, a2 = a2, a1
     }
     
-      //NOTE: After the rewrite of the job handling, this test will fail because
-      //the siserver can no longer be changed via f_j_u. If not done yet, document
-      //this in the manual and modify the test.
-    check_answer(a1, test_name2, "none", "waiting", listen_address, test_mac2, test_timestamp2, test_periodic2, "trigger_action_lock")
+    check_answer(a1, Jobs[1].Plainname, "42", "waiting", config.ServerSourceAddress, Jobs[1].MAC, Jobs[1].Timestamp, Jobs[1].Periodic, Jobs[1].Trigger())
     
-    check_answer(a2, "foo", "none", "waiting", listen_address, "00:0c:29:50:a3:52", "20660906164734", "", "trigger_action_wake")
+    check_answer(a2, Jobs[2].Plainname, "none", "waiting", listen_address, Jobs[2].MAC, Jobs[2].Timestamp, Jobs[2].Periodic, Jobs[2].Trigger())
   }
 
   // clear jobdb  
   x = gosa("delete_jobdb_entry", hash("xml(where())"))
   
+  // Because the above delete affects a job belonging to the test server,
+  // go-susi doesn't delete it directly but forwards the request to the
+  // test server. Wait a little to make sure the communication is finished.
+  time.Sleep(reply_timeout)
+  
   // now add 2 jobs that are the same in all respects except the timestamp
-  x = gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(%v))",test_mac2, test_timestamp, test_mac2, test_periodic2))
+  x = gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(%v))",Jobs[1].MAC, Jobs[0].Timestamp, Jobs[1].MAC, Jobs[1].Periodic))
   check(x.Text("answer1"), "0")
-  x = gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(%v))",test_mac2, test_timestamp2, test_mac2, test_periodic2))
+  x = gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(%v))",Jobs[1].MAC, Jobs[1].Timestamp, Jobs[1].MAC, Jobs[1].Periodic))
   check(x.Text("answer1"), "0")
   
   x = gosa("query_jobdb", hash("xml(where())"))
@@ -382,14 +392,14 @@ func SystemTest(daemon string, is_gosasi bool) {
   a1 = x.First("answer1")
   a2 = x.First("answer2")
   if a1 != nil && a2 != nil{
-    if a1.Text("timestamp") == test_timestamp2 { // make sure a1 has test_timestamp
+    if a1.Text("timestamp") == Jobs[1].Timestamp { // make sure a1 has Jobs[0].Timestamp
       temp := a1
       a1 = a2
       a2 = temp
     }
     
-    check_answer(a1, test_name2, "none", "waiting", config.ServerSourceAddress, test_mac2, test_timestamp, test_periodic2, "trigger_action_lock")
-    check_answer(a2, test_name2, "none", "waiting", config.ServerSourceAddress, test_mac2, test_timestamp2, test_periodic2, "trigger_action_lock")
+    check_answer(a1, Jobs[1].Plainname, "none", "waiting", config.ServerSourceAddress, Jobs[1].MAC, Jobs[0].Timestamp, Jobs[1].Periodic, Jobs[1].Trigger())
+    check_answer(a2, Jobs[1].Plainname, "none", "waiting", config.ServerSourceAddress, Jobs[1].MAC, Jobs[1].Timestamp, Jobs[1].Periodic, Jobs[1].Trigger())
   }
 
   
@@ -482,7 +492,10 @@ func check_connection_drop_on_error2() {
 
 // Checks that on startup go-susi sends new_server to the test server listed
 // in [ServerPackages]/address
-func check_new_server_on_startup(test_mac, test_name, test_timestamp string) {
+func check_new_server_on_startup(job Job) {
+  test_mac := job.MAC
+  test_name:= job.Plainname
+  test_timestamp:=job.Timestamp
   // Test if daemon sends us new_server upon startup
   msg := wait(StartTime, "new_server")
   
@@ -523,15 +536,18 @@ func check_new_server_on_startup(test_mac, test_name, test_timestamp string) {
     // with the key we set via confirm_new_server above
     t0 := time.Now()
     
-    trigger_first_test_job(test_mac, test_name, test_timestamp)
+    trigger_first_test_job(Jobs[0])
 
     msg = wait(t0, "foreign_job_updates")
     check_foreign_job_updates(msg, "confirm_new_server_key", test_name, "7_days", "waiting", test_mac, "trigger_action_wake", test_timestamp)
   }
 }
 
-func trigger_first_test_job(test_mac, test_name, test_timestamp string) {
-  x := gosa("job_trigger_action_wake", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(7_days))",test_mac, test_timestamp, test_mac))
+func trigger_first_test_job(job Job) {
+  typ:=job.Type
+  test_mac:=job.MAC
+  test_timestamp:=job.Timestamp
+  x := gosa(typ, hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(7_days))",test_mac, test_timestamp, test_mac))
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
   check(x.Text("header"), "answer")
   siFail(x.Text("source"), config.ServerSourceAddress)
@@ -598,7 +614,10 @@ func check_answer(a *xml.Hash, name, progress, status, siserver, mac, timestamp,
   check(a.Text("targettag"), mac)
   check(a.Text("macaddress"), mac)
   check(a.Text("timestamp"), timestamp)
-  siFail(a.Text("periodic"), periodic)
+  peri := a.Text("periodic")
+  if peri == "" { peri = "none" }
+  if periodic == "" { periodic = "none" }
+  siFail(peri, periodic)
   check(a.Text("headertag"), headertag)
   check(a.Text("result"), "none")
   
@@ -614,7 +633,9 @@ func check_answer(a *xml.Hash, name, progress, status, siserver, mac, timestamp,
     check(xmlmessage.Text("source"), "GOSA")
     check(xmlmessage.Text("target"), mac)
     check(xmlmessage.Text("timestamp"), timestamp)
-    check(xmlmessage.Text("periodic"), periodic)
+    peri = xmlmessage.Text("periodic")
+    if peri == "" { peri = "none" }
+    check(peri, periodic)
     check(xmlmessage.Text("macaddress"), mac)
   }
 }
@@ -850,6 +871,21 @@ func handleConnection(conn net.Conn) {
   if header == "new_server" || header == "confirm_new_server" {
     keys = append(keys, keys[0])
     keys[0] = msg.XML.Text("key")
+  }
+  
+  // The test server advertises "goSusi" in loaded_modules, so it is
+  // required to confirm changes made to its jobs via foreign_job_updates
+  if header == "foreign_job_updates" {
+    for _, tag := range msg.XML.Subtags() {
+      if !strings.HasPrefix(tag, "answer") { continue }
+      for job := msg.XML.First(tag); job != nil; job = job.Next() {
+        if job.Text("siserver") == listen_address {
+          fju := xml.NewHash("xml","header","foreign_job_updates")
+          fju.AddClone(job)
+          send("", fju)
+        }
+      }
+    }
   }
   
   msg.Time = time.Now()
