@@ -100,11 +100,13 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string, di
 //   reply: reply to return
 //   disconnect: true if connection should be terminated due to error
 func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply string, disconnect bool) {
+  reply = ""
+  disconnect = false
   switch xml.Text("header") {
     case "gosa_query_jobdb":    reply = gosa_query_jobdb(xml)
-    case "new_server":          reply = new_server(xml)
-    case "confirm_new_server":  reply = confirm_new_server(xml)
-    case "foreign_job_updates": reply = foreign_job_updates(xml)
+    case "new_server":          new_server(xml)
+    case "confirm_new_server":  confirm_new_server(xml)
+    case "foreign_job_updates": foreign_job_updates(xml)
     case "job_trigger_action_lock",
          "job_trigger_action_wake":
                                 reply = job_trigger_action(xml)
@@ -164,7 +166,9 @@ func paddedMessage(msg string) []byte {
 // Returns the base64 representation of the message after encryption with
 // the given key. The key is a word as used in gosa-si.conf whose md5sum will
 // be used as the actual AES key.
+// If msg == "", "" will be returned.
 func GosaEncrypt(msg string, key string) string {
+  if msg == "" { return "" }
   aes,_ := aes.NewCipher([]byte(util.Md5sum(key)))
   crypter := cipher.NewCBCEncrypter(aes, config.InitializationVector)
   cyphertext := paddedMessage(msg)
