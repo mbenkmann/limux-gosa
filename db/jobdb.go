@@ -25,6 +25,7 @@ import (
          "net"
          "time"
          "strconv"
+         "strings"
          
          "../xml"
          "../config"
@@ -63,14 +64,28 @@ var jobDB *xml.DB
 // message should be sent to ALL peers. Otherwise the <target> is the single peer
 // the message should be sent to.
 // The large size of the buffer is to make sure we don't delay even if a couple
-// 1000 machines are sending us progess updates at the same time (which we need to
+// 1000 machines are sending us progress updates at the same time (which we need to
 // forward to our peers).
 // The code that reads from this channel and forwards the messages to the
 // appropriate peers is in peer_connection.go:init()
+//
+// NOTE: A message in this queue may have an empty tag <SyncNonGoSusi> attached
+//       at the level of <source>. In this case, PeerConnection.SyncNonGoSusi() will
+//       be called after delivery of the foreign_job_updates to the peer.
+//       <SyncNonGoSusi> is only permitted if <target> is non-empty. It will not
+//       be transmitted as part of the foreign_job_updates.
+//       A second effect of <SyncNonGoSusi> is that if the <target> is not a go-susi,
+//       instead of sending the foreign_job_updates just to the target, it will be
+//       sent to all known peers. This is done to compensate for the fact that
+//       unlike go-susi gosa-si does not rebroadcast changes to its jobdb when those
+//       changes are the result of foreign_job_updates.
 var ForeignJobUpdates = make(chan *xml.Hash, 16384)
 
+// Fields that can be updated via Jobs*Modify*()
+var updatableFields = []string{"progress", "status", "periodic", "timestamp", "result"}
+
 // A packaged request to perform some action on the jobDB.
-// Most db.Job...() functions are just stubs that just push
+// Most db.Job...() functions are just stubs that push
 // a jobDBRequest into the jobDBRequests channel and then return.
 type jobDBRequest struct {
   // The function to execute. It is passed a pointer to its own request.
@@ -90,10 +105,11 @@ type jobDBRequest struct {
 var jobDBRequests = make(chan *jobDBRequest, 16384)
 
 // The next number to use for <id> when storing a new local job.
-var nextID chan uint64 = util.Counter(1)
+var nextID chan uint64
 
 // Initializes JobDB with data from the file config.JobDBPath if it exists and
 // starts the goroutine that runs handleJobDBRequests.
+// Not an init() because main() needs to set up some things first.
 func JobsInit() {
   if jobDB != nil { panic("JobsInit() called twice") }
   jobdb_storer := &LoggingFileStorer{xml.FileStorer{config.JobDBPath}}
@@ -114,6 +130,14 @@ func JobsInit() {
     }
   }
   
+  var count uint64 = 0
+  for job := jobDB.Query(xml.FilterAll).First("job"); job != nil; job = job.Next() {
+    id, err := strconv.ParseUint(job.Text("id"), 10, 64)
+    if err != nil { panic(err) }
+    if id > count { count = id }
+  }
+  nextID = util.Counter(count+1)
+  
   go handleJobDBRequests()
 }
 
@@ -125,8 +149,8 @@ func JobsInit() {
 //    the resulting changes into the ForeignJobUpdates queue
 //  * a single goroutine processes the items from ForeignJobUpdates and passes them
 //    on to the appropriate PeerConnection(s).
-//  * each PeerConnection has a single goroutine communicating over a single TCP
-//    connection with its respective peer.
+//  * each PeerConnection has a single goroutine forwarding the updates over a 
+//    single TCP connection to its respective peer.
 //  * The above ensures that each peer receives foreign_job_updates messages in
 //    exactly the same order in which the corresponding edits are made on the jobDB.
 //    This makes sure that a peer that applies foreign_job_updates messages in
@@ -160,22 +184,92 @@ func JobsQuery(filter xml.HashFilter) *xml.Hash {
 }
 
 // Tries to remove all jobs matching the given filter, treating local and
-// foreign jobs differently. Local jobs are removed and a
-// foreign_job_updates message is broadcast for them. The removal of
-// foreign jobs is attempted by passing the request to the responsible
-// siserver via gosa_delete_jobdb_entry.
+// foreign jobs differently. Local jobs are removed directly and a
+// foreign_job_updates message is broadcast for them. 
+// Foreign jobs on the other hand are not removed immediately, but a
+// foreign_job_updates with status=done and periodic=none is sent either to
+// the affected server(s) only (if it is a go-susi) or broadcast to all peers (if
+// the affected server is not go-susi). If the affected server is a go-susi it
+// will upon receipt of the message remove the job and send a foreign_job_updates,
+// which will then cause the job to be deleted from our database.
+// To deal with non-go-susi servers, we wait a few seconds and then
+// actively query the affected server's database.
 func JobsRemove(filter xml.HashFilter) {
-  JobsRemoveLocal(xml.FilterAnd([]xml.HashFilter{xml.FilterSimple("siserver",config.ServerSourceAddress),filter}))
-  
-  //FIXME: Placeholder code. Instead of removing the job from our database, we
-  // should extract the original_id and siserver for all matching jobs and
-  // use Peer(siserver).Ask(gosa_delete_jobdb_entry) to send a delete request to
-  // responsible server. We DON'T remove the foreign job from our database! If
-  // the foreign server reacts to the gosa_delete_jobdb_entry with the deletion
-  // of the job, we will learn about this via a foreign_job_updates and that will
-  // cause JobsRemoveForeign() to be called.
-  JobsRemoveForeign(xml.FilterAnd([]xml.HashFilter{xml.FilterNot(xml.FilterSimple("siserver",config.ServerSourceAddress)),filter}))
+  update := xml.NewHash("job","status", "done")
+  update.Add("periodic", "none")
+  JobsModify(filter, update)
 }
+
+// Tries to update all the updatableFields (see var further above in this file)
+// of the jobs selected by filter with the respective values from the update data.
+// Fields not present in update are left unchanged.
+// Local and foreign jobs are treated differently.
+// Local jobs are modified directly and a foreign_job_updates message is broadcast
+// for them.
+// Foreign jobs on the other hand are not modified directly, but instead a
+// foreign_job_updates message with the changed job data is sent either to
+// the affected server(s) only (if it is a go-susi) or broadcast to all peers (if
+// the affected server is not go-susi). If the affected server is a go-susi it
+// will upon receipt of the message modify the job and send a foreign_job_updates,
+// which will then cause the job to be modified in our database.
+// To deal with non-go-susi servers, we wait a few seconds and then
+// actively query the affected server's database.
+func JobsModify(filter xml.HashFilter, update *xml.Hash) {
+  JobsModifyLocal(xml.FilterAnd([]xml.HashFilter{xml.FilterSimple("siserver",config.ServerSourceAddress),filter}), update)
+  JobsForwardModifyRequest(xml.FilterAnd([]xml.HashFilter{xml.FilterNot(xml.FilterSimple("siserver",config.ServerSourceAddress)),filter}), update)
+}
+
+// Goes through all jobs selected by the filter and sends to all the responsible
+// servers a foreign_job_updates request that incorporates the changes to
+// all the updatableFields (see var further above in this file) from the
+// respective fields in the update data. Fields not present in update are left
+// unchanged.
+// For go-susi peers the above is all that's required, because they will inform
+// us (and everyone else) of any changes they actually apply. For non-go-susi
+// servers, we broadcast the foreign_job_updates to everyone and 
+// schedule a full sync with the responsible server after a few seconds delay.
+//
+// NOTE: The filter must include a siserver!=config.ServerSourceAddress check,
+//       so that it will not affect local jobs.
+func JobsForwardModifyRequest(filter xml.HashFilter, update *xml.Hash) {
+  modifyjobs := func(request *jobDBRequest) {
+    jobdb_xml := jobDB.Query(request.Filter)
+    count := make(map[string]uint64)
+    fju   := make(map[string]*xml.Hash)
+    for _, tag := range jobdb_xml.Subtags() {
+      // Use RemoveFirst() so that we can use Rename() and AddWithOwnership()
+      for job := jobdb_xml.RemoveFirst(tag); job != nil; job = jobdb_xml.RemoveFirst(tag) {
+        siserver := job.Text("siserver")
+        if count[siserver] == 0 { 
+          count[siserver] = 1 
+          fju[siserver] = xml.NewHash("xml","header","foreign_job_updates")
+        }
+        
+        for _, field := range updatableFields {
+          x := request.Job.First(field)
+          if x != nil {
+            job.FirstOrAdd(field).SetText(x.Text())
+          }
+        }
+        job.Rename("answer"+strconv.FormatUint(count[siserver], 10))
+        job.First("id").SetText(job.RemoveFirst("original_id").Text())
+        count[siserver]++
+        fju[siserver].AddWithOwnership(job)
+      }
+    }
+    
+    for siserver := range fju {
+      fju[siserver].Add("source", config.ServerSourceAddress)
+      fju[siserver].Add("target", siserver) // affected by SyncNonGoSusi!
+      fju[siserver].Add("sync", "ordered")
+      fju[siserver].Add("SyncNonGoSusi") // see doc at var ForeignJobUpdates
+      ForeignJobUpdates <- fju[siserver]
+    }
+  }
+  
+  jobDBRequests <- &jobDBRequest{ modifyjobs, filter, update.Clone(), nil }
+}
+
 
 // Adds a local job to the database (i.e. a job to be executed by this server), 
 // creating a new id for it that will be both
@@ -218,7 +312,8 @@ func JobAddLocal(job *xml.Hash) {
 }
 
 // Removes from the JobDB the jobs matching filter.
-// Calling this method triggers a foreign_job_updates broadcast.
+// Calling this method triggers a foreign_job_updates broadcast (if at least
+// 1 job was removed).
 //
 // NOTE: The filter must include the siserver==config.ServerSourceAddress check,
 // so that it only affects local jobs.
@@ -238,25 +333,34 @@ func JobsRemoveLocal(filter xml.HashFilter) {
         fju.AddWithOwnership(job)
       }
     }
-    fju.Add("source", config.ServerSourceAddress)
-    fju.Add("target") // empty target => all peers
-    fju.Add("sync", "ordered")
-    ForeignJobUpdates <- fju
+    
+    if count > 1 {
+      fju.Add("source", config.ServerSourceAddress)
+      fju.Add("target") // empty target => all peers
+      fju.Add("sync", "ordered")
+      ForeignJobUpdates <- fju
+    }
   }
   jobDBRequests <- &jobDBRequest{ deljob, filter, nil, nil }
 }
 
-// Fields that can be updated via JobsModifyLocal() and JobsAddOrModifyForeign()
-var updatableFields = []string{"progress", "status", "periodic", "timestamp", "result"}
-
-// Updates the updatableFields (see var above) 
+// Updates the updatableFields (see var further up in this file) 
 // of all jobs selected by filter with the respective values from update. 
 // Fields not present in update are left unchanged.
-// Calling this method triggers a foreign_job_updates broadcast.
+// Calling this method triggers a foreign_job_updates broadcast (if at least
+// 1 job was modified).
 //
 // NOTE: The filter must include the siserver==config.ServerSourceAddress check,
 // so that it only affects local jobs.
+//
+// NOTE: If update has status=="done", this call is equivalent to
+//       JobsRemoveLocal(filter)
 func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
+  if update.Text("status") == "done" {
+    JobsRemoveLocal(filter)
+    return
+  }
+  
   modifylocaljobs := func(request *jobDBRequest) {
     jobdb_xml := jobDB.Query(request.Filter)
     fju := xml.NewHash("xml","header","foreign_job_updates")
@@ -276,10 +380,13 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
         fju.AddWithOwnership(job)
       }
     }
-    fju.Add("source", config.ServerSourceAddress)
-    fju.Add("target") // empty target => all peers
-    fju.Add("sync", "ordered")
-    ForeignJobUpdates <- fju    
+    
+    if count > 1 {
+      fju.Add("source", config.ServerSourceAddress)
+      fju.Add("target") // empty target => all peers
+      fju.Add("sync", "ordered")
+      ForeignJobUpdates <- fju    
+    }
   }
   
   jobDBRequests <- &jobDBRequest{ modifylocaljobs, filter, update.Clone(), nil }
@@ -302,9 +409,17 @@ func JobsRemoveForeign(filter xml.HashFilter) {
 // with the respective values from job. 
 // Fields not present in job are left unchanged.
 //
-// No foreign_job_updates will be broadcast. Therefore this function must only be
-// used with a filter that checks siserver to avoid local jobs.        
+// NOTE: No foreign_job_updates will be broadcast. Therefore this function must only be
+//       used with a filter that checks siserver to avoid local jobs.
+//
+// NOTE: If job has status=="done", this call is equivalent to
+//       JobsRemoveForeign(filter)
 func JobsAddOrModifyForeign(filter xml.HashFilter, job *xml.Hash) {
+  if job.Text("status") == "done" {
+    JobsRemoveForeign(filter)
+    return
+  }
+  
   addmodify := func(request *jobDBRequest) {
     found := jobDB.Query(request.Filter).First("job")
     
@@ -332,6 +447,77 @@ func JobsAddOrModifyForeign(filter xml.HashFilter, job *xml.Hash) {
   jobDBRequests <- &jobDBRequest{ addmodify, filter, job, nil }
 }
 
+// Sends a foreign_job_updates message to target containing all local
+// jobs (<sync>all</sync>). If old != nil it must be the reply of target
+// to a gosa_query_jobdb asking for all jobs with
+// siserver==config.ServerSourceAddress. If any of the old jobs (as identified
+// by the combination headertag/macaddress) has no counterpart in the current
+// list of local jobs, then it will be added to the foreign_job_updates message
+// with <status>none</status><periodic>none</periodic>.
+//
+// If there are no jobs to update, no fju will be sent.
+func JobsSyncAll(target string, old *xml.Hash) {
+  if old == nil { old = xml.NewHash("xml") }
+  fju := old.Clone()
+  fju.FirstOrAdd("header").SetText("foreign_job_updates")
+  fju.FirstOrAdd("target").SetText(target)
+  fju.FirstOrAdd("source").SetText(config.ServerSourceAddress)
+  fju.Add("sync", "all")
+  
+  syncall := func(request *jobDBRequest) {
+    fju := request.Job
+    
+    // Get current list of LOCAL jobs into myjobs
+    myjobs := jobDB.Query(xml.FilterSimple("siserver",config.ServerSourceAddress))
+    
+    // Remove all old jobs from fju that have a counterpart in the current list
+    for _, tag := range myjobs.Subtags() {
+      for job := myjobs.First(tag); job != nil; job = job.Next() {
+        fju.Remove(xml.FilterSimple("headertag",job.Text("headertag"),"macaddress", job.Text("macaddress")))
+      }
+    }
+    
+    // Next set all remaining old jobs in fju to "done" non-periodic and renumber them.
+    // Note that the following loop is a bit tricky, because the renumbered
+    // <answerX> may be the same as an existing and yet unprocessed <answerX>.
+    // The reason why this works is because AddWithOwnership()'s contract says that it
+    // will always make the renumbered job the LAST child with name <answerX>.
+    // So when we finally reach the unrenumbered "answerX" in the subtags list,
+    // RemoveFirst() will reliably remove only the unrenumbered job.
+    var count uint64 = 1
+    for _, tag := range fju.Subtags() {
+      if !strings.HasPrefix(tag,"answer") { continue }
+      job := fju.RemoveFirst(tag)
+      job.FirstOrAdd("status").SetText("done")
+      job.FirstOrAdd("periodic").SetText("none")
+        // If the target is an as-yet unidentified go-susi, it would
+        // use the id to identify the job. So make sure it has a unique
+        // one and won't accidentally interfere with some other job.
+        // gosa-si doesn't care about the id. It uses headertag+macaddress.
+      job.FirstOrAdd("id").SetText("%d", <-nextID)
+      job.Rename("answer"+strconv.FormatUint(count, 10))
+      count++
+      fju.AddWithOwnership(job)
+    }
+    
+    // Now add the jobs from myjobs to fju.
+    for _, tag := range myjobs.Subtags() {
+      // Use RemoveFirst() so that we can use Rename() and AddWithOwnership()
+      for job := myjobs.RemoveFirst(tag); job != nil; job = myjobs.RemoveFirst(tag) {
+        job.RemoveFirst("original_id")
+        job.Rename("answer"+strconv.FormatUint(count, 10))
+        count++
+        fju.AddWithOwnership(job)
+      }
+    }
+    
+    if count > 1 {
+      ForeignJobUpdates <- fju
+    }
+  }
+  
+  jobDBRequests <- &jobDBRequest{ syncall, nil, fju, nil }
+}
 
 // Creates a GUID from the ip:port address addr and the number num.
 // An illegal address will cause a panic.
@@ -347,59 +533,3 @@ func JobGUID(addr string, num uint64) string {
   return strconv.FormatUint(num,10)+strconv.FormatUint(n,10)
 }
 
-/*  There are 6 different request types:
-  1) trigger_action: add a job to be executed by this server
-                     multiple jobs with the same headertag+mac are permitted
-  2) query_jobdb: request an extract of jobs that match a filter
-                  For foreign jobs uses PeerConnection.Downtime() to check
-                  if the siserver is available (for consistency reasons only
-                  1 check is done per siserver and cached for the request)
-                  and if not sets the job to <status>error</status> with a <result>
-                  saying that the responsible server is down (with a time how
-                  long it has been down ("...has been down for 10h").
-  3) modify_jobs: change some attributes of all jobs that match a filter
-                  internally split up into subrequests for the different
-                  siservers involved. Local jobs are modified directly.
-                  Foreign jobs are modified by passing on the request
-                  as gosa_update_status_jobdb_entry requests
-                  When an existing job is modified, its GUID remains unchanged.
-  4) delete_jobs: deletes all jobs matching a filter. Like modify_jobs this
-                  is split into subrequests and foreign jobs are deleted via
-                  gosa_delete_jobdb_entry on the foreign servers.
-                  A job that is in state error because the server is down can not
-                  be deleted until 48h have passed since the server went down.
-                  This prevents overzealous admins from removing jobs from the
-                  deployment status that other admins may want to see, but permits
-                  jobs from servers that have been permanently decommissioned to
-                  be removed eventually. After 7 days of downtime of a server, its
-                  jobs are automatically removed from the list.
-  5) foreign_job_update: (restriction: all jobs have the same siserver and have
-                          <sync>ordered</sync> or <sync>all</sync>. f_j_u messages
-                          that do not meet this requirement are handled
-                          by message.Foreign_job_updates())
-                          Open question: Should we accept f_j_u that try to change
-                          our own jobs, i.e. the kind of f_j_u that are created when
-                          a foreign job is deleted or modified on gosa-si? Such
-                          a job would have to be translated to modify_jobs or
-                          delete_jobs as appropriate and because it does not use
-                          GUIDs would affect all jobs with the same combination
-                          of headertag+mac. In either case we should schedule a full
-                          sync for the requesting server so that it gets our
-                          up-to-date jobdb (and recreates any jobs it has mistakenly
-                          deleted). Of course this wont fix any misinformation on
-                          other gosa-si servers that have blindly accepted the f_j_u,
-                          but in the typical case with 1 gosa-si (production system)
-                          and 1 go-susi (test system) it would work perfectly.
-  6) send_full_sync: Creates a f_j_u message with <sync>all</sync> containing all
-                     local jobs. The f_j_u is put into the ForeignJobUpdates queue
-                     with a target corresponding to the target in the send_full_sync
-                     request, so that the full sync is only sent to one peer rather
-                     than all peers. If a full sync is sent to a non-goSusi peer, it
-                     should be preceded by a gosa_delete_jobdb_entry that has a
-                     <where> clause that selects all datasets where
-                       siserver=me  AND
-                       (headertag!=ht_of_my_1st_job or macaddress!=mac_of_my_1st_job) AND
-                       (headertag!=ht_of_my_2st_job or macaddress!=mac_of_my_2st_job) AND
-                       ...
-                     which cleans up all old jobs the peer may still believe we have.
-  */
