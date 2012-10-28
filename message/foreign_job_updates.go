@@ -20,8 +20,6 @@ MA  02110-1301, USA.
 package message
 
 import (
-         "fmt"
-         "time"
          "regexp"
          "strings"
          
@@ -40,17 +38,25 @@ var addressRegexp = regexp.MustCompile("^"+ip_part+"([.]"+ip_part+"){3}:"+re_por
 
 // Handles the message "foreign_job_updates".
 //  xmlmsg: the decrypted and parsed message.
-// Returns:
-//  unencrypted reply
-func foreign_job_updates(xmlmsg *xml.Hash) string {
+func foreign_job_updates(xmlmsg *xml.Hash) {
   source := xmlmsg.Text("source")
+  sync   := xmlmsg.Text("sync")
   
   if !addressRegexp.MatchString(source) {
     // We could try name lookup here, but non-numeric <source> fields
     // don't occur in the wild. So we just bail out with a message.
     util.Log(0, "ERROR! <source>%v</source> is not in IP:PORT format", source)
-    return ErrorReply(fmt.Sprintf("%v is not in IP:PORT format", source))
+    return
   }
+  
+  // If the message is a complete copy of the sender's jobdb,
+  // clear out all old job data, before processing the message.
+  if sync == "all" {
+    db.JobsRemoveForeign(xml.FilterSimple("siserver",source))
+  }
+  
+  // The key set is the set of peers for which to schedule a full sync.
+  fullsync := make(map[string]bool)
   
   for _, tag := range xmlmsg.Subtags() {
   
@@ -85,7 +91,7 @@ func foreign_job_updates(xmlmsg *xml.Hash) string {
         // We could try name lookup here, but non-numeric <siserver> fields
         // don't occur in the wild. So we just bail out with a message.
         util.Log(0, "ERROR! <siserver>%v</siserver> is not in IP:PORT format", siserver)
-        return ErrorReply(fmt.Sprintf("%v is not in IP:PORT format", siserver))
+        return
       }
       
       status := strings.ToLower(job.Text("status"))
@@ -97,47 +103,51 @@ func foreign_job_updates(xmlmsg *xml.Hash) string {
       
       // If the update targets a local job, it must be translated to a delete or modify
       if siserver == config.ServerSourceAddress {
-        // The <id> field is the id of the job in the sending server's database
-        // which is not meaningful to us. So the best we can do is select all
-        // local jobs which match the headertag/macaddress combination.
-        filter := xml.FilterSimple("siserver", config.ServerSourceAddress, "headertag",headertag,"macaddress",macaddress)
+        var filter xml.HashFilter
         
-        if status == "done" { // remove local job
+        if Peer(source).IsGoSusi() { // Message is from a go-susi, so <id> is meaningful.
+          filter = xml.FilterSimple("id", job.Text("id"), "siserver", config.ServerSourceAddress)
+        } else {
+          // The <id> field is the id of the job in the sending server's database
+          // which is not meaningful to us. So the best we can do is select all
+          // local jobs which match the headertag/macaddress combination.
+          filter = xml.FilterSimple("siserver", config.ServerSourceAddress, "headertag",headertag,"macaddress",macaddress)
           
-          db.JobsRemoveLocal(filter)
-          
-        } else // modify local job
-        {
-          db.JobsModifyLocal(filter, job)
+          // We also schedule a full sync to make sure the sender gets the actual change
+          // as performed and not what it believes the change to be.
+          // This won't fix any misinformation on other gosa-si servers that blindly
+          // believe 3rd party information, but in the typical case of one gosa-si on
+          // the production server and one go-susi on the test server this works perfectly.
+          fullsync[source] = true
         }
+        
+        db.JobsModifyLocal(filter, job)
+        
       } else if siserver == source { // the job belongs to the sender
-          // Because the job belongs to the sender, the <id> field corresponds to
-          // the <original_id> we have in our database, so we can select the
-          // job with precision.
-          filter := xml.FilterSimple("original_id", job.Text("id"))
+        // Because the job belongs to the sender, the <id> field corresponds to
+        // the <original_id> we have in our database, so we can select the
+        // job with precision.
+        filter := xml.FilterSimple("original_id", job.Text("id"))
           
-        if status == "done" { // remove foreign job
-          
-          db.JobsRemoveForeign(filter)
-          
-        } else // modify existing or add new foreign job
-        {
-          db.JobsAddOrModifyForeign(filter, job)
-        }
+        db.JobsAddOrModifyForeign(filter, job)
           
       } else { // the job belongs to a 3rd party peer
         // We don't trust Chinese whispers, so we don't use the job information
         // directly. Instead we schedule a query of the affected 3rd party's
         // jobdb. This needs to be done with a delay, because the 3rd party
         // may not even have received the foreign_job_updates affecting its job.
-        go util.WithPanicHandler(func() {
-          time.Sleep(5*time.Second) // 5s should be enough, even for gosa-si
-          // PeerConnectionManager.GetConnection(siserver).GetAllLocalJobsFromPeer()
-        })
+        // We only do this if the 3rd party is not (known to be) a go-susi.
+        // In the case of a go-susi we can rely on it telling us about changes
+        // reliably.
+        fullsync[siserver] = true
+
       }
-    
     }
   }
   
-  return ""
+  for siserver := range fullsync {
+    Peer(siserver).SyncNonGoSusi()
+  }
+  
+  return
 }
