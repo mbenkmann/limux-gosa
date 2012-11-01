@@ -1,3 +1,22 @@
+/*
+Copyright (c) 2012 Matthias S. Benkmann
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+MA  02110-1301, USA.
+*/
+
 package message
 
 import (
@@ -5,6 +24,7 @@ import (
          "net"
          "sync"
          "time"
+         "sync/atomic"
          
          "../db"
          "../xml"
@@ -12,35 +32,41 @@ import (
          "../config"
        )
 
+// A permanent connection to a peer. A PeerConnection is obtained via the
+// Peer() function. All communication with peers that go-susi initiates is
+// performed via PeerConnections.
+// There are 2 modes of communication:
+//  1) The asynchronous Ask() function. This opens a new connection to the peer
+//     and runs in a new goroutine that waits for a reply.
+//  2) The synchronous Tell() function. This sends all messages over the
+//     PeerConnection.queue channel and from there a single goroutine passes them
+//     on over a permanent TCP connection (which on the other side is serviced by
+//     a single goroutine/thread). Replies are not permitted in this case (because
+//     proper synchronization is hard to achieve when some messages have and others
+//     don't have replies).
+//
+// The primary use for the synchronous channel is the sending of 
+// foreign_job_updates, to make sure they all arrive in a well-defined order.
+// See documentation in jobdb.go at handleJobDBRequests() for more information.
 type PeerConnection struct {
+  // true when the peer is known to speak the go-susi protocol.
   is_gosusi bool
+  // encrypted messages (typically foreign_job_updates) to be sent to the peer
+  // over the permanent TCP connection. The Tell() function enqueues messages here.
+  queue chan string
+  // Set to true when putting a message into queue fails due to overflow.
+  // As a result the PeerConnection is replaced by a new PeerConnection to the
+  // same peer with a larger buffer for queue.
   overflow bool
+  // IP:PORT of the peer.
   addr string
+  // nil for a normal PeerConnection. Non-nil for PeerConnection that is
+  // created in non-working state and can only return this error on Ask().
   err error
-}
-
-// Returns the time this peer has been down (0 if everything is okay).
-func (conn *PeerConnection) Downtime() time.Duration {
-/*
-After 7 days of downtime, the PeerConnection gives up, issues a JobsRemoveForeign
-for all jobs belonging to the peer and removes itself (LOCK!!) from the connections
-list, then the goroutine terminates.
-
-
-gosa_query_jobdb uses JobsQuery to query for the respective jobs, then it
-postprocesses the query and for each siserver that is down (cache the Downtime()
-to get consistent results for all jobs) replace the status with error and inserts
-a result with the message "SERVERNAME(from reverse lookup of ip) has been down for DURATION"
-
-
-gosa_delete_jobdb_entry can not delete jobs from servers that are down. This is
-a) good because it prevents overzealous admins from removing errors that other
-   admins haven't seen yet.
-b) an automatic result from the fact that foreign jobs are never removed directly
-   but converted to fju+full sync (which fails if the server is down, leaving the
-   old jobs intact)
-*/
-  return 0
+  // The persistent TCP connection.
+  net net.TCPConn
+  // Unix time (seconds since the epoch) of the time the peer went down. 0 if it's up.
+  whendown int64
 }
 
 // Tells this connection if its peer 
@@ -61,6 +87,18 @@ func (conn *PeerConnection) SetGoSusi(is_gosusi bool) {
 func (conn *PeerConnection) IsGoSusi() bool {
   return conn.is_gosusi
 }
+
+// Returns how long this peer has been down (0 if everything is okay).
+// After 7 days of downtime, the PeerConnection will first tell the jobdb to
+// remove all jobs whose <siserver> is the broken peer, then the PeerConnection
+// will dismantle itself.
+func (conn *PeerConnection) Downtime() time.Duration {
+  down := atomic.LoadInt64(&(conn.whendown))
+  if down == 0 { return 0 }
+  return (time.Duration(time.Now().Unix() - down)) * time.Second
+  return 0
+}
+
 
 // Encrypts msg with key and sends it to the peer without waiting for a reply.
 // If key == "" the first key from db.ServerKeys(peer) is used.
@@ -91,6 +129,8 @@ func (conn *PeerConnection) Tell(msg, key string) {
 // goroutine leak.
 func (conn *PeerConnection) Ask(request, key string) <-chan string {
   // if the request channel overflows, conn.overflow is set to true
+  // and the tcp connection is forced close. The overflow status
+  // is checked when the disconnect is noticed.
   
   c := make(chan string, 1)
   
@@ -190,6 +230,27 @@ func (conn *PeerConnection) SyncAll() {
 }
 
 func (conn *PeerConnection) handleConnection() {
+  
+/*
+After 7 days of downtime, the PeerConnection gives up, issues a JobsRemoveForeign
+for all jobs belonging to the peer and removes itself (LOCK!!) from the connections
+list, then the goroutine terminates.
+
+
+gosa_query_jobdb uses JobsQuery to query for the respective jobs, then it
+postprocesses the query and for each siserver that is down (cache the Downtime()
+to get consistent results for all jobs) replace the status with error and inserts
+a result with the message "SERVERNAME(from reverse lookup of ip) has been down for DURATION"
+
+
+gosa_delete_jobdb_entry can not delete jobs from servers that are down. This is
+a) good because it prevents overzealous admins from removing errors that other
+   admins haven't seen yet.
+b) an automatic result from the fact that foreign jobs are never removed directly
+   but converted to fju+full sync (which fails if the server is down, leaving the
+   old jobs intact)
+*/
+
 /*  siehe auch NOTE unten bei GetConnection()
   
   wenn eine abgebrochene Verbindung re-established wird bzw. wenn
@@ -210,7 +271,10 @@ func (conn *PeerConnection) handleConnection() {
   /* Ask() ist immer asynchron über neue Verbindung. 
   Das eliminiert Synchronisationsprobleme durch verzögerte oder fehlende Antworten.
   Trotzdem müssen rogue Daten der Tell-Verbindung ausgelesen (und geloggt) werden
-  zur Sicherheit.
+  zur Sicherheit. Am einfachsten indem jeweils eine neue goroutine gestartet wird,
+  die sich in Read() blockt und falls was kommt bzw. ein Fehler festgestellt wird
+  auf einem chan error einen error sendet. Die Hauptgoroutine der PeerConnection
+  blockt in select{}
   
   */
   
