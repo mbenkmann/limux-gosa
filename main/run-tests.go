@@ -43,6 +43,7 @@ func main() {
     tests.SystemTest(systemtest, gosasi)
   } else
   {
+    tests.Deque_test()
     tests.Util_test()
     tests.Xml_test()
     tests.DB_test()
