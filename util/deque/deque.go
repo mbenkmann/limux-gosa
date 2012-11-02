@@ -658,7 +658,6 @@ func (self *Deque) Pop() interface{} {
 func (self *Deque) PopAt(idx int) interface{} {
   self.Mutex.Lock()
   defer self.Mutex.Unlock()
-  if self.data == nil { self.init() }
   return self.removeAt(self.count-1-idx)
 }
 
@@ -669,7 +668,6 @@ func (self *Deque) PopAt(idx int) interface{} {
 func (self *Deque) Peek(idx int) interface{} {
   self.Mutex.Lock()
   defer self.Mutex.Unlock()
-  if self.data == nil { self.init() }
   return self.at(self.count-1-idx)
 }
 
@@ -680,10 +678,7 @@ func (self *Deque) Peek(idx int) interface{} {
 func (self *Deque) Poke(idx int, item interface{}) interface{} {
   self.Mutex.Lock()
   defer self.Mutex.Unlock()
-  if self.data == nil { self.init() }
-  old := self.at(self.count-1-idx)
-  self.put(self.count-1-idx, item)
-  return old
+  return self.put(self.count-1-idx, item)
 }
 
 
@@ -698,7 +693,9 @@ func (self *Deque) Poke(idx int, item interface{}) interface{} {
 // PopAt(Count()-1) will return item. Insert() returns the Deque itself for
 // easy chaining. If the Deque is full, Growth() will be called beforehand.
 func (self *Deque) Insert(item interface{}) *Deque {
-  return self
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  return self.insertAt(0, item)
 }
 
 // Makes item the new idx-th element (counting from the bottom). 
@@ -713,14 +710,24 @@ func (self *Deque) Insert(item interface{}) *Deque {
 // Optimization note: PushAt() and InsertAt() have the exact same performance
 // and automatically minimize the size of the memory block that needs to be moved.
 // You can not optimize anything by choosing one or the other based on the index.
-func (self *Deque) InsertAt(idx int, item interface{}) *Deque { return nil }
+func (self *Deque) InsertAt(idx int, item interface{}) *Deque {
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  return self.insertAt(idx, item)
+}
 
 // Blocks until there is at least 1 item in the Deque, then removes and returns
 // the 1st element (i.e. the item returned by At(0) and Peek(Count()-1)).
 //
 // If you need a non-blocking Next(), use RemoveAt(0).
 func (self *Deque) Next() interface{} {
-  return nil
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.data == nil { self.init() }
+  for ; self.count == 0 ; {
+    self.waitFor(&self.hasItem, 0)
+  }
+  return self.removeAt(0)
 }
 
 // If the Deque contains at least idx+1 items, this call removes and returns
@@ -731,40 +738,58 @@ func (self *Deque) Next() interface{} {
 // Optimization note: PopAt() and RemoveAt() have the exact same performance
 // and automatically minimize the size of the memory block that needs to be moved.
 // You can not optimize anything by choosing one or the other based on the index.
-func (self *Deque) RemoveAt(idx int) interface{} { return nil }
-
+func (self *Deque) RemoveAt(idx int) interface{} {
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  return self.removeAt(idx)
+}
 
 // If the Deque contains at least idx+1 items, this call returns
 // the idx-th item.
 // At() does not remove the item from the stack. Use RemoveAt() for that.
 // If idx is out of range (idx < 0 or idx >= Count()), nil is returned.
-func (self *Deque) At(idx int) interface{} { return nil }
-
+func (self *Deque) At(idx int) interface{} {
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  return self.at(idx)
+}
 
 // If the Deque contains at least idx+1 items, this call replaces
 // the idx-th item (i.e. the item returned by At(idx)) with the new item
 // and returns the old item.
 // If idx is out of range (idx < 0 or idx >= Count()), nil is returned.
-func (self *Deque) Put(idx int, item interface{}) interface{} { return nil }
+func (self *Deque) Put(idx int, item interface{}) interface{} {
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  return self.put(idx, item)   
+}
 
 func (self *Deque) at(idx int) interface{} { 
   if self.data == nil { self.init() }
-  return nil 
+  if idx < 0 || idx >= self.count { return nil }
+  idx += self.a
+  if idx >= len(self.data) { idx -= self.data }
+  return self.data[idx]
 }
 
 func (self *Deque) put(idx int, item interface{}) interface{} { 
   if self.data == nil { self.init() }
-  return nil 
-}
-
-func (self *Deque) insertAt(idx int, item interface{}) *Deque {
-  if self.data == nil { self.init() }
-  return self
+  if idx < 0 || idx >= self.count { return nil }
+  idx += self.a
+  if idx >= len(self.data) { idx -= self.data }
+  old := self.data[idx]
+  self.data[idx] = item
+  return old
 }
 
 func (self *Deque) removeAt(idx int) interface{} {
   if self.data == nil { self.init() }
   return nil
+}
+
+func (self *Deque) insertAt(idx int, item interface{}) *Deque {
+  if self.data == nil { self.init() }
+  return self
 }
 
 
