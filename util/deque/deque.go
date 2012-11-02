@@ -163,15 +163,28 @@ type Deque struct {
   // mutex before changing GrowthFunc or GrowthCount unless you can otherwise
   // guarantee that no goroutine will access the Deque concurrently.
   Mutex sync.Mutex
-  // each condition variable is created lazily the first time a goroutine needs
-  // to wait on it. The Signal() calls are protected by if ... != nil.
-  // This lazy instantiation saves needless Signal() calls in the typical
-  // case where a Deque is not accessed concurrently.
-  hasItem *sync.Cond
-  isEmpty *sync.Cond
-  hasSpace *sync.Cond
+  // The following 3 slices are used for waiting for the respective conditions.
+  // A waiter will create a buffered channel and append it to the respective list,
+  // then wait for a signal on that channel.
+  hasItem []chan bool
+  isEmpty []chan bool
+  hasSpace []chan bool
   data []interface{}
+  // Current item count. Not to be confused with capacity (which is len(data)).
+  count int
+  // Index of the element At(0). The next Insert() call will write to
+  // (a-1+capacity) % capacity .
+  // a==b occurs if the Deque is either empty or full. count distinguishes these cases.
   a int
+  // Index that the next Push() will write to (if the Deque is not full).
+  // Peek(0) returns the item at index (b-1+capacity) % capacity.
+  //  If a<b, then the slice data[a:b] contains all items in order.
+  //  If a>b, then data[a:] is the 1st and data[:b] the 2nd part.
+  //  If a==b and count == len(data), then data[a:] is the 1st and data[:b] the 2nd part.
+  //  If a==b and count == 0, then data[a:b] (an empty slice) contains all items.
+  // Combined that is:
+  //  If a<b || count == 0, all items are found in data[a:b]
+  //  Otherwise all items are found in data[a:] followed by data[:b]
   b int
 }
 
@@ -307,8 +320,8 @@ func New(args... interface{}) *Deque {
   return d.Init(args...)
 }
 
-// Frees the memory currently occupied by the Deque and starts a fresh buffer
-// with CapacityDefault unless args overrides the start capacity. 
+// Releases the buffer currently used by the Deque and starts a fresh buffer
+// with CapacityDefault unless args override the start capacity. 
 //
 // The following arguments may be used (in any order)
 //
@@ -354,12 +367,18 @@ func New(args... interface{}) *Deque {
 func (self *Deque) Init(args... interface{}) *Deque {
   self.Mutex.Lock()
   defer self.Mutex.Unlock()
+  return self.init(args...)
+}
+
+// like Init() but the caller is responsible for locking self.
+func (self *Deque) init(args... interface{}) *Deque {
   locklist := map[*Deque]bool{self:true}
   
-  // lock all participating Deques and determine buffer size
+  // evaluate arguments
   requested_capacity := 0
   cat_capacity := 0
-  for _, x := range args {
+  var new_growth GrowthFunc
+  for i, x := range args {
     switch arg := x.(type) {
       case *Deque: 
              if !locklist[arg] { 
@@ -368,22 +387,75 @@ func (self *Deque) Init(args... interface{}) *Deque {
                defer arg.Mutex.Unlock()  // FIXME: Does this work? Is the current value of arg properly frozen by the closure?
              }
              if arg.data != nil { // protect against uninitialized Deques
-               cat_capacity += arg.prelockedCount()
+               cat_capacity += arg.count
              }
       case int:  requested_capacity = arg
-      case uint: requested_capacity = arg
-      case int64: requested_capacity = arg
-      case uint64: requested_capacity = arg
+      case uint: requested_capacity = int(arg)
+      case int64: requested_capacity = int(arg)
+      case uint64: requested_capacity = int(arg)
       case []interface{}: cat_capacity += len(arg)
-      case GrowthFunc: // listed just so that it doesn't end up in default case
-      default: panic(fmt.Errorf("Type of argument %v unsupported by deque.Init()",x))
+      case GrowthFunc: new_growth = arg
+      default: panic(fmt.Errorf("Type of argument #%d unsupported by deque.Init()",i))
     }
   }
   
   if cat_capacity > requested_capacity { requested_capacity = cat_capacity }
+  // Current implemention is to only use CapacityDefault if neither an explicit
+  // capacity is requested nor initial values are provided. It would also be
+  // a reasonable implementation to have the following line before the
+  // previous line which would have the effect that if fewer initial values
+  // are provided than CapacityDefault, the deque would be created with some
+  // empty slots.
+  if requested_capacity == 0 { requested_capacity = int(CapacityDefault) }
   
-  // do not forget to signal waiters appropriately depending on
-  // if the deck is initialized empty or with elements
+  new_data := make([]interface{}, 0, requested_capacity)
+  
+  // concatenate all initial items into new_data
+  for _, x := range args {
+    switch arg := x.(type) {
+      case *Deque: 
+             if arg.data != nil { // protect against uninitialized Deques
+               if arg.a < arg.b || arg.count == 0 {
+                 new_data = append(new_data, arg.data[arg.a:arg.b]...)
+               } else {
+                 new_data = append(new_data, arg.data[arg.a:]...)
+                 new_data = append(new_data, arg.data[:arg.b]...)
+               }
+             }
+      case []interface{}: new_data = append(new_data, arg...)
+    }
+  }
+  
+  self.count = len(new_data)
+  self.a = 0
+  self.b = self.count
+  
+  // grow new_data slice to full capacity
+  new_data = new_data[0:cap(new_data)]
+  // wrap around b if beyond end
+  if self.b == len(new_data) { self.b = 0 }
+  
+  self.data = new_data
+  
+  if self.Growth == nil && new_growth == nil { new_growth = GrowthDefault }
+  if new_growth != nil { self.Growth = new_growth }
+  
+  self.GrowthCount = 0
+  
+  // notify waiters based on new state
+  if self.count > 0 { 
+    for _,c := range self.hasItem { c <-true } 
+    self.hasItem = self.hasItem[0:0]
+  }
+  if self.count < len(self.data) { 
+    for _,c := range self.hasSpace { c <- true } 
+    self.hasSpace = self.hasSpace[0:0]
+  }
+  if self.count == 0 { 
+    for _,c := range self.isEmpty { c <- true } 
+    self.isEmpty = self.isEmpty[0:0]
+  }
+
   return self
 }
 
@@ -396,15 +468,22 @@ func (self *Deque) Init(args... interface{}) *Deque {
 
 // Returns the number of items in the Deque, not to be confused with Capacity().
 func (self *Deque) Count() int { 
-  if self.data == nil { self.Init() }
-  return 0 
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.data == nil { self.init() }
+  return self.count
 }
 
 // Returns the total number of items that can be stored in the Deque without calling
 // Growth(). The REMAINING capacity, i.e. the number of Push() calls that can be
 // performed before Growth() has to be called is Capacity()-Count().
 // You can use Overcapacity() to free the Capacity()-Count() of "wasted" memory.
-func (self *Deque) Capacity() int { return 0 }
+func (self *Deque) Capacity() int { 
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.data == nil { self.init() }
+  return len(self.data)
+}
 
 // Changes the internal buffer to have the requested remaining capacity (i.e.
 // the number of Push() calls that can be executed before Growth() has to be called).
@@ -412,12 +491,36 @@ func (self *Deque) Capacity() int { return 0 }
 // will ever hold, you can use Overcapacity(0) to free wasted memory.
 // Overcapacity() can be used with a non-0 number to reserve memory ahead of
 // adding a known number of items to avoid expensive calls to Growth().
-func (self *Deque) Overcapacity(remaining uint) *Deque { return nil }
+//
+// Optimization note: Overcapacity() may create a new buffer of the desired
+// length and copy the data into it. It is therefore an expensive operation.
+// However if remaining is already the current remaining capacity, this is avoided.
+// So there's no point checking for this yourself.
+func (self *Deque) Overcapacity(remaining uint) *Deque { 
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.data == nil { self.init() }
+  r := len(self.data) - self.count
+  if uint(r) != remaining {
+    new_data := make([]interface{},0,self.count + int(remaining))
+    if self.a < self.b || self.count == 0 {
+      new_data = append(new_data, self.data[self.a:self.b]...)
+    } else {
+      new_data = append(new_data, self.data[self.a:]...)
+      new_data = append(new_data, self.data[:self.b]...)
+    }
+    self.data = new_data
+    self.a = 0
+    self.b = self.count
+  }
+  return self
+}
 
 // Returns true iff no items are in the Deque. Be wary of race conditions in
 // concurrent programs. By the time one goroutine evaluates the return value from
 // IsEmpty(), another may have already added an item.
 // Use WaitForEmpty() or WaitForItem() instead of busy waiting on IsEmpty().
+// Note that for a 0-capacity Deque IsFull() and IsEmpty() are both true.
 func (self *Deque) IsEmpty() bool { return self.Count()==0 }
 
 // Returns true iff adding an item without removing one first
@@ -425,7 +528,13 @@ func (self *Deque) IsEmpty() bool { return self.Count()==0 }
 // Be wary of race conditions in
 // concurrent programs. By the time one goroutine evaluates the return value from
 // IsFull(), another may have already removed an item.
-func (self *Deque) IsFull() bool { return true }
+// Note that for a 0-capacity Deque IsFull() and IsEmpty() are both true.
+func (self *Deque) IsFull() bool { 
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.data == nil { self.init() }
+  return len(self.data) == self.count
+}
 
 // Blocks until either timeout has elapsed or at least one item is in the Deque.
 // Returns true if the function returned because of an item and false if it
@@ -433,7 +542,27 @@ func (self *Deque) IsFull() bool { return true }
 // Be wary of race conditions in concurrent programs. That this function returns
 // true does not mean that a subsequent Pop() won't block, because a concurrent
 // goroutine may have emptied the Deque again.
-func (self *Deque) WaitForItem(timeout time.Duration) bool { return false }
+func (self *Deque) WaitForItem(timeout time.Duration) bool {
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.data == nil { self.init() }
+  if self.count > 0 { return true }
+  return self.waitFor(&self.hasItem, timeout)
+}
+
+func (self *Deque) waitFor(what *[]chan bool, timeout time.Duration) bool {
+  c := make(chan bool, 2)
+  self.hasItem = append(*what, c)
+  self.Mutex.Unlock()
+  defer self.Mutex.Lock()
+  if timeout > 0 {
+    go func(){
+      time.Sleep(timeout)
+      c <- false
+    }()
+  }
+  return <-c // wait for signal or timeout
+}
 
 // Blocks until either timeout has elapsed or at least one free slot is available
 // for a new item.
@@ -445,7 +574,13 @@ func (self *Deque) WaitForItem(timeout time.Duration) bool { return false }
 //
 // Note that this function will not attempt to Grow() the Deque, so if the Deque
 // IsFull() this function will block, even if Grow() could add more space.
-func (self *Deque) WaitForSpace(timeout time.Duration) bool { return false }
+func (self *Deque) WaitForSpace(timeout time.Duration) bool { 
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.data == nil { self.init() }
+  if self.count < len(self.data) { return true }
+  return self.waitFor(&self.hasSpace, timeout)
+}
 
 // Blocks until either timeout has elapsed or no items remain in the Deque.
 // Returns true if the function returned because of an empty Deque and false if it
@@ -454,7 +589,13 @@ func (self *Deque) WaitForSpace(timeout time.Duration) bool { return false }
 // true does not mean that the Deque is actually empty by the time the caller
 // gets the return value. A concurrent goroutine may have add an item in the
 // meantime.
-func (self *Deque) WaitForEmpty(timeout time.Duration) bool { return false }
+func (self *Deque) WaitForEmpty(timeout time.Duration) bool {
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.data == nil { self.init() }
+  if self.count == 0 { return true }
+  return self.waitFor(&self.isEmpty, timeout)
+}
 
 
 
@@ -464,11 +605,14 @@ func (self *Deque) WaitForEmpty(timeout time.Duration) bool { return false }
 
 **********************************************************************************/
 
+
 // Makes item the new stack top. After this, Peek(0), Pop(), PopAt(0) and 
 // At(Count()-1) will return item. Push() returns the Deque itself for easy chaining.
 // If the Deque is full, Growth() will be called beforehand.
 func (self *Deque) Push(item interface{}) *Deque {
-  return self
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  return self.insertAt(self.count, item)
 }
 
 // Inserts item at index idx counting from the stack top. PushAt(0, item) is
@@ -479,33 +623,68 @@ func (self *Deque) Push(item interface{}) *Deque {
 //
 // Note that Count() is a valid index for this function whereas for most other
 // SomethingAt() functions Count()-1 is the maximum permissible index.
-func (self *Deque) PushAt(idx int, item interface{}) *Deque { return nil }
+//
+// Optimization note: PushAt() and InsertAt() have the exact same performance
+// and automatically minimize the size of the memory block that needs to be moved.
+// You can not optimize anything by choosing one or the other based on the index.
+func (self *Deque) PushAt(idx int, item interface{}) *Deque { 
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  return self.insertAt(self.count-idx, item)
+}
 
 // Blocks until there is at least 1 item in the Deque, then removes and returns
 // the stack top (i.e. the item returned by Peek(0) and At(Count()-1)).
 //
 // If you need a non-blocking Pop(), use PopAt(0).
 func (self *Deque) Pop() interface{} {
-  return nil
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.data == nil { self.init() }
+  for ; self.count == 0 ; {
+    self.waitFor(&self.hasItem, 0)
+  }
+  return self.removeAt(self.count-1)
 }
 
 // If the Deque contains at least idx+1 items, this call removes and returns
 // the idx-th item counting from the stack top (which is index 0).
 // If idx is out of range (idx < 0 or idx >= Count()), nil is returned.
 // PopAt(0) is the non-blocking version of Pop() (which waits for an item).
-func (self *Deque) PopAt(idx int) interface{} { return nil }
+//
+// Optimization note: PopAt() and RemoveAt() have the exact same performance
+// and automatically minimize the size of the memory block that needs to be moved.
+// You can not optimize anything by choosing one or the other based on the index.
+func (self *Deque) PopAt(idx int) interface{} {
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.data == nil { self.init() }
+  return self.removeAt(self.count-1-idx)
+}
 
 // If the Deque contains at least idx+1 items, this call returns
 // the idx-th item counting from the stack top (which is index 0).
 // Unlike PopAt() Peek() does not remove the item from the stack.
 // If idx is out of range (idx < 0 or idx >= Count()), nil is returned.
-func (self *Deque) Peek(idx int) interface{} { return nil }
+func (self *Deque) Peek(idx int) interface{} {
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.data == nil { self.init() }
+  return self.at(self.count-1-idx)
+}
 
 // If the Deque contains at least idx+1 items, this call replaces
 // the idx-th item counting from the stack top (which is index 0) with
 // the new item and returns the old item.
 // If idx is out of range (idx < 0 or idx >= Count()), nil is returned.
-func (self *Deque) Poke(idx int, item interface{}) interface{} { return nil }
+func (self *Deque) Poke(idx int, item interface{}) interface{} {
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.data == nil { self.init() }
+  old := self.at(self.count-1-idx)
+  self.put(self.count-1-idx, item)
+  return old
+}
 
 
 
@@ -530,6 +709,10 @@ func (self *Deque) Insert(item interface{}) *Deque {
 //
 // Note that Count() is a valid index for this function whereas for most other
 // SomethingAt() functions Count()-1 is the maximum permissible index.
+//
+// Optimization note: PushAt() and InsertAt() have the exact same performance
+// and automatically minimize the size of the memory block that needs to be moved.
+// You can not optimize anything by choosing one or the other based on the index.
 func (self *Deque) InsertAt(idx int, item interface{}) *Deque { return nil }
 
 // Blocks until there is at least 1 item in the Deque, then removes and returns
@@ -544,7 +727,12 @@ func (self *Deque) Next() interface{} {
 // the idx-th item (i.e. the item returned by At(idx)).
 // If idx is out of range (idx < 0 or idx >= Count()), nil is returned.
 // RemoveAt(0) is the non-blocking version of Next() (which waits for an item).
+//
+// Optimization note: PopAt() and RemoveAt() have the exact same performance
+// and automatically minimize the size of the memory block that needs to be moved.
+// You can not optimize anything by choosing one or the other based on the index.
 func (self *Deque) RemoveAt(idx int) interface{} { return nil }
+
 
 // If the Deque contains at least idx+1 items, this call returns
 // the idx-th item.
@@ -552,11 +740,32 @@ func (self *Deque) RemoveAt(idx int) interface{} { return nil }
 // If idx is out of range (idx < 0 or idx >= Count()), nil is returned.
 func (self *Deque) At(idx int) interface{} { return nil }
 
+
 // If the Deque contains at least idx+1 items, this call replaces
 // the idx-th item (i.e. the item returned by At(idx)) with the new item
 // and returns the old item.
 // If idx is out of range (idx < 0 or idx >= Count()), nil is returned.
 func (self *Deque) Put(idx int, item interface{}) interface{} { return nil }
+
+func (self *Deque) at(idx int) interface{} { 
+  if self.data == nil { self.init() }
+  return nil 
+}
+
+func (self *Deque) put(idx int, item interface{}) interface{} { 
+  if self.data == nil { self.init() }
+  return nil 
+}
+
+func (self *Deque) insertAt(idx int, item interface{}) *Deque {
+  if self.data == nil { self.init() }
+  return self
+}
+
+func (self *Deque) removeAt(idx int) interface{} {
+  if self.data == nil { self.init() }
+  return nil
+}
 
 
 /*********************************************************************************
