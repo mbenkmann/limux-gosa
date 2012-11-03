@@ -768,7 +768,7 @@ func (self *Deque) at(idx int) interface{} {
   if self.data == nil { self.init() }
   if idx < 0 || idx >= self.count { return nil }
   idx += self.a
-  if idx >= len(self.data) { idx -= self.data }
+  if idx >= len(self.data) { idx -= len(self.data) }
   return self.data[idx]
 }
 
@@ -776,21 +776,187 @@ func (self *Deque) put(idx int, item interface{}) interface{} {
   if self.data == nil { self.init() }
   if idx < 0 || idx >= self.count { return nil }
   idx += self.a
-  if idx >= len(self.data) { idx -= self.data }
+  if idx >= len(self.data) { idx -= len(self.data) }
   old := self.data[idx]
   self.data[idx] = item
   return old
 }
 
+//*************************** removeAt() ******************************/
 func (self *Deque) removeAt(idx int) interface{} {
   if self.data == nil { self.init() }
-  return nil
+  if idx < 0 || idx >= self.count { return nil }
+  idx += self.a
+  if idx >= len(self.data) { idx -= len(self.data) }
+  
+  old := self.data[idx]
+  
+  if self.a < self.b { //simple case: |...A----idx----B...|
+    if idx-self.a < self.b-idx { // idx closer to A than to B
+      copy(self.data[self.a+1:],self.data[self.a:idx])
+      self.a++
+    } else { // idx closer to B than to A
+      copy(self.data[idx:],self.data[idx+1:self.b])
+      self.b--
+    }
+  } else { //harder case:   |--idx?--B.........A---idx?--|
+    da := idx - self.a
+    if da < 0 { da += len(self.data) }
+    db := self.b - idx
+    if db < 0 { db += len(self.data) }
+    if da <= db { // |--idx?----------------B.........A--idx?-|
+                  // including cases where B == A
+                  // including the special case B == A == idx
+      if idx < self.b { 
+        copy(self.data[1:], self.data[0:idx])
+        idx = len(self.data)-1
+        self.data[0] = self.data[idx]
+      }
+      copy(self.data[self.a+1:], self.data[self.a:idx])
+      self.a++
+      if self.a == len(self.data) { self.a = 0 }
+    } else { // |--idx?--B.........A-----------------idx?--|
+             // including cases where B == A
+      if idx >= self.a {
+        copy(self.data[idx:],self.data[idx+1:])
+        self.data[len(self.data)-1] = self.data[0]
+        idx = 0
+      }
+      // self.b+1 is used instead of self.b, because
+      // it is possible that self.b==0 and in that case
+      // idx+1 > self.b and the Go specs say about slices that
+      // low <= high must be satisfied.
+      // The +1 causes one additional slot to be copied but
+      // that doesn't matter because the slot it overwrites (self.b-1)
+      // is definitely unused once we do self.b--.
+      copy(self.data[idx:],self.data[idx+1:self.b+1])
+      self.b--
+      if self.b < 0 { self.b += len(self.data) }
+    }
+  }
+  
+  if self.count == len(self.data) { // we went from full to 1 available slot
+    for _,c := range self.hasSpace { c <- true } 
+    self.hasSpace = self.hasSpace[0:0]
+  }
+  self.count--
+
+  if self.count == 0 { // deque is now empty
+    for _,c := range self.isEmpty { c <- true } 
+    self.isEmpty = self.isEmpty[0:0]
+  }
+
+  return old
 }
 
+
+//*************************** insertAt() ******************************/
 func (self *Deque) insertAt(idx int, item interface{}) *Deque {
   if self.data == nil { self.init() }
+  if idx < 0 || idx > self.count { // Note: self.count IS a valid idx for insertAt()!
+    return nil 
+  }
+  
+  // If buffer is full, grow it or wait for an empty slot.
+  if self.count == len(self.data) {
+    growth := self.Growth(uint(len(self.data)), 1, self.GrowthCount)
+    self.GrowthCount++
+    if growth == 0 { // no growth => block until there's space
+      for ; self.count == len(self.data) ; {
+        self.waitFor(&self.hasSpace, 0)
+      }
+    } else 
+    { // grow buffer
+      new_buf := make([]interface{}, len(self.data) + int(growth))
+      // Note: self.a == self.b because buffer is full
+      copy(new_buf, self.data[self.a:len(self.data)])
+      self.b = len(self.data)-self.a
+      copy(new_buf[self.b:], self.data[0:self.a])
+      self.a = 0
+      self.data = new_buf
+      
+      if growth > 1 { // if we grew more than necessary, signal waiters for space
+        for _,c := range self.hasSpace { c <- true } 
+        self.hasSpace = self.hasSpace[0:0]
+      }
+    }
+  }
+  
+  // At this point we have an empty slot. Let's insert!
+  
+  idx += self.a
+  if idx >= len(self.data) { idx -= len(self.data) }
+  
+  if self.a <= self.b { //simple case: |...A----idx----B...|
+                        //including the case A == B == idx (empty Deque)
+    if idx-self.a < self.b-idx { // idx closer to A than to B
+      a := self.a
+      self.a--
+      if self.a < 0 { self.a += len(self.data) }
+      // copy 1st element separately because of possible wrap-around
+      self.data[self.a] = self.data[a]
+      
+      // We use idx+1 because it is possible that idx==a and
+      // the Go specs say that low <= high must be satisfied.
+      // This may cause data[idx] to be copied to data[idx-1]
+      // but this unnecessary copy doesn't hurt.
+      copy(self.data[a:], self.data[a+1:idx+1])
+      idx-- // insert before the item
+      if idx < 0 { idx += len(self.data) }
+    } else { // idx closer to B than to A 
+             //   or 
+             // A == B == idx (empty Deque)
+      // because self.data[self.b] is an empty slot, the following
+      // copy cannot wrap around unlike the "closer to A" case
+      copy(self.data[idx+1:len(self.data)], self.data[idx:self.b])
+      self.b++
+      if self.b == len(self.data) { self.b = 0 }
+    }
+  } else { //harder case:   |--idx?--B.........A---idx?--|
+           //Note that A != B because the Deque cannot be full and 
+           //the case of an empty Deque is handled above.
+    da := idx - self.a
+    if da < 0 { da += len(self.data) }
+    db := self.b - idx
+    if db < 0 { db += len(self.data) }
+    if da < db { // |--idx?----------------B.........A--idx?-|
+      idx-- // insert before the item
+      if idx < 0 { idx += len(self.data) }
+      self.a-- // cannot wrap around
+      if idx >= self.a { // |----------------------B.........A--idx--|
+        copy(self.data[self.a:], self.data[self.a+1:idx+1])
+      } else 
+      { // |--idx-----------------B.........A-------|
+        copy(self.data[self.a:], self.data[self.a+1:len(self.data)])
+          // copy 1st element separately because of wrap-around
+        self.data[len(self.data)-1] = self.data[0]
+        copy(self.data[0:], self.data[1:idx+1])
+      } 
+    } else { // |--idx?--B.........A-----------------idx?--|
+      if idx <= self.b { // |--idx--B.........A-----------------------|
+        copy(self.data[idx+1:], self.data[idx:self.b])
+        self.b++ // cannot wrap around
+      } else
+      { // |------B.........A-----------------idx--|
+        copy(self.data[1:], self.data[0:self.b])
+        self.data[0] = self.data[len(self.data)-1]
+        copy(self.data[idx+1:len(self.data)], self.data[idx:len(self.data)-1])
+        self.b++ // cannot wrap around
+      }
+    }
+  }
+
+  self.data[idx] = item
+
+  if self.count == 0 { // we inserted into an empty deque => signal waiters for item
+    for _,c := range self.hasItem { c <- true } 
+    self.hasItem = self.hasItem[0:0]
+  }
+  self.count++
+  
   return self
 }
+
 
 
 /*********************************************************************************
@@ -843,6 +1009,33 @@ func (self *Deque) Search(item interface{}, cmp func(interface{},interface{}) in
 // operator == to the given item.
 func (self *Deque) Contains(item interface{}) bool { return self.IndexOf(item)>=0 }
 
+// Returns false if the Deque is broken. As this could only happen if there were
+// a bug in the code, this function will always return true. Well, actually it
+// also returns false if YOU have set Growth to nil (which is a bug in your code).
+// So how about this: If this function returns false, there's a bug in
+// your application ;-)
+func (self *Deque) CheckInvariant() bool {
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.count < 0 || self.count > len(self.data) || 
+     self.a < 0 || self.b < 0 || 
+     self.a >= len(self.data) || self.b >= len(self.data) { return false }
+  if self.a == self.b && self.count != 0 && self.count != len(self.data) { return false }
+  if (self.count == 0 || self.count == len(self.data)) && self.a != self.b { return false }
+  if self.a < self.b && self.count != self.b-self.a { return false }
+  if self.b < self.a && self.count != (self.b + len(self.data)-self.a) { return false }
+  if self.Growth == nil { return false }
+  for _, ar := range []*[]chan bool{&self.hasItem,&self.isEmpty,&self.hasSpace} {
+    for _, c := range *ar {
+      if len(c) != 0 || cap(c) != 2 { return false }
+    }
+  }
+  if len(self.data) != cap(self.data) { return false }
+  if self.count == 0 && len(self.isEmpty) != 0 { return false }
+  if self.count != 0 && len(self.hasItem) != 0 { return false }
+  if self.count < len(self.data) && len(self.hasSpace) != 0 { return false }
+  return true
+}
 
 /*********************************************************************************
 
