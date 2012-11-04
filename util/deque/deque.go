@@ -26,7 +26,7 @@
 // inter-goroutine communications (both blocking and non-blocking), can be
 // either fixed size or expand dynamically (with configurable tradeoff
 // between memory usage and speed). Except for indexed insertions/removals 
-// (which are O(index)) all operations are (amortized) O(1).
+// (which are O(min(index,Count()-index)) all operations are (amortized) O(1).
 // It's easy to use, with pleasing method names that fit the various use cases.
 //
 // Example 1: Use as a stack
@@ -128,8 +128,6 @@
 //  Overcapacity() was chosen instead of SetCapacity()/Reserve() because it 
 //       has clear and useful semantics over the whole range of its argument
 //       and because it makes TrimToSize() unnecessary.
-//  Iterators are not included because they offer no performance benefit over
-//       index loops and raise a lot of questions in the face of concurrency.
 //  Cat() is not called Append() because Append() could refer to appending a
 //       single item, so that it's not clear if Append(stack) appends the
 //       contents of stack or the stack object itself.
@@ -152,7 +150,7 @@ import (
 // It is sufficient to declare a variable of type Deque. The Deque will be 
 // initialized with default values when one of its methods is called for the first
 // time. For more control over the Deque's behaviour you can use the New()
-// constructor and the Init() function.
+// constructor or the Init() function.
 type Deque struct {
   // See the documentation for the type GrowthFunc.
   Growth GrowthFunc
@@ -395,7 +393,8 @@ func (self *Deque) init(args... interface{}) *Deque {
       case uint64: requested_capacity = int(arg)
       case []interface{}: cat_capacity += len(arg)
       case GrowthFunc: new_growth = arg
-      default: panic(fmt.Errorf("Type of argument #%d unsupported by deque.Init()",i))
+      case func(uint, uint, uint) uint: new_growth = arg
+      default: panic(fmt.Errorf("Argument #%d is unsupported by deque.Init()",i+1))
     }
   }
   
@@ -552,7 +551,7 @@ func (self *Deque) WaitForItem(timeout time.Duration) bool {
 
 func (self *Deque) waitFor(what *[]chan bool, timeout time.Duration) bool {
   c := make(chan bool, 2)
-  self.hasItem = append(*what, c)
+  *what = append(*what, c)
   self.Mutex.Unlock()
   defer self.Mutex.Lock()
   if timeout > 0 {
@@ -870,9 +869,9 @@ func (self *Deque) insertAt(idx int, item interface{}) *Deque {
       new_buf := make([]interface{}, len(self.data) + int(growth))
       // Note: self.a == self.b because buffer is full
       copy(new_buf, self.data[self.a:len(self.data)])
-      self.b = len(self.data)-self.a
-      copy(new_buf[self.b:], self.data[0:self.a])
+      copy(new_buf[len(self.data)-self.a:], self.data[0:self.a])
       self.a = 0
+      self.b = self.count
       self.data = new_buf
       
       if growth > 1 { // if we grew more than necessary, signal waiters for space
@@ -978,63 +977,83 @@ func (self *Deque) insertAt(idx int, item interface{}) *Deque {
 // block until space is available in the Deque and append more elements, repeating
 // this as often as necessary.
 // Cat() returns the Deque for chaining.
-func (self *Deque) Cat(lst... interface{}) *Deque { return self }
+func (self *Deque) Cat(lst... interface{}) *Deque { 
+  panic("TODO: Implement Cat()")
+  return self 
+}
 
 // Swaps the items At(i) and At(j). Returns nil if either index is
 // out of range, otherwise the Deque is returned.
-func (self *Deque) Swap(i, j int) *Deque { return nil }
+func (self *Deque) Swap(i, j int) *Deque { 
+  panic("TODO: Implement Swap()")
+  return self
+}
 
 // Reverses the order of all elements, i.e. swapping At(i)<->Peek(i) for all i.
 // Returns the Deque.
-func (self *Deque) Reverse() *Deque { return nil }
+func (self *Deque) Reverse() *Deque { 
+  panic("TODO: Implement Reverse()")
+  return self
+}
 
 // Performs a stable sort of the elements of the Deque in ascending order,
 // if cmp is a function
 // that returns a negative value if its first argument is less than the second,
 // a positive value if it is greater and 0 if the arguments are equal.
 // Returns the Deque.
-func (self *Deque) Sort(cmp func(interface{},interface{}) int) *Deque { return self }
+func (self *Deque) Sort(cmp func(interface{},interface{}) int) *Deque { 
+  panic("TODO: Implement Sort()")
+  return self 
+}
 
 // Returns the index of the first element that compares equal (according to
 // operator ==) to the given item, or -1 if no such element exists.
-func (self *Deque) IndexOf(item interface{}) int { return -1 }
+func (self *Deque) IndexOf(item interface{}) int { 
+  panic("TODO: Implement IndexOf()")
+  return -1 
+}
 
 // When called on a Deque that has been sorted by Sort() with the same cmp() function
 // as passed to Search(), the latter will perform a binary search for the given item
 // and return  Given an item and a comparison function Performs a binary search and 
 // return the smallest index idx so that InsertAt(idx, item) keeps the Deque sorted.
-func (self *Deque) Search(item interface{}, cmp func(interface{},interface{}) int) int { return self.Count() }
+func (self *Deque) Search(item interface{}, cmp func(interface{},interface{}) int) int { 
+  panic("TODO: Implement Search()")
+  return self.Count() 
+}
 
 // Returns true if the Deque contains an item that compares equal according to
 // operator == to the given item.
-func (self *Deque) Contains(item interface{}) bool { return self.IndexOf(item)>=0 }
+func (self *Deque) Contains(item interface{}) bool { 
+  return self.IndexOf(item)>=0 
+}
 
-// Returns false if the Deque is broken. As this could only happen if there were
-// a bug in the code, this function will always return true. Well, actually it
-// also returns false if YOU have set Growth to nil (which is a bug in your code).
-// So how about this: If this function returns false, there's a bug in
+// Panics if the Deque is broken. As this could only happen if there were
+// a bug in the code, this function will never do that. Well, actually it
+// also panics if YOU have set Growth to nil (which is a bug in your code).
+// So how about this: If this function panics, there's a bug in
 // your application ;-)
-func (self *Deque) CheckInvariant() bool {
+func (self *Deque) CheckInvariant() {
   self.Mutex.Lock()
   defer self.Mutex.Unlock()
   if self.count < 0 || self.count > len(self.data) || 
      self.a < 0 || self.b < 0 || 
-     self.a >= len(self.data) || self.b >= len(self.data) { return false }
-  if self.a == self.b && self.count != 0 && self.count != len(self.data) { return false }
-  if (self.count == 0 || self.count == len(self.data)) && self.a != self.b { return false }
-  if self.a < self.b && self.count != self.b-self.a { return false }
-  if self.b < self.a && self.count != (self.b + len(self.data)-self.a) { return false }
-  if self.Growth == nil { return false }
+     (len(self.data) != 0 && (self.a >= len(self.data) || self.b >= len(self.data))) { panic("invariant broken") }
+  if len(self.data) == 0 && (self.a != 0 || self.b != 0) { panic("invariant broken") }
+  if self.a == self.b && self.count != 0 && self.count != len(self.data) { panic("invariant broken") }
+  if (self.count == 0 || self.count == len(self.data)) && self.a != self.b { panic("invariant broken") }
+  if self.a < self.b && self.count != self.b-self.a { panic("invariant broken") }
+  if self.b < self.a && self.count != (self.b + len(self.data)-self.a) { panic("invariant broken") }
+  if self.Growth == nil && self.data != nil { panic("invariant broken") }
   for _, ar := range []*[]chan bool{&self.hasItem,&self.isEmpty,&self.hasSpace} {
     for _, c := range *ar {
-      if len(c) != 0 || cap(c) != 2 { return false }
+      if len(c) != 0 || cap(c) != 2 { panic("invariant broken") }
     }
   }
-  if len(self.data) != cap(self.data) { return false }
-  if self.count == 0 && len(self.isEmpty) != 0 { return false }
-  if self.count != 0 && len(self.hasItem) != 0 { return false }
-  if self.count < len(self.data) && len(self.hasSpace) != 0 { return false }
-  return true
+  if len(self.data) != cap(self.data) { panic("invariant broken") }
+  if self.count == 0 && len(self.isEmpty) != 0 { panic("invariant broken") }
+  if self.count != 0 && len(self.hasItem) != 0 { panic("invariant broken") }
+  if self.count < len(self.data) && len(self.hasSpace) != 0 { panic("invariant broken") }
 }
 
 /*********************************************************************************
@@ -1044,17 +1063,71 @@ func (self *Deque) CheckInvariant() bool {
 **********************************************************************************/
 
 // Returns a string representation of the Deque.
-func (self *Deque) String() string { return "" }
+func (self *Deque) String() string { 
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.data == nil { self.init() }
+  buf := make([]string, self.count)
+  for i:=0; i < self.count; i++ {
+    j := self.a+i
+    if j >= len(self.data) { j -= len(self.data) }
+    buf[i] = fmt.Sprintf("%v", self.data[j])
+  }
+  return fmt.Sprintf("Deque%v",buf)
+}
 
-// First rotates the internal buffer so that the 1st array element corresponds to
-// At(0), then returns the non-empty part of the internal buffer (i.e. the returned
-// slice has length Count() rather than Capacity()). 
-// WARNING! This function does not lock the Deque at all, even while performing the
+// Returns the internal ring buffer, rotated so that ring[idx0] is element At(0).
+// If the argument index0 >= 0, then idx0 will be (index0 % Capacity()).
+// If index0 < 0, the internal ring buffer is returned as is without any
+// rotation being performed.
+// The returned slice will have length Capacity(). If Count() < Capacity(), then
+// parts of the slice are currently unused.
+// WARNING! This function does not initialize the Deque, and doesn't lock the Deque
+// at all, even while performing the
 // rotation. To use this function safely in a situation where concurrent goroutines
 // may access the Deque in any way, requires that you lock deque.Mutex before
 // calling Raw() and unlock it when you are finished working with the data.
 // It is possible (and in fact one of the intended use cases) to modify the elements
 // of the returned slice (e.g. sorting them), but adding or removing elements 
-// will not work.
-func (self *Deque) Raw() []interface{} { return nil }
+// will not work, because you cannot modify the element count.
+func (self *Deque) Raw(index0 int) (ring []interface{}, idx0 int) { 
+  if len(self.data) == 0 { return self.data, 0 } // Avoid division by 0
+  if index0 >= 0 {
+    index0 = index0 % len(self.data)
+    if index0 != self.a {
+      new_buf := make([]interface{}, len(self.data))
+      if index0 > self.a {
+        // |-------A---0-----|
+        copy(new_buf[index0:], self.data[self.a:])
+        copy(new_buf[0:], self.data[self.a+len(self.data)-index0:])
+        copy(new_buf[index0-self.a:], self.data[0:self.a])
+      } else {
+        // |-------0---A-----|
+        copy(new_buf[index0:], self.data[self.a:])
+        copy(new_buf[index0+len(self.data)-self.a:], self.data[0:])
+        copy(new_buf[0:], self.data[self.a-index0:self.a])
+      }
+      self.data = new_buf
+      self.a = index0
+      self.b = self.a + self.count
+      if self.b >= len(self.data) { self.b -= len(self.data) }
+    }
+  }
+  return self.data, self.a
+}
 
+
+
+/*********************************************************************************
+
+                   ITERATION
+
+**********************************************************************************/
+
+func (self* Deque) Iterator() Iterator {
+  panic("TODO: Implement Iterator()")
+  return nil
+}
+
+type Iterator interface{
+}
