@@ -1,4 +1,4 @@
-BINARIES=encrypt decrypt go-susi run-tests
+BINARIES=run-tests go-susi encrypt decrypt
 
 all: $(BINARIES)
 
