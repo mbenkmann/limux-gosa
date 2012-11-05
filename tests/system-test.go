@@ -6,6 +6,7 @@ import (
          "fmt"
          "time"
          "sync"
+         "bytes"
          "regexp"
          "runtime"
          "syscall"
@@ -570,7 +571,13 @@ func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_peri
   check(job != nil, true)
   if job != nil {
     check(checkTags(job, "plainname,periodic?,progress,status,siserver,modified,targettag,macaddress,timestamp,id,original_id?,headertag,result,xmlmessage"),"")
-    check(job.Text("plainname"), test_name)
+    
+    // plainname is optional but when it is supplied, make sure it's correct
+    plainname := job.Text("plainname")
+    if plainname != "" && plainname != "none" {
+      check(job.Text("plainname"), test_name)
+    }
+    
     peri := job.Text("periodic")
     if peri == "none" { peri = "" }
     siFail(peri, test_periodic)
@@ -808,24 +815,19 @@ func handleConnection(conn net.Conn) {
   // translate loopback address to our own external IP  
   if senderIP == "127.0.0.1" { senderIP = config.IP }
   
+  conn.(*net.TCPConn).SetKeepAlive(true)
+  
+  var err error
   
   var buf = make([]byte, 65536)
   i := 0
   n := 1
-  var err error
-  for {
-    // It's intentional that the timeout is short and the loop
-    // aborts with an error on timeout even if a whole message was
-    // read. The protocol says that it is the responsibility of the
-    // one sending the message to close the connection. This indirectly
-    // tests this requirement by not accepting even well-formed messages
-    // whose connections are not closed.
-    conn.SetReadDeadline(time.Now().Add(2*time.Second))
+  for n != 0 {
     n, err = conn.Read(buf[i:])
     i += n
     
-    if err != nil && err != io.EOF { 
-      break 
+    if err != nil && err != io.EOF {
+      break
     }
     if err == io.EOF {
       err = nil
@@ -841,27 +843,56 @@ func handleConnection(conn net.Conn) {
       copy(buf_new, buf)
       buf = buf_new
     }
+
+    // Find complete lines terminated by '\n' and process them.
+    for start := 0;; {
+      eol := bytes.IndexByte(buf[start:i], '\n')
+      
+      // no \n found, go back to reading from the connection
+      // after purging the bytes processed so far
+      if eol < 0 {
+        copy(buf[0:], buf[start:i]) 
+        i -= start
+        break
+      }
+      
+      // process the message and get a reply (if applicable)
+      processMessage(string(buf[start:start+eol]), senderIP)
+      start += eol+1
+    }
   }
   
-  if err == nil && (i < 2 || buf[i-1] != '\n' /*|| buf[i-2] != '\r'*/) {
-    err = fmt.Errorf("Message not terminated by CRLF")
+  if  i != 0 {
+    err = fmt.Errorf("ERROR! Incomplete message (i.e. not terminated by \"\\n\") of %v bytes: %v", i, buf[0:i])
   }
   
+  if err != nil {
+    msg := queueElement{}
+    msg.XML = hash("error(%v)", err)
+    msg.Time = time.Now()
+    msg.SenderIP = senderIP
+  
+    queue_mutex.Lock()
+    defer queue_mutex.Unlock()
+    queue = append(queue, &msg)
+  }
+}
+
+func processMessage(str string, senderIP string) {
+  var err error
   msg := queueElement{}
   
-  if err == nil {
-    decrypted := ""
-    for _, msg.Key = range keys {
-      decrypted = message.GosaDecrypt(string(buf[0:i]), msg.Key)
-      if decrypted != "" { break }
-    }
-    if decrypted == "" {
-      err = fmt.Errorf("Could not decrypt message")
-    } else {
-      msg.XML, err = xml.StringToHash(decrypted)
-    }
+  decrypted := ""
+  for _, msg.Key = range keys {
+    decrypted = message.GosaDecrypt(str, msg.Key)
+    if decrypted != "" { break }
   }
-  
+  if decrypted == "" {
+    err = fmt.Errorf("Could not decrypt message")
+  } else {
+    msg.XML, err = xml.StringToHash(decrypted)
+  }
+
   if err != nil {
     msg.XML = hash("error(%v)", err)
   }
