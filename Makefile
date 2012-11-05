@@ -10,6 +10,10 @@ debug:
 	go build $<
 	strip $@
 
+test: all
+	./run-tests
+	./run-tests --system=./go-susi
+
 clean:
 	rm -f $(BINARIES)
 			
