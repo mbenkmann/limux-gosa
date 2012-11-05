@@ -47,7 +47,7 @@ func gosa_query_jobdb(xmlmsg *xml.Hash) string {
 
   // maps IP:PORT to a string representation of that peer's downtime
   // the empty string represents a peer that is up
-  downtime := map[string]string{}
+  downtime := map[string]string{config.ServerSourceAddress:""}
   
   // maps IP:PORT to server name
   servername := map[string]string{}
