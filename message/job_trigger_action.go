@@ -51,8 +51,7 @@ func job_trigger_action(xmlmsg *xml.Hash) string {
     return ErrorReply("job_trigger_action* with invalid or missing MAC address")
   }
   job.Add("macaddress", macaddress)
-  plainname := db.SystemNameForMAC(macaddress)
-  job.Add("plainname", plainname)
+  job.Add("plainname", "none") // updated automatically
   timestamp := xmlmsg.Text("timestamp")
   if timestamp == "" { timestamp = "19700101000000" }
   job.Add("timestamp", timestamp)

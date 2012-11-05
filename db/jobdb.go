@@ -285,8 +285,9 @@ func JobsForwardModifyRequest(filter xml.HashFilter, update *xml.Hash) {
 //          ...
 //        </job>
 //
-// NOTE: This function expects job to be complete and well formed. No error 
-//       checking is performed on the data.
+// NOTE: This function expects job to be complete and well formed (except for
+//       plainname which will be automatically filled in if "none" or missing). 
+//       No error checking is performed on the data.
 //       The job added to the database will be a clone, however the <id> and
 //       <original_id> will be attached to the original job hash (and so can
 //       be used by the caller).
@@ -296,6 +297,14 @@ func JobAddLocal(job *xml.Hash) {
   job.FirstOrAdd("original_id").SetText(id)
   
   addjob := func(request *jobDBRequest) {
+    plainname := request.Job.Text("plainname")
+    if plainname == "" { 
+      plainname = "none"
+      request.Job.FirstOrAdd("plainname").SetText("none")
+    }
+    if plainname == "none" { 
+      JobsUpdateNameForMAC(request.Job.Text("macaddress")) 
+    }
     jobDB.AddClone(request.Job)
     request.Job.Rename("answer1")
     fju := xml.NewHash("xml","header","foreign_job_updates")
@@ -441,12 +450,42 @@ func JobsAddOrModifyForeign(filter xml.HashFilter, job *xml.Hash) {
       job := request.Job
       job.FirstOrAdd("original_id").SetText(job.Text("id"))
       job.FirstOrAdd("id").SetText("%d", <-nextID)
-      plainname := SystemNameForMAC(job.Text("macaddress"))
-      job.FirstOrAdd("plainname").SetText(plainname)
+      plainname := job.Text("plainname")
+      if plainname == "" { 
+        plainname = "none" 
+        job.FirstOrAdd("plainname").SetText("none")
+      }
+      if plainname == "none" { 
+        JobsUpdateNameForMAC(job.Text("macaddress")) 
+      }
       jobDB.AddClone(job)  
     }
   }
-  jobDBRequests <- &jobDBRequest{ addmodify, filter, job, nil }
+  
+  jobDBRequests <- &jobDBRequest{ addmodify, filter, job.Clone(), nil }
+}
+
+// Launches a background job that queries the systemdb for the name of
+// the machine with the given macaddress and if/when the answer arrives,
+// schedules an update of all entries in the jobdb that match the macaddress.
+func JobsUpdateNameForMAC(macaddress string) {
+  updatename := func(request *jobDBRequest) {
+    plainname := request.Job.Text("plainname")
+    found := jobDB.Query(request.Filter).First("job")
+    for ; found != nil; found = found.Next() {
+      found.FirstOrAdd("plainname").SetText(plainname)
+      jobDB.Replace(xml.FilterSimple("id", found.Text("id")), true, found)
+    }
+  }
+  
+  go util.WithPanicHandler(func(){
+    filter := xml.FilterSimple("macaddress", macaddress)
+    plainname := SystemNameForMAC(macaddress)
+    if plainname != "none" {
+      job := xml.NewHash("job","plainname",plainname)
+      jobDBRequests <- &jobDBRequest{ updatename, filter, job, nil }
+    }
+  })
 }
 
 // Sends a foreign_job_updates message to target containing all local
