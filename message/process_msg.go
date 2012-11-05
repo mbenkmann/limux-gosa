@@ -107,10 +107,15 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
     case "new_server":          new_server(xml)
     case "confirm_new_server":  confirm_new_server(xml)
     case "foreign_job_updates": foreign_job_updates(xml)
-    case "job_trigger_action_lock",
-         "job_trigger_action_wake":
+    case "job_trigger_action_lock",      // "Sperre"
+         "job_trigger_action_halt",      // "Anhalten"
+         "job_trigger_action_localboot", // "Erzwinge lokalen Start"
+         "job_trigger_action_reboot",    // "Neustarten"
+         "job_trigger_action_activate",  // "Sperre aufheben"
+         "job_trigger_action_update",    // "Aktualisieren"
+         "job_trigger_action_reinstall", // "Neuinstallation"
+         "job_trigger_action_wake":      // "Aufwecken"
                                 reply = job_trigger_action(xml)
-    // When adding a new job, don't forget to add it to jobdb.go:mapHeadertagToNumber
     
     case "gosa_delete_jobdb_entry":
                                 reply = gosa_delete_jobdb_entry(xml)
