@@ -25,7 +25,6 @@ import (
          "fmt"
          "net"
          "bytes"
-         "strconv"
          "strings"
          "crypto/cipher"
          "crypto/aes"
@@ -127,35 +126,6 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
   disconnect = strings.Contains(reply, "<error_string>")
   reply = GosaEncrypt(reply, key)
   return
-}
-
-// Fixes lst so that the outer element is <xml> and the children are
-// <answerXX> where each child has a unique number XX. 
-// If additional are provided, they will be merged
-// into lst (only subelements named "answer*").
-func MakeAnswerList(lst *xml.Hash, additional... *xml.Hash) {
-  var count uint64
-  count = 1
-  for _, tag := range lst.Subtags() {
-    for answer := lst.RemoveFirst(tag) ; answer != nil; answer = lst.RemoveFirst(tag) {
-      answer.Rename("answer"+strconv.FormatUint(count, 10))
-      lst.AddWithOwnership(answer)
-      count++
-    }
-  }
-  
-  for _, other := range additional {
-    for _, tag := range other.Subtags() {
-      if !strings.HasPrefix(tag, "answer") { continue }
-      for answer := other.RemoveFirst(tag) ; answer != nil; answer = other.RemoveFirst(tag) {
-        answer.Rename("answer"+strconv.FormatUint(count, 10))
-        lst.AddWithOwnership(answer)
-        count++
-      }
-    } 
-  }
-  
-  lst.Rename("xml")
 }
 
 // Returns a byte slice that has the input string's bytes preceded
