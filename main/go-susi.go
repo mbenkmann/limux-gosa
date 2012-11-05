@@ -31,7 +31,6 @@ import (
           "os/signal"
           "net"
           "log"
-          "time"
           "path"
           "bytes"
           "syscall"
@@ -131,13 +130,18 @@ func handle_request(conn *net.TCPConn) {
   defer conn.Close()
   defer util.Log(1, "INFO! Connection to %v closed", conn.RemoteAddr())
   
+  var err error
+  
+  err = conn.SetKeepAlive(true)
+  if err != nil {
+    util.Log(0, "ERROR! SetKeepAlive: %v", err)
+  }
+  
   var buf = make([]byte, 65536)
   i := 0
   n := 1
-  var err error
   for n != 0 {
     util.Log(2, "DEBUG! Receiving from %v", conn.RemoteAddr())
-    conn.SetReadDeadline(time.Now().Add(5*time.Minute))
     n, err = conn.Read(buf[i:])
     i += n
     
