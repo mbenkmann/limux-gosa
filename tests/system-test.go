@@ -19,6 +19,7 @@ import (
          
          "../xml"
          "../util"
+         "../util/deque"
          "../config"
          "../message"
        )
@@ -152,7 +153,14 @@ var listen_port = "18340"
 // host:port address of the test server.
 var listen_address string
 
-// keys[0] is the key of the test server started by listener(). The other
+// the listener of the test server
+var listener net.Listener
+
+// Elements of type net.Conn for all current active incoming connections
+// handled by handleConnection()
+var active_connections = deque.New()
+
+// keys[0] is the key of the test server started by listen(). The other
 // elements are copies of config.ModuleKeys
 var keys []string
 
@@ -198,7 +206,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   StartTime = time.Now()
   
   // start our own "server" that will take messages
-  go listener()
+  listen()
   
   config.ReadNetwork()
   listen_address = config.IP + ":" + listen_port
@@ -227,7 +235,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   }
 
   // At this point:
-  //   listen_address is the address of the test server run by listener()
+  //   listen_address is the address of the test server run by listen()
   //   config.ServerSourceAddress is the address of the go-susi or gosa-si being tested  
   
   
@@ -269,7 +277,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   msg = wait(t0, "foreign_job_updates")
   siFail(checkTags(msg.XML, "header,source,target,answer1,sync?"), "")
   if checkTags(msg.XML, "header,source,target,answer1") == "" {
-    check_foreign_job_updates(msg, "new_server_key", Jobs[0].Plainname, Jobs[0].Periodic, "waiting", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
+    check_foreign_job_updates(msg, "new_server_key", Jobs[0].Plainname, Jobs[0].Periodic, "waiting", "none", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
   }
 
   t0 = time.Now()
@@ -281,7 +289,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   check(x.Text("answer1"), "0")
   
   msg = wait(t0, "foreign_job_updates")
-  check_foreign_job_updates(msg, "new_server_key", Jobs[1].Plainname, Jobs[1].Periodic, "waiting", Jobs[1].MAC, Jobs[1].Trigger(), Jobs[1].Timestamp)
+  check_foreign_job_updates(msg, "new_server_key", Jobs[1].Plainname, Jobs[1].Periodic, "waiting", "none",Jobs[1].MAC, Jobs[1].Trigger(), Jobs[1].Timestamp)
   
   check_connection_drop_on_error1()
   check_connection_drop_on_error2()
@@ -340,7 +348,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   // check for foreign_job_updates with status "done"
   msg = wait(t0, "foreign_job_updates")
-  check_foreign_job_updates(msg, keys[0], Jobs[0].Plainname, "", "done", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
+  check_foreign_job_updates(msg, keys[0], Jobs[0].Plainname, "", "done", "none", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
   
   // Send foreign_job_updates with following changes:
   //   change <progress> of the existing job
@@ -374,6 +382,44 @@ func SystemTest(daemon string, is_gosasi bool) {
     check_answer(a2, Jobs[2].Plainname, "none", "waiting", listen_address, Jobs[2].MAC, Jobs[2].Timestamp, Jobs[2].Periodic, Jobs[2].Trigger())
   }
 
+  // Shut down our test server and active connections
+  listener.Close()
+  for {
+    connection := active_connections.PopAt(0)
+    if connection == nil { break }
+    connection.(net.Conn).Close()
+  }
+  // Wait a little so that the testee notices
+  time.Sleep(1*time.Second)
+  // Now test that our test server's jobs are marked as state "error" in query_jobdb
+  x = gosa("query_jobdb", hash("xml(where(clause(phrase(siserver(%v)))))",listen_address))
+  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  a2 = x.First("answer1")
+  check_answer(a2, Jobs[2].Plainname, "none", "error", listen_address, Jobs[2].MAC, Jobs[2].Timestamp, Jobs[2].Periodic, Jobs[2].Trigger())
+  
+  // Restart our test server
+  t0 = time.Now()
+  listen()
+  
+  // Wait for the peer to re-establish the connection
+  for i:=0; i<30 && active_connections.IsEmpty(); i++ {
+    time.Sleep(1*time.Second)
+  }
+  
+  // Check for the <sync>all</sync> message we should get after the connection
+  // is re-established
+  for _,msg = range get(t0) {
+    if msg.XML.Text("sync") == "all" { break }
+  }
+  check(msg.XML.Text("sync"),"all")
+  check_foreign_job_updates(msg, keys[0], Jobs[1].Plainname, Jobs[1].Periodic, "waiting", "42", Jobs[1].MAC, Jobs[1].Trigger(), Jobs[1].Timestamp)
+  
+  // Now test that our test server's jobs are no longer in error state in query_jobdb
+  x = gosa("query_jobdb", hash("xml(where(clause(phrase(siserver(%v)))))",listen_address))
+  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  a2 = x.First("answer1")
+  check_answer(a2, Jobs[2].Plainname, "none", "waiting", listen_address, Jobs[2].MAC, Jobs[2].Timestamp, Jobs[2].Periodic, Jobs[2].Trigger())
+
   // clear jobdb  
   x = gosa("delete_jobdb_entry", hash("xml(where())"))
   
@@ -403,6 +449,7 @@ func SystemTest(daemon string, is_gosasi bool) {
     check_answer(a2, Jobs[1].Plainname, "none", "waiting", config.ServerSourceAddress, Jobs[1].MAC, Jobs[1].Timestamp, Jobs[1].Periodic, Jobs[1].Trigger())
   }
 
+  
   
 // TODO: Testfall für das Löschen eines <periodic> jobs via foreign_job_updates (z.B.
 //       den oben hinzugefügten Test-Job)
@@ -540,7 +587,7 @@ func check_new_server_on_startup(job Job) {
     trigger_first_test_job(Jobs[0])
 
     msg = wait(t0, "foreign_job_updates")
-    check_foreign_job_updates(msg, "confirm_new_server_key", test_name, "7_days", "waiting", test_mac, "trigger_action_wake", test_timestamp)
+    check_foreign_job_updates(msg, "confirm_new_server_key", test_name, "7_days", "waiting", "none", test_mac, "trigger_action_wake", test_timestamp)
   }
 }
 
@@ -556,7 +603,7 @@ func trigger_first_test_job(job Job) {
   check(x.Text("answer1"), "0")
 }
 
-func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_periodic, test_status, test_mac, action, test_timestamp string) {
+func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_periodic, test_status, test_progress, test_mac, action, test_timestamp string) {
   _, file, line, _ := runtime.Caller(1)
   file = file[strings.LastIndex(file, "/")+1:]
   fmt.Printf("== check_foreign_job_updates sub-tests (%v:%v) ==\n", file, line)
@@ -581,7 +628,7 @@ func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_peri
     peri := job.Text("periodic")
     if peri == "none" { peri = "" }
     siFail(peri, test_periodic)
-    check(job.Text("progress"), "none")
+    check(job.Text("progress"), test_progress)
     check(job.Text("status"), test_status)
     siFail(job.Text("siserver"), config.ServerSourceAddress)
     check(job.Text("targettag"), test_mac)
@@ -626,7 +673,9 @@ func check_answer(a *xml.Hash, name, progress, status, siserver, mac, timestamp,
   if periodic == "" { periodic = "none" }
   siFail(peri, periodic)
   check(a.Text("headertag"), headertag)
-  check(a.Text("result"), "none")
+  if status != "error" { // if status==error, result contains plaintext message
+    check(a.Text("result"), "none")
+  }
   
   // The strange Join/Fields combo gets rid of the whitespace which gosa-si introduces into xmlmessage
   xmlmessage_txt := strings.Join(strings.Fields(a.Text("xmlmessage")),"")
@@ -792,24 +841,28 @@ func hash(format string, args... interface{}) *xml.Hash {
 
 // sets up a listening port that receives messages, decrypts them and
 // stores them in the queue.
-func listener() {
-  listener, err := net.Listen("tcp", ":" + listen_port)
+func listen() {
+  var err error
+  listener, err = net.Listen("tcp", ":" + listen_port)
   if err != nil { panic(fmt.Sprintf("Test cannot run. Fatal error: %v", err)) }
   
-  for {
-    conn, err := listener.Accept()
-    if err != nil {
-      fmt.Fprintf(os.Stderr, "%v", err)
-      continue
-    }
+  go func() {
+    defer listener.Close()
     
-    go handleConnection(conn)
-  }
+    for {
+      conn, err := listener.Accept()
+      if err != nil { return }
+      
+      go handleConnection(conn)
+    }
+  }()
 }
 
-// handles an individual connection received by listener().
+// handles an individual connection received by listen().
 func handleConnection(conn net.Conn) {
   defer conn.Close()
+  active_connections.Push(conn)
+  //FIXME: defer active_connections.Remove(conn)  not implemented in deque.Deque, yet
   
   senderIP,_,_ := net.SplitHostPort(conn.RemoteAddr().String())
   // translate loopback address to our own external IP  
@@ -857,7 +910,8 @@ func handleConnection(conn net.Conn) {
       }
       
       // process the message and get a reply (if applicable)
-      processMessage(string(buf[start:start+eol]), senderIP)
+      reply := processMessage(string(buf[start:start+eol]), senderIP)
+      if reply != "" { util.SendLn(conn, reply, 5*time.Second) }
       start += eol+1
     }
   }
@@ -878,7 +932,7 @@ func handleConnection(conn net.Conn) {
   }
 }
 
-func processMessage(str string, senderIP string) {
+func processMessage(str string, senderIP string) string {
   var err error
   msg := queueElement{}
   
@@ -919,6 +973,7 @@ func processMessage(str string, senderIP string) {
     }
   }
   
+  
   msg.Time = time.Now()
   msg.SenderIP = senderIP
   //fmt.Printf("Received %v\n", msg.XML.String())
@@ -926,5 +981,14 @@ func processMessage(str string, senderIP string) {
   queue_mutex.Lock()
   defer queue_mutex.Unlock()
   queue = append(queue, &msg)
+  
+  // Because initially go-susi doesn't know that we're also "goSusi"
+  // it may ask as for our database, so we need to be able to respond
+  if header == "gosa_query_jobdb" {
+    emptydb := fmt.Sprintf("<xml><header>query_jobdb</header><source>%v</source><target>GOSA</target></xml>",listen_address)
+    return message.GosaEncrypt(emptydb, config.ModuleKey["[GOsaPackages]"])
+  }
+  
+  return ""
 }
 

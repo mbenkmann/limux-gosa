@@ -95,6 +95,19 @@ func (conn *PeerConnection) Downtime() time.Duration {
   return (time.Duration(time.Now().Unix() - down)) * time.Second
 }
 
+// Sets conn.whendown to the current time and logs a message.
+func (conn *PeerConnection) startDowntime() {
+  var down int64 = time.Now().Unix()
+  atomic.StoreInt64(&(conn.whendown), down)
+  util.Log(0, "ERROR! Peer %v went down.", conn.addr)
+}
+
+// Sets conn.whendown to 0 and logs a message.
+func (conn *PeerConnection) stopDowntime() {
+  atomic.StoreInt64(&(conn.whendown), 0)
+  util.Log(1, "INFO! Peer %v is up again.", conn.addr)
+}
+
 // Encrypts msg with key and sends it to the peer without waiting for a reply.
 // If key == "" the first key from db.ServerKeys(peer) is used.
 func (conn *PeerConnection) Tell(msg, key string) {
@@ -141,7 +154,7 @@ func (conn *PeerConnection) Ask(request, key string) <-chan string {
       util.Log(2, "DEBUG! Asking %v: %v", conn.addr, request)
       util.SendLn(tcpconn, GosaEncrypt(request, key), config.Timeout)
       reply := GosaDecrypt(util.ReadLn(tcpconn, config.Timeout), key)
-      if reply == "" { reply = "General communication error" } 
+      if reply == "" { reply = ErrorReply("Communication error in Ask()") } 
       util.Log(2, "DEBUG! Reply from %v: %v", conn.addr, reply)
       c<-reply
     }
@@ -222,62 +235,121 @@ func (conn *PeerConnection) SyncAll() {
   }
 }
 
+// Reads from connection tcpConn, logs any data received as an error and signals
+// actual network errors by closing the connection and pinging the queue.
+// This function returns when the first error is encountered on tcpConn. 
+func monitorConnection(tcpConn net.Conn, queue *deque.Deque) {
+  buf := make([]byte, 65536)
+  for {
+    n, err := tcpConn.Read(buf)
+    if n > 0 {
+      util.Log(0, "ERROR! Received %v bytes of unexpected data on Tell() channel to %v",n,tcpConn.RemoteAddr())
+    }
+    
+    if err != nil {
+      util.Log(2, "DEBUG! monitorConnection terminating: %v", err)
+      tcpConn.Close() // make sure the connection is closed in case the error didn't
+      queue.Push("") // ping to wake up handleConnection() if it's blocked
+      return
+    }
+  }
+}
+
+var peerDownError = fmt.Errorf("Peer is down")
+
 // Must be called in a separate goroutine for each newly created PeerConnection.
 // Will not return without first removing all jobs associated with the peer from
 // jobdb and removing the PeerConnection itself from the connections list.
 func (conn *PeerConnection) handleConnection() {
   var err error
-  conn.tcpConn, err = net.Dial("tcp", conn.addr)
-  if err != nil {
-    util.Log(0, "ERROR! PeerConnection: %v",err)
-    return
-  }
-  err = conn.tcpConn.(*net.TCPConn).SetKeepAlive(true)
-  if err != nil {
-    util.Log(0, "ERROR! SetKeepAlive: %v", err)
-  }
-          
+
   for {
     message := conn.queue.Next().(string)
-    util.SendLn(conn.tcpConn, message, config.Timeout)
+    if conn.tcpConn != nil {
+      err = util.SendLn(conn.tcpConn, message, config.Timeout) 
+    } else {
+      err = peerDownError
+    }
+    
+    if err != nil {
+      util.Log(2, "DEBUG! handleConnection() SendLn #1 to %v failed: %v", conn.addr, err)
+      if conn.tcpConn != nil { conn.tcpConn.Close() } // make sure connection is closed in case the error didn't
+      
+      // try to re-establish connection
+      conn.tcpConn, err = net.Dial("tcp", conn.addr)
+      
+      if err == nil {
+        util.Log(2, "DEBUG! handleConnection() re-connected to %v", conn.addr)
+      
+        err = conn.tcpConn.(*net.TCPConn).SetKeepAlive(true)
+        if err != nil {
+          util.Log(0, "ERROR! SetKeepAlive: %v", err)
+        }
+       
+        conn.stopDowntime() 
+        go monitorConnection(conn.tcpConn, &conn.queue)  
+        // try to re-send message
+        err = util.SendLn(conn.tcpConn, message, config.Timeout)
+        if err != nil { 
+          util.Log(2, "DEBUG! handleConnection() SendLn #2 to %v failed: %v", conn.addr,err)
+          conn.tcpConn.Close() // if resending failed, make sure connection is closed
+          // NOTE: There will be no further retransmission attempts of the message.
+          //       It is now lost. However if get back online again, we will do
+          //       a full sync to make up for any lost foreign_job_updates messages.
+        } else {
+          conn.SyncAll() // resending succeed => We're back in business. Do full sync.
+        }
+      }
+      
+      // If either re-establishing the connection or resending the message failed
+      // we wait a little and then ping the queue which will trigger another attempt
+      // to re-establish the connection.
+      // We increase the wait interval based on the length of the downtime. 
+      // After a downtime of 7 days we give up, clean remaining jobs associated
+      // with the peer from the jobdb, then remove this PeerConnection from the
+      // list of connections and terminate.
+      //
+      // NOTE: Every message that comes in due to other events will also result
+      //       in an attempt to re-establish the connection. In particular if
+      //       the peer actually went down and then comes up again, it should
+      //       send us a new_server message which in turn will cause a Tell()
+      //       with our confirm_new_server message that will cause the
+      //       connection to be re-established.
+      //       The ping here is only a fallback for the case where nothing
+      //       happens on our end and the peer doesn't send us new_server 
+      //       (e.g. because its dns-lookup is disabled).
+      if err != nil {
+        util.Log(2, "DEBUG! handleConnection() connection to %v failed: %v", conn.addr, err)
+        
+        // start downtime if it's not already running
+        if conn.whendown == 0 { conn.startDowntime() } 
+        
+        down := conn.Downtime()
+        var delay time.Duration
+        // For the first 10 minutes we try every 10s to re-establish the connection
+        if down < 10*time.Minute { delay = 10*time.Second } else
+        // For the first day we try every 10 minutes
+        if down < 24*time.Hour { delay = 10*time.Minute } else
+        // Then we go to 30 minute intervals
+        if down < 7*24*time.Hour { delay = 30*time.Minute } else
+        // Finally after 7 days we give up
+        {
+          util.Log(2, "DEBUG! handleConnection() giving up. Removing jobs and PeerConnection for %v", conn.addr)
+          db.JobsRemoveForeign(xml.FilterSimple("siserver",conn.addr))
+          connections_mutex.Lock()
+          delete(connections,conn.addr)
+          connections_mutex.Unlock()
+          return
+        }
+        
+        // Wait and ping in the background, so that we don't miss other messages
+        go func() {
+          time.Sleep(delay)
+          conn.queue.Push("")
+        }()
+      }
+    }
   }
-  
-/*
-After 7 days of downtime, the PeerConnection gives up, issues a JobsRemoveForeign
-for all jobs belonging to the peer and removes itself (LOCK!!) from the connections
-list, then the goroutine terminates.
-
-
-gosa_query_jobdb uses JobsQuery to query for the respective jobs, then it
-postprocesses the query and for each siserver that is down (cache the Downtime()
-to get consistent results for all jobs) replace the status with error and inserts
-a result with the message "SERVERNAME(from reverse lookup of ip) has been down for DURATION"
-
-
-gosa_delete_jobdb_entry can not delete jobs from servers that are down. This is
-a) good because it prevents overzealous admins from removing errors that other
-   admins haven't seen yet.
-b) an automatic result from the fact that foreign jobs are never removed directly
-   but converted to fju+full sync (which fails if the server is down, leaving the
-   old jobs intact)
-*/
-
-/*
-  
-  wenn eine abgebrochene Verbindung re-established wird 
-  wird aufgerufen SyncAll()
-  
-  */
-
-  /* 
-  rogue Daten der Tell-Verbindung müssen ausgelesen (und geloggt) werden
-  zur Sicherheit. Am einfachsten indem jeweils eine neue goroutine gestartet wird,
-  die sich in Read() blockt und falls was kommt bzw. ein Fehler festgestellt wird
-  auf einem chan error einen error sendet. Die Hauptgoroutine der PeerConnection
-  blockt in select{}
-  
-  */
-  
 }
 
 // Maps IP:ADDR to a PeerConnection object that talks to that peer. All accesses
@@ -290,6 +362,10 @@ var connections_mutex sync.Mutex
 // Returns a PeerConnection for talking to addr, which can be either
 // IP:ADDR or HOST:ADDR (where HOST is something that DNS can resolve).
 func Peer(addr string) *PeerConnection {
+  if addr == config.ServerSourceAddress { 
+    panic("Peer() called with my own address. This is a bug!") 
+  }
+  
   host, port, err := net.SplitHostPort(addr)
   if err != nil {
     return &PeerConnection{err:err}
