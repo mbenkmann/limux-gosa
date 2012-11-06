@@ -121,15 +121,15 @@ func verbalDuration(dur time.Duration) string {
     }
     
     switch {
-      case t < 0.99: return fmt.Sprintf("almost 1%v",unit_name[i])
-      case t < 1.4: return fmt.Sprintf("more than 1%v",unit_name[i])
-      case t < 1.6: return fmt.Sprintf("1 1/2%v",unit_name_plural[i])
-      case t < 1.9: return fmt.Sprintf("more than 1 1/2%v",unit_name_plural[i])
-      case t < 1.99: return fmt.Sprintf("almost 2%v",unit_name_plural[i])
+      case t < 0.99: return fmt.Sprintf("almost 1 %v",unit_name[i])
+      case t < 1.4: return fmt.Sprintf("more than 1 %v",unit_name[i])
+      case t < 1.6: return fmt.Sprintf("1 1/2 %v",unit_name_plural[i])
+      case t < 1.9: return fmt.Sprintf("more than 1 1/2 %v",unit_name_plural[i])
+      case t < 1.99: return fmt.Sprintf("almost 2 %v",unit_name_plural[i])
       default: u := int(t+0.1)
                half := ""
                if int(t+0.6) > u { half = " 1/2" }
-               return fmt.Sprintf("%d%v%v",u,half,unit_name_plural[i])
+               return fmt.Sprintf("%d%v %v",u,half,unit_name_plural[i])
     }
   }
   
