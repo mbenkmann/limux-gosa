@@ -120,20 +120,24 @@ func SendLnTo(target string, msg string, timeout time.Duration) {
 }
 
 // Sends strings via connection conn, followed by "\r\n"
-// If timeout >= 0, then the connection will be terminated after at most this duration.
-func SendLn(conn net.Conn, s string, timeout time.Duration) {
+// If timeout >= 0, then the send attempt will be aborted after at most this duration.
+// Returns nil if sending was successful, an error otherwise. The error will also
+// be sent to the log, so the caller does not have to log it.
+func SendLn(conn net.Conn, s string, timeout time.Duration) error {
   sendbuf := make([]byte, len(s)+2)
   copy(sendbuf, s)
   sendbuf[len(s)]='\r'
   sendbuf[len(s)+1]='\n'
 
-  if timeout >= 0 {
-    conn.SetWriteDeadline(time.Now().Add(timeout))
-  }
+  var deadline time.Time // zero value means "no deadline"
+  if timeout >= 0 { deadline = time.Now().Add(timeout) }
+  conn.SetWriteDeadline(deadline)
+  
   _, err := WriteAll(conn, sendbuf)
   if err != nil {
     Log(0, "ERROR! WriteAll: %v", err)
   }
+  return err
 }
 
 // Reads from the connection until \n is seen (or timeout or error) and
@@ -143,10 +147,11 @@ func ReadLn(conn net.Conn, timeout time.Duration) string {
   var buf = make([]byte, 65536)
   i := 0
   n := 1
+
+  var deadline time.Time // zero value means "no deadline"
+  if timeout >= 0 { deadline = time.Now().Add(timeout) }
+  conn.SetReadDeadline(deadline)  
   
-  if timeout >= 0 {
-    conn.SetReadDeadline(time.Now().Add(timeout))
-  }
   var err error
   for n != 0 {
     n, err = conn.Read(buf[i:])
