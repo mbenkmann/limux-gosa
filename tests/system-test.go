@@ -473,6 +473,7 @@ func check_multiple_requests_over_one_connection() {
   defer conn.Close()
   
   for i :=0 ; i < 3; i++ {
+    util.SendLn(conn, "\n\n\r\r\r\n\r\r\n", config.Timeout) // test that empty lines don't hurt
     util.SendLn(conn, message.GosaEncrypt(get_all_jobs.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
     reply := message.GosaDecrypt(util.ReadLn(conn, config.Timeout), config.ModuleKey["[GOsaPackages]"])
     x, err := xml.StringToHash(reply)

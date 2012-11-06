@@ -33,6 +33,7 @@ import (
           "log"
           "path"
           "bytes"
+          "strings"
           "syscall"
           
           "../db"
@@ -175,17 +176,20 @@ func handle_request(conn *net.TCPConn) {
       }
       
       // process the message and get a reply (if applicable)
-      reply, disconnect := message.ProcessEncryptedMessage(string(buf[start:start+eol]), conn.RemoteAddr().(*net.TCPAddr))
+      encrypted_message := strings.TrimSpace(string(buf[start:start+eol]))
       start += eol+1
-      
-      if reply != "" {
-        util.Log(2, "DEBUG! Sending reply to %v: %v", conn.RemoteAddr(), reply)
-        util.SendLn(conn, reply, config.Timeout)
-      }
-      
-      if disconnect {
-        util.Log(1, "INFO! Forcing disconnect because of error")
-        return
+      if encrypted_message != "" { // ignore empty lines
+        reply, disconnect := message.ProcessEncryptedMessage(encrypted_message, conn.RemoteAddr().(*net.TCPAddr))
+        
+        if reply != "" {
+          util.Log(2, "DEBUG! Sending reply to %v: %v", conn.RemoteAddr(), reply)
+          util.SendLn(conn, reply, config.Timeout)
+        }
+        
+        if disconnect {
+          util.Log(1, "INFO! Forcing disconnect because of error")
+          return
+        }
       }
     }
   }
