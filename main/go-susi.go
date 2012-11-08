@@ -96,17 +96,15 @@ func main() {
   go message.Broadcast_new_server()
 
   /********************  main event loop ***********************/  
-  var sig os.Signal
-  var conn *net.TCPConn
   for{ 
     select {
-      case sig = <-signals : 
+      case sig := <-signals : //os.Signal
                     util.Log(1, "Received signal \"%v\"", sig)
                     if sig == syscall.SIGUSR2 { 
                       go util.WithPanicHandler(message.Recreate_packages_db)
                     }
                     
-      case conn= <-tcp_connections :
+      case conn:= <-tcp_connections : // *net.TCPConn
                     util.Log(1, "INFO! Incoming TCP request from %v", conn.RemoteAddr())
                     go util.WithPanicHandler(func(){handle_request(conn)})
     }
