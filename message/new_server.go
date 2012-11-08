@@ -29,7 +29,8 @@ import (
 // Sends a new_server message to all known peer servers.
 func Broadcast_new_server() {
   for _, server := range db.ServerAddresses() {
-    go util.WithPanicHandler(func(){ Send_new_server("new_server", server) })
+    srv := server
+    go util.WithPanicHandler(func(){ Send_new_server("new_server", srv) })
   }
 }
 
