@@ -198,9 +198,7 @@ func ReadConfig() {
   
   if serverpackages, ok := conf["[ServerPackages]"]; ok {
     if addresses, ok := serverpackages["address"]; ok && addresses != "" {
-      for _,address := range strings.Split(addresses, ",") {
-        PeerServers = append(PeerServers, strings.TrimSpace(address))
-      }
+      PeerServers = append(PeerServers, strings.Fields(strings.Replace(addresses,","," ",-1))...)
     }
     if dnslookup, ok := serverpackages["dns-lookup"]; ok {
       dnslookup = strings.TrimSpace(dnslookup)
