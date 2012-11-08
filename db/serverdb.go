@@ -72,6 +72,7 @@ func ServersInit() {
     util.Log(1, "INFO! DNS lookup disabled. Will not add peer servers from DNS.")
   }
   addServersFromConfig()
+  util.Log(1,"INFO! All known peer addresses with duplicates removed: %v", ServerAddresses())
 }  
 
 // Adds servers listed in config file the serverDB.
