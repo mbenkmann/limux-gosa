@@ -20,17 +20,42 @@ MA  02110-1301, USA.
 // API for the various databases used by go-susi.
 package db
 
-// Returns the common name for the system with the given MAC address.
+import (
+         "fmt"
+         "strings"
+         "os/exec"
+         
+         "../xml"
+         "../util"
+         "../config"
+       )
+
+// Returns a short name for the system with the given MAC address.
 // The name may or may not include a domain. In fact technically the name
 // may be anything.
 // Returns "none" if the name could not be determined. Since this is a valid
 // system name, you should NOT special case this (e.g. use it to check if
 // the system is known).
-func SystemNameForMAC(macaddress string) string {
-  switch macaddress {
-    case "01:02:03:04:05:06": return "systest1"
-    case "11:22:33:44:55:66": return "systest2"
-    case "77:66:55:44:33:22": return "systest3"
+//
+// ATTENTION! This function accesses LDAP and may therefore take a while.
+// If possible you should use it asynchronously.
+func PlainnameForMAC(macaddress string) string {
+  system, err := xml.LdifToHash("", true, LdapSearch(fmt.Sprintf("(&(objectClass=GOHard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter),"cn"))
+  name := system.Text("cn")
+  if name == "" {
+    util.Log(0, "ERROR! Error getting cn for MAC %v: %v", macaddress, err)
+    return "none"
   }
-  return "none"
+  
+  // return only the name without the domain
+  return strings.SplitN(name, ".", 2)[0]
 }  
+
+func LdapSearch(query string, attr... string) *exec.Cmd {
+  args := []string{"-x", "-LLL", "-H", config.LDAPURI, "-b", config.LDAPBase}
+  if config.LDAPUser != "" { args = append(args,"-D",config.LDAPUser,"-w",config.LDAPUserPassword) }
+  args = append(args, query)
+  args = append(args, attr...)
+  util.Log(1, "INFO! ldapsearch %v",args)
+  return exec.Command("ldapsearch", args...)
+}

@@ -480,7 +480,7 @@ func JobsUpdateNameForMAC(macaddress string) {
   
   go util.WithPanicHandler(func(){
     filter := xml.FilterSimple("macaddress", macaddress)
-    plainname := SystemNameForMAC(macaddress)
+    plainname := PlainnameForMAC(macaddress)
     if plainname != "none" {
       job := xml.NewHash("job","plainname",plainname)
       jobDBRequests <- &jobDBRequest{ updatename, filter, job, nil }
