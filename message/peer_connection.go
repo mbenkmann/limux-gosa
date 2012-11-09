@@ -410,6 +410,8 @@ func init() {
       target := fju.Text("target")
       
       // see explanation in jobdb.go for var ForeignJobUpdates
+      all_gosasi := (target == "gosa-si")
+      if all_gosasi { target = "" }
       syncNonGoSusi := fju.RemoveFirst("SyncNonGoSusi")
       if syncNonGoSusi != nil && target != "" && !Peer(target).IsGoSusi() { 
         target = ""
@@ -421,9 +423,10 @@ func init() {
           Peer(target).SyncNonGoSusi()
         }
       } else
-      { // send to ALL peers
+      { // send to ALL peers (possibly limited by all_gosasi)
         connections_mutex.Lock()
         for addr, peer := range connections {
+          if all_gosasi && peer.IsGoSusi() { continue }
           fju.First("target").SetText(addr)
           peer.Tell(fju.String(), "")
           if syncNonGoSusi != nil {

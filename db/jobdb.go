@@ -60,9 +60,13 @@ var jobDB *xml.DB
 // When an action on the database requires sending updates to peers, they are
 // queued in this channel. Every message is a complete foreign_job_updates message
 // as per the protocol (i.e. <xml><header>foreign_job_updates</header>...</xml>)
-// <target> is always present but may be the empty string. This means that the
-// message should be sent to ALL peers. Otherwise the <target> is the single peer
-// the message should be sent to.
+// <target> is always present and the following types of <target> are supported:
+//   <target></target>  an empty target means that the message should be sent to 
+//                      ALL peers. 
+//   <target>gosa-si</target> the target should be sent to all peers that are
+//                      not known to be go-susi (IOW presumed gosa-si peers).
+//   <target>...</target> Otherwise the <target> is the single peer
+//                      the message should be sent to.
 // The large size of the buffer is to make sure we don't delay even if a couple
 // 1000 machines are sending us progress updates at the same time (which we need to
 // forward to our peers).
@@ -72,7 +76,7 @@ var jobDB *xml.DB
 // NOTE: A message in this queue may have an empty tag <SyncNonGoSusi> attached
 //       at the level of <source>. In this case, PeerConnection.SyncNonGoSusi() will
 //       be called after delivery of the foreign_job_updates to the peer.
-//       <SyncNonGoSusi> is only permitted if <target> is non-empty. It will not
+//       <SyncNonGoSusi> is only permitted if <target> is a specific peer. It will not
 //       be transmitted as part of the foreign_job_updates.
 //       A second effect of <SyncNonGoSusi> is that if the <target> is not a go-susi,
 //       instead of sending the foreign_job_updates just to the target, it will be
@@ -396,7 +400,7 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
       fju.Add("source", config.ServerSourceAddress)
       fju.Add("target") // empty target => all peers
       fju.Add("sync", "ordered")
-      ForeignJobUpdates <- fju    
+      ForeignJobUpdates <- fju
     }
   }
   
@@ -473,8 +477,25 @@ func JobsUpdateNameForMAC(macaddress string) {
     plainname := request.Job.Text("plainname")
     found := jobDB.Query(request.Filter).First("job")
     for ; found != nil; found = found.Next() {
-      found.FirstOrAdd("plainname").SetText(plainname)
-      jobDB.Replace(xml.FilterSimple("id", found.Text("id")), true, found)
+      if found.Text("plainname") != plainname {
+        found.FirstOrAdd("plainname").SetText(plainname)
+        jobDB.Replace(xml.FilterSimple("id", found.Text("id")), true, found)
+        
+        // if the job is one of ours, then send out fju to gosa-si peers
+        // because they don't look up the name themselves
+        if found.Text("siserver") == config.ServerSourceAddress {
+          fju := xml.NewHash("xml","header","foreign_job_updates")
+          clone := found.Clone()
+          clone.Rename("answer1")
+          
+          fju.AddWithOwnership(clone)
+          
+          fju.Add("source", config.ServerSourceAddress)
+          fju.Add("target","gosa-si") // only gosa-si peers
+          fju.Add("sync", "ordered")
+          ForeignJobUpdates <- fju
+        }
+      }
     }
   }
   
