@@ -28,6 +28,8 @@ import (
          "bytes"
          "strings"
          "io/ioutil"
+         "os/exec"
+         
          "../xml"
        )
 
@@ -521,5 +523,59 @@ func testHash() {
   check(x.FirstOrAdd("bar"),"<bar></bar>")
   x.Rename("foobar")
   check(x,"<foobar><bar></bar><id>1</id><id>2</id><id>3</id></foobar>")
+  
+  testLDIF()
 }
 
+type brokenreader bool
+
+func (self brokenreader) Read(p []byte) (n int, err error) { return 0, fmt.Errorf("broken") }
+
+func testLDIF() {
+  var broken brokenreader
+  x, err := xml.LdifToHash("foo", true, broken)
+  check(x,xml.NewHash("xml"))
+  check(err,"broken")
+  
+  x, err = xml.LdifToHash("foo", true, 10)
+  check(x,xml.NewHash("xml"))
+  check(err,"ldif argument has unsupported type")
+  
+  x, err = xml.LdifToHash("foo", true, exec.Command("sdjhsadfhb3h4bw3er7zsdbfsdjhbfsdhbf"))
+  check(x,xml.NewHash("xml"))
+  check(err != nil, true)
+  
+  x, err = xml.LdifToHash("foo", true, exec.Command("cat", "/sdjhsadfhb3h4bw3er7zsdbfsdjhbfsdhbf"))
+  check(x,xml.NewHash("xml"))
+  check(err != nil, true)
+  
+  x, err = xml.LdifToHash("", false, exec.Command("cat", "testdata/nova.ldif"))
+  check(err, nil)
+  check(x.Text("cn"), "nova")
+  check(x.Text("dn"), "cn=nova,ou=workstations,ou=systems,ou=Direktorium,o=Landeshauptstadt München,c=de")
+  check(x.Get("objectClass"),[]string{"GOhard", "top", "gotoWorkstation", "FAIobject", "gosaAdministrativeUnitTag"})
+  check(x.Text("FAIstate"), "localboot")
+  tags := x.Subtags()
+  sort.Strings(tags)
+  check(tags, []string{"FAIstate", "cn","dn","objectClass"})
+  
+  nothingfile,_ := os.Open("testdata/nothing.ldif")
+  x, err = xml.LdifToHash("", true, nothingfile)
+  check(err,nil)
+  check(x,xml.NewHash("xml"))
+  
+  x, err = xml.LdifToHash("dev", true, exec.Command("cat", "testdata/dev.ldif"))
+  check(err,nil)
+  check(x.Subtags(),[]string{"dev"})
+  count := 0
+  for d := x.First("dev"); d != nil; d=d.Next() {
+    count++
+    check(d.Text("dn"), fmt.Sprintf("cn=%v,ou=workstations,ou=systems,ou=Direktorium,o=Landeshauptstadt München,c=de",d.Text("cn")))
+    check(d.Get("objectclass"),[]string{"GOhard", "top", "gotoWorkstation", "FAIobject", "gosaAdministrativeUnitTag"})
+    check(d.Text("faistate"), "localboot")
+    tags := d.Subtags()
+    sort.Strings(tags)
+    check(tags, []string{"cn","dn","faistate","objectclass"})
+  }
+  check(count, 4)
+}

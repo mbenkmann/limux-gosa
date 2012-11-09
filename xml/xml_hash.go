@@ -24,12 +24,14 @@ package xml
 
 import ( 
          "os"
+         "os/exec"
          "io"
          "io/ioutil"
          "fmt"
          "sort"
          "bytes"
          "strings"
+         "encoding/base64"
        )
 
 import encxml "encoding/xml"
@@ -571,7 +573,8 @@ func StringToHash(xmlstr string) (xml *Hash, xmlerr error) {
 
 // Reads a string from path and uses StringToHash() to parse it to a Hash.
 // This function will read until EOF (or another error).
-// If an error occurs the returned Hash may contain partial data.
+// If an error occurs the returned Hash may contain partial data but it
+// is never nil.
 func FileToHash(path string) (xml *Hash, err error) {
   file, err := os.Open(path)
   if err != nil {
@@ -583,7 +586,8 @@ func FileToHash(path string) (xml *Hash, err error) {
 
 // Reads a string from r and uses StringToHash() to parse it to a Hash.
 // This function will read until EOF (or another error).
-// If an error occurs the returned Hash may contain partial data.
+// If an error occurs the returned Hash may contain partial data but it
+// is never nil.
 func ReaderToHash(r io.Reader) (xml *Hash, err error) {
   xmldata, err := ioutil.ReadAll(r)
   if err != nil {
@@ -593,3 +597,109 @@ func ReaderToHash(r io.Reader) (xml *Hash, err error) {
   return StringToHash(string(xmldata))
 }
 
+// Converts LDIF data into a Hash. The outermost tag will always be "xml".
+// If an error occurs the returned Hash may contain partial data but it
+// is never nil.
+//
+//  itemtag: If non-empty, each object in the LDIF will be inside an element
+//           whose outermosttag is itemtag. If itemtag == "", all objects in the
+//           LDIF are merged, i.e. all their combined attributes are directly
+//           inside the surrounding "xml" tag.
+//  casefold: If true, all attribute names are converted to lowercase.
+//            If false, they are left exactly as found in the LDIF.
+//  ldif: A []byte, string, io.Reader or *exec.Cmd that provides the LDIF data.
+//        Understands all ldapsearch formats with an arbitrary number of "-L" switches.
+func LdifToHash(itemtag string, casefold bool, ldif interface{}) (xml *Hash, err error) {
+  x := NewHash("xml")
+  
+  var ldif_str string
+  switch ld := ldif.(type) {
+    case []byte: ldif_str = string(ld)
+    case string: ldif_str = ldif.(string)
+    case io.Reader:
+      xmldata, err := ioutil.ReadAll(ld)
+      if err != nil {
+        return x, err
+      }
+      ldif_str = string(xmldata)
+    case *exec.Cmd:
+      var outbuf bytes.Buffer
+      var errbuf bytes.Buffer
+      oldout := ld.Stdout
+      olderr := ld.Stderr
+      ld.Stdout = &outbuf
+      ld.Stderr = &errbuf
+      err := ld.Run()
+      ld.Stdout = oldout
+      ld.Stderr = olderr
+      errstr := errbuf.String()
+      if errstr != "" {
+        err = fmt.Errorf(errstr)
+      }
+      if err != nil {
+        return x, err
+      }
+      
+      ldif_str = outbuf.String()
+    default:
+      return x, fmt.Errorf("ldif argument has unsupported type")
+  }
+  
+  lines := strings.Split(ldif_str, "\n")
+  i := 0
+  if len(lines) > 0 && strings.HasPrefix(lines[0], "version:") { i++ }
+
+  item := x
+  new_item := true
+  
+  for ; i < len(lines) ; {
+    skip := 1
+    line := lines[i]
+    
+    if line == "# search result" { break }
+    
+    if line == "" {
+      new_item = true
+    } else 
+    {
+      for ; i+skip < len(lines) ; {
+        l := lines[i+skip]
+        if len(l) == 0 || (l[0] != ' ' && l[0] != '\t') { break }
+        line = line + l[1:]
+        skip++
+      }
+      
+      if line[0] != '#' {
+        colon := strings.Index(line, ":")
+        if colon > 0 {
+          attr := line[:colon]
+          b64 := false
+          if colon < len(line) && line[colon+1] == ':' { b64 = true ; colon++ }
+          
+          if colon < len(line) { colon++ }
+          if colon < len(line) { colon++ }
+          
+          val := line[colon:]
+          if casefold { attr = strings.ToLower(attr) }
+          if b64 { 
+            valb, err := base64.StdEncoding.DecodeString(val)
+            val = string(valb)
+            if err != nil {
+              return x, err
+            }
+          }
+          
+          if itemtag != "" && new_item { 
+            item = x.Add(itemtag) 
+            new_item = false
+          }
+          
+          item.Add(attr, val)
+        }
+      }
+    }  
+    i += skip
+  }
+  
+  return x,nil
+}
