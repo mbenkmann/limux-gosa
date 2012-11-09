@@ -106,6 +106,27 @@ var FreshDatabase = false
 // true => add peer servers from DNS to serverdb.
 var DNSLookup = true
 
+// URI for connecting to LDAP server.
+var LDAPURI = "ldap://localhost:389"
+
+// LDAP searches will be restricted to the subtree rooted at this DN.
+var LDAPBase = "c=de"
+
+// DN of the admin user for writing to LDAP.
+var LDAPAdmin = "cn=clientmanager,ou=incoming,c=de"
+
+// Password of the admin user for writing to LDAP.
+var LDAPAdminPassword = "password"
+
+// DN of the user for reading from LDAP. Empty string means anonymous.
+var LDAPUser = ""
+
+// Password of the user for reading from LDAP.
+var LDAPUserPassword = ""
+
+// Filter that is ANDed with all LDAP queries. Must be enclosed in parentheses if non-empty.
+var UnitTagFilter = ""
+
 // Parses os.Args and sets config variables accordingly.
 func ReadArgs() {
   LogLevel = 0
@@ -207,6 +228,15 @@ func ReadConfig() {
       }
       DNSLookup = (dnslookup == "true")
     }
+  }
+  
+  if server, ok:= conf["[server]"]; ok {
+    if uri, ok := server["ldap-uri"]; ok { LDAPURI = uri }
+    if base,ok := server["ldap-base"]; ok { LDAPBase = base }
+    if admin,ok:= server["ldap-admin-dn"]; ok { LDAPAdmin = admin }
+    if pw  ,ok := server["ldap-admin-password"]; ok { LDAPAdminPassword = pw }
+    if user,ok := server["ldap-user-dn"]; ok { LDAPUser = user }
+    if pw  ,ok := server["ldap-user-password"]; ok { LDAPUserPassword = pw }
   }
 }
 
