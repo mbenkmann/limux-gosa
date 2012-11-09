@@ -1,0 +1,61 @@
+# extended LDIF
+#
+# LDAPv3
+# base <ou=Direktorium,o=Landeshauptstadt München,c=de> with scope subtree
+# filter: (&(objectClass=GOHard)(cn=dev1*))
+# requesting: cn objectclass faistate 
+#
+
+# dev11, workstations, systems, Direktorium, Landeshauptstadt M\C3\BCnchen, d
+ e
+dn:: Y249ZGV2MTEsb3U9d29ya3N0YXRpb25zLG91PXN5c3RlbXMsb3U9RGlyZWt0b3JpdW0sbz1MY
+ W5kZXNoYXVwdHN0YWR0IE3DvG5jaGVuLGM9ZGU=
+cn: dev11
+objectClass: GOhard
+objectClass: top
+objectClass: gotoWorkstation
+objectClass: FAIobject
+objectClass: gosaAdministrativeUnitTag
+FAIstate: localboot
+
+# dev12, workstations, systems, Direktorium, Landeshauptstadt M\C3\BCnchen, d
+ e
+dn:: Y249ZGV2MTIsb3U9d29ya3N0YXRpb25zLG91PXN5c3RlbXMsb3U9RGlyZWt0b3JpdW0sbz1MY
+ W5kZXNoYXVwdHN0YWR0IE3DvG5jaGVuLGM9ZGU=
+cn: dev12
+objectClass: GOhard
+objectClass: top
+objectClass: gotoWorkstation
+objectClass: FAIobject
+objectClass: gosaAdministrativeUnitTag
+FAIstate: localboot
+
+# dev1, workstations, systems, Direktorium, Landeshauptstadt M\C3\BCnchen, de
+dn:: Y249ZGV2MSxvdT13b3Jrc3RhdGlvbnMsb3U9c3lzdGVtcyxvdT1EaXJla3Rvcml1bSxvPUxhb
+ mRlc2hhdXB0c3RhZHQgTcO8bmNoZW4sYz1kZQ==
+cn: dev1
+objectClass: GOhard
+objectClass: top
+objectClass: gotoWorkstation
+objectClass: FAIobject
+objectClass: gosaAdministrativeUnitTag
+FAIstate: localboot
+
+# dev13, workstations, systems, Direktorium, Landeshauptstadt M\C3\BCnchen, d
+ e
+dn:: Y249ZGV2MTMsb3U9d29ya3N0YXRpb25zLG91PXN5c3RlbXMsb3U9RGlyZWt0b3JpdW0sbz1MY
+ W5kZXNoYXVwdHN0YWR0IE3DvG5jaGVuLGM9ZGU=
+cn: dev13
+objectClass: GOhard
+objectClass: top
+objectClass: gotoWorkstation
+objectClass: FAIobject
+objectClass: gosaAdministrativeUnitTag
+FAIstate: localboot
+
+# search result
+search: 2
+result: 0 Success
+
+# numResponses: 5
+# numEntries: 4
