@@ -93,7 +93,7 @@
 //   lst := deque.New([]int{3,1,10,4,0})
 //   lst.Sort(func(a,b interface{})int{return a.(int)-b.(int)})
 //
-// Example 5: List of the 16 most recently used items
+// Example 5: Keep track of the 16 most recently used items
 //
 //   mru := deque.New(16, deque.DropFarEndIfOverflow)
 //   ...
@@ -338,12 +338,26 @@ func PanicIfOverflow(uint, uint, uint) uint { panic(Overflow) }
 // after the insertion may be different from the index you passed to the
 // insertion function. E.g. after InsertAt(2,item) on a 3-element Deque,
 // the inserted item will be At(1). Conceptually the insertion occurs before
-// the old item is pushed out, i.e. the new item is insert At(2) and then
+// the old item is pushed out, i.e. the new item is inserted At(2) and then
 // RemoveAt(0) removes the item at the far end, which causes the new item's
 // index to decrease. While this may sound complicated, most of the time
 // you won't use DropFarEndIfOverflow in combination with indexed access.
 // When used as in Example 5, none of this confusion occurs.
+//
+// NOTE: If the Deque's capacity is 0, the new item is discarded.
 func DropFarEndIfOverflow(uint, uint, uint) uint { return DROP_FAR_END }
+
+// The counterpart to DropFarEndIfOverflow that drops items at the near end.
+// See DropFarEndIfOverflow() for more information.
+//
+// ATTENTION! As explained at DropFarEndIfOverflow(), conceptually the insertion
+// happens before dropping an element. This means that with functions
+// that append to either end such as Push() and Insert() DropNearEndIfOverflow
+// is equivalent to DiscardIfOverflow.
+func DropNearEndIfOverflow(uint, uint, uint) uint { 
+  panic("TODO: Add DROP_NEAR_END case to insertAt()")
+  return DROP_NEAR_END
+}
 
 // When new items are added to a Deque with no empty space, the new items
 // are discarded and the Deque remains unchanged. 
@@ -856,10 +870,30 @@ func (self *Deque) Sort(cmp func(interface{},interface{}) int) *Deque {
 // second argument.
 // Returns the number of items removed.
 func (self *Deque) Remove(item ...interface{}) int {
-  panic("TODO: Implement Remove()")
-  //After implementing, comment in the commented out use of this command in
-  //system-test (active_connections.Remove(...))
-  return -1 
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.data == nil { self.init() }
+  
+  count := 0
+  
+  switch len(item) {
+    case 1:
+      for i:=self.count-1; i >= 0 ; i-- {
+        idx := self.a + i
+        if idx >= len(self.data) { idx -= len(self.data) }
+        if self.data[idx] == item[0] { self.removeAt(i); count++ } 
+      }
+    case 2:
+      var cmp func(interface{},interface{}) int = item[1].(func(interface{},interface{}) int)
+      for i:=self.count-1; i >= 0 ; i-- {
+        idx := self.a + i
+        if idx >= len(self.data) { idx -= len(self.data) }
+        if cmp(self.data[idx],item[0]) == 0 { self.removeAt(i); count++ } 
+      }
+    default: panic("Remove() takes 1 or 2 parameters")
+  }
+
+  return count
 }
 
 // Returns the index of the first element that compares equal
@@ -1113,23 +1147,43 @@ func (self *Deque) insertAt(idx int, item interface{}) *Deque {
   if self.count == len(self.data) {
     growth := self.Growth(uint(len(self.data)), 1, self.GrowthCount)
     self.GrowthCount++
-    if growth == 0 { // no growth => block until there's space
-      for ; self.count == len(self.data) ; {
-        self.waitFor(&self.hasSpace, 0)
+    switch growth {
+      case 0: { // no growth => block until there's space
+        for ; self.count == len(self.data) ; {
+          self.waitFor(&self.hasSpace, 0)
+        }
       }
-    } else 
-    { // grow buffer
-      new_buf := make([]interface{}, len(self.data) + int(growth))
-      // Note: self.a == self.b because buffer is full
-      copy(new_buf, self.data[self.a:len(self.data)])
-      copy(new_buf[len(self.data)-self.a:], self.data[0:self.a])
-      self.a = 0
-      self.b = self.count
-      self.data = new_buf
       
-      if growth > 1 { // if we grew more than necessary, signal waiters for space
-        for _,c := range self.hasSpace { c <- true } 
-        self.hasSpace = self.hasSpace[0:0]
+      case DROP_FAR_END: { // drop far end
+        if len(self.data) == 0 { return self }
+        if idx > self.count-idx { // A end is far end
+          self.a++
+          if self.a == len(self.data) { self.a = 0 }
+          idx--
+        } else { // B end is far end
+          self.b--
+          if self.b < 0 { self.b += len(self.data) }
+        }
+        self.count--
+      }
+      
+      case DISCARD: { // discard the new item
+        return self
+      }        
+      
+      default: { // grow buffer
+        new_buf := make([]interface{}, len(self.data) + int(growth))
+        // Note: self.a == self.b because buffer is full
+        copy(new_buf, self.data[self.a:len(self.data)])
+        copy(new_buf[len(self.data)-self.a:], self.data[0:self.a])
+        self.a = 0
+        self.b = self.count
+        self.data = new_buf
+        
+        if growth > 1 { // if we grew more than necessary, signal waiters for space
+          for _,c := range self.hasSpace { c <- true } 
+          self.hasSpace = self.hasSpace[0:0]
+        }
       }
     }
   }

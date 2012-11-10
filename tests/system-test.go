@@ -863,7 +863,7 @@ func listen() {
 func handleConnection(conn net.Conn) {
   defer conn.Close()
   active_connections.Push(conn)
-  //FIXME: defer active_connections.Remove(conn)  not implemented in deque.Deque, yet
+  defer active_connections.Remove(conn)
   
   senderIP,_,_ := net.SplitHostPort(conn.RemoteAddr().String())
   // translate loopback address to our own external IP  
