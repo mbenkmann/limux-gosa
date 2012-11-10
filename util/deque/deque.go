@@ -93,6 +93,18 @@
 //   lst := deque.New([]int{3,1,10,4,0})
 //   lst.Sort(func(a,b interface{})int{return a.(int)-b.(int)})
 //
+// Example 5: List of the 16 most recently used items
+//
+//   mru := deque.New(16, deque.DropFarEndIfOverflow)
+//   ...
+//     // make item the most recent
+//     // we remove an old entry first to avoid duplicates
+//   mru.Remove(item)
+//   mru.Push(item)
+//   ...
+//     // get the most recent item (it remains in mru)
+//   item := mru.Peek(0)
+//
 // Notes about design decisions:
 //  At() is not called Get()
 //       because Get() could be a function that removes the element it returns,
@@ -102,7 +114,8 @@
 //       Next() is shorter and in the typical use case of a FIFO buffer,
 //       where a consumer processes items in a loop, Next() sounds more
 //       natural. Furthermore deck.Remove() could be misconstrued as removing
-//       the deque (e.g. freeing memory).
+//       the deque (e.g. freeing memory). Furthermore since Go does not allow
+//       overloaded functions, Remove() could not be used as Remove(item).
 //  Set() is not used, because intvec.Set(1,2) could be read as initializing the
 //       whole list with [1,2].
 //  Put() is not called PutAt() because Put() is shorter and the fact that it
@@ -133,6 +146,10 @@
 //       contents of stack or the stack object itself.
 //       The same argument counts against Add(). AddAll() would be clear but
 //       is more cumbersome than Cat().
+//  The naming "inconsistency" between BlockIfFull() and FooIfOverflow() is
+//       deliberate, because "overflow" is a condition where some data is lost
+//       but BlockIfFull() does not lose data because eventually
+//       the item will be written to the queue.
 package deque
 
 import (
@@ -213,6 +230,13 @@ var GrowthDefault GrowthFunc = Double
 
 // Some GrowthFuncs use this to control growth.
 var GrowthFactor uint = 16
+
+// If Growth() returns this, the behaviour is as DropFarEndIfOverflow().
+const DROP_FAR_END = ^uint(0)
+// If Growth() returns this, the behaviour is as DropNearEndIfOverflow().
+const DROP_NEAR_END = DROP_FAR_END - 1
+// If Growth() returns this, the behaviour is as DiscardIfOverflow().
+const DISCARD = DROP_FAR_END - 2
 
 // The GrowthFunc Double() doubles the capacity every time it is called (multiple
 // times if necessary to satisfy the requested additional capacity). 
@@ -301,6 +325,33 @@ var Overflow = fmt.Errorf("Deque overflow")
 // as an error rather than blocking. The operation that attempted to add more
 // elements will have no effect and the Deque will remain valid.
 func PanicIfOverflow(uint, uint, uint) uint { panic(Overflow) }
+
+// New items added to a Deque with no empty space will cause old items to be
+// "pushed out at the far end". This means that the item that is dropped will be
+// the item whose index is the farthest away from the insertion point of the
+// new item. E.g. a Push() on a full Deque will cause the item At(0) to be dropped,
+// whereas an Insert() will cause the item Peek(0) to be dropped.
+// If the insertion point is exactly in the middle (e.g. InsertAt(1,item) on a 
+// 2-slot Deque), it is unspecified at which end the drop will occur.
+//
+// ATTENTION! If an item is dropped to make room, the index of the item
+// after the insertion may be different from the index you passed to the
+// insertion function. E.g. after InsertAt(2,item) on a 3-element Deque,
+// the inserted item will be At(1). Conceptually the insertion occurs before
+// the old item is pushed out, i.e. the new item is insert At(2) and then
+// RemoveAt(0) removes the item at the far end, which causes the new item's
+// index to decrease. While this may sound complicated, most of the time
+// you won't use DropFarEndIfOverflow in combination with indexed access.
+// When used as in Example 5, none of this confusion occurs.
+func DropFarEndIfOverflow(uint, uint, uint) uint { return DROP_FAR_END }
+
+// When new items are added to a Deque with no empty space, the new items
+// are discarded and the Deque remains unchanged. 
+// Like PanicIfOverflow() without the panic :-)
+// One use case of this function is to temporarily disable a consumer without
+// having to notify/disrupt/block producers and without having to worry about
+// unbounded buffer growth.
+func DiscardIfOverflow(uint, uint, uint) uint { return DISCARD }
 
 
 /*********************************************************************************
@@ -549,20 +600,6 @@ func (self *Deque) WaitForItem(timeout time.Duration) bool {
   return self.waitFor(&self.hasItem, timeout)
 }
 
-func (self *Deque) waitFor(what *[]chan bool, timeout time.Duration) bool {
-  c := make(chan bool, 2)
-  *what = append(*what, c)
-  self.Mutex.Unlock()
-  defer self.Mutex.Lock()
-  if timeout > 0 {
-    go func(){
-      time.Sleep(timeout)
-      c <- false
-    }()
-  }
-  return <-c // wait for signal or timeout
-}
-
 // Blocks until either timeout has elapsed or at least one free slot is available
 // for a new item.
 // Returns true if the function returned because of a free slot and false if it
@@ -763,6 +800,221 @@ func (self *Deque) Put(idx int, item interface{}) interface{} {
   return self.put(idx, item)   
 }
 
+
+
+
+/*********************************************************************************
+
+                   STRUCTURAL METHODS
+
+**********************************************************************************/
+
+// Takes any combination of []interface{} slices and *Deques and appends 
+// all their elements in order to the Deque's current list of elements.
+// It is permissible to
+// pass the Deque itself as an argument and it is permissible to pass the same
+// Deque or slice multiple times. All Deques involed will be locked
+// for the call, so if the same Deque is listed multiple times as argument, it
+// is not possible that the resulting list contains different states of the
+// same Deque even in the presence of concurrent modifications.
+// If the target Deque uses BlockIfFull, the elements that won't fit will be
+// copied to a temporary buffer and the locks will be released. Then Cat() will
+// block until space is available in the Deque and append more elements, repeating
+// this as often as necessary.
+// Cat() returns the Deque for chaining.
+func (self *Deque) Cat(lst... interface{}) *Deque { 
+  panic("TODO: Implement Cat()")
+  return self 
+}
+
+// Swaps the items At(i) and At(j). Returns nil if either index is
+// out of range, otherwise the Deque is returned.
+func (self *Deque) Swap(i, j int) *Deque { 
+  panic("TODO: Implement Swap()")
+  return self
+}
+
+// Reverses the order of all elements, i.e. swapping At(i)<->Peek(i) for all i.
+// Returns the Deque.
+func (self *Deque) Reverse() *Deque { 
+  panic("TODO: Implement Reverse()")
+  return self
+}
+
+// Performs a stable sort of the elements of the Deque in ascending order,
+// if cmp is a function
+// that returns a negative value if its first argument is less than the second,
+// a positive value if it is greater and 0 if the arguments are equal.
+// Returns the Deque.
+func (self *Deque) Sort(cmp func(interface{},interface{}) int) *Deque { 
+  panic("TODO: Implement Sort()")
+  return self 
+}
+
+// Removes all instances that are equal to item, either per operator == or by
+// the notion of equality of a comparison function (see Sort()) passed as 
+// second argument.
+// Returns the number of items removed.
+func (self *Deque) Remove(item ...interface{}) int {
+  panic("TODO: Implement Remove()")
+  //After implementing, comment in the commented out use of this command in
+  //system-test (active_connections.Remove(...))
+  return -1 
+}
+
+// Returns the index of the first element that compares equal
+// to the given item according to operator == or the notion of equality of
+// a comparison function (see Sort()) passed as second argument.
+// Returns -1 if no such element exists.
+func (self *Deque) IndexOf(item ...interface{}) int { 
+  panic("TODO: Implement IndexOf()")
+  return -1 
+}
+
+// When called on a Deque that has been sorted by Sort() with the same cmp() function
+// as passed to Search(), the latter will perform a binary search for the given item
+// and return  Given an item and a comparison function Performs a binary search and 
+// return the smallest index idx so that InsertAt(idx, item) keeps the Deque sorted.
+func (self *Deque) Search(item interface{}, cmp func(interface{},interface{}) int) int { 
+  panic("TODO: Implement Search()")
+  return self.Count() 
+}
+
+// Returns true if the Deque contains an item that compares equal to the given
+// item according to operator == or a comparison function (see Sort()) passed
+// as 2nd argument.
+func (self *Deque) Contains(item ...interface{}) bool { 
+  return self.IndexOf(item...)>=0 
+}
+
+// Panics if the Deque is broken. As this could only happen if there were
+// a bug in the code, this function will never do that. Well, actually it
+// also panics if YOU have set Growth to nil (which is a bug in your code).
+// So how about this: If this function panics, there's a bug in
+// your application ;-)
+func (self *Deque) CheckInvariant() {
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.count < 0 || self.count > len(self.data) || 
+     self.a < 0 || self.b < 0 || 
+     (len(self.data) != 0 && (self.a >= len(self.data) || self.b >= len(self.data))) { panic("invariant broken") }
+  if len(self.data) == 0 && (self.a != 0 || self.b != 0) { panic("invariant broken") }
+  if self.a == self.b && self.count != 0 && self.count != len(self.data) { panic("invariant broken") }
+  if (self.count == 0 || self.count == len(self.data)) && self.a != self.b { panic("invariant broken") }
+  if self.a < self.b && self.count != self.b-self.a { panic("invariant broken") }
+  if self.b < self.a && self.count != (self.b + len(self.data)-self.a) { panic("invariant broken") }
+  if self.Growth == nil && self.data != nil { panic("invariant broken") }
+  for _, ar := range []*[]chan bool{&self.hasItem,&self.isEmpty,&self.hasSpace} {
+    for _, c := range *ar {
+      if len(c) != 0 || cap(c) != 2 { panic("invariant broken") }
+    }
+  }
+  if len(self.data) != cap(self.data) { panic("invariant broken") }
+  if self.count == 0 && len(self.isEmpty) != 0 { panic("invariant broken") }
+  if self.count != 0 && len(self.hasItem) != 0 { panic("invariant broken") }
+  if self.count < len(self.data) && len(self.hasSpace) != 0 { panic("invariant broken") }
+}
+
+/*********************************************************************************
+
+                   TYPE CONVERSIONS
+
+**********************************************************************************/
+
+// Returns a string representation of the Deque.
+func (self *Deque) String() string { 
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  if self.data == nil { self.init() }
+  buf := make([]string, self.count)
+  for i:=0; i < self.count; i++ {
+    j := self.a+i
+    if j >= len(self.data) { j -= len(self.data) }
+    buf[i] = fmt.Sprintf("%v", self.data[j])
+  }
+  return fmt.Sprintf("Deque%v",buf)
+}
+
+// Returns the internal ring buffer, rotated so that ring[idx0] is element At(0).
+// If the argument index0 >= 0, then idx0 will be (index0 % Capacity()).
+// If index0 < 0, the internal ring buffer is returned as is without any
+// rotation being performed.
+// The returned slice will have length Capacity(). If Count() < Capacity(), then
+// parts of the slice are currently unused.
+// WARNING! This function does not initialize the Deque, and doesn't lock the Deque
+// at all, even while performing the
+// rotation. To use this function safely in a situation where concurrent goroutines
+// may access the Deque in any way, requires that you lock deque.Mutex before
+// calling Raw() and unlock it when you are finished working with the data.
+// It is possible (and in fact one of the intended use cases) to modify the elements
+// of the returned slice (e.g. sorting them), but adding or removing elements 
+// will not work, because you cannot modify the element count.
+func (self *Deque) Raw(index0 int) (ring []interface{}, idx0 int) { 
+  if len(self.data) == 0 { return self.data, 0 } // Avoid division by 0
+  if index0 >= 0 {
+    index0 = index0 % len(self.data)
+    if index0 != self.a {
+      new_buf := make([]interface{}, len(self.data))
+      if index0 > self.a {
+        // |-------A---0-----|
+        copy(new_buf[index0:], self.data[self.a:])
+        copy(new_buf[0:], self.data[self.a+len(self.data)-index0:])
+        copy(new_buf[index0-self.a:], self.data[0:self.a])
+      } else {
+        // |-------0---A-----|
+        copy(new_buf[index0:], self.data[self.a:])
+        copy(new_buf[index0+len(self.data)-self.a:], self.data[0:])
+        copy(new_buf[0:], self.data[self.a-index0:self.a])
+      }
+      self.data = new_buf
+      self.a = index0
+      self.b = self.a + self.count
+      if self.b >= len(self.data) { self.b -= len(self.data) }
+    }
+  }
+  return self.data, self.a
+}
+
+
+
+/*********************************************************************************
+
+                   ITERATION
+
+**********************************************************************************/
+
+func (self* Deque) Iterator() Iterator {
+  panic("TODO: Implement Iterator()")
+  return nil
+}
+
+type Iterator interface{
+}
+
+
+/*********************************************************************************
+
+                   IMPLEMENTATION (PRIVATE FUNCTIONS)
+
+**********************************************************************************/
+
+
+func (self *Deque) waitFor(what *[]chan bool, timeout time.Duration) bool {
+  c := make(chan bool, 2)
+  *what = append(*what, c)
+  self.Mutex.Unlock()
+  defer self.Mutex.Lock()
+  if timeout > 0 {
+    go func(){
+      time.Sleep(timeout)
+      c <- false
+    }()
+  }
+  return <-c // wait for signal or timeout
+}
+
+
+
 func (self *Deque) at(idx int) interface{} { 
   if self.data == nil { self.init() }
   if idx < 0 || idx >= self.count { return nil }
@@ -780,6 +1032,7 @@ func (self *Deque) put(idx int, item interface{}) interface{} {
   self.data[idx] = item
   return old
 }
+
 
 //*************************** removeAt() ******************************/
 func (self *Deque) removeAt(idx int) interface{} {
@@ -954,180 +1207,4 @@ func (self *Deque) insertAt(idx int, item interface{}) *Deque {
   self.count++
   
   return self
-}
-
-
-
-/*********************************************************************************
-
-                   STRUCTURAL METHODS
-
-**********************************************************************************/
-
-// Takes any combination of []interface{} slices and *Deques and appends 
-// all their elements in order to the Deque's current list of elements.
-// It is permissible to
-// pass the Deque itself as an argument and it is permissible to pass the same
-// Deque or slice multiple times. All Deques involed will be locked
-// for the call, so if the same Deque is listed multiple times as argument, it
-// is not possible that the resulting list contains different states of the
-// same Deque even in the presence of concurrent modifications.
-// If the target Deque uses BlockIfFull, the elements that won't fit will be
-// copied to a temporary buffer and the locks will be released. Then Cat() will
-// block until space is available in the Deque and append more elements, repeating
-// this as often as necessary.
-// Cat() returns the Deque for chaining.
-func (self *Deque) Cat(lst... interface{}) *Deque { 
-  panic("TODO: Implement Cat()")
-  return self 
-}
-
-// Swaps the items At(i) and At(j). Returns nil if either index is
-// out of range, otherwise the Deque is returned.
-func (self *Deque) Swap(i, j int) *Deque { 
-  panic("TODO: Implement Swap()")
-  return self
-}
-
-// Reverses the order of all elements, i.e. swapping At(i)<->Peek(i) for all i.
-// Returns the Deque.
-func (self *Deque) Reverse() *Deque { 
-  panic("TODO: Implement Reverse()")
-  return self
-}
-
-// Performs a stable sort of the elements of the Deque in ascending order,
-// if cmp is a function
-// that returns a negative value if its first argument is less than the second,
-// a positive value if it is greater and 0 if the arguments are equal.
-// Returns the Deque.
-func (self *Deque) Sort(cmp func(interface{},interface{}) int) *Deque { 
-  panic("TODO: Implement Sort()")
-  return self 
-}
-
-// Returns the index of the first element that compares equal (according to
-// operator ==) to the given item, or -1 if no such element exists.
-func (self *Deque) IndexOf(item interface{}) int { 
-  panic("TODO: Implement IndexOf()")
-  return -1 
-}
-
-// When called on a Deque that has been sorted by Sort() with the same cmp() function
-// as passed to Search(), the latter will perform a binary search for the given item
-// and return  Given an item and a comparison function Performs a binary search and 
-// return the smallest index idx so that InsertAt(idx, item) keeps the Deque sorted.
-func (self *Deque) Search(item interface{}, cmp func(interface{},interface{}) int) int { 
-  panic("TODO: Implement Search()")
-  return self.Count() 
-}
-
-// Returns true if the Deque contains an item that compares equal according to
-// operator == to the given item.
-func (self *Deque) Contains(item interface{}) bool { 
-  return self.IndexOf(item)>=0 
-}
-
-// Panics if the Deque is broken. As this could only happen if there were
-// a bug in the code, this function will never do that. Well, actually it
-// also panics if YOU have set Growth to nil (which is a bug in your code).
-// So how about this: If this function panics, there's a bug in
-// your application ;-)
-func (self *Deque) CheckInvariant() {
-  self.Mutex.Lock()
-  defer self.Mutex.Unlock()
-  if self.count < 0 || self.count > len(self.data) || 
-     self.a < 0 || self.b < 0 || 
-     (len(self.data) != 0 && (self.a >= len(self.data) || self.b >= len(self.data))) { panic("invariant broken") }
-  if len(self.data) == 0 && (self.a != 0 || self.b != 0) { panic("invariant broken") }
-  if self.a == self.b && self.count != 0 && self.count != len(self.data) { panic("invariant broken") }
-  if (self.count == 0 || self.count == len(self.data)) && self.a != self.b { panic("invariant broken") }
-  if self.a < self.b && self.count != self.b-self.a { panic("invariant broken") }
-  if self.b < self.a && self.count != (self.b + len(self.data)-self.a) { panic("invariant broken") }
-  if self.Growth == nil && self.data != nil { panic("invariant broken") }
-  for _, ar := range []*[]chan bool{&self.hasItem,&self.isEmpty,&self.hasSpace} {
-    for _, c := range *ar {
-      if len(c) != 0 || cap(c) != 2 { panic("invariant broken") }
-    }
-  }
-  if len(self.data) != cap(self.data) { panic("invariant broken") }
-  if self.count == 0 && len(self.isEmpty) != 0 { panic("invariant broken") }
-  if self.count != 0 && len(self.hasItem) != 0 { panic("invariant broken") }
-  if self.count < len(self.data) && len(self.hasSpace) != 0 { panic("invariant broken") }
-}
-
-/*********************************************************************************
-
-                   TYPE CONVERSIONS
-
-**********************************************************************************/
-
-// Returns a string representation of the Deque.
-func (self *Deque) String() string { 
-  self.Mutex.Lock()
-  defer self.Mutex.Unlock()
-  if self.data == nil { self.init() }
-  buf := make([]string, self.count)
-  for i:=0; i < self.count; i++ {
-    j := self.a+i
-    if j >= len(self.data) { j -= len(self.data) }
-    buf[i] = fmt.Sprintf("%v", self.data[j])
-  }
-  return fmt.Sprintf("Deque%v",buf)
-}
-
-// Returns the internal ring buffer, rotated so that ring[idx0] is element At(0).
-// If the argument index0 >= 0, then idx0 will be (index0 % Capacity()).
-// If index0 < 0, the internal ring buffer is returned as is without any
-// rotation being performed.
-// The returned slice will have length Capacity(). If Count() < Capacity(), then
-// parts of the slice are currently unused.
-// WARNING! This function does not initialize the Deque, and doesn't lock the Deque
-// at all, even while performing the
-// rotation. To use this function safely in a situation where concurrent goroutines
-// may access the Deque in any way, requires that you lock deque.Mutex before
-// calling Raw() and unlock it when you are finished working with the data.
-// It is possible (and in fact one of the intended use cases) to modify the elements
-// of the returned slice (e.g. sorting them), but adding or removing elements 
-// will not work, because you cannot modify the element count.
-func (self *Deque) Raw(index0 int) (ring []interface{}, idx0 int) { 
-  if len(self.data) == 0 { return self.data, 0 } // Avoid division by 0
-  if index0 >= 0 {
-    index0 = index0 % len(self.data)
-    if index0 != self.a {
-      new_buf := make([]interface{}, len(self.data))
-      if index0 > self.a {
-        // |-------A---0-----|
-        copy(new_buf[index0:], self.data[self.a:])
-        copy(new_buf[0:], self.data[self.a+len(self.data)-index0:])
-        copy(new_buf[index0-self.a:], self.data[0:self.a])
-      } else {
-        // |-------0---A-----|
-        copy(new_buf[index0:], self.data[self.a:])
-        copy(new_buf[index0+len(self.data)-self.a:], self.data[0:])
-        copy(new_buf[0:], self.data[self.a-index0:self.a])
-      }
-      self.data = new_buf
-      self.a = index0
-      self.b = self.a + self.count
-      if self.b >= len(self.data) { self.b -= len(self.data) }
-    }
-  }
-  return self.data, self.a
-}
-
-
-
-/*********************************************************************************
-
-                   ITERATION
-
-**********************************************************************************/
-
-func (self* Deque) Iterator() Iterator {
-  panic("TODO: Implement Iterator()")
-  return nil
-}
-
-type Iterator interface{
 }
