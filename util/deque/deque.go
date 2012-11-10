@@ -433,95 +433,6 @@ func (self *Deque) Init(args... interface{}) *Deque {
   return self.init(args...)
 }
 
-// like Init() but the caller is responsible for locking self.
-func (self *Deque) init(args... interface{}) *Deque {
-  locklist := map[*Deque]bool{self:true}
-  
-  // evaluate arguments
-  requested_capacity := 0
-  cat_capacity := 0
-  var new_growth GrowthFunc
-  for i, x := range args {
-    switch arg := x.(type) {
-      case *Deque: 
-             if !locklist[arg] { 
-               locklist[arg] = true
-               arg.Mutex.Lock()
-               defer arg.Mutex.Unlock()  // FIXME: Does this work? Is the current value of arg properly frozen by the closure?
-             }
-             if arg.data != nil { // protect against uninitialized Deques
-               cat_capacity += arg.count
-             }
-      case int:  requested_capacity = arg
-      case uint: requested_capacity = int(arg)
-      case int64: requested_capacity = int(arg)
-      case uint64: requested_capacity = int(arg)
-      case []interface{}: cat_capacity += len(arg)
-      case GrowthFunc: new_growth = arg
-      case func(uint, uint, uint) uint: new_growth = arg
-      default: panic(fmt.Errorf("Argument #%d is unsupported by deque.Init()",i+1))
-    }
-  }
-  
-  if cat_capacity > requested_capacity { requested_capacity = cat_capacity }
-  // Current implemention is to only use CapacityDefault if neither an explicit
-  // capacity is requested nor initial values are provided. It would also be
-  // a reasonable implementation to have the following line before the
-  // previous line which would have the effect that if fewer initial values
-  // are provided than CapacityDefault, the deque would be created with some
-  // empty slots.
-  if requested_capacity == 0 { requested_capacity = int(CapacityDefault) }
-  
-  new_data := make([]interface{}, 0, requested_capacity)
-  
-  // concatenate all initial items into new_data
-  for _, x := range args {
-    switch arg := x.(type) {
-      case *Deque: 
-             if arg.data != nil { // protect against uninitialized Deques
-               if arg.a < arg.b || arg.count == 0 {
-                 new_data = append(new_data, arg.data[arg.a:arg.b]...)
-               } else {
-                 new_data = append(new_data, arg.data[arg.a:]...)
-                 new_data = append(new_data, arg.data[:arg.b]...)
-               }
-             }
-      case []interface{}: new_data = append(new_data, arg...)
-    }
-  }
-  
-  self.count = len(new_data)
-  self.a = 0
-  self.b = self.count
-  
-  // grow new_data slice to full capacity
-  new_data = new_data[0:cap(new_data)]
-  // wrap around b if beyond end
-  if self.b == len(new_data) { self.b = 0 }
-  
-  self.data = new_data
-  
-  if self.Growth == nil && new_growth == nil { new_growth = GrowthDefault }
-  if new_growth != nil { self.Growth = new_growth }
-  
-  self.GrowthCount = 0
-  
-  // notify waiters based on new state
-  if self.count > 0 { 
-    for _,c := range self.hasItem { c <-true } 
-    self.hasItem = self.hasItem[0:0]
-  }
-  if self.count < len(self.data) { 
-    for _,c := range self.hasSpace { c <- true } 
-    self.hasSpace = self.hasSpace[0:0]
-  }
-  if self.count == 0 { 
-    for _,c := range self.isEmpty { c <- true } 
-    self.isEmpty = self.isEmpty[0:0]
-  }
-
-  return self
-}
 
 
 /*********************************************************************************
@@ -1031,6 +942,95 @@ type Iterator interface{
                    IMPLEMENTATION (PRIVATE FUNCTIONS)
 
 **********************************************************************************/
+// like Init() but the caller is responsible for locking self.
+func (self *Deque) init(args... interface{}) *Deque {
+  locklist := map[*Deque]bool{self:true}
+  
+  // evaluate arguments
+  requested_capacity := 0
+  cat_capacity := 0
+  var new_growth GrowthFunc
+  for i, x := range args {
+    switch arg := x.(type) {
+      case *Deque: 
+             if !locklist[arg] { 
+               locklist[arg] = true
+               arg.Mutex.Lock()
+               defer arg.Mutex.Unlock()  // FIXME: Does this work? Is the current value of arg properly frozen by the closure?
+             }
+             if arg.data != nil { // protect against uninitialized Deques
+               cat_capacity += arg.count
+             }
+      case int:  requested_capacity = arg
+      case uint: requested_capacity = int(arg)
+      case int64: requested_capacity = int(arg)
+      case uint64: requested_capacity = int(arg)
+      case []interface{}: cat_capacity += len(arg)
+      case GrowthFunc: new_growth = arg
+      case func(uint, uint, uint) uint: new_growth = arg
+      default: panic(fmt.Errorf("Argument #%d is unsupported by deque.Init()",i+1))
+    }
+  }
+  
+  if cat_capacity > requested_capacity { requested_capacity = cat_capacity }
+  // Current implemention is to only use CapacityDefault if neither an explicit
+  // capacity is requested nor initial values are provided. It would also be
+  // a reasonable implementation to have the following line before the
+  // previous line which would have the effect that if fewer initial values
+  // are provided than CapacityDefault, the deque would be created with some
+  // empty slots.
+  if requested_capacity == 0 { requested_capacity = int(CapacityDefault) }
+  
+  new_data := make([]interface{}, 0, requested_capacity)
+  
+  // concatenate all initial items into new_data
+  for _, x := range args {
+    switch arg := x.(type) {
+      case *Deque: 
+             if arg.data != nil { // protect against uninitialized Deques
+               if arg.a < arg.b || arg.count == 0 {
+                 new_data = append(new_data, arg.data[arg.a:arg.b]...)
+               } else {
+                 new_data = append(new_data, arg.data[arg.a:]...)
+                 new_data = append(new_data, arg.data[:arg.b]...)
+               }
+             }
+      case []interface{}: new_data = append(new_data, arg...)
+    }
+  }
+  
+  self.count = len(new_data)
+  self.a = 0
+  self.b = self.count
+  
+  // grow new_data slice to full capacity
+  new_data = new_data[0:cap(new_data)]
+  // wrap around b if beyond end
+  if self.b == len(new_data) { self.b = 0 }
+  
+  self.data = new_data
+  
+  if self.Growth == nil && new_growth == nil { new_growth = GrowthDefault }
+  if new_growth != nil { self.Growth = new_growth }
+  
+  self.GrowthCount = 0
+  
+  // notify waiters based on new state
+  if self.count > 0 { 
+    for _,c := range self.hasItem { c <-true } 
+    self.hasItem = self.hasItem[0:0]
+  }
+  if self.count < len(self.data) { 
+    for _,c := range self.hasSpace { c <- true } 
+    self.hasSpace = self.hasSpace[0:0]
+  }
+  if self.count == 0 { 
+    for _,c := range self.isEmpty { c <- true } 
+    self.isEmpty = self.isEmpty[0:0]
+  }
+
+  return self
+}
 
 
 func (self *Deque) waitFor(what *[]chan bool, timeout time.Duration) bool {
