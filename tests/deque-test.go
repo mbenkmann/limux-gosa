@@ -178,17 +178,132 @@ func Deque_test() {
     deck.Init(4)
   }()
   check(Wait(deck, (*deque.Deque).WaitForEmpty, true, 1*time.Second),"")
+
+  for i := 0; i < 33; i++ {
+    check(Overcapacity(i),"")
+  }
   
-/*
-  fifo := deque.New(4, deque.Blocking)
+  deck = deque.New(4)
+  deck.Raw(2)
+  check(deck.Overcapacity(0)==deck, true)
+  check(Deque(deck),"")
+  check(deck.Capacity(),0)
   
-  lst := deque.New([]interface{}{1,2,3,4,5})
+  deck = deque.New(4)
+  deck.Raw(5)
+  check(deck.Overcapacity(10)==deck, true)
+  check(Deque(deck),"")
+  check(deck.Capacity(),10)
   
-  empty := deque.New()
+  deck = deque.New()
+  check(deck.Push(1)==deck,true); check(Deque(deck,1),"")
+  check(deck.Push(2)==deck,true); check(Deque(deck,1,2),"")
+  check(deck.PushAt(-2,"x"),nil); check(Deque(deck,1,2),"")
+  check(deck.PushAt(-1,"x"),nil); check(Deque(deck,1,2),"")
+  check(deck.PushAt(3,"x"),nil); check(Deque(deck,1,2),"")
+  check(deck.PushAt(4,"x")==nil,true); check(Deque(deck,1,2),"")
+  check(deck.PushAt(0,"foo")==deck,true); check(Deque(deck,1,2,"foo"),"")
+  check(deck.PushAt(1,"bar")==deck,true); check(Deque(deck,1,2,"bar","foo"),"")
+  check(deck.PushAt(4,"FOO")==deck,true); check(Deque(deck,"FOO",1,2,"bar","foo"),"")
+  check(deck.PushAt(5,"BAR")==deck,true); check(Deque(deck,"BAR","FOO",1,2,"bar","foo"),"")
+  check(deck.PushAt(3,1.5)==deck,true); check(Deque(deck,"BAR","FOO",1,1.5,2,"bar","foo"),"")
+  check(deck.Pop(),"foo"); check(Deque(deck,"BAR","FOO",1,1.5,2,"bar"),"")
+  check(deck.PopAt(0),"bar"); check(Deque(deck,"BAR","FOO",1,1.5,2),"")
+  check(deck.PopAt(5),nil); check(Deque(deck,"BAR","FOO",1,1.5,2),"")
+  check(deck.PopAt(4),"BAR"); check(Deque(deck,"FOO",1,1.5,2),"")
+  check(deck.PopAt(1),1.5); check(Deque(deck,"FOO",1,2),"")
+  deck = deque.New()
+  go func() { time.Sleep(1*time.Second); deck.Push("Yeah!") }()
+  for i:=-2; i<=2; i++ { 
+    check(deck.PopAt(i),nil); check(Deque(deck),"")
+  }
+  check(deck.PopAt(0),nil)
+  time.Sleep(2*time.Second)
+  check(deck.PopAt(0),"Yeah!")
+  for i:=0; i < 50 ; i++ {
+    go func(){ 
+      p:=deck.Pop().(string);
+      if p != "MSB" { check(p,"MSB") } 
+    }()
+  }
+  for i=0; i < 50; i++ {
+    deck.Push("MSB")
+    time.Sleep(100*time.Millisecond)
+  }
   
-  one := deque.New(deque.Blocking)
+  deck = deque.New()
+  check(deck.Insert(1)==deck,true); check(DequeReversed(deck,1),"")
+  check(deck.Insert(2)==deck,true); check(DequeReversed(deck,1,2),"")
+  check(deck.InsertAt(-2,"x"),nil); check(DequeReversed(deck,1,2),"")
+  check(deck.InsertAt(-1,"x"),nil); check(DequeReversed(deck,1,2),"")
+  check(deck.InsertAt(3,"x"),nil); check(DequeReversed(deck,1,2),"")
+  check(deck.InsertAt(4,"x")==nil,true); check(DequeReversed(deck,1,2),"")
+  check(deck.InsertAt(0,"foo")==deck,true); check(DequeReversed(deck,1,2,"foo"),"")
+  check(deck.InsertAt(1,"bar")==deck,true); check(DequeReversed(deck,1,2,"bar","foo"),"")
+  check(deck.InsertAt(4,"FOO")==deck,true); check(DequeReversed(deck,"FOO",1,2,"bar","foo"),"")
+  check(deck.InsertAt(5,"BAR")==deck,true); check(DequeReversed(deck,"BAR","FOO",1,2,"bar","foo"),"")
+  check(deck.InsertAt(3,1.5)==deck,true); check(DequeReversed(deck,"BAR","FOO",1,1.5,2,"bar","foo"),"")
+  check(deck.Next(),"foo"); check(DequeReversed(deck,"BAR","FOO",1,1.5,2,"bar"),"")
+  check(deck.RemoveAt(0),"bar"); check(DequeReversed(deck,"BAR","FOO",1,1.5,2),"")
+  check(deck.RemoveAt(5),nil); check(DequeReversed(deck,"BAR","FOO",1,1.5,2),"")
+  check(deck.RemoveAt(4),"BAR"); check(DequeReversed(deck,"FOO",1,1.5,2),"")
+  check(deck.RemoveAt(1),1.5); check(DequeReversed(deck,"FOO",1,2),"")
+  deck = deque.New()
+  go func() { time.Sleep(1*time.Second); deck.Insert("Yeah!") }()
+  for i:=-2; i<=2; i++ { 
+    check(deck.RemoveAt(i),nil); check(DequeReversed(deck),"")
+  }
+  check(deck.RemoveAt(0),nil)
+  time.Sleep(2*time.Second)
+  check(deck.RemoveAt(0),"Yeah!")
+  for i:=0; i < 50 ; i++ {
+    go func(){ 
+      p:=deck.Next().(string);
+      if p != "MSB" { check(p,"MSB") } 
+    }()
+  }
+  for i=0; i < 50; i++ {
+    deck.Insert("MSB")
+    time.Sleep(100*time.Millisecond)
+  }
   
-  vector := deque.New(deque.Exponential, 10)*/
+  
+}
+
+func Overcapacity(i int) string {
+  deck := deque.New(i)
+  for j := 1; j <= i; j++ { deck.Push(j) }
+  for j := 1; j <= i; j++ { deck.Pop() }
+  // now the internal buffer is filled with the numbers 1,...,i
+  raw,_ := deck.Raw(-1)
+  if len(raw) != i { return fmt.Sprintf("len(%v) != %v", raw,i) }
+  if cap(raw) != i { return fmt.Sprintf("cap(%v) != %v", raw,i) }
+  if deck.Overcapacity(uint(i)) != deck { return fmt.Sprintf("Overcapacity(%v) does not return self",i) }
+  deck.CheckInvariant()
+  raw2,_ := deck.Raw(-1)
+  if fmt.Sprintf("%v",raw2) != fmt.Sprintf("%v",raw) { return fmt.Sprintf("Overcapacity(i) with i==Capacity() must leave internal buffer untouched") }
+  
+  data := []interface{}{"bar",1,2,3,4,5,6,7,8,9,"foo"}
+  for _,rotation := range []int{0,1,4,7,len(data)-1,len(data)-2} {
+    deck = deque.New(data)
+    deck.Raw(rotation)
+    deck.CheckInvariant()
+    for j := 0; j <= i ; j++ {
+      if deck.Overcapacity(uint(j)) != deck { return fmt.Sprintf("Overcapacity(%v) does not return self",j) }
+      res := Deque(deck, data...)
+      if res != "" { return res }
+      if deck.Capacity() != len(data) + j { return fmt.Sprintf("Overcapacity(%v) resulted in %v",j,deck.Capacity()-len(data)) }
+    }
+    for j := i; j >= 0 ; j-- {
+      deck.Raw(i >> 1)
+      if deck.Overcapacity(uint(j)) != deck { return fmt.Sprintf("Overcapacity(%v) does not return self",j) }
+      res := Deque(deck, data...)
+      if res != "" { return res }
+      if deck.Capacity() != len(data) + j { return fmt.Sprintf("Overcapacity(%v) resulted in %v",j,deck.Capacity()-len(data)) }
+    }
+  }
+  
+  return ""
 }
 
 func Wait(deck *deque.Deque, fn func(*deque.Deque, time.Duration) bool, result bool, wait time.Duration) string {
@@ -286,26 +401,56 @@ func Growth(growth deque.GrowthFunc, current, additional, growthcount, result []
   return ""
 }
 
+func DequeReversed(deck *deque.Deque, data... interface{}) string {
+  i:=0
+  j:=len(data)-1
+  for ; i<j ; { 
+    data[i],data[j] = data[j],data[i] 
+    i++
+    j--
+  }
+  return Deque(deck, data...)
+}
+
 func Deque(deck *deque.Deque, data... interface{}) string {
   deck.CheckInvariant()
   if deck.Count() != len(data) { return fmt.Sprintf("Count() is %v but should be %v", deck.Count(), len(data)) }
   if deck.IsEmpty() != (len(data) == 0) { return fmt.Sprintf("IsEmpty() should be %v", (len(data)==0)) }
+  if deck.IsFull() != (len(data) == deck.Capacity()) { return fmt.Sprintf("IsFull() should be %v", (len(data)==deck.Capacity())) }
   for i := range data {
     if deck.At(i) != data[i] { return fmt.Sprintf("At(%v) is %v but should be %v", i, deck.At(i), data[i]) }
     if deck.Peek(i) != data[len(data)-1-i] { return fmt.Sprintf("Peek(%v) is %v but should be %v", i, deck.Peek(i), data[len(data)-1-i]) }
+    
+    p := deck.Put(i,"x") 
+    if p != data[i] { return fmt.Sprintf("Put(%v,x) is %v but should be %v", i, p, data[i]) }
+    if deck.Put(i, p).(string) != "x" { return fmt.Sprintf("Put is broken") }
+    p = deck.Poke(i,"x")
+    if p != data[len(data)-1-i] { return fmt.Sprintf("Poke(%v,x) is %v but should be %v", i, p, data[len(data)-1-i]) }
+    if deck.Poke(i, p).(string) != "x" { return fmt.Sprintf("Poke is broken") }
+    
+    if deck.At(i) != data[i] { return fmt.Sprintf("After Put/Poke At(%v) is %v but should be %v", i, deck.At(i), data[i]) }
+    if deck.Peek(i) != data[len(data)-1-i] { return fmt.Sprintf("After Put/Poke Peek(%v) is %v but should be %v", i, deck.Peek(i), data[len(data)-1-i]) }
   }
   var zero interface{}
   if deck.Peek(-1) != zero { return fmt.Sprintf("Peek(-1) returns %v", deck.Peek(-1)) }
   if deck.Peek(-1) != nil { return fmt.Sprintf("Peek(-1) returns %v", deck.Peek(-1)) }  
+  if deck.Poke(-1,"foo") != zero { return fmt.Sprintf("Poke(-1,foo) returns not nil") }
+  if deck.Poke(-1,"foo") != nil { return fmt.Sprintf("Poke(-1,foo) returns not nil") }  
   
   if deck.At(-1) != zero { return fmt.Sprintf("At(-1) returns %v", deck.At(-1)) }
   if deck.At(-1) != nil { return fmt.Sprintf("At(-1) returns %v", deck.At(-1)) }    
+  if deck.Put(-1,"foo") != zero { return fmt.Sprintf("Put(-1,foo) returns not nil") }
+  if deck.Put(-1,"foo") != nil { return fmt.Sprintf("Put(-1,foo) returns not nil") }    
   
   if deck.Peek(len(data)) != zero { return fmt.Sprintf("Peek(len(data)) returns %v", deck.Peek(len(data))) }
   if deck.Peek(len(data)) != nil { return fmt.Sprintf("Peek(len(data)) returns %v", deck.Peek(len(data))) }  
+  if deck.Poke(len(data),"foo") != zero { return fmt.Sprintf("Poke(len(data),foo) returns not nil") }
+  if deck.Poke(len(data),"foo") != nil { return fmt.Sprintf("Poke(len(data),foo) returns not nil") }  
   
   if deck.At(len(data)) != zero { return fmt.Sprintf("At(len(data)) returns %v", deck.At(len(data))) }
   if deck.At(len(data)) != nil { return fmt.Sprintf("At(len(data)) returns %v", deck.At(len(data))) }  
+  if deck.Put(len(data),"foo") != zero { return fmt.Sprintf("Put(len(data),foo) returns not nil") }
+  if deck.Put(len(data),"foo") != nil { return fmt.Sprintf("Put(len(data),foo) returns not nil") }  
   
   return ""
 }

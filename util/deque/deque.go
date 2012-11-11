@@ -484,9 +484,10 @@ func (self *Deque) Overcapacity(remaining uint) *Deque {
       new_data = append(new_data, self.data[self.a:]...)
       new_data = append(new_data, self.data[:self.b]...)
     }
-    self.data = new_data
+    self.data = new_data[0:cap(new_data)]
     self.a = 0
     self.b = self.count
+    if self.b == len(self.data) { self.b = 0 }
   }
   return self
 }
@@ -548,7 +549,7 @@ func (self *Deque) WaitForSpace(timeout time.Duration) bool {
 // returned because of the timeout. 0 means wait as long as necessary.
 // Be wary of race conditions in concurrent programs. That this function returns
 // true does not mean that the Deque is actually empty by the time the caller
-// gets the return value. A concurrent goroutine may have add an item in the
+// gets the return value. A concurrent goroutine may have added an item in the
 // meantime.
 func (self *Deque) WaitForEmpty(timeout time.Duration) bool {
   self.Mutex.Lock()
@@ -840,9 +841,9 @@ func (self *Deque) Contains(item ...interface{}) bool {
 func (self *Deque) CheckInvariant() {
   self.Mutex.Lock()
   defer self.Mutex.Unlock()
-  if self.count < 0 || self.count > len(self.data) || 
-     self.a < 0 || self.b < 0 || 
-     (len(self.data) != 0 && (self.a >= len(self.data) || self.b >= len(self.data))) { panic("invariant broken") }
+  if self.count < 0 || self.count > len(self.data) { panic("invariant broken") }
+  if self.a < 0 || self.b < 0 { panic("invariant broken") }
+  if len(self.data) != 0 && (self.a >= len(self.data) || self.b >= len(self.data)) { panic("invariant broken") }
   if len(self.data) == 0 && (self.a != 0 || self.b != 0) { panic("invariant broken") }
   if self.a == self.b && self.count != 0 && self.count != len(self.data) { panic("invariant broken") }
   if (self.count == 0 || self.count == len(self.data)) && self.a != self.b { panic("invariant broken") }
@@ -947,8 +948,8 @@ func (self *Deque) init(args... interface{}) *Deque {
   locklist := map[*Deque]bool{self:true}
   
   // evaluate arguments
-  requested_capacity := 0
-  cat_capacity := 0
+  requested_capacity := -1
+  cat_capacity := -1
   var new_growth GrowthFunc
   for i, x := range args {
     switch arg := x.(type) {
@@ -956,16 +957,26 @@ func (self *Deque) init(args... interface{}) *Deque {
              if !locklist[arg] { 
                locklist[arg] = true
                arg.Mutex.Lock()
-               defer arg.Mutex.Unlock()  // FIXME: Does this work? Is the current value of arg properly frozen by the closure?
+               defer arg.Mutex.Unlock()
              }
              if arg.data != nil { // protect against uninitialized Deques
-               cat_capacity += arg.count
+               if cat_capacity < 0 { 
+                   cat_capacity = arg.count 
+               } else {
+                 cat_capacity += arg.count
+               }
+             }
+      case []interface{}: 
+             if cat_capacity < 0 { 
+               cat_capacity = len(arg)
+             } else {
+               cat_capacity += len(arg)
              }
       case int:  requested_capacity = arg
       case uint: requested_capacity = int(arg)
       case int64: requested_capacity = int(arg)
       case uint64: requested_capacity = int(arg)
-      case []interface{}: cat_capacity += len(arg)
+      
       case GrowthFunc: new_growth = arg
       case func(uint, uint, uint) uint: new_growth = arg
       default: panic(fmt.Errorf("Argument #%d is unsupported by deque.Init()",i+1))
@@ -979,7 +990,7 @@ func (self *Deque) init(args... interface{}) *Deque {
   // previous line which would have the effect that if fewer initial values
   // are provided than CapacityDefault, the deque would be created with some
   // empty slots.
-  if requested_capacity == 0 { requested_capacity = int(CapacityDefault) }
+  if requested_capacity < 0 { requested_capacity = int(CapacityDefault) }
   
   new_data := make([]interface{}, 0, requested_capacity)
   
