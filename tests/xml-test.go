@@ -176,6 +176,44 @@ func testFilter() {
   check(xml.FilterSimple("x","foo", "y", "bla").Accepts(nil), false)
   check(xml.FilterSimple().Accepts(nil), false)
   check(xml.FilterSimple("foo").Accepts(nil), false)
+  
+  lst = []string{"1","10","10X","2","2x","20","3","30","30x","100X","100"}
+  x = xml.NewHash("db")
+  for _, dat := range lst {
+    x.Add("item").Add("n", dat)
+  }
+  
+  check(query(x, "!and", "like", "1%", "unlike", "__X"), "1 10 100X 100")
+  check(query(x, "!and", "unlike", "1%", "like", "__X"), "30x")
+  check(query(x, "unlike", "."), "1 10 10X 2 2x 20 3 30 30x 100X 100")
+  check(query(x, "eq", "."), "")
+  check(query(x, "eq", "1"), "1")
+  check(query(x, "eq", "x"), "")
+  check(query(x, "eq", "100x"), "100X")
+  check(query(x, "eq", "2X"), "2x")
+  check(query(x, "eq", "2x"), "2x")
+  check(query(x, "ne", "2X"), "1 10 10X 2 20 3 30 30x 100X 100")
+  check(query(x, "like", "1"), "1")
+  check(query(x, "like", "x"), "")
+  
+  check(query(x, "ge", "2"), "10 2 2x 20 3 30 30x 100")
+  check(query(x, "ge", "2 "), "2x 20 3 30 30x")
+  check(query(x, "ge", "2X"), "2x 3 30 30x")
+  check(query(x, "ge", "30x"), "30x")
+  check(query(x, "ge", "30X"), "30x")
+  
+  check(query(x, "gt", "2"), "10 2x 20 3 30 30x 100")
+  check(query(x, "gt", "2 "), "2x 20 3 30 30x")
+  check(query(x, "gt", "2x"), "3 30 30x")
+  
+  check(query(x, "lt", "2"), "1 10X 100X")
+  check(query(x, "lt", "2 "), "1 10 10X 2 100X 100")
+  check(query(x, "lt", "2X"), "1 10 10X 2 20 100X 100")
+  
+  check(query(x, "le", "2"), "1 10X 2 100X")
+  check(query(x, "le", "2 "), "1 10 10X 2 100X 100")
+  check(query(x, "le", "2x"), "1 10 10X 2 2x 20 100X 100")
+  
 }
 
 

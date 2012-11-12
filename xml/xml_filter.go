@@ -154,7 +154,7 @@ func (self *filterrel) Accepts(item *Hash) bool {
       }
     }
     
-    cmp := bytes.Compare([]byte(value), []byte(self.compare_value))
+    cmp := bytes.Compare([]byte(strings.ToLower(value)), []byte(strings.ToLower(self.compare_value)))
     if self.accept1 == cmp || self.accept2 == cmp { return true }
   }
   return false
@@ -165,8 +165,8 @@ func (self *filterrel) Accepts(item *Hash) bool {
 // compare_value. accept1 and accept2 can be 0, -1 or +1 for equality, less-than
 // or greater-than relationships. The comparison is attempted numerically first
 // and if either compare_value or the column value can not be converted to a number
-// a lexicographic comparison is performed (on the bytes of the strings, not the
-// code points).
+// a lexicographic comparison is performed (on the bytes of the strings after
+// converting to lowercase, not the code points).
 func FilterRel(column, compare_value string, accept1, accept2 int) HashFilter {
   num, err := strconv.ParseInt(compare_value, 10, 64)
   if err != nil { num = math.MinInt64 }
@@ -221,7 +221,8 @@ func FilterSimple(tag_value_pairs... string) HashFilter {
 //              combined by this operator like this:
 //                   P1 c P2 c P3 c ... Pn
 //              where Pi are the phrase filters and c is the connector. 
-//              Possible values for <connector> are "AND" and "OR" (case-insensitive).
+//              Possible values for <connector> are "AND" and "OR" 
+//              (The case of the operator name doesn't matter).
 //             
 //  <phrase> (0 or more) A single primitive filter condition. In addition to 
 //           one <operator> element (see below) a <phrase> must contain exactly
@@ -236,6 +237,10 @@ func FilterSimple(tag_value_pairs... string) HashFilter {
 //             to match any sequence of 0 or more characters and "_" to match
 //             exactly one character. A literal "%" or "_" cannot be embedded
 //             in such a pattern.
+//             Operator names are case-insensitive.
+//             All string comparisons are performed case-insensitive.
+//             The operators "ge","gt","le" and "lt" try to convert their operands
+//             to numbers and if that fails fall back to string comparison.
 func WhereFilter(where *Hash) (HashFilter, error) {
   if where.Name() != "where" {
     return nil, fmt.Errorf("Wrapper element must be 'where', not '%v'", where.Name())
@@ -271,8 +276,8 @@ func WhereFilter(where *Hash) (HashFilter, error) {
       
       var phrase_filter HashFilter
       switch operator {
-        case "eq": phrase_filter = FilterRegexp(column, "^"+regexp.QuoteMeta(compare_value)+"$")
-        case "ne": phrase_filter = FilterNot(FilterRegexp(column, "^"+regexp.QuoteMeta(compare_value)+"$"))
+        case "eq": phrase_filter = FilterRegexp(column, "^(?i)"+regexp.QuoteMeta(compare_value)+"$")
+        case "ne": phrase_filter = FilterNot(FilterRegexp(column, "^(?i)"+regexp.QuoteMeta(compare_value)+"$"))
         case "ge": phrase_filter = FilterRel(column, compare_value, 1, 0)
         case "gt": phrase_filter = FilterRel(column, compare_value, 1, 1)
         case "le": phrase_filter = FilterRel(column, compare_value, -1, 0)
