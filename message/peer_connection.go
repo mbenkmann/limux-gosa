@@ -264,6 +264,18 @@ func (conn *PeerConnection) handleConnection() {
   var err error
 
   for {
+    // gosa-si puts incoming messages into incomingdb and then
+    // processes them in the order they are returned by the database
+    // which causes messages to be processed in the wrong order.
+    // To counteract this we wait a little between messages.
+    // The wait time may seem long, but even with as much as 250ms
+    // I observed the fju for a new job and the fju that adds the
+    // plainname getting mixed up. Apparently gosa-si takes time
+    // in the seconds range to process messages.
+    // If we have >= 10 messages backlog, we don't wait. It's likely
+    // that the later messages have more recent fju data anyway.
+    if !conn.IsGoSusi() && conn.queue.Count() < 10 { time.Sleep(1000*time.Millisecond) }
+    
     message := conn.queue.Next().(string)
     if conn.tcpConn != nil {
       err = util.SendLn(conn.tcpConn, message, config.Timeout) 
