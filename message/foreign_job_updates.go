@@ -94,12 +94,8 @@ func foreign_job_updates(xmlmsg *xml.Hash) {
         return
       }
       
-      status := strings.ToLower(job.Text("status"))
-      job.FirstOrAdd("status").SetText(status)
-      headertag := strings.ToLower(job.Text("headertag"))
-      job.FirstOrAdd("headertag").SetText(headertag)
-      macaddress := strings.ToLower(job.Text("macaddress"))
-      job.FirstOrAdd("macaddress").SetText(macaddress)
+      headertag := job.Text("headertag")
+      macaddress := job.Text("macaddress")
       
       // If the update targets a local job, it must be translated to a delete or modify
       if siserver == config.ServerSourceAddress {

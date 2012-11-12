@@ -46,7 +46,6 @@ func job_trigger_action(xmlmsg *xml.Hash) string {
   job.Add("targettag", xmlmsg.Text("target"))
   macaddress := xmlmsg.Text("macaddress")
   if macaddress == "" { macaddress = xmlmsg.Text("target") }
-  macaddress = strings.Replace(strings.ToLower(macaddress), "-", ":", -1)
   if !macAddressRegexp.MatchString(macaddress) {
     return ErrorReply("job_trigger_action* with invalid or missing MAC address")
   }
