@@ -180,7 +180,7 @@ func (self *filtersimple) Accepts(item *Hash) bool {
   CheckCondition:
   for i := 1; i < len(*self) ; i += 2 {
     for _, val := range item.Get((*self)[i-1]) {
-      if val == (*self)[i] { continue CheckCondition }
+      if strings.ToLower(val) == strings.ToLower((*self)[i]) { continue CheckCondition }
     }
     return false
   }
@@ -188,7 +188,8 @@ func (self *filtersimple) Accepts(item *Hash) bool {
 }
 
 // Returns a HashFilter that accepts an item if it has at least one subelement
-// named tag_value_pairs[N] with content tag_value_pairs[N+1] for all even N.
+// named tag_value_pairs[N] whose content is equal to (CASE-INSENSITIVE!!) 
+// tag_value_pairs[N+1] for all even N.
 // If an odd number of arguments is passed, the last argument will be ignored.
 // If no tag_value_pairs are passed, the resulting filter will accept all items.
 func FilterSimple(tag_value_pairs... string) HashFilter {
