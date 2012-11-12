@@ -99,7 +99,7 @@ func (conn *PeerConnection) Downtime() time.Duration {
 func (conn *PeerConnection) startDowntime() {
   var down int64 = time.Now().Unix()
   atomic.StoreInt64(&(conn.whendown), down)
-  util.Log(0, "ERROR! Peer %v went down.", conn.addr)
+  util.Log(0, "ERROR! Peer %v is down.", conn.addr)
 }
 
 // Sets conn.whendown to 0 and logs a message.
