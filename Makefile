@@ -1,18 +1,15 @@
 BINARIES=run-tests go-susi encrypt decrypt
 
-all: $(BINARIES)
+all:
+	for f in $(BINARIES) ; do echo Building $$f...; go build main/$$f.go ; done
+	strip $(BINARIES)
 
 debug:
 	rm -f run-tests
 	go build -a -gcflags '-N -l' main/run-tests.go
 
-%: main/%.go
-	go build $<
-	strip $@
-
 test: all
-	./run-tests
-	./run-tests --system=./go-susi
+	./run-tests --unit --system=./go-susi
 
 clean:
 	rm -f $(BINARIES)
