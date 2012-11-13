@@ -3,6 +3,7 @@ BINARIES=run-tests go-susi encrypt decrypt
 all:
 	for f in $(BINARIES) ; do echo Building $$f...; go build main/$$f.go ; done
 	strip $(BINARIES)
+	ln -snf go-susi gosa-si-server
 
 debug:
 	rm -f run-tests
@@ -12,5 +13,4 @@ test: all
 	./run-tests --unit --system=./go-susi
 
 clean:
-	rm -f $(BINARIES)
-			
+	rm -f $(BINARIES) gosa-si-server
