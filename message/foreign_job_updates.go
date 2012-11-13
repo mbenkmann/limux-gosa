@@ -55,7 +55,8 @@ func foreign_job_updates(xmlmsg *xml.Hash) {
     db.JobsRemoveForeign(xml.FilterSimple("siserver",source))
   }
   
-  // The key set is the set of peers for which to schedule a full sync.
+  // The key set is the set of peers for which to call
+  // SyncAllNonGoSusi().
   fullsync := make(map[string]bool)
   
   for _, tag := range xmlmsg.Subtags() {
@@ -130,7 +131,8 @@ func foreign_job_updates(xmlmsg *xml.Hash) {
       } else { // the job belongs to a 3rd party peer
         // We don't trust Chinese whispers, so we don't use the job information
         // directly. Instead we schedule a query of the affected 3rd party's
-        // jobdb. This needs to be done with a delay, because the 3rd party
+        // jobdb. This needs to be done with a delay (part of SyncAllNonGoSusi()
+        // in peer_connection.go), because the 3rd party
         // may not even have received the foreign_job_updates affecting its job.
         // We only do this if the 3rd party is not (known to be) a go-susi.
         // In the case of a go-susi we can rely on it telling us about changes
