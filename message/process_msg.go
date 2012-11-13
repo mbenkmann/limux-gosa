@@ -180,7 +180,7 @@ func GosaDecrypt(msg string, key string) string {
   trimmed = strings.TrimRight(trimmed, ".")
   
   cyphertext, err := base64.StdEncoding.DecodeString(trimmed)
-  if err != nil { fmt.Println(err);return "" }
+  if err != nil { return "" }
   
   if len(cyphertext) % aes.BlockSize != 0 { return "" }
     
