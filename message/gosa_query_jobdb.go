@@ -43,6 +43,12 @@ func gosa_query_jobdb(xmlmsg *xml.Hash) string {
     util.Log(0, "ERROR! gosa_query_jobdb: Error parsing <where>: %v", err)
     filter = xml.FilterNone
   }
+  
+  // If necessary, wait for the effects of forwarded modify requests
+  t_forward := db.MostRecentForwardModifyRequestTime.At(0).(time.Time)
+  delay := config.GosaQueryJobdbMaxDelay - time.Since(t_forward)
+  if delay > 0 { time.Sleep(delay) }
+  
   jobdb_xml := db.JobsQuery(filter)
 
   // maps IP:PORT to a string representation of that peer's downtime

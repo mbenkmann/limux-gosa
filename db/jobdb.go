@@ -30,6 +30,7 @@ import (
          "../xml"
          "../config"
          "../util"
+         "../util/deque"
        )
 
 // Stores jobs to be executed at some point in the future.
@@ -86,6 +87,11 @@ var jobDB *xml.DB
 //       The <SyncNonGoSusi> tag is used when forwarding change requests for
 //       jobs belongting to other servers to them via foreign_job_updates.
 var ForeignJobUpdates = make(chan *xml.Hash, 16384)
+
+// Stores exactly 1 time.Time that indicates when the most recent job modification
+// request was forwarded to a peer. A Deque is used only for its synchronization.
+// Access is permitted with At() and Put() only.
+var MostRecentForwardModifyRequestTime = deque.New([]interface{}{time.Now().Add(-1*time.Hour)}, deque.DropFarEndIfOverflow)
 
 // Fields that can be updated via Jobs*Modify*()
 var updatableFields = []string{"progress", "status", "periodic", "timestamp", "result"}
@@ -270,6 +276,20 @@ func JobsForwardModifyRequest(filter xml.HashFilter, update *xml.Hash) {
       fju[siserver].Add("sync", "ordered")
       fju[siserver].Add("SyncNonGoSusi") // see doc at var ForeignJobUpdates
       ForeignJobUpdates <- fju[siserver]
+    }
+    
+    if len(fju) > 0 {
+      // Note: The timestamp is updated even if all siservers to which
+      // we forwarded are go-susi. While a go-susi peer does not require
+      // a full sync, we do need to wait a little until we receive
+      // the foreign_job_updates message from the peer.
+      // Because go-susi is faster than gosa-si, we could
+      // improve responsiveness of gosa_query_jobdb a little if
+      // we checked whether fju contains only go-susi peers and
+      // if that is the case instead of setting the timestamp to
+      // time.Now() we could use time.Now.Add(-1*time.Second) to
+      // make the wait 1s less.
+      MostRecentForwardModifyRequestTime.Put(0, time.Now())
     }
   }
   

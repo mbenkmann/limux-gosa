@@ -100,6 +100,28 @@ var LogLevel int
 // is exceeded, the transmission is aborted.
 var Timeout = 5 * time.Minute
 
+// When a request comes in from GOsa to modify or delete a foreign job,
+// go-susi does not apply it directly to its own jobdb. Instead it
+// forwards the request to the responsible siserver. Because of this,
+// a gosa_query_jobdb done right after such a request will not reflect
+// the changes. As that's exactly what GOsa does, the user experience
+// is suboptimal because it will seem like the request had no effect.
+// To compensate for this, gosa_query_jobdb delays for at most the
+// duration specified in this variable. The delay only happens if
+// a foreign job modification was forwarded shortly before the
+// gosa_query_jobdb, so there is no delay during normal operation.
+//
+// GOsa note: GOsa has a very short timeout for gosa_query_jobdb
+// requests (normally 5s). This duration needs to be shorter.
+//
+// Note: peer_connection:SyncNonGoSusi() bases its delay on
+// this value to make sure that in the case a full sync is
+// caused by a forwarded request, the full sync occurs before
+// the delay of gosa_query_jobdb is finished. If this variable
+// is changed peer_connection:SyncNonGoSusi() should be checked
+// to make sure its derived wait time is still enough.
+var GosaQueryJobdbMaxDelay = 4*time.Second
+
 // If true, existing data in /var/lib/go-susi will be discarded.
 var FreshDatabase = false
 

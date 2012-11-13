@@ -169,7 +169,9 @@ func (conn *PeerConnection) Ask(request, key string) <-chan string {
 func (conn* PeerConnection) SyncNonGoSusi() {
   if conn.IsGoSusi() { return }
   go func() {
-    time.Sleep(5*time.Second) // 5s should be enough, even for gosa-si
+    // See documentation of config.GosaQueryJobdbMaxDelay for
+    // an explanation of why we subtract a few seconds.
+    time.Sleep(config.GosaQueryJobdbMaxDelay - 1*time.Second)
     conn.SyncAll()
   }()
 }
