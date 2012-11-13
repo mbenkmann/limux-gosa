@@ -1,0 +1,29 @@
+#!/bin/bash
+pidfile="$(sed -n 's/^pid-file *= *\([^ ]*\)/\1/p' /etc/gosa-si/server.conf)"
+test -z "$pidfile" && pidfile=/var/run/gosa-si-server.pid
+
+foreground="0"
+
+args=()
+while [ $# != 0 ]; do
+  if [ "$1" = "-f" ]; then
+    foreground="1"
+    shift
+    continue
+  fi
+  args=("${args[@]}" "$1")
+  shift
+done
+
+rm -f "$pidfile"
+
+if [ $foreground = 1 ]; then
+  echo "$BASHPID" >"$pidfile"
+  exec go-susi "${args[@]}"
+else
+  (
+    trap "" SIGHUP
+    echo "$BASHPID" >"$pidfile"
+    exec &>- <- setsid go-susi "${args[@]}"
+  )&
+fi
