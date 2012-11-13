@@ -1,0 +1,10 @@
+dn: c=de
+c: de
+objectClass: country
+structuralObjectClass: country
+entryUUID: 860897b2-c1de-1031-8421-5d78450f0d8a
+creatorsName: cn=admin,o=go-susi,c=de
+createTimestamp: 20121113130520Z
+entryCSN: 20121113130520.943256Z#000000#000#000000
+modifiersName: cn=admin,o=go-susi,c=de
+modifyTimestamp: 20121113130520Z

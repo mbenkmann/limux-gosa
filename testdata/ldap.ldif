@@ -1,0 +1,218 @@
+dn: c=de
+c: de
+objectClass: country
+
+dn: o=go-susi,c=de
+o: go-susi
+objectClass: organization
+
+dn: cn=admin,o=go-susi,c=de
+cn: admin	
+sn: admin
+objectClass: person
+
+dn: ou=systems,o=go-susi,c=de
+ou: systems
+objectClass: organizationalUnit
+
+dn: ou=workstations,ou=systems,o=go-susi,c=de
+ou: workstations
+objectClass: organizationalUnit
+
+dn: cn=systest1,ou=workstations,ou=systems,o=go-susi,c=de
+objectClass: GOhard
+objectClass: gotoWorkstation
+objectClass: FAIobject
+objectClass: gosaAdministrativeUnitTag
+macAddress: 01:02:03:04:05:06
+cn: systest1
+gotoSysStatus: new-system
+ipHostNumber: 10.1.1.1
+gosaUnitTag: 7
+gotoSndModule: snd_hda_intel
+ghSoundAdapter: Intel 82801JD/DO (ICH10 Family) HD Audio Controller
+ghCpuType: GenuineIntel / Intel(R) Celeron(R) CPU E3300 @ 2.50GHz - 2500.000
+ghMemSize: 3355324
+ghUsbSupport: false
+gotoXMonitor: BELINEA 101911
+gotoHardwareChecksum: noVmheW0c0JqyAx4jj3Y/g
+gotoMode: active
+description: Test
+ghGfxAdapter: -
+gotoLastUser: -
+l: Nowhere
+goFonHardware: automatic
+FAIdebianMirror: http://dl.google.com/linux/chrome/deb/
+gotoNtpServer: pool.ntp.org
+gotoBootKernel: default
+gotoXDriver: intel
+gotoXResolution: 1280x1024
+gotoXColordepth: 24
+gotoXHsync: 30+55
+gotoXVsync: 50+70
+gotoXKbModel: btc9000
+gotoXKbLayout: de
+gotoXKbVariant: nodeadkeys
+gotoXMouseType: auto
+gotoXMouseport: /dev/input/mice
+gotoLdapServer: 1:localhost:ldap://127.0.0.1:20088/o=go-susi,c=de
+FAIstate: localboot
+ghScsiDev: HL-DT-ST DVD-RAM GH60N
+ghIdeDev: ST3160318AS
+ghNetNic: Intel 82567LM-3 Gigabit Network Connection
+FAIclass: Modul_Standard :plophos
+gotoModules: async_memcpy
+gotoModules: async_pq
+gotoModules: async_tx
+gotoModules: async_xor
+gotoModules: aufs
+gotoModules: auth_rpcgss
+gotoModules: bitblit
+gotoModules: drm
+gotoModules: floppy
+gotoModules: font
+gotoModules: i2c_algo_bit
+gotoModules: i915
+gotoModules: lockd
+gotoModules: multipath
+gotoModules: output
+gotoModules: raid1
+gotoModules: raid456
+gotoModules: serio_raw
+gotoModules: softcursor
+gotoModules: sunrpc
+gotoModules: tpm_bios
+gotoModules: tpm_tis
+gotoModules: video
+
+dn: cn=systest2,ou=workstations,ou=systems,o=go-susi,c=de
+objectClass: GOhard
+objectClass: gotoWorkstation
+objectClass: FAIobject
+objectClass: gosaAdministrativeUnitTag
+macAddress: 11:22:33:44:55:6F
+cn: systest2
+gotoSysStatus: new-system
+ipHostNumber: 10.1.1.2
+gosaUnitTag: 7
+gotoSndModule: snd_hda_intel
+ghSoundAdapter: Intel 82801JD/DO (ICH10 Family) HD Audio Controller
+ghCpuType: GenuineIntel / Intel(R) Celeron(R) CPU E3300 @ 2.50GHz - 2500.000
+ghMemSize: 3355324
+ghUsbSupport: false
+gotoXMonitor: BELINEA 101911
+gotoHardwareChecksum: noVmheW0c0JqyAx4jj3Y/g
+gotoMode: active
+description: Test
+ghGfxAdapter: -
+gotoLastUser: -
+l: Nowhere
+goFonHardware: automatic
+FAIdebianMirror: http://dl.google.com/linux/chrome/deb/
+gotoNtpServer: pool.ntp.org
+gotoBootKernel: default
+gotoXDriver: intel
+gotoXResolution: 1280x1024
+gotoXColordepth: 24
+gotoXHsync: 30+55
+gotoXVsync: 50+70
+gotoXKbModel: btc9000
+gotoXKbLayout: de
+gotoXKbVariant: nodeadkeys
+gotoXMouseType: auto
+gotoXMouseport: /dev/input/mice
+gotoLdapServer: 1:localhost:ldap://127.0.0.1:20088/o=go-susi,c=de
+FAIstate: localboot
+ghScsiDev: HL-DT-ST DVD-RAM GH60N
+ghIdeDev: ST3160318AS
+ghNetNic: Intel 82567LM-3 Gigabit Network Connection
+FAIclass: Modul_Standard :plophos
+gotoModules: async_memcpy
+gotoModules: async_pq
+gotoModules: async_tx
+gotoModules: async_xor
+gotoModules: aufs
+gotoModules: auth_rpcgss
+gotoModules: bitblit
+gotoModules: drm
+gotoModules: floppy
+gotoModules: font
+gotoModules: i2c_algo_bit
+gotoModules: i915
+gotoModules: lockd
+gotoModules: multipath
+gotoModules: output
+gotoModules: raid1
+gotoModules: raid456
+gotoModules: serio_raw
+gotoModules: softcursor
+gotoModules: sunrpc
+gotoModules: tpm_bios
+gotoModules: tpm_tis
+gotoModules: video
+
+dn: cn=systest3,ou=workstations,ou=systems,o=go-susi,c=de
+objectClass: GOhard
+objectClass: gotoWorkstation
+objectClass: FAIobject
+objectClass: gosaAdministrativeUnitTag
+macAddress: 77:66:55:44:33:2a
+cn: systest3
+gotoSysStatus: new-system
+ipHostNumber: 10.1.1.3
+gosaUnitTag: 7
+gotoSndModule: snd_hda_intel
+ghSoundAdapter: Intel 82801JD/DO (ICH10 Family) HD Audio Controller
+ghCpuType: GenuineIntel / Intel(R) Celeron(R) CPU E3300 @ 2.50GHz - 2500.000
+ghMemSize: 3355324
+ghUsbSupport: false
+gotoXMonitor: BELINEA 101911
+gotoHardwareChecksum: noVmheW0c0JqyAx4jj3Y/g
+gotoMode: active
+description: Test
+ghGfxAdapter: -
+gotoLastUser: -
+l: Nowhere
+goFonHardware: automatic
+FAIdebianMirror: http://dl.google.com/linux/chrome/deb/
+gotoNtpServer: pool.ntp.org
+gotoBootKernel: default
+gotoXDriver: intel
+gotoXResolution: 1280x1024
+gotoXColordepth: 24
+gotoXHsync: 30+55
+gotoXVsync: 50+70
+gotoXKbModel: btc9000
+gotoXKbLayout: de
+gotoXKbVariant: nodeadkeys
+gotoXMouseType: auto
+gotoXMouseport: /dev/input/mice
+gotoLdapServer: 1:localhost:ldap://127.0.0.1:20088/o=go-susi,c=de
+FAIstate: localboot
+ghScsiDev: HL-DT-ST DVD-RAM GH60N
+ghIdeDev: ST3160318AS
+ghNetNic: Intel 82567LM-3 Gigabit Network Connection
+FAIclass: Modul_Standard :plophos
+gotoModules: async_memcpy
+gotoModules: async_pq
+gotoModules: async_tx
+gotoModules: async_xor
+gotoModules: aufs
+gotoModules: auth_rpcgss
+gotoModules: bitblit
+gotoModules: drm
+gotoModules: floppy
+gotoModules: font
+gotoModules: i2c_algo_bit
+gotoModules: i915
+gotoModules: lockd
+gotoModules: multipath
+gotoModules: output
+gotoModules: raid1
+gotoModules: raid456
+gotoModules: serio_raw
+gotoModules: softcursor
+gotoModules: sunrpc
+gotoModules: tpm_bios
+gotoModules: tpm_tis
+gotoModules: video

@@ -1,0 +1,12 @@
+dn: cn=admin
+cn:: YWRtaW4J
+cn: admin
+sn: admin
+objectClass: person
+structuralObjectClass: person
+entryUUID: 8608cd7c-c1de-1031-8423-5d78450f0d8a
+creatorsName: cn=admin,o=go-susi,c=de
+createTimestamp: 20121113130520Z
+entryCSN: 20121113130520.944636Z#000000#000#000000
+modifiersName: cn=admin,o=go-susi,c=de
+modifyTimestamp: 20121113130520Z

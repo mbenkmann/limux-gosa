@@ -1,0 +1,10 @@
+dn: o=go-susi
+o: go-susi
+objectClass: organization
+structuralObjectClass: organization
+entryUUID: 8608b5bc-c1de-1031-8422-5d78450f0d8a
+creatorsName: cn=admin,o=go-susi,c=de
+createTimestamp: 20121113130520Z
+entryCSN: 20121113130520.944027Z#000000#000#000000
+modifiersName: cn=admin,o=go-susi,c=de
+modifyTimestamp: 20121113130520Z

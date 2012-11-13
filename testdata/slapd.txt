@@ -1,0 +1,3 @@
+cd testdata
+/usr/sbin/slapd -f ./slapd.conf -h ldap://127.0.0.1:20088 -d 0
+ldapadd -x -H ldap://127.0.0.1:20088 -f ldap.ldif -D cn=admin,o=go-susi,c=de -w password

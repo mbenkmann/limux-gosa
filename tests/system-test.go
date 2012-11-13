@@ -182,8 +182,8 @@ func (self *Job) Trigger() string {
 
 var Jobs = []Job{
 {"job_trigger_action_wake","01:02:03:04:05:06","systest1","20990914131742","7_days"},
-{"job_trigger_action_lock","11:22:33:44:55:66","systest2","20770101000000","1_minutes"},
-{"job_trigger_action_wake","77:66:55:44:33:22","systest3","20660906164734","none"},
+{"job_trigger_action_lock","11:22:33:44:55:6F","systest2","20770101000000","1_minutes"},
+{"job_trigger_action_wake","77:66:55:44:33:2a","systest3","20660906164734","none"},
 }
 
 // Runs the system test.
@@ -213,13 +213,20 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   // if we got a program path (i.e. not host:port), create config and launch program
   if launched_daemon {
+    //first launch the test ldap server
+    cmd := exec.Command("/usr/sbin/slapd","-f","./slapd.conf","-h","ldap://127.0.0.1:20088","-d","0")
+    cmd.Dir = "./testdata"
+    err := cmd.Start()
+    if err != nil { panic(err) }
+    defer cmd.Process.Signal(syscall.SIGTERM)
+    
     var confdir string
     config.ServerConfigPath, confdir = createConfigFile()
     //defer os.RemoveAll(confdir)
     defer fmt.Printf("\nLog file directory: %v\n", confdir)
-    cmd := exec.Command(daemon, "-f", "-c", config.ServerConfigPath, "-vvvvvv")
+    cmd = exec.Command(daemon, "-f", "-c", config.ServerConfigPath, "-vvvvvv")
     cmd.Stderr,_ = os.Create(confdir+"/go-susi+panic.log")
-    err := cmd.Start()
+    err = cmd.Start()
     if err != nil { panic(err) }
     defer cmd.Process.Signal(syscall.SIGTERM)
     daemon = ""
@@ -714,9 +721,9 @@ key = bus
 
 [server]
 max-clients = 10000
-ldap-uri = ldap://localhost:7346
-ldap-base = c=de
-ldap-admin-dn = cn=clientmanager,ou=incoming,c=de
+ldap-uri = ldap://127.0.0.1:20088
+ldap-base = o=go-susi,c=de
+ldap-admin-dn = cn=admin,o=go-susi,c=de
 ldap-admin-password = password
 
 [ClientPackages]
