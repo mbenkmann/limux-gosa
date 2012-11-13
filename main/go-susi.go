@@ -58,7 +58,8 @@ func main() {
   
   } else {
     // Send log output to both stderr AND the log file
-    util.Logger = log.New(io.MultiWriter( os.Stderr, logfile ), "",0)
+    logfile.Close() // will be re-opened on the first write
+    util.Logger = log.New(io.MultiWriter( os.Stderr, util.LogFile(logfile.Name())), "",0)
   }
   util.LogLevel = config.LogLevel
   

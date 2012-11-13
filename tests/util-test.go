@@ -22,6 +22,7 @@ package tests
 
 import (
          "io"
+         "os"
          "fmt"
          "log"
          "net"
@@ -301,5 +302,44 @@ func Util_test() {
   
   check(b3, b5)
   check(one_streak, false) // Check whether goroutines were actually executed concurrently rather than in sequence
+  
+  
+  tempdir, err := ioutil.TempDir("", "util-test-")
+  if err != nil { panic(err) }
+  defer os.RemoveAll(tempdir)
+  fpath := tempdir+"/foo.log"
+  logfile := util.LogFile(fpath)
+  check(logfile.Close(), nil)
+  n, err = util.WriteAll(logfile, []byte("Test"))
+  check(err,nil)
+  check(n,4)
+  check(logfile.Close(), nil)
+  n, err = util.WriteAll(logfile, []byte("12"))
+  check(err,nil)
+  check(n,2)
+  n, err = util.WriteAll(logfile, []byte("3"))
+  check(err,nil)
+  check(n,1)
+  check(os.Rename(fpath,fpath+".old"), nil)
+  n, err = util.WriteAll(logfile, []byte("Fo"))
+  check(err,nil)
+  check(n,2)
+  f2,_ := os.OpenFile(fpath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+  f2.Write([]byte("o"))
+  f2.Close()
+  n, err = util.WriteAll(logfile, []byte("bar"))
+  check(err,nil)
+  check(n,3)
+  check(logfile.Close(), nil)
+  data, err := ioutil.ReadFile(fpath)
+  check(err,nil) 
+  if err == nil {
+    check(string(data),"Foobar")
+  }
+  data, err = ioutil.ReadFile(fpath+".old")
+  check(err, nil)
+  if err == nil {
+    check(string(data),"Test123")
+  }
 }
 
