@@ -267,6 +267,15 @@ func ReadConfig() {
   }
   
   if server, ok:= conf["[server]"]; ok {
+    
+    if port,ok := server["port"]; ok {
+      port = strings.TrimSpace(port)
+      i := strings.Index(ServerSourceAddress,":")
+      ServerSourceAddress = ServerSourceAddress[:i+1] + port
+      i = strings.Index(ServerListenAddress,":")
+      ServerListenAddress = ServerListenAddress[:i+1] + port
+    }
+    
     if uri, ok := server["ldap-uri"]; ok { LDAPURI = uri }
     if base,ok := server["ldap-base"]; ok { LDAPBase = base }
     if admin,ok:= server["ldap-admin-dn"]; ok { LDAPAdmin = admin }

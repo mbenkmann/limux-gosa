@@ -720,6 +720,7 @@ enabled = false
 key = bus
 
 [server]
+port = 20087
 max-clients = 10000
 ldap-uri = ldap://127.0.0.1:20088
 ldap-base = o=go-susi,c=de
