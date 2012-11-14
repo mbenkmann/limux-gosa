@@ -20,11 +20,14 @@ MA  02110-1301, USA.
 package message
 
 import (
+         "time"
          "runtime"
          
          "../xml"
          "../config"
        )
+
+var startTime = time.Now() 
 
 // Handles the message "sistats".
 // Returns:
@@ -37,6 +40,7 @@ func sistats() string {
   
   answer.Add("Version", config.Version)
   answer.Add("Revision", config.Revision)
+  answer.Add("Uptime").SetText("%v", time.Since(startTime))
   answer.Add("Compiler", runtime.Compiler)
   answer.Add("Go-Version", runtime.Version())
   answer.Add("Architecture", runtime.GOARCH)
