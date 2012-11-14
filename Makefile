@@ -1,6 +1,7 @@
 BINARIES=run-tests go-susi encrypt decrypt
 
 all:
+	main/makeversion
 	go build main/run-tests.go
 	go build main/go-susi.go
 	go build main/encrypt.go

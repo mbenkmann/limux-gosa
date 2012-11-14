@@ -149,6 +149,12 @@ var LDAPUserPassword = ""
 // Filter that is ANDed with all LDAP queries. Must be enclosed in parentheses if non-empty.
 var UnitTagFilter = ""
 
+// true if "--version" is passed on command line
+var PrintVersion = false
+
+// true if "--help" is passed on command line
+var PrintHelp = false
+
 // Parses os.Args and sets config variables accordingly.
 func ReadArgs() {
   LogLevel = 0
@@ -179,6 +185,14 @@ func ReadArgs() {
       } else {
         ServerConfigPath = os.Args[i]
       }
+    } else if arg == "--help" {
+    
+      PrintHelp = true
+      
+    } else if arg == "--version" {      
+      
+      PrintVersion = true
+      
     } else {
       util.Log(0, "ERROR! ReadArgs: Unknown command line switch: %v", arg)
     }

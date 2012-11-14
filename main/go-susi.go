@@ -29,6 +29,7 @@ import (
           "io"
           "os"
           "os/signal"
+          "fmt"
           "net"
           "log"
           "path"
@@ -49,6 +50,39 @@ Starts the daemon.
 
 func main() {
   config.ReadArgs()
+  
+  if config.PrintVersion {
+    fmt.Printf(`go-susi %v (revision %v)
+Copyright (c) 2012 Matthias S. Benkmann
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+`, config.Version, config.Revision)
+  }
+  
+  if config.PrintHelp {
+    fmt.Println(`USAGE: go-susi [args]
+
+--help       print this text and exit
+--version    print version and exit
+
+-v           print operator debug messages (INFO)
+-vv          print developer debug messages (DEBUG)
+             ATTENTION! developer messages include keys!
+
+-f           start with a fresh database; discard old /var/lib/go-susi
+
+--test=<dir> test mode:
+             * read config files from <dir> instead of /etc/gosa-si
+             * use <dir>/go-susi.log as log file
+             * use <dir> as database directory instead /var/lib/go-susi
+
+-c <file>    read config from <file> instead of default location
+`)
+  }
+  
+  if config.PrintVersion || config.PrintHelp { os.Exit(0) }
+  
   config.ReadConfig()
   
   logfile, err := os.OpenFile(config.LogFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
