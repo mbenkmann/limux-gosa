@@ -118,6 +118,7 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
     
     case "gosa_delete_jobdb_entry":
                                 reply = gosa_delete_jobdb_entry(xml)
+    case "sistats":             reply = sistats()
   default:
         util.Log(0, "ERROR! ProcessXMLMessage: Unknown message type '%v'", xml.Text("header"))
         reply = ErrorReply("Unknown message type")
