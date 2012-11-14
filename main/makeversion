@@ -1,0 +1,39 @@
+#!/bin/bash
+
+test -f ../config/config.go && cd ..
+test -f config/config.go || exit 1
+hg log --style=compact -I main/go-susi.go -I "message/*.go" -I "util/*.go" -I "config/*.go" -I "db/*.go" -I "xml/*.go"| tac | tr 'A-Z' 'a-z' |
+(
+  milestone=-1
+  minor=0
+  tick=0
+  revision=""
+  while read -r line ; do
+    case "$line" in
+      [0-9]*) set -- $line
+              revision=$2
+              tick=$(($tick + 1))
+              test tick = 100 && tick = 991
+              test tick = 1000 && tick = 9991
+              test tick = 10000 && tick = 99991
+              test tick = 100000 && tick = 999991
+              ;;
+      *'[milestone]'*) milestone=$(($milestone + 1))
+                      minor=0
+                      tick=-1
+                      ;;
+      *'[experimental]'*) tick=89
+                          ;;
+      *'[feature]'*) minor=$(($minor + 1))
+                     test $tick -ge 90 && tick=89 || tick=-1
+                     ;;
+    esac
+  done
+  echo "// WARNING! THIS FILE IS AUTO-GENERATED AND WILL BE OVERWRITTEN!
+
+package config
+
+const Version = \"$milestone.$minor.$tick\"
+const Revision = \"$revision\"
+" >config/version.go
+)
