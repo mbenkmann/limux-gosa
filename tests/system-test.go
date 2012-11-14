@@ -224,7 +224,10 @@ func SystemTest(daemon string, is_gosasi bool) {
     config.ServerConfigPath, confdir = createConfigFile()
     //defer os.RemoveAll(confdir)
     defer fmt.Printf("\nLog file directory: %v\n", confdir)
-    cmd = exec.Command(daemon, "-f", "-c", config.ServerConfigPath, "-vvvvvv")
+    args := []string{ "-f", "-vvvvvv"}
+    if !gosasi { args = append(args,"--test="+confdir) }
+    args = append(args, "-c", config.ServerConfigPath)
+    cmd = exec.Command(daemon, args...)
     cmd.Stderr,_ = os.Create(confdir+"/go-susi+panic.log")
     err = cmd.Start()
     if err != nil { panic(err) }
