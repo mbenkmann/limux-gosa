@@ -175,10 +175,14 @@ func GosaDecrypt(msg string, key string) string {
     return trimmed 
   }
   
-  // Workaround for gosa-si bug in the following line:
-  // if( $client_answer =~ s/session_id=(\d+)$// ) {
-  // This leaves the "." before "session_id" which breaks base64
-  trimmed = strings.TrimRight(trimmed, ".")
+  // Fixes the following:
+  // * gosa-si bug in the following line:
+  //     if( $client_answer =~ s/session_id=(\d+)$// ) {
+  //   This leaves the "." before "session_id" which breaks base64
+  // * new gosa-si protocol has ";IP:PORT" appended to message 
+  //   which also breaks base64
+  semicolon_period := strings.IndexAny(trimmed, ";.")
+  if semicolon_period >= 0 { trimmed = trimmed[:semicolon_period] }
   
   cyphertext, err := base64.StdEncoding.DecodeString(trimmed)
   if err != nil { return "" }
