@@ -459,6 +459,16 @@ func SystemTest(daemon string, is_gosasi bool) {
     check_answer(a2, Jobs[1].Plainname, "none", "waiting", config.ServerSourceAddress, Jobs[1].MAC, Jobs[1].Timestamp, Jobs[1].Periodic, Jobs[1].Trigger())
   }
 
+  // Test if server understands messages with ";IP:PORT" attached (gosa-si 2.7 protocol)
+  conn, err := net.Dial("tcp", config.ServerSourceAddress)
+  check(err, nil)
+  encrypted_msg := message.GosaEncrypt("<xml><header>gosa_query_jobdb</header><where></where><source>GOSA</source><target>GOSA</target></xml>", config.ModuleKey["[GOsaPackages]"])
+  util.SendLn(conn, encrypted_msg + ";"+listen_address , config.Timeout)
+  reply := message.GosaDecrypt(util.ReadLn(conn, config.Timeout), config.ModuleKey["[GOsaPackages]"])
+  x, err = xml.StringToHash(reply)
+  if err != nil { x = xml.NewHash("error") }
+  if conn != nil { conn.Close() }
+  check(checkTags(x, "header,source,target,answer1,answer2,session_id?"),"")
   
   
 // TODO: Testfall für das Löschen eines <periodic> jobs via foreign_job_updates (z.B.
@@ -466,9 +476,6 @@ func SystemTest(daemon string, is_gosasi bool) {
 //       (wegen des Problems dass ein done job mit periodic neu gestartet wird)
 //       Komplementären Testfall für ein normales "done" eines periodic Jobs,
 //       bei dem der Job tatsächlich neu gestartet werden soll.
-
-// TODO: weiter oben bei test_mac und test_name Daten aus den LDAP-Testdaten
-// eintragen
 
   // Give daemon time to process data and write logs before sending SIGTERM
   time.Sleep(reply_timeout)
