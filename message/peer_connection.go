@@ -149,12 +149,20 @@ func (conn *PeerConnection) Ask(request, key string) <-chan string {
     tcpconn, err := net.Dial("tcp", conn.addr)
     if err != nil {
       c<-ErrorReply(err)
+      // make sure handleConnection()/monitorConnection() notice that the peer is unreachable
+      if conn.tcpConn != nil { conn.tcpConn.Close() }
     } else {
       defer tcpconn.Close()
       util.Log(2, "DEBUG! Asking %v: %v", conn.addr, request)
-      util.SendLn(tcpconn, GosaEncrypt(request, key), config.Timeout)
+      err = util.SendLn(tcpconn, GosaEncrypt(request, key), config.Timeout)
+      // make sure handleConnection()/monitorConnection() notice that the peer is unreachable
+      if err != nil && conn.tcpConn != nil { conn.tcpConn.Close() }
       reply := GosaDecrypt(util.ReadLn(tcpconn, config.Timeout), key)
-      if reply == "" { reply = ErrorReply("Communication error in Ask()") } 
+      if reply == "" { 
+        reply = ErrorReply("Communication error in Ask()") 
+        // make sure handleConnection()/monitorConnection() notice that the peer is unreachable
+        if conn.tcpConn != nil { conn.tcpConn.Close() }
+      }
       util.Log(2, "DEBUG! Reply from %v: %v", conn.addr, reply)
       c<-reply
     }
