@@ -1,12 +1,13 @@
 #!/bin/bash
 
+export PATH="$PATH:$GOROOT/bin"
 mkdir -p deploy
 hg pull --update || exit 1
 main/makeversion
 test "$(<deploy/version.go)" = "$(<config/version.go)" && exit 0
 make clean
 make test &>testdata/citest.log || exit $?
-rm deploy/gosa-si-server  # remove so that we can cleanly replace it even if running
+rm -f deploy/gosa-si-server  # remove so that we can cleanly replace it even if running
 cp -a go-susi deploy/gosa-si-server
 cp config/version.go deploy/
 logdir="$(sed -n 's%Log file directory: \(/tmp/system-test-.*\)%\1%p' testdata/citest.log)"

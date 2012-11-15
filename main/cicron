@@ -1,0 +1,52 @@
+#!/bin/bash
+
+susi_dir=/home/limux/devel/go/susi
+source /home/limux/.bashrc # for GO* env vars
+
+cd "$susi_dir" || exit 1
+sudo -H -E -u limux main/update
+result=$?
+
+oldpid="$(pgrep gosa-si-server)"
+
+(
+
+"$susi_dir"/main/sicmd localhost GOsaPackages sistats ""
+
+echo "Log file size (too large indicates problems)"
+ls -lah /var/log/gosa-si-server.log*
+
+echo "Number of running threads"
+ls /proc/$(pgrep gosa-si-server)/task | wc -l
+
+echo "Dirty memory"
+sum=0 ; for i in $(sed -n 's/^.*Dirty.*: *\([0-9]*\).*/\1/p' /proc/$(pgrep gosa-si-server)/smaps); do sum=$(($sum+$i)) ; done
+echo "$sum"K
+
+free -m
+
+echo "loadavg"
+cat /proc/loadavg
+
+
+
+# if the binary is no longer being executed it means that
+# either go-susi has crashed (not very likely) or that
+# the update has successfully replaced it with a new
+# version. In either case we restart the server.
+test -z "$(fuser "$susi_dir/deploy/gosa-si-server")" && {
+  echo >>"$susi_dir/testdata/citest.log"
+  test $result != 0 && echo "ATTENTION! Restarting old version of go-susi because it's not running!"
+  test $result = 0 && echo "Starting new version of go-susi"
+  /etc/init.d/gosa-si stop
+  /etc/init.d/gosa-si start
+}
+
+
+
+) >>"$susi_dir/testdata/citest.log" 2>&1
+
+sub="go-susi Statusreport"
+test $oldpid != "$(pgrep gosa-si-server)" && sub="go-susi Update erfolgreich"
+test $result != 0 && sub="go-susi Update fehlgeschlagen"
+cat "$susi_dir/testdata/citest.log" | mail -s "$sub" matthias.benkmann@muenchen.de
