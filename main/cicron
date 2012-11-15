@@ -4,6 +4,7 @@ susi_dir=/home/limux/devel/go/susi
 source /home/limux/.bashrc # for GO* env vars
 
 cd "$susi_dir" || exit 1
+rm testdata/citest.log
 sudo -H -E -u limux main/update
 result=$?
 
