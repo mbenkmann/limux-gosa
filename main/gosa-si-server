@@ -17,13 +17,17 @@ done
 
 rm -f "$pidfile"
 
+# We must call /usr/lib/gosa-si-server because the binary has to be named gosa-si-server,
+# because start-stop-daemon tests this name.
+# It is not enough to pass argv[0]=gosa-si-server via exec.
+
 if [ $foreground = 1 ]; then
   echo "$BASHPID" >"$pidfile"
-  exec go-susi "${args[@]}"
+  exec /usr/lib/gosa-si-server "${args[@]}"
 else
   (
     trap "" SIGHUP
     echo "$BASHPID" >"$pidfile"
-    exec &>- <- setsid go-susi "${args[@]}"
+    exec &>- <- setsid /usr/lib/gosa-si-server "${args[@]}"
   )&
 fi

@@ -18,3 +18,7 @@ test: all
 
 clean:
 	rm -f $(BINARIES) gosa-si-server
+
+deb: all
+	main/makedeb
+	
