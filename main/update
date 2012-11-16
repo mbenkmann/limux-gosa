@@ -1,6 +1,6 @@
 #!/bin/bash
-
 export PATH="$PATH:$GOROOT/bin"
+
 mkdir -p deploy
 hg pull --update || exit 1
 main/makeversion
