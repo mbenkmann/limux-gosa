@@ -55,7 +55,8 @@ func Log(level int, format string, args ...interface{}) {
 }
 
 // Returns a io.WriteCloser that appends to the file fpath, checking on each
-// write if fpath still exists and if it doesn't creating a new file fpath
+// write if fpath still refers to the same file and if it doesn't re-opens or
+// re-creates the file fpath
 // to append to. This behaviour is compatible with log-rotation without
 // incurring the overhead of re-opening the file on every write.
 //
@@ -68,26 +69,32 @@ func LogFile(fpath string) io.WriteCloser {
 
 type logFile struct {
   path string
-  file io.WriteCloser
+  file *os.File
+  fi os.FileInfo
 }
 
 func (f *logFile) Close() error {
   if f.file == nil { return nil }
   err := f.file.Close()
   f.file = nil
+  f.fi = nil
   return err
 } 
 
 func (f *logFile) Write(p []byte) (n int, err error) {
   if f.file != nil { // if we have an open file
-    _, err = os.Lstat(f.path)
-    if err != nil { // if statting the path failed => close old and create a new one
+    fi2, err := os.Stat(f.path)
+    if err != nil || !os.SameFile(f.fi,fi2) { // if statting the path failed or file has changed => close old and re-open/create
       f.file.Close()
       f.file, err = os.OpenFile(f.path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+      if err != nil { return 0,err }
+      f.fi, err = f.file.Stat()
       if err != nil { return 0,err }
     }
   } else { // if we don't have an open file => create a new one
     f.file, err = os.OpenFile(f.path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+    if err != nil { return 0,err }
+    f.fi, err = f.file.Stat()
     if err != nil { return 0,err }
   }
   
