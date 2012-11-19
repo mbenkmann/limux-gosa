@@ -7,6 +7,20 @@ export PATH="$GOROOT/bin:$PATH:/sbin:/usr/sbin:/bin:/usr/bin"
 susi_dir=/home/limux/devel/go/susi
 
 cd "$susi_dir" || exit 1
+
+tester=""
+developer=""
+
+while $# != 0 ; do
+  case "$1" in
+    --tester=*) tester="$tester ${1#--tester=}"
+                ;;
+    --developer=*) developer="$developer ${1#--developer=}"
+                  ;;
+  esac
+  shift
+done
+
 rm testdata/citest.log
 sudo -H -E -u limux main/update
 result=$?
@@ -54,6 +68,15 @@ test -z "$(fuser "$susi_dir/deploy/gosa-si-server")" && {
 
 sub="go-susi Statusreport"
 newpid="$(pgrep gosa-si-server)"
-test  "$oldpid" != "$newpid" -a -n "$newpid" && sub="go-susi Update erfolgreich"
+test "$oldpid" != "$newpid" -a -n "$newpid" && sub="go-susi Update erfolgreich"
 test $result != 0 && sub="go-susi Update fehlgeschlagen"
-cat "$susi_dir/testdata/citest.log" | mail -s "$sub" matthias.benkmann@muenchen.de
+
+if test "$oldpid" != "$newpid" -a -n "$newpid" -a $result != 0 ; then
+  for mail in $(echo "$tester $developer" | tr ';' ' ') ; do
+    cat "$susi_dir/testdata/citest.log" | mail -s "$sub" $mail
+  done
+else
+  for mail in $(echo "$developer" | tr ';' ' ') ; do
+    cat "$susi_dir/testdata/citest.log" | mail -s "$sub" $mail
+  done
+fi
