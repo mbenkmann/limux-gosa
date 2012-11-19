@@ -5,8 +5,11 @@ mkdir -p deploy
 hg pull --update || exit 1
 main/makeversion
 test "$(<deploy/version.go)" = "$(<config/version.go)" && exit 0
+oldrev="$(sed -n 's/^.*Revision.*= *"\(.*\)"/\1/p' deploy/version.go)"
+test -z "$oldrev" && oldrev=0
+LC_ALL=C hg log -r $oldrev:tip -v -I main/go-susi.go -I "message/*.go" -I "util/*.go" -I "config/*.go" -I "db/*.go" -I "xml/*.go" | sed '/^changeset:/d;/^user:/d;/^date:/d;/^files:/d;/^description:/d' >testdata/citest.log
 make clean
-make test &>testdata/citest.log || exit $?
+make test &>>testdata/citest.log || exit $?
 rm -f deploy/gosa-si-server  # remove so that we can cleanly replace it even if running
 cp -a go-susi deploy/gosa-si-server
 cp config/version.go deploy/
