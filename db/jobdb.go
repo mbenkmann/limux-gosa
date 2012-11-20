@@ -246,6 +246,7 @@ func JobsModify(filter xml.HashFilter, update *xml.Hash) {
 func JobsForwardModifyRequest(filter xml.HashFilter, update *xml.Hash) {
   modifyjobs := func(request *jobDBRequest) {
     jobdb_xml := jobDB.Query(request.Filter)
+    util.Log(2, "DEBUG! JobsForwardModifyRequest applying %v to %v", request.Job, jobdb_xml)
     count := make(map[string]uint64)
     fju   := make(map[string]*xml.Hash)
     for _, tag := range jobdb_xml.Subtags() {
@@ -398,6 +399,7 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
   
   modifylocaljobs := func(request *jobDBRequest) {
     jobdb_xml := jobDB.Query(request.Filter)
+    util.Log(2, "DEBUG! JobsModifyLocal applying %v to %v", request.Job, jobdb_xml)
     fju := xml.NewHash("xml","header","foreign_job_updates")
     var count uint64 = 1
     for _, tag := range jobdb_xml.Subtags() {
