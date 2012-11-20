@@ -137,6 +137,8 @@ func gosa(typ string, x *xml.Hash) *xml.Hash {
 var macAddressRegexp = regexp.MustCompile("^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$")
 // Regexp for recognizing valid <client> elements of e.g. new_server messages.
 var clientRegexp = regexp.MustCompile("^[0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}:[0-9]+,[:xdigit:](:[:xdigit:]){5}$")
+// Regexp for recognizing valid <siserver> elements
+var serverRegexp = regexp.MustCompile("^[0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}:[0-9]+$")
 
 // true if we're testing gosa-si instead of go-susi
 var gosasi bool
@@ -185,6 +187,51 @@ var Jobs = []Job{
 {"job_trigger_action_lock","11:22:33:44:55:6F","systest2","20770101000000","1_minutes"},
 {"job_trigger_action_wake","77:66:55:44:33:2a","systest3","20660906164734","none"},
 }
+
+// Returns an XML hash for the job. Optional args can be the following:
+//   int/uint: the name of the enclosing element will be answerX where X is the int
+//             and the <id> will be X, too.
+//   IP:PORT(string) : siserver  (default is listen_address)
+func (job *Job) Hash(args... interface{}) *xml.Hash {
+  x := xml.NewHash("answer1")
+  x.Add("plainname", job.Plainname)
+  x.Add("progress", "none")
+  x.Add("status", "waiting")
+  x.Add("siserver", listen_address)
+  x.Add("modified", "1")
+  x.Add("targettag", job.MAC)
+  x.Add("macaddress", job.MAC)
+  x.Add("timestamp", job.Timestamp)
+  x.Add("periodic", job.Periodic)
+  x.Add("id", "1")
+  x.Add("headertag", job.Trigger())
+  x.Add("result", "none")
+  
+  for _, arg := range args {
+    switch arg := arg.(type) {
+      case int:  x.Rename(fmt.Sprintf("answer%d",arg))
+                 x.First("id").SetText("%d",arg)
+      case uint: x.Rename(fmt.Sprintf("answer%d",arg))
+                 x.First("id").SetText("%d",arg)
+      case string:
+                 if serverRegexp.MatchString(arg) {
+                   x.First("siserver").SetText(arg)
+                 } else {
+                   panic("Unknown string format in Job.Hash()")
+                 }
+      default: panic("Unknown type in Job.Hash()")
+    }
+  }
+  
+  xm := xml.NewHash("xml","header", "job_" + x.Text("headertag"))
+  xm.Add("source", "GOSA")
+  xm.Add("target", x.Text("targettag"))
+  xm.Add("timestamp", x.Text("timestamp"))
+  xm.Add("macaddress", x.Text("macaddress"))
+  x.Add("xmlmessage", base64.StdEncoding.EncodeToString([]byte(xm.String())))
+  return x
+}
+
 
 // Runs the system test.
 //  daemon: either "", host:port or the path to a binary. 
@@ -544,7 +591,53 @@ func run_foreign_job_updates_tests() {
   x = gosa("query_jobdb", hash("xml(where())"))
   check(checkTags(x, "header,source,target,session_id?"),"")
   
+  // Now we test that when the testee forwards deletions it includes the 
+  // original id (rather than its own)
+  job = Jobs[0].Hash()
+  job.First("id").SetText("0815")
+  fju := xml.NewHash("xml", "header", "foreign_job_updates")
+  fju.Add("source", listen_address)
+  fju.AddClone(job)
+  send("", fju)
+  time.Sleep(reply_timeout)
+  x = gosa("query_jobdb", hash("xml(where())"))
+  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  t0 := time.Now()
+  gosa("delete_jobdb_entry", hash("xml(where())"))
+  msg := wait(t0, "foreign_job_updates")
+  siFail(checkTags(msg.XML, "header,source,target,answer1,sync?"), "")
+  if checkTags(msg.XML, "header,source,target,answer1") == "" {
+    check_foreign_job_updates(msg, keys[0], Jobs[0].Plainname, Jobs[0].Periodic, "done", "none", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
+    check(msg.XML.Text("id"), "0815")
+  }
   
+  // Clear out the above test job. For gosa-si, the gosa_delete_jobdb above has
+  // already done that but go-susi waits for our fju.
+  x = hash("xml(header(foreign_job_updates)source(%v)target(%v)sync(all))",listen_address,config.ServerSourceAddress)
+  send("",x)
+  
+  // Now we test that when the testee forwards a modification it includes
+  // the original id (rather than its own)
+  job = Jobs[0].Hash()
+  job.First("id").SetText("textID")
+  fju = xml.NewHash("xml", "header", "foreign_job_updates")
+  fju.Add("source", listen_address)
+  fju.AddClone(job)
+  send("", fju)
+  time.Sleep(reply_timeout)
+  x = gosa("query_jobdb", hash("xml(where())"))
+  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  t0 = time.Now()
+  gosa("update_status_jobdb_entry", hash("xml(where()update(progress(20)))"))
+  msg = wait(t0, "foreign_job_updates")
+  
+  // update_status_jobdb_entry is not implemented yet, so the following checks fail ATM
+  
+  checkFail(checkTags(msg.XML, "header,source,target,answer1,sync?"), "")
+  if checkTags(msg.XML, "header,source,target,answer1") == "" {
+    check_foreign_job_updates(msg, keys[0], Jobs[0].Plainname, Jobs[0].Periodic, "done", "20", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
+    check(msg.XML.Text("id"), "textID")
+  }
 }
 
 func check_multiple_requests_over_one_connection() {
