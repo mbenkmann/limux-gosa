@@ -56,8 +56,8 @@ func foreign_job_updates(xmlmsg *xml.Hash) {
   }
   
   // The key set is the set of peers for which to call
-  // SyncAllNonGoSusi().
-  fullsync := make(map[string]bool)
+  // SyncIfNotGoSusi().
+  syncIfNotGoSusi := make(map[string]bool)
   
   for _, tag := range xmlmsg.Subtags() {
   
@@ -97,8 +97,10 @@ func foreign_job_updates(xmlmsg *xml.Hash) {
       
       headertag := job.Text("headertag")
       macaddress := job.Text("macaddress")
-      
-      // If the update targets a local job, it must be translated to a delete or modify
+
+/************************************************************************************
+             Case 1: The updated job belongs to us
+*************************************************************************************/
 /*1*/ if siserver == config.ServerSourceAddress {
         var filter xml.HashFilter
         
@@ -115,36 +117,42 @@ func foreign_job_updates(xmlmsg *xml.Hash) {
           // This won't fix any misinformation on other gosa-si servers that blindly
           // believe 3rd party information, but in the typical case of one gosa-si on
           // the production server and one go-susi on the test server this works perfectly.
-          fullsync[source] = true
+          syncIfNotGoSusi[source] = true
         }
 /*1.1 + 1.2*/
         db.JobsModifyLocal(filter, job)
-        
-/*2*/ } else if siserver == source { // the job belongs to the sender
+
+/************************************************************************************
+             Case 2: The updated job belongs to the sender
+*************************************************************************************/        
+/*2*/ } else if siserver == source {
         // Because the job belongs to the sender, the <id> field corresponds to
         // the <original_id> we have in our database, so we can select the
         // job with precision.
         filter := xml.FilterSimple("original_id", job.Text("id"))
           
         db.JobsAddOrModifyForeign(filter, job)
-          
-/*3*/ } else { // the job belongs to a 3rd party peer
+
+/************************************************************************************
+             Case 3: The updated job belongs to a 3rd party peer
+*************************************************************************************/          
+/*3*/ } else {
         // We don't trust Chinese whispers, so we don't use the job information
         // directly. Instead we schedule a query of the affected 3rd party's
-        // jobdb. This needs to be done with a delay (part of SyncAllNonGoSusi()
+        // jobdb. This needs to be done with a delay (part of SyncIfNotGoSusi()
         // in peer_connection.go), because the 3rd party
         // may not even have received the foreign_job_updates affecting its job.
         // We only do this if the 3rd party is not (known to be) a go-susi.
         // In the case of a go-susi we can rely on it telling us about changes
         // reliably.
-        fullsync[siserver] = true
+        syncIfNotGoSusi[siserver] = true
 
       }
     }
   }
   
-  for siserver := range fullsync {
-    Peer(siserver).SyncNonGoSusi()
+  for siserver := range syncIfNotGoSusi {
+    Peer(siserver).SyncIfNotGoSusi()
   }
   
   return

@@ -74,17 +74,17 @@ var jobDB *xml.DB
 // The code that reads from this channel and forwards the messages to the
 // appropriate peers is in peer_connection.go:init()
 //
-// NOTE: A message in this queue may have an empty tag <SyncNonGoSusi> attached
-//       at the level of <source>. In this case, PeerConnection.SyncNonGoSusi() will
+// NOTE: A message in this queue may have an empty tag <SyncIfNotGoSusi> attached
+//       at the level of <source>. In this case, PeerConnection.SyncIfNotGoSusi() will
 //       be called after delivery of the foreign_job_updates to the peer.
-//       <SyncNonGoSusi> is only permitted if <target> is a specific peer. It will not
+//       <SyncIfNotGoSusi> is only permitted if <target> is a specific peer. It will not
 //       be transmitted as part of the foreign_job_updates.
-//       A second effect of <SyncNonGoSusi> is that if the <target> is not a go-susi,
+//       A second effect of <SyncIfNotGoSusi> is that if the <target> is not a go-susi,
 //       instead of sending the foreign_job_updates just to the target, it will be
 //       sent to all known peers. This is done to compensate for the fact that
 //       unlike go-susi gosa-si does not rebroadcast changes to its jobdb when those
 //       changes are the result of foreign_job_updates.
-//       The <SyncNonGoSusi> tag is used when forwarding change requests for
+//       The <SyncIfNotGoSusi> tag is used when forwarding change requests for
 //       jobs belongting to other servers to them via foreign_job_updates.
 var ForeignJobUpdates = make(chan *xml.Hash, 16384)
 
@@ -272,9 +272,9 @@ func JobsForwardModifyRequest(filter xml.HashFilter, update *xml.Hash) {
     
     for siserver := range fju {
       fju[siserver].Add("source", config.ServerSourceAddress)
-      fju[siserver].Add("target", siserver) // affected by SyncNonGoSusi!
+      fju[siserver].Add("target", siserver) // affected by SyncIfNotGoSusi!
       fju[siserver].Add("sync", "ordered")
-      fju[siserver].Add("SyncNonGoSusi") // see doc at var ForeignJobUpdates
+      fju[siserver].Add("SyncIfNotGoSusi") // see doc at var ForeignJobUpdates
       ForeignJobUpdates <- fju[siserver]
     }
     

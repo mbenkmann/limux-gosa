@@ -174,7 +174,7 @@ func (conn *PeerConnection) Ask(request, key string) <-chan string {
 // a go-susi. This is used after foreign_job_updates has been sent, because
 // gosa-si (unlike go-susi) does not broadcast changes it has done in reaction
 // to foreign_job_updates.
-func (conn* PeerConnection) SyncNonGoSusi() {
+func (conn* PeerConnection) SyncIfNotGoSusi() {
   if conn.IsGoSusi() { return }
   go func() {
     // See documentation of config.GosaQueryJobdbMaxDelay for
@@ -434,15 +434,15 @@ func init() {
       // see explanation in jobdb.go for var ForeignJobUpdates
       all_gosasi := (target == "gosa-si")
       if all_gosasi { target = "" }
-      syncNonGoSusi := fju.RemoveFirst("SyncNonGoSusi")
-      if syncNonGoSusi != nil && target != "" && !Peer(target).IsGoSusi() { 
+      syncIfNotGoSusi := fju.RemoveFirst("SyncIfNotGoSusi")
+      if syncIfNotGoSusi != nil && target != "" && !Peer(target).IsGoSusi() { 
         target = ""
       }
       
       if target != "" {
         Peer(target).Tell(fju.String(), "")
-        if syncNonGoSusi != nil {
-          Peer(target).SyncNonGoSusi()
+        if syncIfNotGoSusi != nil {
+          Peer(target).SyncIfNotGoSusi()
         }
       } else
       { // send to ALL peers (possibly limited by all_gosasi)
@@ -451,8 +451,8 @@ func init() {
           if all_gosasi && peer.IsGoSusi() { continue }
           fju.First("target").SetText(addr)
           peer.Tell(fju.String(), "")
-          if syncNonGoSusi != nil {
-            peer.SyncNonGoSusi()
+          if syncIfNotGoSusi != nil {
+            peer.SyncIfNotGoSusi()
           }
         }
         connections_mutex.Unlock()

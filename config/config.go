@@ -114,11 +114,11 @@ var Timeout = 5 * time.Minute
 // GOsa note: GOsa has a very short timeout for gosa_query_jobdb
 // requests (normally 5s). This duration needs to be shorter.
 //
-// Note: peer_connection:SyncNonGoSusi() bases its delay on
+// Note: peer_connection:SyncIfNotGoSusi() bases its delay on
 // this value to make sure that in the case a full sync is
 // caused by a forwarded request, the full sync occurs before
 // the delay of gosa_query_jobdb is finished. If this variable
-// is changed peer_connection:SyncNonGoSusi() should be checked
+// is changed peer_connection:SyncIfNotGoSusi() should be checked
 // to make sure its derived wait time is still enough.
 var GosaQueryJobdbMaxDelay = 4*time.Second
 
