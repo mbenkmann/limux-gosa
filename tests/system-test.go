@@ -470,6 +470,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   if conn != nil { conn.Close() }
   check(checkTags(x, "header,source,target,answer1,answer2,session_id?"),"")
   
+  run_foreign_job_updates_tests()
   
 // TODO: Testfall für das Löschen eines <periodic> jobs via foreign_job_updates (z.B.
 //       den oben hinzugefügten Test-Job)
@@ -479,6 +480,71 @@ func SystemTest(daemon string, is_gosasi bool) {
 
   // Give daemon time to process data and write logs before sending SIGTERM
   time.Sleep(reply_timeout)
+}
+
+func run_foreign_job_updates_tests() {
+  // clear jobdb  
+  x := gosa("delete_jobdb_entry", hash("xml(where())"))
+  
+  // Because the above delete may affect jobs belonging to the test server,
+  // go-susi may not delete all jobs directly and instead forward the request to the
+  // test server. Wait a little to make sure the communication is finished.
+  time.Sleep(reply_timeout)
+  
+  // try to add jobs with incorrect or missing <source> and/or incorrect or missing <siserver>
+  // All of these should be rejected by the server, except for the 1 correct job with
+  // listen_address/"localhost"
+  count := 10
+  for _, source := range []string{listen_address, "foo","1.2.3.4","1.2.3:9999","","missing"} {
+    x := hash("xml(header(foreign_job_updates)source(%v)target(%v))",source,config.ServerSourceAddress)
+    if source == "missing" { x.Remove(xml.FilterSimple("source")) }
+    i := 1
+    for _, siserver := range []string{"localhost","foo","1.2.3.4","1.2.3:9999","","missing" } {
+      job := hash("answer%d(plainname(%v)progress(none)status(waiting)siserver(%v)modified(1)macaddress(00:00:00:00:00:%d)targettag(00:00:00:00:00:%d)timestamp(%v)id(%d)headertag(%v)result(none))",
+                   i, Jobs[0].Plainname, siserver, count, count, Jobs[0].Timestamp, count, Jobs[0].Trigger())
+      count++
+      i++
+      if siserver == "missing" { job.Remove(xml.FilterSimple("siserver")) }
+      job.FirstOrAdd("xmlmessage").SetText(base64.StdEncoding.EncodeToString([]byte(job.String())))
+      x.AddClone(job)
+      util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(x.String(), keys[0]), config.Timeout)
+    }  
+  }
+  
+  // Wait for messages to be processed, because send() doesn't wait.
+  time.Sleep(reply_timeout)
+  
+  // Check the jobdb to verify that only the one correct job was added to the database
+  x = gosa("query_jobdb", hash("xml(where())"))
+  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  job := x.First("answer1")
+  if job != nil {
+    siFail(job.Text("siserver"), listen_address) // NOTE: go-susi converts "localhost" => source
+  }
+
+  // Send empty foreign_job_updates with sync "ordered" and test that this does NOT clear out the above job
+  x = hash("xml(header(foreign_job_updates)source(%v)target(%v)sync(ordered))",listen_address,config.ServerSourceAddress)
+  send("",x)
+  
+  // Wait for messages to be processed, because send() doesn't wait.
+  time.Sleep(reply_timeout)
+  
+  // Check the jobdb to verify that only the one correct job was added to the database
+  x = gosa("query_jobdb", hash("xml(where())"))
+  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+
+  // Send empty foreign_job_updates with sync all and test that this clears out the above job
+  x = hash("xml(header(foreign_job_updates)source(%v)target(%v)sync(all))",listen_address,config.ServerSourceAddress)
+  send("",x)
+  
+  // Wait for messages to be processed, because send() doesn't wait.
+  time.Sleep(reply_timeout)
+  
+  // Check the jobdb to verify that it is now empty.
+  x = gosa("query_jobdb", hash("xml(where())"))
+  check(checkTags(x, "header,source,target,session_id?"),"")
+  
+  
 }
 
 func check_multiple_requests_over_one_connection() {
@@ -832,6 +898,7 @@ func siFail(x interface{}, expected interface{}) {
 // Takes a format string like "xml(foo(%v)bar(%v))" and parameters and creates
 // a corresponding xml.Hash.
 func hash(format string, args... interface{}) *xml.Hash {
+  format = fmt.Sprintf(format, args...)
   stack := list.New()
   output := []string{}
   a := 0
@@ -853,7 +920,7 @@ func hash(format string, args... interface{}) *xml.Hash {
     }
   }
   
-  hash, err := xml.StringToHash(fmt.Sprintf(strings.Join(output, ""), args...))
+  hash, err := xml.StringToHash(strings.Join(output, ""))
   if err != nil { panic(err) }
   return hash
 }

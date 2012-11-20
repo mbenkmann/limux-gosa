@@ -99,12 +99,12 @@ func foreign_job_updates(xmlmsg *xml.Hash) {
       macaddress := job.Text("macaddress")
       
       // If the update targets a local job, it must be translated to a delete or modify
-      if siserver == config.ServerSourceAddress {
+/*1*/ if siserver == config.ServerSourceAddress {
         var filter xml.HashFilter
         
-        if Peer(source).IsGoSusi() { // Message is from a go-susi, so <id> is meaningful.
+/*1.1*/ if Peer(source).IsGoSusi() { // Message is from a go-susi, so <id> is meaningful.
           filter = xml.FilterSimple("id", job.Text("id"), "siserver", config.ServerSourceAddress)
-        } else {
+/*1.2*/ } else {
           // The <id> field is the id of the job in the sending server's database
           // which is not meaningful to us. So the best we can do is select all
           // local jobs which match the headertag/macaddress combination.
@@ -117,10 +117,10 @@ func foreign_job_updates(xmlmsg *xml.Hash) {
           // the production server and one go-susi on the test server this works perfectly.
           fullsync[source] = true
         }
-        
+/*1.1 + 1.2*/
         db.JobsModifyLocal(filter, job)
         
-      } else if siserver == source { // the job belongs to the sender
+/*2*/ } else if siserver == source { // the job belongs to the sender
         // Because the job belongs to the sender, the <id> field corresponds to
         // the <original_id> we have in our database, so we can select the
         // job with precision.
@@ -128,7 +128,7 @@ func foreign_job_updates(xmlmsg *xml.Hash) {
           
         db.JobsAddOrModifyForeign(filter, job)
           
-      } else { // the job belongs to a 3rd party peer
+/*3*/ } else { // the job belongs to a 3rd party peer
         // We don't trust Chinese whispers, so we don't use the job information
         // directly. Instead we schedule a query of the affected 3rd party's
         // jobdb. This needs to be done with a delay (part of SyncAllNonGoSusi()
