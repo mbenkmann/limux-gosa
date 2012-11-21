@@ -605,16 +605,23 @@ func run_foreign_job_updates_tests() {
   t0 := time.Now()
   gosa("delete_jobdb_entry", hash("xml(where())"))
   msg := wait(t0, "foreign_job_updates")
-  siFail(checkTags(msg.XML, "header,source,target,answer1,sync?"), "")
+  check(checkTags(msg.XML, "header,source,target,answer1,sync?"), "")
   if checkTags(msg.XML, "header,source,target,answer1") == "" {
     check_foreign_job_updates(msg, keys[0], Jobs[0].Plainname, Jobs[0].Periodic, "done", "none", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
-    check(msg.XML.Text("id"), "0815")
+    siFail(msg.XML.Text("id"), "0815")
   }
   
   // Clear out the above test job. For gosa-si, the gosa_delete_jobdb above has
   // already done that but go-susi waits for our fju.
-  x = hash("xml(header(foreign_job_updates)source(%v)target(%v)sync(all))",listen_address,config.ServerSourceAddress)
-  send("",x)
+  fju.First("answer1").First("status").SetText("done")
+  t0 = time.Now()
+  send("", fju)
+  // check that we receive NO fju
+  msg = wait(t0, "foreign_job_updates")
+  check(msg.XML.Text("header"), "")
+  // Check the jobdb to verify that it is now empty.
+  x = gosa("query_jobdb", hash("xml(where())"))
+  check(checkTags(x, "header,source,target,session_id?"),"")
   
   // Now we test that when the testee forwards a modification it includes
   // the original id (rather than its own)
@@ -638,6 +645,85 @@ func run_foreign_job_updates_tests() {
     check_foreign_job_updates(msg, keys[0], Jobs[0].Plainname, Jobs[0].Periodic, "done", "20", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
     check(msg.XML.Text("id"), "textID")
   }
+  
+  // Clear out the test job. 
+  send("",hash("xml(header(foreign_job_updates)source(%v)target(%v)sync(all))",listen_address,config.ServerSourceAddress))
+  gosa("delete_jobdb_entry", hash("xml(where())"))
+  
+  // create a job on the testee
+  gosa(Jobs[0].Type, hash("xml(target(%v)timestamp(%v)macaddress(%v))",Jobs[0].MAC,Jobs[0].Timestamp,Jobs[0].MAC))
+  time.Sleep(reply_timeout)
+  // check if it's been successfully created
+  x = gosa("query_jobdb", hash("xml(where())"))
+  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  
+  job = x.First("answer1")
+  // send fju with wrong id. Because our test server has identified itself as
+  // goSusi the testee should ignore the fju because goSusi protocol requires
+  // sending the correct id.
+  id := job.Text("id")
+  job.First("id").SetText("not_the_actual_id")
+  job.First("status").SetText("done")
+  fju = xml.NewHash("xml", "header", "foreign_job_updates")
+  fju.Add("source", listen_address)
+  fju.AddClone(job)
+  t0 = time.Now()
+  send("", fju)
+  // check that we receive NO fju
+  msg = wait(t0, "foreign_job_updates")
+  check(msg.XML.Text("header"), "")
+  // check that the job's still there
+  x = gosa("query_jobdb", hash("xml(where())"))
+  siFail(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  
+  // now send the fju with the correct id and check it causes the job to be removed.
+  // This is Case 1.1 in foreign_job_updates.go
+  job.First("id").SetText(id)
+  job.First("status").SetText("done")
+  fju = xml.NewHash("xml", "header", "foreign_job_updates")
+  fju.Add("source", listen_address)
+  fju.AddClone(job)
+  t0 = time.Now()
+  send("", fju)
+  // check that we receive fju (this fails on gosa-si because gosa-si does not
+  // send fju for changes received via fju)
+  msg = wait(t0, "foreign_job_updates")
+  siFail(msg.XML.Text("header"), "foreign_job_updates")
+  // check that the job's gone
+  x = gosa("query_jobdb", hash("xml(where())"))
+  check(checkTags(x, "header,source,target,session_id?"),"")
+  
+  // Send new_server without "goSusi" to make testee treat us as gosa-si
+  t0 = time.Now()
+  send("[ServerPackages]", hash("xml(header(new_server)new_server()key(%v)loaded_modules(foo)macaddress(00:00:00:00:00:00))", keys[0]))
+  msg = wait(t0, "confirm_new_server")
+  
+  // create a job on the testee
+  gosa(Jobs[0].Type, hash("xml(target(%v)timestamp(%v)macaddress(%v))",Jobs[0].MAC,Jobs[0].Timestamp,Jobs[0].MAC))
+  time.Sleep(reply_timeout)
+  // check if it's been successfully created
+  x = gosa("query_jobdb", hash("xml(where())"))
+  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  
+  // check that the job is removed even when we wrong id
+  // This is Case 1.2 in foreign_job_updates.go
+  job.First("id").SetText("not_the_actual_id")
+  job.First("status").SetText("done")
+  fju = xml.NewHash("xml", "header", "foreign_job_updates")
+  fju.Add("source", listen_address)
+  fju.AddClone(job)
+  t0 = time.Now()
+  send("", fju)
+  // check that we receive fju
+  msg = wait(t0, "foreign_job_updates")
+  siFail(msg.XML.Text("header"), "foreign_job_updates")
+  // Check the job's actually gone
+  x = gosa("query_jobdb", hash("xml(where())"))
+  check(checkTags(x, "header,source,target,session_id?"),"")
+  
+  // Now identify our test server as goSusi again
+  send("[ServerPackages]", hash("xml(header(new_server)new_server()key(%v)loaded_modules(goSusi)macaddress(00:00:00:00:00:00))", keys[0]))
+  
 }
 
 func check_multiple_requests_over_one_connection() {
