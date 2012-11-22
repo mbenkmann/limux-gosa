@@ -332,9 +332,8 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   // go-susi also sends foreign_job_updates in response to new_server
   msg = wait(t0, "foreign_job_updates")
-  siFail(checkTags(msg.XML, "header,source,target,answer1,sync?"), "")
-  if checkTags(msg.XML, "header,source,target,answer1") == "" {
-    check_foreign_job_updates(msg, "new_server_key", Jobs[0].Plainname, Jobs[0].Periodic, "waiting", "none", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
+  if siFail(checkTags(msg.XML, "header,source,target,answer1,sync?"), "") {
+    check_foreign_job_updates(msg, "new_server_key", config.ServerSourceAddress, Jobs[0].Plainname, Jobs[0].Periodic, "waiting", "none", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
   }
 
   t0 = time.Now()
@@ -346,7 +345,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   check(x.Text("answer1"), "0")
   
   msg = wait(t0, "foreign_job_updates")
-  check_foreign_job_updates(msg, "new_server_key", Jobs[1].Plainname, Jobs[1].Periodic, "waiting", "none",Jobs[1].MAC, Jobs[1].Trigger(), Jobs[1].Timestamp)
+  check_foreign_job_updates(msg, "new_server_key", config.ServerSourceAddress,  Jobs[1].Plainname, Jobs[1].Periodic, "waiting", "none",Jobs[1].MAC, Jobs[1].Trigger(), Jobs[1].Timestamp)
   
   check_connection_drop_on_error1()
   check_connection_drop_on_error2()
@@ -405,7 +404,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   // check for foreign_job_updates with status "done"
   msg = wait(t0, "foreign_job_updates")
-  check_foreign_job_updates(msg, keys[0], Jobs[0].Plainname, "", "done", "none", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
+  check_foreign_job_updates(msg, keys[0], config.ServerSourceAddress, Jobs[0].Plainname, "", "done", "none", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
   
   // Send foreign_job_updates with following changes:
   //   change <progress> of the existing job
@@ -469,7 +468,7 @@ func SystemTest(daemon string, is_gosasi bool) {
     if msg.XML.Text("sync") == "all" { break }
   }
   check(msg.XML.Text("sync"),"all")
-  check_foreign_job_updates(msg, keys[0], Jobs[1].Plainname, Jobs[1].Periodic, "waiting", "42", Jobs[1].MAC, Jobs[1].Trigger(), Jobs[1].Timestamp)
+  check_foreign_job_updates(msg, keys[0], config.ServerSourceAddress, Jobs[1].Plainname, Jobs[1].Periodic, "waiting", "42", Jobs[1].MAC, Jobs[1].Trigger(), Jobs[1].Timestamp)
   
   // Now test that our test server's jobs are no longer in error state in query_jobdb
   x = gosa("query_jobdb", hash("xml(where(clause(phrase(siserver(%v)))))",listen_address))
@@ -552,7 +551,7 @@ func run_foreign_job_updates_tests() {
       count++
       i++
       if siserver == "missing" { job.Remove(xml.FilterSimple("siserver")) }
-      job.FirstOrAdd("xmlmessage").SetText(base64.StdEncoding.EncodeToString([]byte(job.String())))
+      job.FirstOrAdd("xmlmessage").SetText(base64.StdEncoding.EncodeToString([]byte(hash("xml(header(%v)source(%v)target(%v)timestamp(%v)macaddress(%v))",Jobs[0].Type,"GOSA",job.Text("macaddress"),Jobs[0].Timestamp,job.Text("macaddress")).String())))
       x.AddClone(job)
       util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(x.String(), keys[0]), config.Timeout)
     }  
@@ -566,7 +565,8 @@ func run_foreign_job_updates_tests() {
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
   job := x.First("answer1")
   if job != nil {
-    siFail(job.Text("siserver"), listen_address) // NOTE: go-susi converts "localhost" => source
+     // NOTE: go-susi converts "localhost" => source
+    check_answer(job, Jobs[0].Plainname, "none", "waiting", listen_address, "00:00:00:00:00:10", Jobs[0].Timestamp, "none", Jobs[0].Trigger())
   }
 
   // Send empty foreign_job_updates with sync "ordered" and test that this does NOT clear out the above job
@@ -576,7 +576,7 @@ func run_foreign_job_updates_tests() {
   // Wait for messages to be processed, because send() doesn't wait.
   time.Sleep(reply_timeout)
   
-  // Check the jobdb to verify that only the one correct job was added to the database
+  // Check the jobdb to verify that the job's still there
   x = gosa("query_jobdb", hash("xml(where())"))
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
 
@@ -605,10 +605,9 @@ func run_foreign_job_updates_tests() {
   t0 := time.Now()
   gosa("delete_jobdb_entry", hash("xml(where())"))
   msg := wait(t0, "foreign_job_updates")
-  check(checkTags(msg.XML, "header,source,target,answer1,sync?"), "")
-  if checkTags(msg.XML, "header,source,target,answer1") == "" {
-    check_foreign_job_updates(msg, keys[0], Jobs[0].Plainname, Jobs[0].Periodic, "done", "none", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
-    siFail(msg.XML.Text("id"), "0815")
+  if check(checkTags(msg.XML, "header,source,target,answer1,sync?"), "") {
+    check_foreign_job_updates(msg, keys[0], listen_address, Jobs[0].Plainname, "", "done", "none", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
+    siFail(msg.XML.First("answer1").Text("id"), "0815")
   }
   
   // Clear out the above test job. For gosa-si, the gosa_delete_jobdb above has
@@ -640,10 +639,9 @@ func run_foreign_job_updates_tests() {
   
   // update_status_jobdb_entry is not implemented yet, so the following checks fail ATM
   
-  checkFail(checkTags(msg.XML, "header,source,target,answer1,sync?"), "")
-  if checkTags(msg.XML, "header,source,target,answer1") == "" {
-    check_foreign_job_updates(msg, keys[0], Jobs[0].Plainname, Jobs[0].Periodic, "done", "20", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
-    check(msg.XML.Text("id"), "textID")
+  if checkFail(checkTags(msg.XML, "header,source,target,answer1,sync?"), "") {
+    check_foreign_job_updates(msg, keys[0], config.ServerSourceAddress, Jobs[0].Plainname, Jobs[0].Periodic, "done", "20", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
+    check(msg.XML.First("answer1").Text("id"), "textID")
   }
   
   // Clear out the test job. 
@@ -656,8 +654,9 @@ func run_foreign_job_updates_tests() {
   // check if it's been successfully created
   x = gosa("query_jobdb", hash("xml(where())"))
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
-  
   job = x.First("answer1")
+  check_answer(job, Jobs[0].Plainname, "none", "waiting", config.ServerSourceAddress, Jobs[0].MAC, Jobs[0].Timestamp, "none", Jobs[0].Trigger())
+  
   // send fju with wrong id. Because our test server has identified itself as
   // goSusi the testee should ignore the fju because goSusi protocol requires
   // sending the correct id.
@@ -674,7 +673,10 @@ func run_foreign_job_updates_tests() {
   check(msg.XML.Text("header"), "")
   // check that the job's still there
   x = gosa("query_jobdb", hash("xml(where())"))
-  siFail(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  if siFail(checkTags(x, "header,source,target,answer1,session_id?"),"") {
+    job = x.First("answer1")
+    check_answer(job, Jobs[0].Plainname, "none", "waiting", config.ServerSourceAddress, Jobs[0].MAC, Jobs[0].Timestamp, "none", Jobs[0].Trigger())  
+  }
   
   // now send the fju with the correct id and check it causes the job to be removed.
   // This is Case 1.1 in foreign_job_updates.go
@@ -688,7 +690,10 @@ func run_foreign_job_updates_tests() {
   // check that we receive fju (this fails on gosa-si because gosa-si does not
   // send fju for changes received via fju)
   msg = wait(t0, "foreign_job_updates")
-  siFail(msg.XML.Text("header"), "foreign_job_updates")
+  if siFail(checkTags(msg.XML, "header,source,target,answer1,sync?"), "") {
+    check_foreign_job_updates(msg, keys[0], config.ServerSourceAddress, Jobs[0].Plainname, "", "done", "none", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
+  }
+  
   // check that the job's gone
   x = gosa("query_jobdb", hash("xml(where())"))
   check(checkTags(x, "header,source,target,session_id?"),"")
@@ -703,9 +708,12 @@ func run_foreign_job_updates_tests() {
   time.Sleep(reply_timeout)
   // check if it's been successfully created
   x = gosa("query_jobdb", hash("xml(where())"))
-  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  if check(checkTags(x, "header,source,target,answer1,session_id?"),"") {
+    job = x.First("answer1")
+    check_answer(job, Jobs[0].Plainname, "none", "waiting", config.ServerSourceAddress, Jobs[0].MAC, Jobs[0].Timestamp, "none", Jobs[0].Trigger())  
+  }
   
-  // check that the job is removed even when we wrong id
+  // check that the job is removed even when we send the wrong id
   // This is Case 1.2 in foreign_job_updates.go
   job.First("id").SetText("not_the_actual_id")
   job.First("status").SetText("done")
@@ -724,6 +732,49 @@ func run_foreign_job_updates_tests() {
   // Now identify our test server as goSusi again
   send("[ServerPackages]", hash("xml(header(new_server)new_server()key(%v)loaded_modules(goSusi)macaddress(00:00:00:00:00:00))", keys[0]))
   
+  // Case 2 in foreign_job_updates.go
+  // Updated job belongs to the sender (i.e. our test server)
+  job.First("id").SetText("my_id")
+  job.First("siserver").SetText(listen_address)
+  job.First("status").SetText("waiting")
+  fju = xml.NewHash("xml", "header", "foreign_job_updates")
+  fju.Add("source", listen_address)
+  fju.AddClone(job)
+  t0 = time.Now()
+  send("", fju)
+  // check that we receive NO fju
+  msg = wait(t0, "foreign_job_updates")
+  check(msg.XML.Text("header"), "")
+  // check that the job is there
+  x = gosa("query_jobdb", hash("xml(where())"))
+  if check(checkTags(x, "header,source,target,answer1,session_id?"),"") {
+    job = x.First("answer1")
+    check_answer(job, Jobs[0].Plainname, "none", "waiting", listen_address, Jobs[0].MAC, Jobs[0].Timestamp, "none", Jobs[0].Trigger())  
+  }
+  // modify the job
+  fju.First("answer1").First("progress").SetText("99")
+  fju.First("answer1").First("status").SetText("paused")
+  t0 = time.Now()
+  send("", fju)
+  // check that we receive NO fju
+  msg = wait(t0, "foreign_job_updates")
+  check(msg.XML.Text("header"), "")
+  // check that the job is updated
+  x = gosa("query_jobdb", hash("xml(where())"))
+  if check(checkTags(x, "header,source,target,answer1,session_id?"),"") {
+    job = x.First("answer1")
+    check_answer(job, Jobs[0].Plainname, "99", "paused", listen_address, Jobs[0].MAC, Jobs[0].Timestamp, "none", Jobs[0].Trigger())  
+  }
+  
+  // Now delete the job, using an incorrect headertag. This fails on gosa-si but
+  // succeeds on go-susi because go-susi used the id to select the job
+  fju.First("answer1").First("headertag").SetText("incorrect")
+  fju.First("answer1").First("status").SetText("done")
+  send("", fju)
+  time.Sleep(reply_timeout)
+  // check that the job is gone
+  x = gosa("query_jobdb", hash("xml(where())"))
+  siFail(checkTags(x, "header,source,target,session_id?"),"")
 }
 
 func check_multiple_requests_over_one_connection() {
@@ -850,7 +901,7 @@ func check_new_server_on_startup(job Job) {
     trigger_first_test_job(Jobs[0])
 
     msg = wait(t0, "foreign_job_updates")
-    check_foreign_job_updates(msg, "confirm_new_server_key", test_name, "7_days", "waiting", "none", test_mac, "trigger_action_wake", test_timestamp)
+    check_foreign_job_updates(msg, "confirm_new_server_key", config.ServerSourceAddress, test_name, "7_days", "waiting", "none", test_mac, "trigger_action_wake", test_timestamp)
   }
 }
 
@@ -866,7 +917,7 @@ func trigger_first_test_job(job Job) {
   check(x.Text("answer1"), "0")
 }
 
-func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_periodic, test_status, test_progress, test_mac, action, test_timestamp string) {
+func check_foreign_job_updates(msg *queueElement, test_key, test_server, test_name, test_periodic, test_status, test_progress, test_mac, action, test_timestamp string) {
   _, file, line, _ := runtime.Caller(1)
   file = file[strings.LastIndex(file, "/")+1:]
   fmt.Printf("== check_foreign_job_updates sub-tests (%v:%v) ==\n", file, line)
@@ -893,7 +944,7 @@ func check_foreign_job_updates(msg *queueElement, test_key, test_name, test_peri
     siFail(peri, test_periodic)
     check(job.Text("progress"), test_progress)
     check(job.Text("status"), test_status)
-    siFail(job.Text("siserver"), config.ServerSourceAddress)
+    siFail(job.Text("siserver"), test_server)
     check(job.Text("targettag"), test_mac)
     check(job.Text("macaddress"), test_mac)
     check(job.Text("timestamp"), test_timestamp)
@@ -1065,12 +1116,13 @@ func nonLaunchedFail(x interface{}, expected interface{}) {
 }
 
 // Like check() but expects the test to fail if testing a gosa-si instead of go-susi.
-func siFail(x interface{}, expected interface{}) {
+func siFail(x interface{}, expected interface{}) bool {
   if gosasi {
-    checkFailLevel(x, expected,2)
+    return checkFailLevel(x, expected,2)
   } else {
-    checkLevel(x, expected,2)
+    return checkLevel(x, expected,2)
   }
+  return true
 }
 
 

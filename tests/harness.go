@@ -63,11 +63,12 @@ func isNil(x interface{}) (ret bool) {
 }
 
 // Compares x with expected and prints PASSED if equal and FAILED if not.
-func check(x interface{}, expected interface{}) {
-  checkLevel(x,expected,2)
+// Returns true if PASSED.
+func check(x interface{}, expected interface{}) bool {
+  return checkLevel(x,expected,2)
 }
 
-func checkLevel(x interface{}, expected interface{}, level int) {
+func checkLevel(x interface{}, expected interface{}, level int) bool {
   Count++
   _, file, line, _ := runtime.Caller(level)
   file = file[strings.LastIndex(file, "/")+1:]
@@ -84,19 +85,23 @@ func checkLevel(x interface{}, expected interface{}, level int) {
     if Show_output {
       fmt.Printf("OUTPUT  : %v\n", x)
     }
+    return true
   } else {
     fmt.Println("FAILED")
     Fail++
     fmt.Printf("OUTPUT  : %v\nEXPECTED: %v\n", x, expected)
+    return false
   }
+  return true
 }
 
 // Like check() but failure is expected and the counts will adjusted accordingly.
-func checkFail(x interface{}, expected interface{}) {
-  checkFailLevel(x,expected,2)
+// Returns true if PASSED.
+func checkFail(x interface{}, expected interface{}) bool {
+  return checkFailLevel(x,expected,2)
 }
 
-func checkFailLevel(x interface{}, expected interface{}, level int) {
+func checkFailLevel(x interface{}, expected interface{}, level int) bool {
   Count++
   _, file, line, _ := runtime.Caller(level)
   file = file[strings.LastIndex(file, "/")+1:]
@@ -112,6 +117,7 @@ func checkFailLevel(x interface{}, expected interface{}, level int) {
     Pass++
     UnexpectedPass++
     fmt.Printf("OUTPUT  : %v\n", x)
+    return true
   } else {
     fmt.Println("FAILED AS EXPECTED")
     Fail++
@@ -119,5 +125,7 @@ func checkFailLevel(x interface{}, expected interface{}, level int) {
     if Show_output {
       fmt.Printf("OUTPUT  : %v\nSHOULD BE: %v\n", x, expected)
     }
+    return false
   }
+  return true
 }
