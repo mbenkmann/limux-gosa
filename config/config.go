@@ -128,6 +128,10 @@ var FreshDatabase = false
 // true => add peer servers from DNS to serverdb.
 var DNSLookup = true
 
+// List of domains, each starting with a dot, that will be
+// appended in turn to short names that DNS can't resolve.
+var LookupDomains = []string{}
+
 // URI for connecting to LDAP server.
 var LDAPURI = "ldap://localhost:389"
 
@@ -263,6 +267,12 @@ func ReadConfig() {
         util.Log(0, "ERROR! ReadConfig: [ServerPackages]/dns-lookup must be \"true\" or \"false\", not \"%v\"", dnslookup)
       }
       DNSLookup = (dnslookup == "true")
+    }
+    if lookupdomains, ok := serverpackages["domains"]; ok {
+      for _, dom := range strings.Fields(strings.Replace(lookupdomains,","," ",-1)) {
+        if dom[0] != '.' { dom = "." + dom }
+        LookupDomains = append(LookupDomains, dom)
+      }
     }
   }
   
