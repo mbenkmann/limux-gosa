@@ -341,5 +341,18 @@ func Util_test() {
   if err == nil {
     check(string(data),"Test123")
   }
+  
+  test_time := time.Date(2013, time.January, 20, 14, 7, 21, 0, time.Local)
+  check(util.MakeTimestamp(test_time),"20130120140721")
+  check(util.MakeTimestamp(test_time.UTC()),"20130120140721")
+  check(util.MakeTimestamp(test_time.In(time.FixedZone("Fooistan", 45678))),"20130120140721")
+  illegal := time.Unix(0,0)
+  buffy.Reset()
+  check(util.ParseTimestamp(""), illegal)
+  check(strings.Contains(buffy.String(), "ERROR"), true)
+  buffy.Reset()
+  check(util.ParseTimestamp("20139910101010"), illegal)
+  check(strings.Contains(buffy.String(), "ERROR"), true)
+  check(util.ParseTimestamp("20131110121314"), time.Date(2013, time.November, 10, 12, 13, 14, 0, time.Local))
 }
 
