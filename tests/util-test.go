@@ -354,5 +354,17 @@ func Util_test() {
   check(util.ParseTimestamp("20139910101010"), illegal)
   check(strings.Contains(buffy.String(), "ERROR"), true)
   check(util.ParseTimestamp("20131110121314"), time.Date(2013, time.November, 10, 12, 13, 14, 0, time.Local))
+  
+  t0 = time.Now()
+  util.WaitUntil(t0.Add(-10*time.Second))
+  util.WaitUntil(t0.Add(-100*time.Minute))
+  dur := time.Now().Sub(t0)
+  if dur < 1*time.Second { dur = 0 }
+  check(dur, 0)
+  t0 = time.Now()
+  util.WaitUntil(t0.Add(1200*time.Millisecond))
+  dur = time.Now().Sub(t0)
+  if dur >= 1200*time.Millisecond && dur <= 1300*time.Millisecond { dur = 1200*time.Millisecond }
+  check(dur, 1200*time.Millisecond)
 }
 

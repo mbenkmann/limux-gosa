@@ -68,6 +68,19 @@ func Counter(start uint64) chan uint64 {
   return c
 }
 
+// Sleeps until time t. If clock is adjusted during the sleep, this will not
+// cause more than 10 minutes extra sleep. In no case will this function return
+// until time.Now() >= t.
+func WaitUntil(t time.Time) {
+  for { // for loop because clock might be adjusted while we're sleeping
+    dur := t.Sub(time.Now())
+    if dur <= 0 { return }
+    // wake up every 10 minutes to deal with clock adjustments (DST etc.)
+    if dur > 10*time.Minute { dur = 10*time.Minute }
+    time.Sleep(dur)
+  }
+}
+
 // Writes data to w, with automatic handling of short writes.
 // A short write error will only be returned if multiple attempts
 // failed in a row.
