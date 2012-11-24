@@ -120,6 +120,15 @@ func foreign_job_updates(xmlmsg *xml.Hash) {
           syncIfNotGoSusi[source] = true
         }
 /*1.1 + 1.2*/
+        
+        // A foreign server can't know if a local job is done or not, so if
+        // it sends us a "done" status for a local job it can only mean that
+        // the job should be cancelled. Make sure that this works properly for
+        // periodic jobs even if the sender doesn't support <periodic> 
+        // (gosa-si versions older than 2.7)
+        if job.Text("status") == "done" { 
+          job.FirstOrAdd("periodic").SetText("none") 
+        }
         db.JobsModifyLocal(filter, job)
 
 /************************************************************************************
