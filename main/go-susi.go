@@ -40,6 +40,7 @@ import (
           "../db"
           "../util"
           "../config"
+          "../action"
           "../message"
        )
 
@@ -102,6 +103,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   config.ReadNetwork() // after config.ReadConfig()
   db.ServersInit() // after config.ReadNetwork()
   db.JobsInit() // after config.ReadConfig()
+  action.Init()
   
   tcp_addr, err := net.ResolveTCPAddr("ip4", config.ServerListenAddress)
   if err != nil {

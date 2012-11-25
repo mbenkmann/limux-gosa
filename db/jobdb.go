@@ -116,6 +116,17 @@ type jobDBRequest struct {
 // 1000 machines are sending us progress updates at the same time.
 var jobDBRequests = make(chan *jobDBRequest, 16384)
 
+// a ping on this channel causes handleJobDBRequests() to push
+// all jobs whose time has come into the PendingActions queue (see below).
+var processPendingActions = make(chan bool)
+
+// Whenever the time of a local job with status "waiting" has come it is 
+// put into this queue after its status has been changed to "processing".
+// Whenever a local job is removed, it is put into this queue after
+// its status has been changed to "done". 
+// The consumer of this queue is action/process_act.go:init()
+var PendingActions = deque.New()
+
 // The next number to use for <id> when storing a new local job.
 var nextID chan uint64
 
@@ -142,11 +153,16 @@ func JobsInit() {
     }
   }
   
+  // The following loop goes through all jobs and does the following
+  // * find the the greatest id number used in the db
+  // * schedule processing of pending actions for all timestamps
   var count uint64 = 0
   for job := jobDB.Query(xml.FilterAll).First("job"); job != nil; job = job.Next() {
     id, err := strconv.ParseUint(job.Text("id"), 10, 64)
     if err != nil { panic(err) }
     if id > count { count = id }
+    
+    scheduleProcessPendingActions(job.Text("timestamp"))
   }
   nextID = util.Counter(count+1)
   
@@ -177,12 +193,28 @@ func handleJobDBRequests() {
     select {
       case request = <-jobDBRequests : request.Action(request)
       
-        
-  /*TODO: start local jobs whose time has come.
-  When a periodic job is done, a new job is created with a new id. */
-
+      case _ = <-processPendingActions :
+               /*** WARNING! WARNING! ***
+               Using the function JobsQuery() here will cause deadlock!
+               Other functions like JobsModifyLocal() are okay, but remember
+               that they will not be executed until this case ends.
+               *************************/
+               localwait := xml.FilterSimple("siserver", config.ServerSourceAddress, 
+                                             "status", "waiting")
+               beforenow := xml.FilterRel("timestamp", util.MakeTimestamp(time.Now()), -1, 0)
+               filter := xml.FilterAnd([]xml.HashFilter{localwait,beforenow})
+               JobsModifyLocal(filter, xml.NewHash("job","status","processing"))
     }
   }
+}
+
+// Schedules handleJobDBRequests() to scan jobDB for jobs whose time has come.
+// at the time specified by the timestamp argument.
+func scheduleProcessPendingActions(timestamp string) {
+  go func() {
+    util.WaitUntil(util.ParseTimestamp(timestamp))
+    processPendingActions <- true
+  }()
 }
 
 // Returns all jobs matching filter (as clones, not references into the database).
@@ -331,6 +363,7 @@ func JobAddLocal(job *xml.Hash) {
       JobsUpdateNameForMAC(request.Job.Text("macaddress")) 
     }
     jobDB.AddClone(request.Job)
+    scheduleProcessPendingActions(request.Job.Text("timestamp"))
     request.Job.Rename("answer1")
     fju := xml.NewHash("xml","header","foreign_job_updates")
     fju.Add("source", config.ServerSourceAddress)
@@ -350,10 +383,13 @@ func JobAddLocal(job *xml.Hash) {
 // Removes from the JobDB the jobs matching filter.
 // Calling this method triggers a foreign_job_updates broadcast (if at least
 // 1 job was removed).
+// If stop_periodic == true, then the job's periodic state will be forced to none
+// and no follow-up job will be scheduled. If stop_periodic == false, a follow-up
+// job will be scheduled if the job is periodic.
 //
 // NOTE: The filter must include the siserver==config.ServerSourceAddress check,
 // so that it only affects local jobs.
-func JobsRemoveLocal(filter xml.HashFilter) {
+func JobsRemoveLocal(filter xml.HashFilter, stop_periodic bool) {
   deljob := func(request *jobDBRequest) {
     jobdb_xml := jobDB.Remove(request.Filter)
     fju := xml.NewHash("xml","header","foreign_job_updates")
@@ -362,8 +398,11 @@ func JobsRemoveLocal(filter xml.HashFilter) {
       // Use RemoveFirst() so that we can use Rename() and AddWithOwnership()
       for job := jobdb_xml.RemoveFirst(tag); job != nil; job = jobdb_xml.RemoveFirst(tag) {
         job.FirstOrAdd("status").SetText("done")
-        job.FirstOrAdd("periodic").SetText("none")
+        if stop_periodic {
+          job.FirstOrAdd("periodic").SetText("none")
+        }
         job.RemoveFirst("original_id")
+        PendingActions.Push(job.Clone())
         job.Rename("answer"+strconv.FormatUint(count, 10))
         count++
         fju.AddWithOwnership(job)
@@ -390,10 +429,20 @@ func JobsRemoveLocal(filter xml.HashFilter) {
 // so that it only affects local jobs.
 //
 // NOTE: If update has status=="done", this call is equivalent to
-//       JobsRemoveLocal(filter)
+//         JobsRemoveLocal(filter, stop_periodic)
+//       where stop_periodic is true iff update has a <periodic> element
+//       that is empty or "none".
+//
+//       If update has status=="processing", jobs that have status "waiting" 
+//       will be pushed into the PendingActions queue. 
+//       This will cause the job's action to be performed asap.
 func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
   if update.Text("status") == "done" {
-    JobsRemoveLocal(filter)
+    stop_periodic := 
+                ( update.Get("periodic") != nil && 
+                  ( update.Text("periodic") == "" || 
+                    update.Text("periodic") == "none" ) )
+    JobsRemoveLocal(filter, stop_periodic)
     return
   }
   
@@ -408,10 +457,22 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
         for _, field := range updatableFields {
           x := request.Job.First(field)
           if x != nil {
+            oldval := job.Text(field)
             job.FirstOrAdd(field).SetText(x.Text())
+            
+            if field == "timestamp" {
+              scheduleProcessPendingActions(job.Text("timestamp"))
+            }
+            
+            if field == "status" && oldval == "waiting" && x.Text() == "processing" {
+              util.Log(2, "DEBUG! Local job changed from \"waiting\" to \"processing\": %v",job)
+              PendingActions.Push(job.Clone()) 
+            }
+            
           }
         }
         jobDB.Replace(xml.FilterSimple("id", job.Text("id")), true, job)
+        job.RemoveFirst("original_id")
         job.Rename("answer"+strconv.FormatUint(count, 10))
         count++
         fju.AddWithOwnership(job)

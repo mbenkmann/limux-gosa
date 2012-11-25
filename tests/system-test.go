@@ -17,6 +17,7 @@ import (
          "container/list"
          "encoding/base64"
          
+         "../db"
          "../xml"
          "../util"
          "../util/deque"
@@ -280,6 +281,9 @@ func SystemTest(daemon string, is_gosasi bool) {
     if err != nil { panic(err) }
     defer cmd.Process.Signal(syscall.SIGTERM)
     daemon = ""
+    
+    // Give daemon time to process data and write logs before sending SIGTERM
+    defer time.Sleep(reply_timeout)
   }
   
   // this reads either the default config or the one we created above
@@ -290,62 +294,13 @@ func SystemTest(daemon string, is_gosasi bool) {
   if daemon != "" {
     config.ServerSourceAddress = daemon
   }
-
+  
   // At this point:
   //   listen_address is the address of the test server run by listen()
   //   config.ServerSourceAddress is the address of the go-susi or gosa-si being tested  
   
-  
-  keys = make([]string, len(config.ModuleKeys)+1)
-  for i := range config.ModuleKeys { keys[i+1] = config.ModuleKeys[i] }
-  keys[0] = "none"
-  
-  if launched_daemon {
-    check_new_server_on_startup(Jobs[0])
-  } else {
-    // We need this in the database for the later test whether go-susi reacts
-    // to new_server by sending its jobdb. This same call is contained in
-    // check_new_server_on_startup()
-    trigger_first_test_job(Jobs[0])
-  }
-  
-  // Send new_server and check that we receive confirm_new_server in response
-  t0 := time.Now()
-  keys = append(keys, keys[0])
-  keys[0] = "new_server_key"
-  send("[ServerPackages]", hash("xml(header(new_server)new_server()key(%v)loaded_modules(goSusi)macaddress(00:00:00:00:00:00))", keys[0]))
-  msg := wait(t0, "confirm_new_server")
-  check(checkTags(msg.XML,"header,confirm_new_server,source,target,key,loaded_modules*,client*,macaddress"), "")
-  check(msg.Key, config.ModuleKey["[ServerPackages]"])
-  check(strings.Split(msg.XML.Text("source"),":")[0], msg.SenderIP)
-  check(msg.XML.Text("source"), config.ServerSourceAddress)
-  check(msg.XML.Text("target"), listen_address)
-  check(msg.XML.Text("key"), "new_server_key")
-  check(len(msg.XML.Get("confirm_new_server"))==1 && msg.XML.Text("confirm_new_server")=="", true)
-  siFail(strings.Contains(msg.XML.Text("loaded_modules"), "goSusi"), true)
-  check(macAddressRegexp.MatchString(msg.XML.Text("macaddress")), true)
-  clientsOk := true
-  for _, client := range msg.XML.Get("client") {
-    if !clientRegexp.MatchString(client) { clientsOk = false }
-  }
-  check(clientsOk, true)
-  
-  // go-susi also sends foreign_job_updates in response to new_server
-  msg = wait(t0, "foreign_job_updates")
-  if siFail(checkTags(msg.XML, "header,source,target,answer1,sync?"), "") {
-    check_foreign_job_updates(msg, "new_server_key", config.ServerSourceAddress, Jobs[0].Plainname, Jobs[0].Periodic, "waiting", "none", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
-  }
 
-  t0 = time.Now()
-  x := gosa(Jobs[1].Type, hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(%v))",Jobs[1].MAC, Jobs[1].Timestamp, Jobs[1].MAC, Jobs[1].Periodic))
-  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
-  check(x.Text("header"), "answer")
-  siFail(x.Text("source"), config.ServerSourceAddress)
-  check(x.Text("target"), "GOSA")
-  check(x.Text("answer1"), "0")
-  
-  msg = wait(t0, "foreign_job_updates")
-  check_foreign_job_updates(msg, "new_server_key", config.ServerSourceAddress,  Jobs[1].Plainname, Jobs[1].Periodic, "waiting", "none",Jobs[1].MAC, Jobs[1].Trigger(), Jobs[1].Timestamp)
+  run_startup_tests()
   
   check_connection_drop_on_error1()
   check_connection_drop_on_error2()
@@ -353,7 +308,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   check_multiple_requests_over_one_connection()
   
   // query for trigger_action_lock on test_mac2
-  x = gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v)))))", Jobs[1].MAC))
+  x := gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v)))))", Jobs[1].MAC))
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
   check(x.Text("header"), "query_jobdb")
   siFail(x.Text("source"), config.ServerSourceAddress)
@@ -377,7 +332,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   }
   
   // delete trigger_action_wake on test_mac (via "ne test_mac2" plus redundant "like ...")
-  t0 = time.Now()
+  t0 := time.Now()
   x = gosa("delete_jobdb_entry", hash("xml(where(clause(connector(and)phrase(operator(like)headertag(trigger_action_%%))phrase(operator(ne)macaddress(%v)))))", Jobs[1].MAC))
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
   check(x.Text("header"), "answer")
@@ -403,7 +358,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   }
   
   // check for foreign_job_updates with status "done"
-  msg = wait(t0, "foreign_job_updates")
+  msg := wait(t0, "foreign_job_updates")
   check_foreign_job_updates(msg, keys[0], config.ServerSourceAddress, Jobs[0].Plainname, "", "done", "none", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
   
   // Send foreign_job_updates with following changes:
@@ -516,16 +471,411 @@ func SystemTest(daemon string, is_gosasi bool) {
   if conn != nil { conn.Close() }
   check(checkTags(x, "header,source,target,answer1,answer2,session_id?"),"")
   
-  run_foreign_job_updates_tests()
+  if gosasi {
+    // The job processing tests require the following go-susi extensions:
+    // * multiple jobs with the same headertag+macaddress combination
+    // * <periodic> with unit "seconds"
+    // Therefore we skip them if we're testing gosa-si.
+    fmt.Print("Job processing tests need go-susi extensions => ")
+    siFail(true,false)
+  } else {
+    run_job_processing_tests()
+  }
   
-// TODO: Testfall für das Löschen eines <periodic> jobs via foreign_job_updates (z.B.
-//       den oben hinzugefügten Test-Job)
-//       (wegen des Problems dass ein done job mit periodic neu gestartet wird)
-//       Komplementären Testfall für ein normales "done" eines periodic Jobs,
-//       bei dem der Job tatsächlich neu gestartet werden soll.
+  run_foreign_job_updates_tests()
+}
 
-  // Give daemon time to process data and write logs before sending SIGTERM
+
+
+func run_job_processing_tests() {
+  // clear database
+  send("",hash("xml(header(foreign_job_updates)source(%v)target(%v)sync(all))",listen_address,config.ServerSourceAddress))
+  gosa("delete_jobdb_entry", hash("xml(where())"))  
   time.Sleep(reply_timeout)
+  
+  // Because siserver timestamps have only a 1s resolution, we must make sure that
+  // we start the following test on a full second. Otherwise when we later compute
+  // differences to t0 and round to seconds we may be off by one which makes a lot
+  // of tests fail.
+  util.WaitUntil(util.ParseTimestamp(util.MakeTimestamp(time.Now().Add(2*time.Second))))
+  
+  t0 := time.Now()
+
+  gotoMode := func(name string) string {
+    i := name[len(name)-1] - '1'
+    return db.SystemGetState(Jobs[i].MAC, "gotoMode")
+  }
+  lock := func(name string){
+    i := name[len(name)-1] - '1'
+    db.SystemSetState(Jobs[i].MAC, "gotoMode", "locked")
+  }
+  unlock := func(name string){
+    i := name[len(name)-1] - '1'
+    db.SystemSetState(Jobs[i].MAC, "gotoMode", "active")
+  }
+  job := func(typ string, start int, name string, period int){
+    i := name[len(name)-1] - '1'
+    if typ == "unlock" { typ = "activate" }
+    timestamp := util.MakeTimestamp(t0.Add(time.Duration(start)*time.Second))
+    periodic := fmt.Sprintf("%d_seconds",period)
+    if period == 0 { periodic = "none" }
+    gosa("job_trigger_action_"+typ, hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(%v))",Jobs[i].MAC, timestamp, Jobs[i].MAC, periodic))
+  }
+  del := func(typ, name string) {
+    i := name[len(name)-1] - '1'
+    if typ == "unlock" { typ = "activate" }
+    gosa("delete_jobdb_entry", hash("xml(where(clause(phrase(macaddress(%v))phrase(headertag(trigger_action_%v)))))",Jobs[i].MAC,typ))  
+  }
+  done := func(typ, name string) {
+    i := name[len(name)-1] - '1'
+    if typ == "unlock" { typ = "activate" }
+    x := gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v))phrase(headertag(trigger_action_%v)))))",Jobs[i].MAC,typ))
+    if x == nil || x.First("header") == nil { 
+      util.Log(0, "ERROR! done(%v, %v)", typ, name)
+      return 
+    }
+    x.First("header").SetText("foreign_job_updates")
+    x.First("source").SetText(listen_address)
+    x.First("target").SetText(config.ServerSourceAddress)
+    x.First("answer1").First("status").SetText("done")
+    // DO NOT x.First("answer1").First("periodic").SetText("none") because 
+    // we want to test that go-susi treats this properly. An fju with status==done
+    // for a job not belonging to the fju's sender can only mean that the job should
+    // be removed completely, because the sender cannot know when a job is just "done"
+    // and should be started again because of periodic.
+    send("", x)
+  }
+  change_timestamp := func(typ, name string, new_start int) {
+    i := name[len(name)-1] - '1'
+    if typ == "unlock" { typ = "activate" }
+    x := gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v))phrase(headertag(trigger_action_%v)))))",Jobs[i].MAC,typ))
+    if x == nil || x.First("header") == nil { 
+      util.Log(0, "ERROR! change_timestamp(%v, %v, %v)", typ, name, new_start)
+      return 
+    }
+    x.First("header").SetText("foreign_job_updates")
+    x.First("source").SetText(listen_address)
+    x.First("target").SetText(config.ServerSourceAddress)
+    x.First("answer1").First("timestamp").SetText(util.MakeTimestamp(t0.Add(time.Duration(new_start)*time.Second)))
+    // remove periodic to simulate a message from a pre-2.7 gosa-si. This tests
+    // that go-susi leaves periodic unchanged if it is missing from fju.
+    x.RemoveFirst("periodic")
+    send("", x)
+    time.Sleep(50*time.Millisecond)
+  }
+  pause := func(typ, name string) {
+    i := name[len(name)-1] - '1'
+    if typ == "unlock" { typ = "activate" }
+    x := gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v))phrase(status(waiting))phrase(headertag(trigger_action_%v)))))",Jobs[i].MAC,typ))
+    if x == nil || x.First("header") == nil { 
+      util.Log(0, "ERROR! pause(%v, %v)", typ, name)
+      return 
+    }
+    x.First("header").SetText("foreign_job_updates")
+    x.First("source").SetText(listen_address)
+    x.First("target").SetText(config.ServerSourceAddress)
+    x.First("answer1").First("status").SetText("paused")
+    send("", x)
+    time.Sleep(50*time.Millisecond)
+  }
+  unpause := func(typ, name string) {
+    i := name[len(name)-1] - '1'
+    if typ == "unlock" { typ = "activate" }
+    x := gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v))phrase(status(paused))phrase(headertag(trigger_action_%v)))))",Jobs[i].MAC,typ))
+    if x == nil { 
+      util.Log(0, "ERROR! unpause(%v, %v): query_jobdb returned nil", typ, name)
+      return 
+    }
+    if x.First("header") == nil || x.First("answer1") == nil { 
+      util.Log(0, "ERROR! unpause(%v, %v): query_jobdb returned %v", typ, name, x)
+      return 
+    }
+    x.First("header").SetText("foreign_job_updates")
+    x.First("source").SetText(listen_address)
+    x.First("target").SetText(config.ServerSourceAddress)
+    x.First("answer1").First("status").SetText("waiting")
+    send("", x)
+    time.Sleep(50*time.Millisecond)
+  }
+
+  unlock("systest1")
+  unlock("systest2")
+  unlock("systest3")
+  check(gotoMode("systest1"), "active")
+  check(gotoMode("systest2"), "active")
+  check(gotoMode("systest3"), "active")
+
+  job("lock",0,   "systest1", 0)   //0: lock "systest1"
+  job("lock",2,   "systest1", 0)   //2: lock "systest1"
+  job("lock",4,   "systest1", 0)   //4: lock "systest1"
+  job("unlock", 1,"systest1", 2)   //1, 3, 5: unlock "systest1"
+  go func(){
+    time.Sleep(6*time.Second)      
+    del("unlock", "systest1")      //6: kill periodic unlock "systest1" preventing 7
+  }()
+  
+  job("lock",10,  "systest2", 3)
+  go func(){
+    time.Sleep(100*time.Millisecond); 
+    change_timestamp("lock","systest2", -1) // 0, 2, 5: lock "systest2"
+    time.Sleep(6*time.Second)
+    done("lock","systest2")        //6: kill periodic lock "systest2" preventing 8
+  }()
+  
+  job("lock", 10,  "systest3", 0)
+  go func(){
+    time.Sleep(100*time.Millisecond); 
+    pause("lock",   "systest3")
+    change_timestamp("lock","systest3", 1) // 1(paused): lock "systest3"
+    time.Sleep(3*time.Second)
+    unpause("lock","systest3")             // 3: lock "systest3"
+  }()
+  job("unlock", 10, "systest3", 0)
+  go func(){
+    time.Sleep(100*time.Millisecond); 
+    change_timestamp("unlock","systest3", 7) // 7: unlock "systest3"
+  }()
+  
+  go func(){
+    util.WaitUntil(t0.Add(1*time.Second))
+    unlock("systest2")
+    util.WaitUntil(t0.Add(4*time.Second))
+    unlock("systest2")
+    util.WaitUntil(t0.Add(6*time.Second))
+    lock("systest1")
+    unlock("systest2")
+  }()
+  
+  // Complete action timeline:
+  // 0: lock "systest1"
+  //    lock "systest2"
+  // 1: unlock "systest1"
+  //    unlock "systest2" (explicit in code => no "processing"/"done" fju)
+  // 2: lock "systest1"
+  //    lock "systest2"
+  // 3: unlock "systest1"
+  //    lock "systest3"
+  // 4: lock "systest1"
+  //    unlock "systest2" (explicit in code => no "processing"/"done" fju)
+  // 5: unlock "systest1"
+  //    lock "systest2"
+  // 6: lock "systest1"   (explicit in code => no "processing"/"done" fju)
+  //    unlock "systest2" (explicit in code => no "processing"/"done" fju)
+  // 7: unlock "systest3"
+  
+  
+  // test that all actions happen at the correct times
+  // also test that the cancelled actions do not occur at 7 and 8
+  util.WaitUntil(t0.Add(500*time.Millisecond))
+  checkFail(gotoMode("systest1"), "locked")
+  checkFail(gotoMode("systest2"), "locked")
+  check(gotoMode("systest3"), "active")
+  util.WaitUntil(t0.Add(1500*time.Millisecond))
+  check(gotoMode("systest1"), "active")
+  check(gotoMode("systest2"), "active")
+  check(gotoMode("systest3"), "active")
+  util.WaitUntil(t0.Add(2500*time.Millisecond))
+  checkFail(gotoMode("systest1"), "locked")
+  checkFail(gotoMode("systest2"), "locked")
+  check(gotoMode("systest3"), "active")
+  util.WaitUntil(t0.Add(3500*time.Millisecond))
+  check(gotoMode("systest1"), "active")
+  checkFail(gotoMode("systest2"), "locked")
+  checkFail(gotoMode("systest3"), "locked")
+  util.WaitUntil(t0.Add(4500*time.Millisecond))
+  checkFail(gotoMode("systest1"), "locked")
+  check(gotoMode("systest2"), "active")
+  checkFail(gotoMode("systest3"), "locked")
+  util.WaitUntil(t0.Add(5500*time.Millisecond))
+  check(gotoMode("systest1"), "active")
+  checkFail(gotoMode("systest2"), "locked")
+  checkFail(gotoMode("systest3"), "locked")
+  util.WaitUntil(t0.Add(6500*time.Millisecond))
+  check(gotoMode("systest1"), "locked")
+  check(gotoMode("systest2"), "active")
+  checkFail(gotoMode("systest3"), "locked")
+  util.WaitUntil(t0.Add(7500*time.Millisecond))
+  check(gotoMode("systest1"), "locked")
+  check(gotoMode("systest2"), "active")
+  check(gotoMode("systest3"), "active")
+  util.WaitUntil(t0.Add(8500*time.Millisecond))
+  check(gotoMode("systest1"), "locked")
+  check(gotoMode("systest2"), "active")
+  check(gotoMode("systest3"), "active")
+  
+  unlock("systest1")
+  
+  // fju timeline (excluding "processing" and "done" which occur for each
+  // of the actions in the timeline above):
+  // 0: lock   "systest1" 0,0  waiting
+  //    lock   "systest1" 2,0  waiting
+  //    lock   "systest1" 4,0  waiting
+  //    unlock "systest1" 1,2  waiting
+  //    lock   "systest2" 10,3 waiting
+  //    lock   "systest2" -1,3 waiting
+  //    lock   "systest3" 10,0 waiting
+  //    lock   "systest3" 10,0 paused
+  //    lock   "systest3" 1,0  paused
+  //    unlock "systest3" 10,0 waiting
+  //    unlock "systest3" 7,0  waiting
+  //    lock   "systest2" 2,3  waiting
+  // 1: unlock "systest1" 3,2  waiting
+  // 2: lock   "systest2" 5,3  waiting
+  // 3: lock   "systest3" 1,0  waiting
+  //    unlock "systest1" 5,2  waiting
+  // 4: ----
+  // 5: unlock "systest1" 7,2  waiting
+  //    lock   "systest2" 8,3  waiting
+  // 6: unlock "systest1" 7,0(2)  done
+  //    lock   "systest2" 8,0(3)  done
+
+  quantize := func(t time.Time) int {
+    dur := t.Sub(t0)
+    if dur < 0 { return int((dur-500*time.Millisecond)/time.Second) }
+    return int((dur+500*time.Millisecond)/time.Second)
+  }
+  
+  // collect all fjus in format (6 unlock systest1 7,2  done)
+  var messages []*queueElement = get(t0)
+  msgset := map[string]string{}
+  for _, msg := range messages {
+    if msg.XML.Text("header") != "foreign_job_updates" { continue }
+    for _, tag := range msg.XML.Subtags() {
+      if !strings.HasPrefix(tag, "answer") { continue }
+      for job := msg.XML.First(tag); job != nil; job = job.Next() {
+        typ := job.Text("headertag")
+        if strings.HasPrefix(typ, "trigger_action_") { typ = typ[15:] }
+        if typ == "activate" { typ = "unlock" }
+        
+        peri := job.Text("periodic")
+        if peri == "none" || peri == "" { 
+          peri = "0" 
+        } else {
+          peri = peri[0:strings.Index(peri,"_")]
+        }
+        
+        name := db.PlainnameForMAC(job.Text("macaddress"))
+        ts := quantize(util.ParseTimestamp(job.Text("timestamp")))
+        //fmt.Printf("%v: %v => %v => %v\n",name,job.Text("timestamp"),util.ParseTimestamp(job.Text("timestamp")),ts)
+        msgset[fmt.Sprintf("(%v %v %v %v,%v %v)",quantize(msg.Time),typ,name,ts,peri,job.Text("status"))] = ""
+      }
+    }
+  }
+  
+  fju := func(when int, typ, name string, ts,peri int, status string) string {
+    s := fmt.Sprintf("(%v %v %v %v,%v %v)",when,typ,name,ts,peri,status)
+    if _, ok := msgset[s]; ok { delete(msgset,s); return "" }
+    return "Missing fju: "+s
+  }
+  
+  // now check that all fjus we expect are present
+  check(fju(0,"lock",   "systest1", 0,0, "waiting"),"")
+  check(fju(0,"lock",   "systest1", 2,0, "waiting"),"")
+  check(fju(0,"lock",   "systest1", 4,0,  "waiting"),"")
+  check(fju(0,"unlock", "systest1", 1,2,  "waiting"),"")
+  check(fju(0,"lock",   "systest2", 10,3, "waiting"),"")
+  check(fju(0,"lock",   "systest2", -1,3, "waiting"),"")
+  check(fju(0,"lock",   "systest3", 10,0, "waiting"),"")
+  check(fju(0,"lock",   "systest3", 10,0, "paused"),"")
+  check(fju(0,"lock",   "systest3", 1,0,  "paused"),"")
+  check(fju(0,"unlock", "systest3", 10,0, "waiting"),"")
+  check(fju(0,"unlock", "systest3", 7,0,  "waiting"),"")
+  check(fju(0,"lock",   "systest2", 2,3,  "waiting"),"")
+  check(fju(1,"unlock", "systest1", 3,2,  "waiting"),"")
+  check(fju(2,"lock",   "systest2", 5,3,  "waiting"),"")
+  check(fju(3,"lock",   "systest3", 1,0,  "waiting"),"")
+  check(fju(3,"unlock", "systest1", 5,2,  "waiting"),"")
+  check(fju(5,"unlock", "systest1", 7,2,  "waiting"),"")
+  check(fju(5,"lock",   "systest2", 8,3,  "waiting"),"")
+  check(fju(6,"unlock", "systest1", 7,0,  "done"),"")
+  check(fju(6,"lock",   "systest2", 8,0,  "done"),"")
+  
+  check(fju(0,"lock",   "systest1", 0,0, "done"),"")
+  check(fju(0,"lock",   "systest2",-1,3, "done"),"")
+  check(fju(1,"unlock", "systest1", 1,2, "done"),"")
+  check(fju(2,"lock",   "systest1", 2,0, "done"),"")
+  check(fju(2,"lock",   "systest2", 2,3, "done"),"")
+  check(fju(3,"unlock", "systest1", 3,2, "done"),"")
+  check(fju(3,"lock",   "systest3", 1,0, "done"),"")
+  check(fju(4,"lock",   "systest1", 4,0, "done"),"")
+  check(fju(5,"unlock", "systest1", 5,2, "done"),"")
+  check(fju(5,"lock",   "systest2", 5,3, "done"),"")
+  check(fju(7,"unlock", "systest3", 7,0, "done"),"")
+  
+  check(fju(0,"lock",   "systest1", 0,0, "processing"),"")
+  check(fju(0,"lock",   "systest2",-1,3, "processing"),"")
+  check(fju(1,"unlock", "systest1", 1,2, "processing"),"")
+  check(fju(2,"lock",   "systest1", 2,0, "processing"),"")
+  check(fju(2,"lock",   "systest2", 2,3, "processing"),"")
+  check(fju(3,"unlock", "systest1", 3,2, "processing"),"")
+  check(fju(3,"lock",   "systest3", 1,0, "processing"),"")
+  check(fju(4,"lock",   "systest1", 4,0, "processing"),"")
+  check(fju(5,"unlock", "systest1", 5,2, "processing"),"")
+  check(fju(5,"lock",   "systest2", 5,3, "processing"),"")
+  check(fju(7,"unlock", "systest3", 7,0, "processing"),"")
+  
+  check(msgset, map[string]string{})
+  
+  // now test that the testee doesn't execute jobs from other siservers,
+  // even when 
+  // * their timestamp is changed via gosa_update_status_jobdb_entry
+  // * their timestamp is changed via fju
+  // * their status is set to "processing" via gosa_update_status_jobdb_entry
+  // * their status is set to "processing" via fju
+  
+}
+
+func run_startup_tests() {
+  keys = make([]string, len(config.ModuleKeys)+1)
+  for i := range config.ModuleKeys { keys[i+1] = config.ModuleKeys[i] }
+  keys[0] = "none"
+  
+  if launched_daemon {
+    check_new_server_on_startup(Jobs[0])
+  } else {
+    // We need this in the database for the later test whether go-susi reacts
+    // to new_server by sending its jobdb. This same call is contained in
+    // check_new_server_on_startup()
+    trigger_first_test_job(Jobs[0])
+  }
+  
+  // Send new_server and check that we receive confirm_new_server in response
+  t0 := time.Now()
+  keys = append(keys, keys[0])
+  keys[0] = "new_server_key"
+  send("[ServerPackages]", hash("xml(header(new_server)new_server()key(%v)loaded_modules(goSusi)macaddress(00:00:00:00:00:00))", keys[0]))
+  msg := wait(t0, "confirm_new_server")
+  check(checkTags(msg.XML,"header,confirm_new_server,source,target,key,loaded_modules*,client*,macaddress"), "")
+  check(msg.Key, config.ModuleKey["[ServerPackages]"])
+  check(strings.Split(msg.XML.Text("source"),":")[0], msg.SenderIP)
+  check(msg.XML.Text("source"), config.ServerSourceAddress)
+  check(msg.XML.Text("target"), listen_address)
+  check(msg.XML.Text("key"), "new_server_key")
+  check(len(msg.XML.Get("confirm_new_server"))==1 && msg.XML.Text("confirm_new_server")=="", true)
+  siFail(strings.Contains(msg.XML.Text("loaded_modules"), "goSusi"), true)
+  check(macAddressRegexp.MatchString(msg.XML.Text("macaddress")), true)
+  clientsOk := true
+  for _, client := range msg.XML.Get("client") {
+    if !clientRegexp.MatchString(client) { clientsOk = false }
+  }
+  check(clientsOk, true)
+  
+  // go-susi also sends foreign_job_updates in response to new_server
+  msg = wait(t0, "foreign_job_updates")
+  if siFail(checkTags(msg.XML, "header,source,target,answer1,sync?"), "") {
+    check_foreign_job_updates(msg, "new_server_key", config.ServerSourceAddress, Jobs[0].Plainname, Jobs[0].Periodic, "waiting", "none", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
+  }
+
+  t0 = time.Now()
+  x := gosa(Jobs[1].Type, hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(%v))",Jobs[1].MAC, Jobs[1].Timestamp, Jobs[1].MAC, Jobs[1].Periodic))
+  check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  check(x.Text("header"), "answer")
+  siFail(x.Text("source"), config.ServerSourceAddress)
+  check(x.Text("target"), "GOSA")
+  check(x.Text("answer1"), "0")
+  
+  msg = wait(t0, "foreign_job_updates")
+  check_foreign_job_updates(msg, "new_server_key", config.ServerSourceAddress,  Jobs[1].Plainname, Jobs[1].Periodic, "waiting", "none",Jobs[1].MAC, Jobs[1].Trigger(), Jobs[1].Timestamp)
 }
 
 func run_foreign_job_updates_tests() {
