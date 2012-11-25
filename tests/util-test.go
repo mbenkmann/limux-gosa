@@ -185,7 +185,9 @@ func Util_test() {
   }
   
   var buffy bytes.Buffer
+  oldlogger := util.Logger
   util.Logger = log.New(&buffy, "", 0)
+  defer func(){ util.Logger = oldlogger }()
   
   util.WithPanicHandler(panicker)
   check(foobar, "bar")
