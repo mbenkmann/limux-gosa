@@ -18,6 +18,7 @@ test: all
 
 clean:
 	rm -f $(BINARIES) gosa-si-server
+	hg revert --no-backup testdata/ldif
 
 deb: all
 	main/makedeb
