@@ -153,6 +153,10 @@ func JobsInit() {
     }
   }
   
+  // Remove all non-local jobs (they may be stale and new_server
+  // causes full sync anyway)
+  jobDB.Remove(xml.FilterNot(xml.FilterSimple("siserver",config.ServerSourceAddress)))
+  
   // The following loop goes through all jobs and does the following
   // * find the the greatest id number used in the db
   // * schedule processing of pending actions for all timestamps
