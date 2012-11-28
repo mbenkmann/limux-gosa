@@ -23,6 +23,7 @@ package tests
 import (
          "fmt"
          "time"
+         "bytes"
          
          "../util/deque"
        )
@@ -267,7 +268,77 @@ func Deque_test() {
     time.Sleep(100*time.Millisecond)
   }
   
+  deck.Init()
+  check(deck.Remove(nil),0)
+  check(deck.Remove("foo"),0)
+  check(deck.Remove(nil,strcmp),0)
+  check(deck.Remove("foo",strcmp),0)
+  check(Deque(deck),"")
+  deck.Push("foobar")
+  check(deck.Remove(nil),0)
+  check(deck.Remove("foo"),0)
+  check(deck.Remove("foo",strcmp),0)
+  check(Deque(deck,"foobar"),"")
+  tmp := []byte{0,'o','o','b','a','r'}
+  tmp[0] = 'f'
+  check(deck.Remove(string(tmp),strcmp),1)
+  check(Deque(deck),"")
+  deck.Push("foobar")
+  check(deck.Remove(string(tmp)),1); check(Deque(deck),"")
+  deck.Init([]interface{}{"foobar","foobar"})
+  check(deck.Remove("foobar"),2); check(Deque(deck),"")
+  deck.Init([]interface{}{"foobar","foobar"})
+  check(deck.Remove("foobar",strcmp),2); check(Deque(deck),"")
+  deck.Init([]interface{}{"foobar","a","b","foobar","c","foobar","d","e","f","foobar"})
+  deck.Raw(5)
+  check(deck.Remove("foobart"),0); check(Deque(deck,"foobar","a","b","foobar","c","foobar","d","e","f","foobar"),"")
+  check(deck.Remove("foobar"),4); check(Deque(deck,"a","b","c","d","e","f"),"")
+  deck.Init([]interface{}{"foobar","a","b","foobar","c","foobar","d","e","f","foobar"})
+  deck.Raw(5)
+  check(deck.Remove("foobart",strcmp),0); check(Deque(deck,"foobar","a","b","foobar","c","foobar","d","e","f","foobar"),"")
+  check(deck.Remove("foobar",strcmp),4); check(Deque(deck,"a","b","c","d","e","f"),"")
+  var errormsg interface{}
+  func(){
+    defer func(){ errormsg = recover() }()
+    deck.Remove("foobar",strcmp,strcmp)
+  }()
+  check(errormsg, "Remove() takes 1 or 2 parameters")
   
+
+  func(){
+    defer func(){ errormsg = recover() }()
+    deck.Init(nil)
+  }()
+  check(errormsg, "Argument #1 is unsupported by deque.Init()")
+  
+  func(){
+    defer func(){ errormsg = recover() }()
+    deck.Init(stack) // stack is not a pointer. That's why this doesn't work.
+  }()
+  check(errormsg, "Argument #1 is unsupported by deque.Init()")
+  
+  growth := func(uint, uint, uint) uint {return 10}
+  var uninitialized deque.Deque
+  check(Deque(deque.New(&uninitialized, &uninitialized)),"")
+  d1 = deque.New([]interface{}{1,2,3,4,5},10)
+  d1.Raw(6)
+  d2 = deque.New([]interface{}{6,7,8})
+  d3 := deque.New([]interface{}{},4)
+  deck.Init(&uninitialized,d1,d2,d3,[]interface{}{"a","b","c","d"},[]interface{}{"e","f","g","h"},growth)
+  check(Deque(deck,1,2,3,4,5,6,7,8,"a","b","c","d","e","f","g","h"),"")
+  deck.Init([]interface{}{"a","b","c","d"},[]interface{}{"e","f","g","h"},growth,d1,d2)
+  check(Deque(deck,"a","b","c","d","e","f","g","h",1,2,3,4,5,6,7,8),"")
+  
+  check(deque.New(0).Capacity(), 0)
+  check(deque.New(1).Capacity(), 1)
+  check(deque.New(-100).Capacity(), deque.CapacityDefault)
+  check(deque.New(3,[]interface{}{}).Capacity(), 3)
+  check(deque.New(int64(3),[]interface{}{1}).Capacity(), 3)
+  check(deque.New(uint(3),[]interface{}{1,2}).Capacity(), 3)
+  check(deque.New(uint64(3),[]interface{}{1,2}).Capacity(), 3)
+  check(deque.New(uint64(3),[]interface{}{1,2,3}).Capacity(), 3)
+  check(deque.New(3,[]interface{}{1,2,3,4}).Capacity(), 4)
+  check(deque.New(3,[]interface{}{1,2},[]interface{}{3,4}).Capacity(), 4)
 }
 
 func Overcapacity(i int) string {
@@ -452,6 +523,11 @@ func Deque(deck *deque.Deque, data... interface{}) string {
   if deck.Put(len(data),"foo") != zero { return fmt.Sprintf("Put(len(data),foo) returns not nil") }
   if deck.Put(len(data),"foo") != nil { return fmt.Sprintf("Put(len(data),foo) returns not nil") }  
   
+  if deck.String() != "Deque"+fmt.Sprintf("%v",data) { return fmt.Sprintf("String() returns \"%v\" instead of \"%v\"",deck.String(),"Deque"+fmt.Sprintf("%v",data)) }
+  
   return ""
 }
 
+func strcmp(arg1, arg2 interface{}) int {
+  return bytes.Compare([]byte(arg1.(string)),[]byte(arg2.(string)))
+}

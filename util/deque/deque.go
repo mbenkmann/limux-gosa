@@ -779,28 +779,27 @@ func (self *Deque) Sort(cmp func(interface{},interface{}) int) *Deque {
 
 // Removes all instances that are equal to item, either per operator == or by
 // the notion of equality of a comparison function (see Sort()) passed as 
-// second argument.
+// optional second argument.
 // Returns the number of items removed.
-func (self *Deque) Remove(item ...interface{}) int {
+func (self *Deque) Remove(item interface{}, cmp... func(interface{},interface{}) int) int {
   self.Mutex.Lock()
   defer self.Mutex.Unlock()
   if self.data == nil { self.init() }
   
   count := 0
   
-  switch len(item) {
+  switch len(cmp) {
+    case 0:
+      for i:=self.count-1; i >= 0 ; i-- {
+        idx := self.a + i
+        if idx >= len(self.data) { idx -= len(self.data) }
+        if self.data[idx] == item { self.removeAt(i); count++ } 
+      }
     case 1:
       for i:=self.count-1; i >= 0 ; i-- {
         idx := self.a + i
         if idx >= len(self.data) { idx -= len(self.data) }
-        if self.data[idx] == item[0] { self.removeAt(i); count++ } 
-      }
-    case 2:
-      var cmp func(interface{},interface{}) int = item[1].(func(interface{},interface{}) int)
-      for i:=self.count-1; i >= 0 ; i-- {
-        idx := self.a + i
-        if idx >= len(self.data) { idx -= len(self.data) }
-        if cmp(self.data[idx],item[0]) == 0 { self.removeAt(i); count++ } 
+        if cmp[0](self.data[idx], item) == 0 { self.removeAt(i); count++ } 
       }
     default: panic("Remove() takes 1 or 2 parameters")
   }
@@ -810,27 +809,41 @@ func (self *Deque) Remove(item ...interface{}) int {
 
 // Returns the index of the first element that compares equal
 // to the given item according to operator == or the notion of equality of
-// a comparison function (see Sort()) passed as second argument.
+// a comparison function (see Sort()) passed as optional second argument.
 // Returns -1 if no such element exists.
-func (self *Deque) IndexOf(item ...interface{}) int { 
+func (self *Deque) IndexOf(item interface{}, cmp... func(interface{},interface{}) int) int {
   panic("TODO: Implement IndexOf()")
   return -1 
 }
 
 // When called on a Deque that has been sorted by Sort() with the same cmp() function
 // as passed to Search(), the latter will perform a binary search for the given item
-// and return  Given an item and a comparison function Performs a binary search and 
-// return the smallest index idx so that InsertAt(idx, item) keeps the Deque sorted.
+// and return the smallest index idx so that InsertAt(idx, item) keeps the Deque sorted.
 func (self *Deque) Search(item interface{}, cmp func(interface{},interface{}) int) int { 
   panic("TODO: Implement Search()")
   return self.Count() 
 }
 
+// Inserts item into the deque so that if it was sorted according to Sort(cmp) it
+// remains sorted. Returns idx so that At(idx) is the inserted item. If the item
+// was discarded due to the Growth function (e.g. DiscardIfOverflow) InsertSorted()
+// returns -1.
+//
+//  NOTE: This call is preferable to calling Search() and InsertAt() separately 
+//  because this call is atomic.
+//
+//  NOTE: Like Insert() this function may block if the deque's GrowthFunction is
+//  BlockIfFull.
+func (self *Deque) InsertSorted(item interface{}, cmp func(interface{},interface{}) int) int { 
+  panic("TODO: Implement InsertSorted()")
+  return -1
+}
+
 // Returns true if the Deque contains an item that compares equal to the given
 // item according to operator == or a comparison function (see Sort()) passed
-// as 2nd argument.
-func (self *Deque) Contains(item ...interface{}) bool { 
-  return self.IndexOf(item...)>=0 
+// as optional 2nd argument.
+func (self *Deque) Contains(item interface{}, cmp... func(interface{},interface{}) int) bool { 
+  return self.IndexOf(item, cmp...)>=0 
 }
 
 // Panics if the Deque is broken. As this could only happen if there were
@@ -961,7 +974,7 @@ func (self *Deque) init(args... interface{}) *Deque {
              }
              if arg.data != nil { // protect against uninitialized Deques
                if cat_capacity < 0 { 
-                   cat_capacity = arg.count 
+                 cat_capacity = arg.count 
                } else {
                  cat_capacity += arg.count
                }
