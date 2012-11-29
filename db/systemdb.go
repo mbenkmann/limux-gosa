@@ -22,6 +22,7 @@ package db
 
 import (
          "fmt"
+         "net"
          "bytes"
          "strings"
          "os/exec"
@@ -52,6 +53,62 @@ func PlainnameForMAC(macaddress string) string {
   // return only the name without the domain
   return strings.SplitN(name, ".", 2)[0]
 }  
+
+// Returns the IP address (IPv4 if possible) for the machine with the given name.
+// The name may or may not include a domain.
+// Returns "none" if the IP address could not be determined.
+//
+// ATTENTION! This function accesses a variety of external sources
+// and may therefore take a while. If possible you should use it asynchronously.
+func IPAddressForName(host string) string {
+  addrs, err := net.LookupIP(host)
+  if err != nil || len(addrs) == 0 { 
+    util.Log(0, "ERROR! LookupIP(%v): %v", host, err)
+    return "none" 
+  }
+
+  ip := addrs[0].String() // this may be an IPv6 address
+  // try to find an IPv4 address
+  for _, a := range addrs {
+    if a.To4() != nil {
+      ip = a.To4().String()
+      break
+    }
+  }
+  
+  // translate loopback address to our own IP for consistency
+  if ip == "127.0.0.1" { ip = config.IP }
+  return ip
+}
+
+// Returns the name for the given ip (fully qualified if possible), or "none" if it can't be determined.
+func NameForIPAddress(ip string) string {
+  names, err := net.LookupAddr(ip)
+  if err != nil || len(names) == 0 {
+    util.Log(0, "ERROR! Reverse lookup of %v failed: %v",ip,err)
+    return "none"
+  }
+  
+  return strings.TrimRight(names[0],".")
+}
+
+// Returns the MAC address for the given host name or "none" if it can't be determined.
+func MACForName(host string) string {
+  system, err := xml.LdifToHash("", true, LdapSearch(fmt.Sprintf("(&(objectClass=GOHard)(cn=%v)%v)",host, config.UnitTagFilter),"macaddress"))
+  mac := system.Text("macaddress")
+  if mac == "" {
+    parts := strings.SplitN(host,".",2)
+    if len(parts) == 2 {
+      system, err = xml.LdifToHash("", true, LdapSearch(fmt.Sprintf("(&(objectClass=GOHard)(cn=%v)%v)",parts[0], config.UnitTagFilter),"macaddress"))
+      mac = system.Text("macaddress")
+    }
+    if mac == "" {  
+      util.Log(0, "ERROR! Error getting MAC for cn %v: %v", host, err)
+      return "none"
+    }
+  }
+  return mac
+}
 
 // Replaces the attribute attrname with the sole value attrvalue for the system
 // identified by the given macaddress.
