@@ -23,6 +23,7 @@ MA  02110-1301, USA.
 //  decrypt - decrypt messages encrypted with the GOsa/gosa-si scheme.
 //  encrypt - encrypt messages with the GOsa/gosa-si scheme.
 //  run_tests - runs the unit tests.
+//  sibridge - interactive/scripting interface to go-susi
 package main
 
 import (
