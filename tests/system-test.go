@@ -492,13 +492,7 @@ func run_job_processing_tests() {
   gosa("delete_jobdb_entry", hash("xml(where())"))  
   time.Sleep(reply_timeout)
   
-  // Because siserver timestamps have only a 1s resolution, we must make sure that
-  // we start the following test on a full second. Otherwise when we later compute
-  // differences to t0 and round to seconds we may be off by one which makes a lot
-  // of tests fail.
-  util.WaitUntil(util.ParseTimestamp(util.MakeTimestamp(time.Now().Add(2*time.Second))))
-  
-  t0 := time.Now()
+  var t0 time.Time
 
   gotoMode := func(name string) string {
     i := name[len(name)-1] - '1'
@@ -519,6 +513,11 @@ func run_job_processing_tests() {
     periodic := fmt.Sprintf("%d_seconds",period)
     if period == 0 { periodic = "none" }
     gosa("job_trigger_action_"+typ, hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(%v))",Jobs[i].MAC, timestamp, Jobs[i].MAC, periodic))
+  }
+  now := func(typ string, name string){
+    i := name[len(name)-1] - '1'
+    if typ == "unlock" { typ = "activate" }
+    gosa("gosa_trigger_action_"+typ, hash("xml(target(%v)macaddress(%v))",Jobs[i].MAC, Jobs[i].MAC))
   }
   del := func(typ, name string) {
     i := name[len(name)-1] - '1'
@@ -603,6 +602,34 @@ func run_job_processing_tests() {
   check(gotoMode("systest1"), "active")
   check(gotoMode("systest2"), "active")
   check(gotoMode("systest3"), "active")
+  now("lock","systest1")
+  now("lock","systest2")
+  now("lock","systest3")
+  time.Sleep(reply_timeout)
+  check(gotoMode("systest1"), "locked")
+  check(gotoMode("systest2"), "locked")
+  check(gotoMode("systest3"), "locked")
+  now("unlock","systest1")
+  now("unlock","systest2")
+  now("unlock","systest3")
+  time.Sleep(reply_timeout)
+  check(gotoMode("systest1"), "active")
+  check(gotoMode("systest2"), "active")
+  check(gotoMode("systest3"), "active")
+
+  /*
+   ATTENTION! The following tests are very timing sensitive. If you enter
+   a delay in the wrong place, everything will come crashing down and you
+   may even see a panic due to nil-reference in the test code.
+  */
+
+  // Because siserver timestamps have only a 1s resolution, we must make sure that
+  // we start the following test on a full second. Otherwise when we later compute
+  // differences to t0 and round to seconds we may be off by one which makes a lot
+  // of tests fail.
+  util.WaitUntil(util.ParseTimestamp(util.MakeTimestamp(time.Now().Add(2*time.Second))))
+
+  t0 = time.Now()
 
   job("lock",0,   "systest1", 0)   //0: lock "systest1"
   job("lock",2,   "systest1", 0)   //2: lock "systest1"

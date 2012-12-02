@@ -20,7 +20,8 @@ MA  02110-1301, USA.
 package message
 
 import (
-         "regexp"
+         "time"
+         "regexp" 
          "strings"
          "encoding/base64"
          
@@ -52,7 +53,9 @@ func job_trigger_action(xmlmsg *xml.Hash) string {
   job.Add("macaddress", macaddress)
   job.Add("plainname", "none") // updated automatically
   timestamp := xmlmsg.Text("timestamp")
-  if timestamp == "" { timestamp = "19700101000000" }
+    // go-susi does not use 19700101000000 as default timestamp as gosa-si does,
+    // because that plays badly in conjunction with <periodic>
+  if timestamp == "" { timestamp = util.MakeTimestamp(time.Now()) }
   job.Add("timestamp", timestamp)
   for _, periodic := range xmlmsg.Get("periodic") {
     job.FirstOrAdd("periodic").SetText(periodic) // last <periodic> wins if there are multiple
