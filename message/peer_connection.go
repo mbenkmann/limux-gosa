@@ -135,6 +135,7 @@ func (conn *PeerConnection) Tell(msg, key string) {
 // the producer goroutine will close it after writing the reply. This
 // means it is permissible to ignore reply without risk of a 
 // goroutine leak.
+// If key == "" the first key from db.ServerKeys(peer) is used.
 func (conn *PeerConnection) Ask(request, key string) <-chan string {
   c := make(chan string, 1)
   
@@ -142,6 +143,16 @@ func (conn *PeerConnection) Ask(request, key string) <-chan string {
     c<-ErrorReply(conn.err)
     close(c)
     return c
+  }
+  
+  if key == "" {
+   keys := db.ServerKeys(conn.addr)
+   if len(keys) == 0 {
+     c<-ErrorReply("PeerConnection.Ask: No key known for peer " + conn.addr)
+     close(c)
+     return c
+   }
+   key = keys[0]
   }
   
   go util.WithPanicHandler(func(){
