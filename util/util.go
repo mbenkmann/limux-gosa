@@ -26,6 +26,7 @@ import (
          "net"
          "time"
          "bytes"
+         "strings"
          "crypto/md5"
          "runtime/debug"
        )
@@ -193,4 +194,32 @@ func ReadLn(conn net.Conn, timeout time.Duration) string {
   }
   
   return ""
+}
+
+// Sends a UDP wake-on-lan packet coded for the given macaddress to the
+// broadcast address for the given host or network.
+//  host_or_net can be:
+//    a) a host name (with or without ":<port>")
+//    b) a host's IP address from which the broadcast address will be
+//       derived by setting final byte to 255
+//    c) a network's broadcast IP address 
+//  If host_or_net includes a port that port will be used, otherwise the
+//  default port 40000 is used.
+func Wake(macaddress string, host_or_net string) error {
+  hwaddr, err := net.ParseMAC(macaddress)
+  if err != nil { return err }
+
+  if strings.Index(host_or_net,":") < 0 { host_or_net += ":40000" }
+  
+  udpaddr,err := net.ResolveUDPAddr("udp", host_or_net)
+  if err != nil { return err }
+  
+  udpaddr.IP[len(udpaddr.IP)-1] = 255
+  udpconn,err := net.DialUDP("udp", nil, udpaddr)
+  if err != nil { return err }
+    
+  payload := []byte{0xff,0xff,0xff,0xff,0xff,0xff}
+  for i := 0; i < 16; i++ { payload = append(payload, hwaddr...) }
+  _, err = udpconn.Write(payload)
+  return err
 }
