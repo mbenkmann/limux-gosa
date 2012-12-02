@@ -246,6 +246,12 @@ func (job *Job) Hash(args... interface{}) *xml.Hash {
 //         affect the tests being done, only whether fails/passes are counted as
 //         expected or unexpected.
 func SystemTest(daemon string, is_gosasi bool) {
+  fmt.Println(`
+#############################################################################
+####################### S Y S T E M   T E S T ###############################
+#############################################################################
+`)
+  
   gosasi = is_gosasi
   launched_daemon = !strings.Contains(daemon,":")
   if gosasi { reply_timeout *= 10 }
