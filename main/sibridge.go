@@ -42,7 +42,7 @@ import (
 const HELP_MESSAGE = `# TODO: Write help message`
 
 func main() {
-  config.ReadArgs()
+  config.ReadArgs(os.Args)
   
   if config.PrintVersion {
     fmt.Printf(`sibridge %v (revision %v)

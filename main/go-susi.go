@@ -51,7 +51,7 @@ Starts the daemon.
 `
 
 func main() {
-  config.ReadArgs()
+  config.ReadArgs(os.Args)
   
   if config.PrintVersion {
     fmt.Printf(`go-susi %v (revision %v)

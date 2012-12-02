@@ -159,11 +159,11 @@ var PrintVersion = false
 // true if "--help" is passed on command line
 var PrintHelp = false
 
-// Parses os.Args and sets config variables accordingly.
-func ReadArgs() {
+// Parses args and sets config variables accordingly.
+func ReadArgs(args []string) {
   LogLevel = 0
-  for i := 1; i < len(os.Args); i++ {
-    arg := os.Args[i]
+  for i := 1; i < len(args); i++ {
+    arg := args[i]
   
     if arg == "-v" || arg == "-vv" || arg == "-vvv" || arg == "-vvvv" || 
        arg == "-vvvvv" || arg == "-vvvvvv" || arg == "-vvvvvvv" {
@@ -184,10 +184,10 @@ func ReadArgs() {
       
     } else if arg == "-c" {
       i++
-      if i >= len(os.Args) {
+      if i >= len(args) {
         util.Log(0, "ERROR! ReadArgs: missing argument to -c")
       } else {
-        ServerConfigPath = os.Args[i]
+        ServerConfigPath = args[i]
       }
     } else if arg == "--help" {
     
