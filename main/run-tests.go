@@ -42,10 +42,7 @@ func main() {
   }
 
   if force_unittest || systemtest == "" {
-    tests.Deque_test()
-    tests.Util_test()
-    tests.Xml_test()
-    tests.DB_test()
+    tests.UnitTests()
   }
   
   if systemtest != "" {
