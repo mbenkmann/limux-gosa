@@ -13,7 +13,6 @@ import (
          "strings"
          "os"
          "os/exec"
-         "container/list"
          "encoding/base64"
          
          "../db"
@@ -1456,36 +1455,6 @@ func siFail(x interface{}, expected interface{}) bool {
   return true
 }
 
-
-// Takes a format string like "xml(foo(%v)bar(%v))" and parameters and creates
-// a corresponding xml.Hash.
-func hash(format string, args... interface{}) *xml.Hash {
-  format = fmt.Sprintf(format, args...)
-  stack := list.New()
-  output := []string{}
-  a := 0
-  for b := range format {
-    switch format[b] {
-      case '(' : tag := format[a:b]
-                 stack.PushBack(tag)
-                 if tag != "" {
-                   output = append(output, "<" + tag + ">")
-                 }
-                 a = b + 1
-      case ')' : output = append(output, format[a:b])
-                 a = b + 1
-                 tag := stack.Back().Value.(string)
-                 stack.Remove(stack.Back())
-                 if tag != "" {
-                   output = append(output, "</" + tag + ">")
-                 }
-    }
-  }
-  
-  hash, err := xml.StringToHash(strings.Join(output, ""))
-  if err != nil { panic(err) }
-  return hash
-}
 
 // sets up a listening port that receives messages, decrypts them and
 // stores them in the queue.

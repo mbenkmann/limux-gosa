@@ -20,7 +20,12 @@ MA  02110-1301, USA.
 package tests
 
 import (
+         "fmt"
+         "strings"
          "io/ioutil"
+         "container/list"
+         
+         "../xml"
        )
 
 // creates a temporary config file and returns the path to it as well as the
@@ -72,5 +77,35 @@ address = `+addresses+`
 
 `), 0644)
   return fpath, tempdir
+}
+
+// Takes a format string like "xml(foo(%v)bar(%v))" and parameters and creates
+// a corresponding xml.Hash.
+func hash(format string, args... interface{}) *xml.Hash {
+  format = fmt.Sprintf(format, args...)
+  stack := list.New()
+  output := []string{}
+  a := 0
+  for b := range format {
+    switch format[b] {
+      case '(' : tag := format[a:b]
+                 stack.PushBack(tag)
+                 if tag != "" {
+                   output = append(output, "<" + tag + ">")
+                 }
+                 a = b + 1
+      case ')' : output = append(output, format[a:b])
+                 a = b + 1
+                 tag := stack.Back().Value.(string)
+                 stack.Remove(stack.Back())
+                 if tag != "" {
+                   output = append(output, "</" + tag + ">")
+                 }
+    }
+  }
+  
+  hash, err := xml.StringToHash(strings.Join(output, ""))
+  if err != nil { panic(err) }
+  return hash
 }
 
