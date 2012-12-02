@@ -33,5 +33,13 @@ func DB_test() {
   check(db.JobGUID("0.0.0.0:0", 0), "00")
   check(db.JobGUID("255.255.255.255:65535", 18446744073709551615), "18446744073709551615281474976710655")
   check(db.JobGUID("1.2.3.4:20081", 18446744073709551615), "1844674407370955161586247305576961")
+  
+  server1 := hash("xml(header(new_server)key(foo)macaddress(00:17:31:a1:f8:19)source(172.16.2.52:20081)target(172.16.2.83:20081))")
+  db.ServerUpdate(server1)
+  server2 := hash("xml(key(foobar)source(172.99.9.99:20081))")
+  db.ServerUpdate(server2)
+  
+  check(db.ServerWithMAC("00:17:31:a1:f8:19"),server1)
+  check(db.ServerWithMAC("00:ff:cc:aa:ff:11"),nil)
 }
 

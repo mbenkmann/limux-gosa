@@ -39,6 +39,7 @@ import (
 //
 //  <xml>
 //    <source>172.16.2.143:20081</source>
+//    <macaddress>00:50:1e:20:c3:20</macaddress>  (optional)
 //    <key>currentserverkey</key>
 //    <key>previousserverkey</key>
 //  </xml>
@@ -75,7 +76,7 @@ func ServersInit() {
   util.Log(1,"INFO! All known peer addresses with duplicates removed: %v", ServerAddresses())
 }  
 
-// Adds servers listed in config file the serverDB.
+// Adds servers listed in config file to the serverDB.
 func addServersFromConfig() {
   util.Log(1, "INFO! Config file lists %v peer server(s): %v", len(config.PeerServers), strings.Join(config.PeerServers,", "))
   for _, server := range config.PeerServers {
@@ -166,6 +167,7 @@ func addServer(server string) {
 // server has the following format:
 //   <xml>
 //     <source>1.2.3.4:20081</source>
+//     <macaddress>00:50:1e:20:c3:20</macaddress>  (optional)
 //     <key>...</key>
 //     ...
 //   </xml>
@@ -209,13 +211,12 @@ func ServerKeysForAllServers() []string {
 // Returns a copy of the complete database in the following format:
 //  <serverdb>
 //    <xml>
-//      <ip>1.2.3.4</ip>
 //      <source>1.2.3.4:20081</source>
+//      <macaddress>00:50:1e:20:c3:20</macaddress>  (optional)
 //      <key>key11</key>
 //      <key>key12</key>
 //    </xml>
 //    <xml>
-//      <ip>2.3.4.5</ip>
 //      <source>2.3.4.5:20081</source>
 //      <key>key21</key>
 //      <key>key22</key>
@@ -229,4 +230,12 @@ func Servers() *xml.Hash {
 // Returns all <source> addresses for all entries from the server DB.
 func ServerAddresses() []string {
   return serverDB.ColumnValues("source")
+}
+
+// Returns the entry from the serverdb (format: <xml><source>...</xml>) of
+// the server with the given MAC address, or nil if the server is either not
+// in the serverDB or if its entry has no <macaddress> elememt.
+func ServerWithMAC(macaddress string) *xml.Hash {
+  server := serverDB.Query(xml.FilterSimple("macaddress", macaddress))
+  return server.First("xml")
 }
