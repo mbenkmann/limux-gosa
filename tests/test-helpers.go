@@ -21,12 +21,86 @@ package tests
 
 import (
          "fmt"
+         "regexp"
          "strings"
          "io/ioutil"
          "container/list"
+         "encoding/base64"
          
          "../xml"
        )
+
+// Regexp for recognizing valid MAC addresses.
+var macAddressRegexp = regexp.MustCompile("^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$")
+// Regexp for recognizing valid <client> elements of e.g. new_server messages.
+var clientRegexp = regexp.MustCompile("^[0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}:[0-9]+,[:xdigit:](:[:xdigit:]){5}$")
+// Regexp for recognizing valid <siserver> elements
+var serverRegexp = regexp.MustCompile("^[0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}:[0-9]+$")
+
+type Job struct {
+  Type string
+  MAC string
+  Plainname string
+  Timestamp string
+  Periodic string
+}
+
+// returns Type with the "job_" removed.
+func (self *Job) Trigger() string {
+  return self.Type[4:]
+}
+
+var Jobs = []Job{
+{"job_trigger_action_wake","01:02:03:04:05:06","systest1","20990914131742","7_days"},
+{"job_trigger_action_lock","11:22:33:44:55:6F","systest2","20770101000000","1_minutes"},
+{"job_trigger_action_wake","77:66:55:44:33:2a","systest3","20660906164734","none"},
+}
+
+// Returns an XML hash for the job. Optional args can be the following:
+//   int/uint: the name of the enclosing element will be answerX where X is the int
+//             and the <id> will be X, too.
+//   IP:PORT(string) : siserver  (default is listen_address)
+func (job *Job) Hash(args... interface{}) *xml.Hash {
+  x := xml.NewHash("answer1")
+  x.Add("plainname", job.Plainname)
+  x.Add("progress", "none")
+  x.Add("status", "waiting")
+  x.Add("siserver", listen_address)
+  x.Add("modified", "1")
+  x.Add("targettag", job.MAC)
+  x.Add("macaddress", job.MAC)
+  x.Add("timestamp", job.Timestamp)
+  x.Add("periodic", job.Periodic)
+  x.Add("id", "1")
+  x.Add("headertag", job.Trigger())
+  x.Add("result", "none")
+  
+  for _, arg := range args {
+    switch arg := arg.(type) {
+      case int:  x.Rename(fmt.Sprintf("answer%d",arg))
+                 x.First("id").SetText("%d",arg)
+      case uint: x.Rename(fmt.Sprintf("answer%d",arg))
+                 x.First("id").SetText("%d",arg)
+      case string:
+                 if serverRegexp.MatchString(arg) {
+                   x.First("siserver").SetText(arg)
+                 } else {
+                   panic("Unknown string format in Job.Hash()")
+                 }
+      default: panic("Unknown type in Job.Hash()")
+    }
+  }
+  
+  xm := xml.NewHash("xml","header", "job_" + x.Text("headertag"))
+  xm.Add("source", "GOSA")
+  xm.Add("target", x.Text("targettag"))
+  xm.Add("timestamp", x.Text("timestamp"))
+  xm.Add("macaddress", x.Text("macaddress"))
+  x.Add("xmlmessage", base64.StdEncoding.EncodeToString([]byte(xm.String())))
+  return x
+}
+
+
 
 // creates a temporary config file and returns the path to it as well as the
 // path to the containing temporary directory.
