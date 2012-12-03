@@ -21,7 +21,10 @@ package tests
 
 import (
          "os"
+         "os/exec"
+         "syscall"
          "path"
+         "time"
          
          "../util"
          "../config"
@@ -44,6 +47,18 @@ func UnitTests() {
   db.ServersInit() // after config.ReadNetwork()
   db.JobsInit() // after config.ReadConfig()
   action.Init()
+  
+  // launch the test ldap server
+  cmd := exec.Command("/usr/sbin/slapd","-f","./slapd.conf","-h","ldap://127.0.0.1:20088","-d","0")
+  cmd.Dir = "./testdata"
+  err := cmd.Start()
+  if err != nil { panic(err) }
+  defer func() { 
+    cmd.Process.Signal(syscall.SIGTERM)
+    // give slapd time to terminate, so that we don't get a conflict when
+    // the system test starts its slapd instance
+    time.Sleep(2*time.Second)
+  }()
   
   Deque_test()
   Util_test()
