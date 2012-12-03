@@ -221,7 +221,7 @@ dn: ou=servers,ou=systems,o=go-susi,c=de
 ou: servers
 objectClass: organizationalUnit
 
-dn: cn=www.mit.edu,ou=workstations,ou=systems,o=go-susi,c=de
+dn: cn=www.mit.edu,ou=servers,ou=systems,o=go-susi,c=de
 objectClass: GOhard
 objectClass: FAIobject
 objectclass: FAIrepositoryServer
@@ -233,6 +233,76 @@ macAddress: 0f:C3:d2:Aa:11:22
 cn: www.mit.edu
 gotoSysStatus: new-system
 ipHostNumber: 18.9.22.169
+gosaUnitTag: 7
+gotoSndModule: snd_hda_intel
+ghSoundAdapter: Intel 82801JD/DO (ICH10 Family) HD Audio Controller
+ghCpuType: GenuineIntel / Intel(R) Celeron(R) CPU E3300 @ 2.50GHz - 2500.000
+ghMemSize: 3355324
+ghUsbSupport: false
+gotoXMonitor: BELINEA 101911
+gotoHardwareChecksum: noVmheW0c0JqyAx4jj3Y/g
+gotoMode: active
+description: Test
+ghGfxAdapter: -
+gotoLastUser: -
+l: Nowhere
+goFonHardware: automatic
+gotoNtpServer: pool.ntp.org
+gotoBootKernel: default
+gotoXDriver: intel
+gotoXResolution: 1280x1024
+gotoXColordepth: 24
+gotoXHsync: 30+55
+gotoXVsync: 50+70
+gotoXKbModel: btc9000
+gotoXKbLayout: de
+gotoXKbVariant: nodeadkeys
+gotoXMouseType: auto
+gotoXMouseport: /dev/input/mice
+gotoLdapServer: 1:localhost:ldap://127.0.0.1:20088/o=go-susi,c=de
+FAIstate: localboot
+ghScsiDev: HL-DT-ST DVD-RAM GH60N
+ghIdeDev: ST3160318AS
+ghNetNic: Intel 82567LM-3 Gigabit Network Connection
+faiclass: Verteilserver-Produktiv :plophos/4.1.0
+faidebianmirror: http://de.archive.ubuntu.com/ubuntu/
+fairepository: http://www.mit.edu/repo|de.archive.ubuntu.com|plophos/4.1.0|main,restricted,universe,multiverse
+gotoModules: async_memcpy
+gotoModules: async_pq
+gotoModules: async_tx
+gotoModules: async_xor
+gotoModules: aufs
+gotoModules: auth_rpcgss
+gotoModules: bitblit
+gotoModules: drm
+gotoModules: floppy
+gotoModules: font
+gotoModules: i2c_algo_bit
+gotoModules: i915
+gotoModules: lockd
+gotoModules: multipath
+gotoModules: output
+gotoModules: raid1
+gotoModules: raid456
+gotoModules: serio_raw
+gotoModules: softcursor
+gotoModules: sunrpc
+gotoModules: tpm_bios
+gotoModules: tpm_tis
+gotoModules: video
+
+dn: cn=wikipedia-lb,ou=servers,ou=systems,o=go-susi,c=de
+objectClass: GOhard
+objectClass: FAIobject
+objectclass: FAIrepositoryServer
+objectclass: goServer
+objectclass: gosaAdministrativeUnitTag
+objectclass: gotoWorkstationTemplate
+objectclass: top
+macAddress: 00:C4:d2:10:10:20
+cn: wikipedia-lb
+gotoSysStatus: new-system
+ipHostNumber: 91.198.174.225
 gosaUnitTag: 7
 gotoSndModule: snd_hda_intel
 ghSoundAdapter: Intel 82801JD/DO (ICH10 Family) HD Audio Controller

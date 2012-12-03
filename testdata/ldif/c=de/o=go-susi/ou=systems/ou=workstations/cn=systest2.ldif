@@ -15,6 +15,7 @@ ghMemSize: 3355324
 ghUsbSupport: false
 gotoXMonitor: BELINEA 101911
 gotoHardwareChecksum: noVmheW0c0JqyAx4jj3Y/g
+gotoMode: active
 description: Test
 ghGfxAdapter: -
 gotoLastUser: -
@@ -63,10 +64,9 @@ gotoModules: tpm_bios
 gotoModules: tpm_tis
 gotoModules: video
 structuralObjectClass: GOhard
-entryUUID: 8f50c542-c1de-1031-8427-5d78450f0d8a
+entryUUID: 7df8fece-d1e0-1031-93f4-9110eab4bd55
 creatorsName: cn=admin,o=go-susi,c=de
-createTimestamp: 20121113130536Z
-gotoMode: active
-entryCSN: 20121203193038.028774Z#000000#000#000000
+createTimestamp: 20121203215945Z
+entryCSN: 20121203215945.017175Z#000000#000#000000
 modifiersName: cn=admin,o=go-susi,c=de
-modifyTimestamp: 20121203193038Z
+modifyTimestamp: 20121203215945Z

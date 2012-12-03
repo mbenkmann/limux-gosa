@@ -69,9 +69,9 @@ gotoModules: tpm_bios
 gotoModules: tpm_tis
 gotoModules: video
 structuralObjectClass: GOhard
-entryUUID: f9b48d3c-d1cf-1031-923c-a5e82ff43bfa
+entryUUID: 7dfcc676-d1e0-1031-93f7-9110eab4bd55
 creatorsName: cn=admin,o=go-susi,c=de
-createTimestamp: 20121203200131Z
-entryCSN: 20121203200131.161699Z#000000#000#000000
+createTimestamp: 20121203215945Z
+entryCSN: 20121203215945.041946Z#000000#000#000000
 modifiersName: cn=admin,o=go-susi,c=de
-modifyTimestamp: 20121203200131Z
+modifyTimestamp: 20121203215945Z

@@ -2,9 +2,9 @@ dn: ou=systems
 ou: systems
 objectClass: organizationalUnit
 structuralObjectClass: organizationalUnit
-entryUUID: 8f50740c-c1de-1031-8424-5d78450f0d8a
+entryUUID: 7df8ccd8-d1e0-1031-93f1-9110eab4bd55
 creatorsName: cn=admin,o=go-susi,c=de
-createTimestamp: 20121113130536Z
-entryCSN: 20121113130536.513699Z#000000#000#000000
+createTimestamp: 20121203215945Z
+entryCSN: 20121203215945.015895Z#000000#000#000000
 modifiersName: cn=admin,o=go-susi,c=de
-modifyTimestamp: 20121113130536Z
+modifyTimestamp: 20121203215945Z

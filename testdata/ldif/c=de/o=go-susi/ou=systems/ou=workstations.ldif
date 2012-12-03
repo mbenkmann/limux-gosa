@@ -2,9 +2,9 @@ dn: ou=workstations
 ou: workstations
 objectClass: organizationalUnit
 structuralObjectClass: organizationalUnit
-entryUUID: 8f508f28-c1de-1031-8425-5d78450f0d8a
+entryUUID: 7df8d75a-d1e0-1031-93f2-9110eab4bd55
 creatorsName: cn=admin,o=go-susi,c=de
-createTimestamp: 20121113130536Z
-entryCSN: 20121113130536.514397Z#000000#000#000000
+createTimestamp: 20121203215945Z
+entryCSN: 20121203215945.016166Z#000000#000#000000
 modifiersName: cn=admin,o=go-susi,c=de
-modifyTimestamp: 20121113130536Z
+modifyTimestamp: 20121203215945Z

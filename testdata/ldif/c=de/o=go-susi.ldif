@@ -2,9 +2,9 @@ dn: o=go-susi
 o: go-susi
 objectClass: organization
 structuralObjectClass: organization
-entryUUID: 8608b5bc-c1de-1031-8422-5d78450f0d8a
+entryUUID: 7df89f74-d1e0-1031-93ef-9110eab4bd55
 creatorsName: cn=admin,o=go-susi,c=de
-createTimestamp: 20121113130520Z
-entryCSN: 20121113130520.944027Z#000000#000#000000
+createTimestamp: 20121203215945Z
+entryCSN: 20121203215945.014735Z#000000#000#000000
 modifiersName: cn=admin,o=go-susi,c=de
-modifyTimestamp: 20121113130520Z
+modifyTimestamp: 20121203215945Z

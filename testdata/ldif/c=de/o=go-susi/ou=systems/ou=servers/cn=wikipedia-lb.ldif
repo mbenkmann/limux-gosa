@@ -1,12 +1,15 @@
-dn: cn=systest3
+dn: cn=wikipedia-lb
 objectClass: GOhard
-objectClass: gotoWorkstation
 objectClass: FAIobject
+objectClass: FAIrepositoryServer
+objectClass: goServer
 objectClass: gosaAdministrativeUnitTag
-macAddress: 77:66:55:44:33:2a
-cn: systest3
+objectClass: gotoWorkstationTemplate
+objectClass: top
+macAddress: 00:C4:d2:10:10:20
+cn: wikipedia-lb
 gotoSysStatus: new-system
-ipHostNumber: 10.1.1.3
+ipHostNumber: 91.198.174.225
 gosaUnitTag: 7
 gotoSndModule: snd_hda_intel
 ghSoundAdapter: Intel 82801JD/DO (ICH10 Family) HD Audio Controller
@@ -21,7 +24,6 @@ ghGfxAdapter: -
 gotoLastUser: -
 l: Nowhere
 goFonHardware: automatic
-FAIdebianMirror: http://dl.google.com/linux/chrome/deb/
 gotoNtpServer: pool.ntp.org
 gotoBootKernel: default
 gotoXDriver: intel
@@ -39,7 +41,10 @@ FAIstate: localboot
 ghScsiDev: HL-DT-ST DVD-RAM GH60N
 ghIdeDev: ST3160318AS
 ghNetNic: Intel 82567LM-3 Gigabit Network Connection
-FAIclass: Modul_Standard :plophos
+FAIclass: Verteilserver-Produktiv :plophos/4.1.0
+FAIdebianMirror: http://de.archive.ubuntu.com/ubuntu/
+FAIrepository: http://www.mit.edu/repo|de.archive.ubuntu.com|plophos/4.1.0|mai
+ n,restricted,universe,multiverse
 gotoModules: async_memcpy
 gotoModules: async_pq
 gotoModules: async_tx
@@ -64,9 +69,9 @@ gotoModules: tpm_bios
 gotoModules: tpm_tis
 gotoModules: video
 structuralObjectClass: GOhard
-entryUUID: 7df90ca2-d1e0-1031-93f5-9110eab4bd55
+entryUUID: 7dfce548-d1e0-1031-93f8-9110eab4bd55
 creatorsName: cn=admin,o=go-susi,c=de
 createTimestamp: 20121203215945Z
-entryCSN: 20121203215945.017530Z#000000#000#000000
+entryCSN: 20121203215945.042735Z#000000#000#000000
 modifiersName: cn=admin,o=go-susi,c=de
 modifyTimestamp: 20121203215945Z

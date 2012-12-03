@@ -4,9 +4,9 @@ cn: admin
 sn: admin
 objectClass: person
 structuralObjectClass: person
-entryUUID: 8608cd7c-c1de-1031-8423-5d78450f0d8a
+entryUUID: 7df8acbc-d1e0-1031-93f0-9110eab4bd55
 creatorsName: cn=admin,o=go-susi,c=de
-createTimestamp: 20121113130520Z
-entryCSN: 20121113130520.944636Z#000000#000#000000
+createTimestamp: 20121203215945Z
+entryCSN: 20121203215945.015073Z#000000#000#000000
 modifiersName: cn=admin,o=go-susi,c=de
-modifyTimestamp: 20121113130520Z
+modifyTimestamp: 20121203215945Z
