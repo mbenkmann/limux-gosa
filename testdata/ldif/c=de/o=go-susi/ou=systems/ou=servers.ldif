@@ -1,0 +1,10 @@
+dn: ou=servers
+ou: servers
+objectClass: organizationalUnit
+structuralObjectClass: organizationalUnit
+entryUUID: b7eeafc2-d1cf-1031-9229-a5e82ff43bfa
+creatorsName: cn=admin,o=go-susi,c=de
+createTimestamp: 20121203195940Z
+entryCSN: 20121203195940.813066Z#000000#000#000000
+modifiersName: cn=admin,o=go-susi,c=de
+modifyTimestamp: 20121203195940Z
