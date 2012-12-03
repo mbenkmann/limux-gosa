@@ -408,21 +408,21 @@ func parseMachine(machine string, template *jobDescriptor) bool {
     name = "*"
   } else if macAddressRegexp.MatchString(machine) {
     mac = machine
-    name = db.PlainnameForMAC(mac)
+    name = db.SystemPlainnameForMAC(mac)
     if name == "none" { return false }
-    ip = db.IPAddressForName(name)
+    ip = db.SystemIPAddressForName(name)
     if ip == "none" { ip = "0.0.0.0" }
   } else if ipRegexp.MatchString(machine) {
     ip = machine
-    name = db.NameForIPAddress(ip)
+    name = db.SystemNameForIPAddress(ip)
     if name == "none" { return false }
-    mac = db.MACForName(name)
+    mac = db.SystemMACForName(name)
     if mac == "none" { return false }
   } else {
     name = machine
-    ip = db.IPAddressForName(name)
+    ip = db.SystemIPAddressForName(name)
     if ip == "none" { ip = "0.0.0.0" }
-    mac = db.MACForName(name)
+    mac = db.SystemMACForName(name)
     if mac == "none" { return false }
   }
   

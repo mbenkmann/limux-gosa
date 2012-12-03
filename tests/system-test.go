@@ -785,7 +785,7 @@ func run_job_processing_tests() {
           peri = peri[0:strings.Index(peri,"_")]
         }
         
-        name := db.PlainnameForMAC(job.Text("macaddress"))
+        name := db.SystemPlainnameForMAC(job.Text("macaddress"))
         ts := quantize(util.ParseTimestamp(job.Text("timestamp")))
         //fmt.Printf("%v: %v => %v => %v\n",name,job.Text("timestamp"),util.ParseTimestamp(job.Text("timestamp")),ts)
         msgset[fmt.Sprintf("(%v %v %v %v,%v %v)",quantize(msg.Time),typ,name,ts,peri,job.Text("status"))] = ""
