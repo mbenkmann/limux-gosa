@@ -162,7 +162,7 @@ var PrintHelp = false
 // Parses args and sets config variables accordingly.
 func ReadArgs(args []string) {
   LogLevel = 0
-  for i := 1; i < len(args); i++ {
+  for i := 0; i < len(args); i++ {
     arg := args[i]
   
     if arg == "-v" || arg == "-vv" || arg == "-vvv" || arg == "-vvvv" || 
