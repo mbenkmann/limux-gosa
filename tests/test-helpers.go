@@ -54,6 +54,7 @@ var Jobs = []Job{
 {"job_trigger_action_wake","01:02:03:04:05:06","systest1","20990914131742","7_days"},
 {"job_trigger_action_lock","11:22:33:44:55:6F","systest2","20770101000000","1_minutes"},
 {"job_trigger_action_wake","77:66:55:44:33:2a","systest3","20660906164734","none"},
+{"job_trigger_action_localboot","0f:C3:d2:Aa:11:22","www","20000209024017","none"},
 }
 
 // Returns an XML hash for the job. Optional args can be the following:

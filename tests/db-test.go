@@ -22,8 +22,13 @@ package tests
 
 import (
          "fmt"
+         "log"
+         "bytes"
+         "strings"
          
          "../db"
+         "../util"
+         "../config"
        )
 
 // Unit tests for the package go-susi/db.
@@ -41,5 +46,57 @@ func DB_test() {
   
   check(db.ServerWithMAC("00:17:31:a1:f8:19"),server1)
   check(db.ServerWithMAC("00:ff:cc:aa:ff:11"),nil)
+  
+  check(db.SystemPlainnameForMAC(Jobs[0].MAC), Jobs[0].Plainname)
+  check(db.SystemPlainnameForMAC(Jobs[1].MAC), Jobs[1].Plainname)
+  check(db.SystemPlainnameForMAC(Jobs[2].MAC), Jobs[2].Plainname)
+  check(db.SystemPlainnameForMAC(Jobs[3].MAC), Jobs[3].Plainname)
+  oldlogger := util.Logger
+  defer func(){ util.Logger = oldlogger }()
+  var buffy bytes.Buffer
+  buflogger := log.New(&buffy,"",0)
+  util.Logger = buflogger
+  check(db.SystemPlainnameForMAC("99:99:00:99:11:00"), "none")
+  check(strings.Index(buffy.String(),"ERROR")>0,true)
+  
+  check(db.SystemFullyQualifiedNameForMAC(Jobs[0].MAC), "none")
+  check(db.SystemFullyQualifiedNameForMAC(Jobs[3].MAC), "www.mit.edu")
+  
+  buffy.Reset()
+  check(db.SystemFullyQualifiedNameForMAC("99:99:00:99:11:00"), "none")
+  check(strings.Index(buffy.String(),"ERROR")>0,true)
+  
+  check(db.SystemFullyQualifiedNameForMAC("00:C4:d2:10:10:20"), "wikipedia-lb.esams.wikimedia.org")
+  
+  check(db.SystemCommonNameForMAC("foobar"),"")
+  check(db.SystemCommonNameForMAC("11:22:33:33:22:11"),"")
+  check(db.SystemCommonNameForMAC(Jobs[0].MAC), "systest1")
+  check(db.SystemCommonNameForMAC(Jobs[1].MAC), "systest2")
+  check(db.SystemCommonNameForMAC(Jobs[2].MAC), "systest3")
+  check(db.SystemCommonNameForMAC(Jobs[3].MAC), "www.mit.edu")
+  check(db.SystemCommonNameForMAC("00:C4:d2:10:10:20"), "wikipedia-lb")
+  
+  check(db.SystemIPAddressForName("localhost"), config.IP)
+  buffy.Reset()
+  check(db.SystemIPAddressForName("sdfjnsdjfbsdfjb32"), "none")
+  check(strings.Index(buffy.String(),"ERROR")>0,true)
+  check(db.SystemIPAddressForName(config.Hostname), config.IP)
+  check(db.SystemIPAddressForName("www.mit.edu"), "18.9.22.169")
+  
+  check(db.SystemNameForIPAddress("18.9.22.169"), "www.mit.edu")
+  
+  check(db.SystemMACForName("systest1.foo.bar"), Jobs[0].MAC)
+  check(db.SystemMACForName("systest1"), Jobs[0].MAC)
+  check(db.SystemMACForName("rotz"), "none")
+  
+  check(len(db.SystemDomainsKnown())>0, true)
+  for _, dom := range db.SystemDomainsKnown() {
+    if check(dom != "", true) {
+      check(dom[0], '.')
+      check(dom[len(dom)-1] != '.', true)
+    }
+  }
+  
+  check(len(db.SystemNetworksKnown())>0, true)
 }
 
