@@ -260,7 +260,7 @@ func processMessage(msg string, joblist *[]jobDescriptor, remote_addr *net.TCPAd
   
   allowed := map[string]bool{"machine":true}
   if is_job_cmd { allowed["time"] = true }
-  if cmd == "query" || cmd == "qq" || cmd == "delete" { allowed["job"]=true }
+  if cmd == "delete" { allowed["job"]=true }
   
   template := jobDescriptor{Name:"*", Job:"*", Timestamp:util.MakeTimestamp(time.Now())}
   
@@ -319,7 +319,7 @@ func processMessage(msg string, joblist *[]jobDescriptor, remote_addr *net.TCPAd
   if is_job_cmd {
     reply = commandJob(joblist)
   } else if cmd == "qq" {
-    reply = commandGosa("gosa_query_jobdb", joblist)
+    reply = commandGosa("gosa_query_jobdb", false,joblist)
     repeat = 5*time.Second
   } else if cmd == "xx" {
     reply = commandExamine(joblist)
@@ -327,9 +327,9 @@ func processMessage(msg string, joblist *[]jobDescriptor, remote_addr *net.TCPAd
   } else if cmd == "examine" {
     reply = commandExamine(joblist)
   } else if cmd == "query" {
-    reply = commandGosa("gosa_query_jobdb",joblist)
+    reply = commandGosa("gosa_query_jobdb",false,joblist)
   } else if cmd == "delete" {
-    reply = commandGosa("gosa_delete_jobdb_entry",joblist)
+    reply = commandGosa("gosa_delete_jobdb_entry",true,joblist)
   }
   
   return reply,repeat
@@ -385,9 +385,79 @@ func commandExamine(joblist *[]jobDescriptor) (reply string) {
   return reply
 }
 
-func commandGosa(header string, joblist *[]jobDescriptor) (reply string) { 
+// This difficult function is only necessary because stupid gosa-si requires queries to be in CNF.
+// So we need to convert our DNF jobDescriptors into long and ugly CNF clauses.
+func generate_clauses(joblist *[]jobDescriptor, idx int, machines *map[string]bool, jobtypes *map[string]bool, clauses *string) {
+  if idx == len(*joblist) {
+    if len(*machines) > 0 || len(*jobtypes) > 0 {
+      *clauses = *clauses + "<clause><connector>or</connector>"
+      for m := range *machines {
+        *clauses = *clauses + "<phrase><macaddress>"+m+"</macaddress></phrase>"
+      }
+      for j := range *jobtypes {
+        *clauses = *clauses + "<phrase><headertag>trigger_action_"+j+"</headertag></phrase>"
+      }
+      *clauses = *clauses + "</clause>"
+    }
+  } else {
+    job := (*joblist)[idx]
+    if job.Name == "*" && job.Job == "*" {
+      // do nothing. Don't even recurse because this is an always true case
+      // In fact if this case is encountered we could abort the whole generate_clauses because
+      // it must end up being empty.
+    } else if job.Name != "*" && job.Job != "*" {
+      // We can optimize away one branch of the recursion if it doesn't add anything new,
+      // but we must not trim both, because we must recurse to i==len(*joblist) for the
+      // clause to be generated.
+      
+      one_branch_done := false
+      if !(*jobtypes)[job.Job] {
+        (*jobtypes)[job.Job] = true
+        generate_clauses(joblist, idx+1, machines, jobtypes, clauses)
+        delete(*jobtypes, job.Job)
+        one_branch_done = true
+      }
+      
+      have_machine := (*machines)[job.MAC]
+      if !have_machine || !one_branch_done {
+        (*machines)[job.MAC] = true
+        generate_clauses(joblist, idx+1, machines, jobtypes, clauses)
+        if !have_machine { delete(*machines, job.MAC) }
+      }
+    } else { // if either job.Name != "*" or job.Job != "*" but not both
+      if job.Job != "*" {
+        have_type := (*jobtypes)[job.Job]
+        (*jobtypes)[job.Job] = true
+        generate_clauses(joblist, idx+1, machines, jobtypes, clauses)
+        if !have_type { delete(*jobtypes, job.Job) }
+      } else {
+        have_machine := (*machines)[job.MAC]
+        (*machines)[job.MAC] = true
+        generate_clauses(joblist, idx+1, machines, jobtypes, clauses)
+        if !have_machine { delete(*machines, job.MAC) }
+      }
+    }
+  }
+}
 
-return
+func commandGosa(header string, use_job_type bool, joblist *[]jobDescriptor) (reply string) { 
+  clauses := ""
+  if use_job_type {
+    machines := map[string]bool{}
+    jobtypes := map[string]bool{}
+    generate_clauses(joblist, 0, &machines, &jobtypes, &clauses)
+  } else {
+    for _, job := range *joblist {
+      clauses = clauses + "<phrase><macaddress>"+job.MAC+"</macaddress></phrase>"
+    }
+    
+    if clauses != "" {
+      clauses = "<clause><connector>or</connector>" + clauses + "</clause>"
+    }
+  }
+
+  gosa_cmd := "<xml><header>"+header+"</header><source>GOSA</source><target>GOSA</target><where>"+clauses+"</where></xml>"
+  return gosa_cmd
 }
 
 const re_1xx = "(1([0-9]?[0-9]?))"
