@@ -66,7 +66,7 @@ func Wake(job *xml.Hash) {
   // are very good that we already hit our target. For that reason we only
   // perform network spamming if everything else has failed.
   if !woken {
-    util.Log(0, "ERROR! Targetted Wake-On-LAN for MAC %v failed. Jericho protocol engaged!")
+    util.Log(0, "ERROR! Targetted Wake-On-LAN for MAC %v failed. Jericho protocol engaged!",macaddress)
     
     // We ask all known peers to join the fun. Let's raise hell and wake the dead!
     xmlmsg := xml.NewHash("xml","header","trigger_wake")
