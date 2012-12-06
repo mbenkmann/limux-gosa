@@ -34,15 +34,21 @@ import (
           "regexp"
           
           "../db"
+          "../xml"
           "../util"
           "../config"
+          "../message"
 //          "../message"
        )
 
 const HELP_MESSAGE = `# TODO: Write help message`
 
+// host:port of the siserver to talk to
+var TargetAddress = ""
+
 func main() {
-  config.ReadArgs(os.Args[1:])
+  // This is NOT config.ReadArgs() !!
+  ReadArgs(os.Args[1:])
   
   if config.PrintVersion {
     fmt.Printf(`sibridge %v (revision %v)
@@ -55,7 +61,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   }
   
   if config.PrintHelp {
-    fmt.Println(`USAGE: sibridge [args]
+    fmt.Println(`USAGE: sibridge [args] [targetserver][:targetport]
 sibridge listens on the siserver port +10. Connect to that port with nc
 and issue the "help" command to get instructions.
 
@@ -69,6 +75,9 @@ and issue the "help" command to get instructions.
   if config.PrintVersion || config.PrintHelp { os.Exit(0) }
   
   config.ReadConfig()
+  if TargetAddress == "" {
+    TargetAddress = config.ServerSourceAddress
+  }
   colon := strings.Index(config.ServerListenAddress, ":")
   port,_ := strconv.Atoi(config.ServerListenAddress[colon+1:])
   config.ServerListenAddress = fmt.Sprintf("127.0.0.1:%d", port+10) 
@@ -77,6 +86,7 @@ and issue the "help" command to get instructions.
   util.LogLevel = config.LogLevel
   
   config.ReadNetwork() // after config.ReadConfig()
+  config.Timeout = 5*time.Second
   
   tcp_addr, err := net.ResolveTCPAddr("ip4", config.ServerListenAddress)
   if err != nil {
@@ -89,6 +99,31 @@ and issue the "help" command to get instructions.
     util.Log(0, "ERROR! ListenTCP: %v", err)
     os.Exit(1)
   }
+  
+  target_reachable := make(chan bool, 2)
+  go func() {
+    conn, err := net.Dial("tcp", TargetAddress)
+    if err != nil {
+      util.Log(0, "ERROR! Dial(\"tcp\",%v): %v",TargetAddress,err)
+      target_reachable <- false
+    } else {
+      conn.Close()
+      target_reachable <- true
+    }
+  }()
+    
+  go func() {
+    time.Sleep(250*time.Millisecond)
+    target_reachable <- false
+  }()
+  
+  if r := <-target_reachable; !r {
+    os.Exit(1)
+  }
+  
+  // Always treat target as go-susi to avoid side-effects from the
+  // more complex protocol used to talk to gosa-si.
+  message.Peer(TargetAddress).SetGoSusi(true)
   
   // Create channels for receiving events. 
   // The main() goroutine receives on all these channels 
@@ -222,16 +257,25 @@ func handle_request(conn *net.TCPConn) {
 }
 
 var jobs      = []string{"update","softupdate","reboot","halt","install",  "reinstall","wakeup","localboot","lock","unlock",  "activate"}
+// It's important that the jobs are at the beginning of the commands slice,
+// because we use that fact later to distinguish between commands that refer to
+// jobs and other commands.
 var commands  = append(jobs,                                                                                                             "help","x",      "examine", "query_jobdb","query_jobs","jobs", "delete_jobs","delete_jobdb_entry","qq","xx")
 var canonical = []string{"update","update"    ,"reboot","halt","reinstall","reinstall",  "wake","localboot","lock","activate","activate","help","examine","examine", "query",      "query",     "query","delete",     "delete"            ,"qq","xx"}
 
 type jobDescriptor struct {
   MAC string
   IP string
-  Name string // "*" means all machines
-  Timestamp string
-  Job string  // "*" means all jobs
+  Name string // "*" means all machines (only valid for some commands like "query")
+  Date string
+  Time string
+  Job string
 }
+
+func (j *jobDescriptor) HasMachine() bool { return j.MAC != "" }
+func (j *jobDescriptor) HasJob() bool { return j.Job != "" }
+func (j *jobDescriptor) HasDate() bool { return j.Date != "" }
+func (j *jobDescriptor) HasTime() bool { return j.Time != "" }
 
 // msg must be non-empty.
 // joblist: see comment in handle_request() for explanation
@@ -252,63 +296,97 @@ func processMessage(msg string, joblist *[]jobDescriptor, remote_addr *net.TCPAd
     return "! Unrecognized command: " + cmd, 0
   }
   
+  // cmd is the canonical name for the command, e.g. if the user entered "x"
+  // then cmd is now "examine".
   cmd = canonical[i]
   
-  if cmd == "help" { return HELP_MESSAGE,0 }
-  
+  // As explained in the command at var commands, determine if the command is a job.
   is_job_cmd := (i < len(jobs))
   
+  // Depending on the type of command, only certain kinds of arguments are permitted:
+  //  all commands: machine references (MAC, IP, name)
+  //  job commands: times (XXs, XXm, XXh, XXd, YYYY-MM-DD, HH:MM)
+  //  delete: job type ("update","softupdate","reboot","halt","install", "reinstall","wakeup","localboot","lock","unlock", "activate")
+  //  query,qq and delete: all machines wildcard "*"
   allowed := map[string]bool{"machine":true}
   if is_job_cmd { allowed["time"] = true }
   if cmd == "delete" { allowed["job"]=true }
+  if cmd == "delete" || cmd == "query" || cmd == "qq" { allowed["*"]=true }
   
-  template := jobDescriptor{Name:"*", Job:"*", Timestamp:util.MakeTimestamp(time.Now())}
-  
-  if is_job_cmd {
-    for k := range *joblist {
-      (*joblist)[k].Job = cmd
-    }
+  // parse all fields into partial job descriptors
+  parsed := []jobDescriptor{}
+  for i=1; i < len(fields); i++ {
+    template := jobDescriptor{}
     
-    template.Job = cmd
+    if (allowed["time"] && parseTime(fields[i], &template)) ||
+      // test machine names before jobs. Otherwise many valid machine names such as "rei" would
+      // be interpreted as job types ("reinstall" in the example)
+       (allowed["machine"] && parseMachine(fields[i], &template)) ||
+       (allowed["job"] && parseJob(fields[i], &template)) ||
+       (allowed["*"] && parseWild(fields[i], &template)) {
+      parsed = append(parsed, template)
+      continue 
+    } else 
+    {
+      return "! Illegal argument: "+fields[i],0
+    }
   }
   
-  have_machine := false
+  // Some people consider it more intuitive to list machines before times/job types
+  // and others consider the reverse order more intuitive, e.g.
+  //   "delete dev3 install"  vs  "delete install dev3"
+  //   "install dev3 10:30"   vs  "install 10:30 dev3"
+  // We try to understand both by checking if a machine reference is listed before
+  // a time or job type and in that case we simply reverse the list.
+  last_machine_ref := len(parsed)-1
+  last_other := len(parsed)-1
+  for ; last_machine_ref >= 0; last_machine_ref-- {
+    if parsed[last_machine_ref].HasMachine() { break }
+  }
+  for ; last_other >= 0; last_other-- {
+    if !parsed[last_other].HasMachine() { break }
+  }
+  if last_machine_ref >= 0 && last_other > last_machine_ref {
+    for i:=0; i < len(parsed)>>1; i++ { 
+      parsed[i],parsed[len(parsed)-1-i] = parsed[len(parsed)-1-i], parsed[i]
+    }
+  }
   
-  for i=1; i < len(fields); i++ {
-    if allowed["time"] {
-      if parseTime(fields[i], &template) {
-        if !have_machine {
-          for k := range *joblist {
-            (*joblist)[k].Timestamp = template.Timestamp
-          }
-        }
-        continue
-      }
+  // If the fields contain no non-wildcard machine references, append them
+  // from the previous job list.
+  have_machine := false
+  for i = range parsed { 
+    if parsed[i].Name != "" && parsed[i].Name != "*" { have_machine = true }
+  }
+  if !have_machine {
+    for _, j := range *joblist {
+      if j.Name != "*" { 
+        jd := jobDescriptor{Name:j.Name, MAC:j.MAC, IP:j.IP}
+        parsed = append(parsed, jd)
+      }  
     }
-    
-    // test machine names before jobs. Otherwise many valid machine names such as "rei" would
-    // be interpreted as job types ("reinstall" in the example)
-    if allowed["machine"] {
-      if parseMachine(fields[i], &template) {
-        if !have_machine { *joblist = []jobDescriptor{} }
-        have_machine = true
-        *joblist = append(*joblist, template)
-        continue
-      }
+  }
+  
+  // Now merge the fields into a new job list
+  now := util.MakeTimestamp(time.Now())
+  template := jobDescriptor{Date:now[0:8], Time:now[8:]}
+  *joblist = []jobDescriptor{}
+  for _, j := range parsed {
+    if j.HasJob() {
+      template.Job = j.Job
     }
-    
-    if allowed["job"] {
-      if parseJob(fields[i], &template) {
-        if !have_machine {
-          for k := range *joblist {
-            (*joblist)[k].Job = template.Job
-          }
-        }
-        continue
-      }
+    if j.HasDate() {
+      template.Date = j.Date
     }
-    
-    return "! Illegal argument: "+fields[i],0
+    if j.HasTime() {
+      template.Time = j.Time
+    }
+    if j.HasMachine() {
+      j.Date = template.Date
+      j.Time = template.Time
+      j.Job = template.Job
+      *joblist = append(*joblist, j)
+    }
   }
   
   reply = ""
@@ -317,7 +395,10 @@ func processMessage(msg string, joblist *[]jobDescriptor, remote_addr *net.TCPAd
   util.Log(2, "DEBUG! Handling command \"%v\"", cmd)
   
   if is_job_cmd {
+    for k := range *joblist { (*joblist)[k].Job = cmd }
     reply = commandJob(joblist)
+  } else if cmd == "help" {
+    reply = HELP_MESSAGE
   } else if cmd == "qq" {
     reply = commandGosa("gosa_query_jobdb", false,joblist)
     repeat = 5*time.Second
@@ -329,7 +410,9 @@ func processMessage(msg string, joblist *[]jobDescriptor, remote_addr *net.TCPAd
   } else if cmd == "query" {
     reply = commandGosa("gosa_query_jobdb",false,joblist)
   } else if cmd == "delete" {
-    reply = commandGosa("gosa_delete_jobdb_entry",true,joblist)
+    reply = strings.Replace(commandGosa("gosa_query_jobdb",true,joblist),"==","<-",-1)+"\n"+
+            commandGosa("gosa_delete_jobdb_entry",true,joblist)
+    *joblist = []jobDescriptor{} // reset selected machines
   }
   
   return reply,repeat
@@ -337,12 +420,11 @@ func processMessage(msg string, joblist *[]jobDescriptor, remote_addr *net.TCPAd
 
 func commandJob(joblist *[]jobDescriptor) (reply string) {
   for _, j := range *joblist {
-    if j.Job == "*" { continue }
     if j.Name == "*" { continue }
     
     if reply != "" {reply = reply + "\n" }
-    reply = reply + fmt.Sprintf("=> %-10v %v  %v (%v)", j.Job, util.ParseTimestamp(j.Timestamp).Format("2006-01-02 15:04:05"), j.MAC, j.Name)
-    xmlmess := fmt.Sprintf("<xml><header>job_trigger_action_%v</header><source>GOSA</source><target>%v</target><macaddress>%v</macaddress><timestamp>%v</timestamp></xml>", j.Job, j.MAC, j.MAC, j.Timestamp)
+    reply = reply + fmt.Sprintf("=> %-10v %v  %v (%v)", j.Job, util.ParseTimestamp(j.Date+j.Time).Format("2006-01-02 15:04:05"), j.MAC, j.Name)
+    xmlmess := fmt.Sprintf("<xml><header>job_trigger_action_%v</header><source>GOSA</source><target>%v</target><macaddress>%v</macaddress><timestamp>%v</timestamp></xml>", j.Job, j.MAC, j.MAC, j.Date+j.Time)
     util.Log(2, "DEBUG! %v",xmlmess)
   }
   return reply
@@ -356,9 +438,9 @@ func commandExamine(joblist *[]jobDescriptor) (reply string) {
     
     ssh_reachable := make(chan bool, 2)
     go func() {
-      conn, err := net.Dial("tcp", j.Name+":22")
+      conn, err := net.Dial("tcp", j.IP+":22")
       if err != nil {
-        util.Log(0, "ERROR! Dial(\"tcp\",%v:22): %v",j.Name,err)
+        util.Log(0, "ERROR! Dial(\"tcp\",%v:22): %v",j.IP,err)
         ssh_reachable <- false
       } else {
         conn.Close()
@@ -401,11 +483,11 @@ func generate_clauses(joblist *[]jobDescriptor, idx int, machines *map[string]bo
     }
   } else {
     job := (*joblist)[idx]
-    if job.Name == "*" && job.Job == "*" {
+    if job.Name == "*" && !job.HasJob() {
       // do nothing. Don't even recurse because this is an always true case
       // In fact if this case is encountered we could abort the whole generate_clauses because
       // it must end up being empty.
-    } else if job.Name != "*" && job.Job != "*" {
+    } else if job.Name != "*" && job.HasJob() {
       // We can optimize away one branch of the recursion if it doesn't add anything new,
       // but we must not trim both, because we must recurse to i==len(*joblist) for the
       // clause to be generated.
@@ -424,8 +506,8 @@ func generate_clauses(joblist *[]jobDescriptor, idx int, machines *map[string]bo
         generate_clauses(joblist, idx+1, machines, jobtypes, clauses)
         if !have_machine { delete(*machines, job.MAC) }
       }
-    } else { // if either job.Name != "*" or job.Job != "*" but not both
-      if job.Job != "*" {
+    } else { // if either job.Name != "*" or job.HasJob() but not both
+      if job.HasJob() {
         have_type := (*jobtypes)[job.Job]
         (*jobtypes)[job.Job] = true
         generate_clauses(joblist, idx+1, machines, jobtypes, clauses)
@@ -448,6 +530,7 @@ func commandGosa(header string, use_job_type bool, joblist *[]jobDescriptor) (re
     generate_clauses(joblist, 0, &machines, &jobtypes, &clauses)
   } else {
     for _, job := range *joblist {
+      if job.Name == "*" { clauses = "" ; break }
       clauses = clauses + "<phrase><macaddress>"+job.MAC+"</macaddress></phrase>"
     }
     
@@ -457,7 +540,52 @@ func commandGosa(header string, use_job_type bool, joblist *[]jobDescriptor) (re
   }
 
   gosa_cmd := "<xml><header>"+header+"</header><source>GOSA</source><target>GOSA</target><where>"+clauses+"</where></xml>"
-  return gosa_cmd
+  reply = <- message.Peer(TargetAddress).Ask(gosa_cmd, config.ModuleKey["[GOsaPackages]"])
+  x, err := xml.StringToHash(reply)
+  if err != nil { return fmt.Sprintf("! %v",err) }
+  if x.First("error_string") != nil { return fmt.Sprintf("! %v", x.Text("error_string")) }
+  if x.First("answer1") == nil { return "NO MATCH" }
+  if x.Text("answer1") == "0" || 
+      // workaround for gosa-si bug
+     strings.HasPrefix(x.Text("answer1"),"ARRAY") { return "OK" }
+  
+  reply = ""
+  for _, tag := range x.Subtags() {
+    if !strings.HasPrefix(tag, "answer") { continue }
+    for answer := x.First(tag); answer != nil; answer = answer.Next() {
+      if reply != "" {reply = reply + "\n" }
+      job := answer.Text("headertag")
+      if strings.Index(job, "trigger_action_") == 0 { job = job[15:] }
+      progress := answer.Text("progress")
+      status := (answer.Text("status")+"    ")[:4]
+      if status == "proc" {
+        if progress != "" && progress != "none" {
+          status = progress+"%"
+        }
+      } else {
+        if progress != "" && progress != "none" {
+          status += "("+progress+"%)"
+        }
+      }
+      periodic := answer.Text("periodic")
+      if periodic == "none" { periodic = "" }
+      if periodic != "" {
+        periodic = " repeated every " + strings.Replace(periodic, "_", " ",-1)
+      }
+      handler := ""
+      siserver := answer.Text("siserver")
+      if siserver != "localhost" && siserver != x.Text("source") {
+        siserver = strings.Split(siserver,":")[0]
+        handler = db.SystemNameForIPAddress(siserver)
+        if handler == "none" { handler = siserver }
+        handler = strings.Split(handler, ".")[0]
+        handler = " [by "+handler+"]"
+      }
+      reply = reply + fmt.Sprintf("== %4v %-9v %v  %v (%v)%v%v", status, job, util.ParseTimestamp(answer.Text("timestamp")).Format("_2.1 15:04:05"), answer.Text("macaddress"), answer.Text("plainname"),periodic,handler)
+    }
+  }
+  
+  return reply
 }
 
 const re_1xx = "(1([0-9]?[0-9]?))"
@@ -471,12 +599,9 @@ func parseMachine(machine string, template *jobDescriptor) bool {
   var name string
   var ip string
   var mac string
+  if strings.Index(machine, "*") >= 0 { return false }
   
-  if machine == "*" {
-    mac = "*"
-    ip = "0.0.0.0"
-    name = "*"
-  } else if macAddressRegexp.MatchString(machine) {
+  if macAddressRegexp.MatchString(machine) {
     mac = machine
     name = db.SystemPlainnameForMAC(mac)
     if name == "none" { return false }
@@ -503,6 +628,15 @@ func parseMachine(machine string, template *jobDescriptor) bool {
   return true
 }
 
+func parseWild(wild string, template *jobDescriptor) bool {
+  if wild == "*" {
+    template.MAC = "*"
+    template.Name = "*"
+    template.IP = "0.0.0.0"
+    return true
+  }
+  return false
+}
 
 var dateRegexp = regexp.MustCompile("^20[0-9][0-9]-[0-1][0-9]-[0-3][0-9]$")
 var timeRegexp = regexp.MustCompile("^[0-2]?[0-9]:[0-5]?[0-9](:[0-5]?[0-9])?$")
@@ -510,7 +644,7 @@ var duraRegexp = regexp.MustCompile("^[0-9]+[smhd]$")
 
 func parseTime(t string, template *jobDescriptor) bool {
   if dateRegexp.MatchString(t) {
-    template.Timestamp = strings.Replace(t,"-","",-1) + template.Timestamp[8:]
+    template.Date = strings.Replace(t,"-","",-1)
     return true
   }
   
@@ -526,7 +660,7 @@ func parseTime(t string, template *jobDescriptor) bool {
       t += parts[2]
     }
     
-    template.Timestamp = template.Timestamp[:8] + t
+    template.Time = t
     return true
   }
   
@@ -540,7 +674,9 @@ func parseTime(t string, template *jobDescriptor) bool {
       case 'd': dura = time.Duration(n)*24*time.Hour
     }
     
-    template.Timestamp = util.MakeTimestamp(util.ParseTimestamp(template.Timestamp).Add(dura))
+    ts := util.MakeTimestamp(time.Now().Add(dura))
+    template.Date = ts[0:8]
+    template.Time = ts[8:]
     return true
   }
   
@@ -557,3 +693,44 @@ func parseJob(j string, template *jobDescriptor) bool {
 
   return false
 }
+
+
+// Parses args and sets config variables accordingly.
+func ReadArgs(args []string) {
+  config.LogLevel = 0
+  for i := 0; i < len(args); i++ {
+    arg := args[i]
+  
+    if arg == "-v" || arg == "-vv" || arg == "-vvv" || arg == "-vvvv" || 
+       arg == "-vvvvv" || arg == "-vvvvvv" || arg == "-vvvvvvv" {
+    
+      config.LogLevel = len(arg) - 1
+    
+    } else if arg == "-c" {
+      i++
+      if i >= len(args) {
+        util.Log(0, "ERROR! ReadArgs: missing argument to -c")
+      } else {
+        config.ServerConfigPath = args[i]
+      }
+    } else if arg == "--help" {
+    
+      config.PrintHelp = true
+      
+    } else if arg == "--version" {      
+      
+      config.PrintVersion = true
+    
+    } else if arg == "" {
+      util.Log(0, "WARNING! ReadArgs: Ignoring empty command line argument")
+    } else if arg[0] != '-' {
+      TargetAddress = arg
+      if strings.Index(TargetAddress, ":") < 0 {
+        TargetAddress += ":20081"
+      }
+    } else {
+      util.Log(0, "ERROR! ReadArgs: Unknown command line switch: %v", arg)
+    }
+  }
+}
+
