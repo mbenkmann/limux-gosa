@@ -148,7 +148,31 @@ func SystemCommonNameForMAC(macaddress string) string {
 func SystemIPAddressForName(host string) string {
   addrs, err := net.LookupIP(host)
   if err != nil || len(addrs) == 0 { 
-    util.Log(0, "ERROR! LookupIP(%v): %v", host, err)
+    // if host already contains a domain, give up
+    if strings.Index(host, ".") >= 0 {
+      util.Log(0, "ERROR! LookupIP(%v): %v", host, err)
+      return "none" 
+    }
+    
+    // if host does not contain a domain the DNS failure may simple be
+    // caused by the machine being in a different subdomain. Try to
+    // work around this by searching LDAP for the machine and use its
+    // ipHostNumber if it is accurate.
+    util.Log(1, "INFO! Could not resolve short name %v (error: %v). Trying LDAP.", host, err)
+    var system *xml.Hash
+    system, err = xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(|(cn=%v)(cn=%v.*))%v)",host, host,config.UnitTagFilter),"ipHostNumber"))
+    // the search may give multiple results. Use reverse lookup of ipHostNumber to
+    // find the correct one (if there is one)
+    for ihn := system.First("iphostnumber"); ihn != nil; ihn = ihn.Next() {
+      ip := ihn.Text()
+      fullname := SystemNameForIPAddress(ip)
+      if strings.HasPrefix(fullname, host+".") { 
+        util.Log(1, "INFO! Found \"%v\" with IP %v in LDAP", fullname, ip)
+        // use forward lookup for the full name to be sure we get the proper address
+        return SystemIPAddressForName(fullname)
+      }
+    }
+    util.Log(0, "ERROR! Could not get reliable IP address for %v from LDAP", host)
     return "none" 
   }
 
@@ -179,7 +203,7 @@ func SystemIPAddressForName(host string) string {
 func SystemNameForIPAddress(ip string) string {
   names, err := net.LookupAddr(ip)
   if err != nil || len(names) == 0 {
-    util.Log(0, "ERROR! Reverse lookup of %v failed: %v",ip,err)
+    util.Log(0, "ERROR! Reverse lookup of \"%v\" failed: %v",ip,err)
     return "none"
   }
   
@@ -199,6 +223,9 @@ func SystemMACForName(host string) string {
     parts := strings.SplitN(host,".",2)
     if len(parts) == 2 {
       system, err = xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(cn=%v)%v)",parts[0], config.UnitTagFilter),"macaddress"))
+      mac = system.Text("macaddress")
+    } else {
+      system, err = xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(cn=%v.*)%v)",parts[0], config.UnitTagFilter),"macaddress"))
       mac = system.Text("macaddress")
     }
     if mac == "" {  
