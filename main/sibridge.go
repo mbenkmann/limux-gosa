@@ -115,21 +115,23 @@ and issue the "help" command to get instructions.
     os.Exit(1)
   }
   
+  // Create channels for receiving events. 
+  // The main() goroutine receives on all these channels 
+  // and spawns new goroutines to handle the incoming events.
+  connections := make(chan net.Conn,  32)
+  signals     := make(chan os.Signal, 32)
+  
+  signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGHUP, syscall.SIGTTIN, syscall.SIGTTOU }
+  signal.Notify(signals, signals_to_watch...)
+  util.Log(1, "INFO! Intercepting these signals: %v", signals_to_watch)
+  
   // Always treat target as go-susi to avoid side-effects from the
   // more complex protocol used to talk to gosa-si.
   message.Peer(TargetAddress).SetGoSusi(true)
   
-  // Create channels for receiving events. 
-  // The main() goroutine receives on all these channels 
-  // and spawns new goroutines to handle the incoming events.
-  connections := make(chan net.Conn, 32)
-  signals         := make(chan os.Signal, 32)
-  
-  signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGHUP }
-  signal.Notify(signals, signals_to_watch...)
-  
   // Start a "connection" to Stdin/Stdout for interactive use
-  connections <- NewReaderWriterConnection(os.Stdin, os.Stdout)
+  interactive_conn := NewReaderWriterConnection(os.Stdin, os.Stdout)
+  connections <- interactive_conn
   
   // If requested, accept TCP connections
   if ListenForConnections {
@@ -153,7 +155,10 @@ and issue the "help" command to get instructions.
     for {
       connectionTracker.WaitForItem(0)
       connectionTracker.WaitForEmpty(0)
-      if !ListenForConnections { os.Exit(0) }
+      if !ListenForConnections { 
+        util.Log(1, "INFO! Last connection closed => Terminating")
+        os.Exit(0) 
+      }
     }
   }()
   
@@ -161,7 +166,15 @@ and issue the "help" command to get instructions.
   for{ 
     select {
       case sig := <-signals : //os.Signal
-                    util.Log(1, "Received signal \"%v\"", sig)
+                    if sig == syscall.SIGTTIN || sig == syscall.SIGTTOU {
+                      if interactive_conn != nil { // to avoid getting the log message multiple times
+                        util.Log(1, "INFO! Received signal \"%v\" => Closing console", sig)
+                        interactive_conn.Close()
+                        interactive_conn = nil
+                      }
+                    } else {
+                      util.Log(1, "INFO! Received signal \"%v\"", sig)
+                    }
                     
       case conn:= <-connections : // *net.TCPConn
                     util.Log(1, "INFO! Incoming TCP request from %v", conn.RemoteAddr())
@@ -799,7 +812,15 @@ func (conn *ReaderWriterConnection) Close() error {
 }
 
 func (conn *ReaderWriterConnection) LocalAddr() net.Addr {
-  return &net.UnixAddr{fmt.Sprintf("%v/%v",conn.reader,conn.writer),"ReaderWriterConnection"}
+  name1 := fmt.Sprintf("%T",conn.reader)
+  name2 := fmt.Sprintf("%T",conn.writer)
+  if f,ok := conn.reader.(*os.File); ok {
+    name1 = f.Name()
+  }
+  if f,ok := conn.writer.(*os.File); ok {
+    name2 = f.Name()
+  }
+  return &net.UnixAddr{fmt.Sprintf("%v:%v",name1,name2),"ReaderWriterConnection"}
 }
 
 func (conn *ReaderWriterConnection) RemoteAddr() net.Addr { return conn.LocalAddr() }
