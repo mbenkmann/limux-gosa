@@ -180,7 +180,7 @@ func main() {
   util.LogLevel = config.LogLevel
   
   config.ReadNetwork() // after config.ReadConfig()
-  config.Timeout = 5*time.Second
+  config.Timeout = 20*time.Second
   
   
   target_reachable := make(chan bool, 2)
