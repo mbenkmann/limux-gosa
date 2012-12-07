@@ -51,6 +51,11 @@ Starts the daemon.
 `
 
 func main() {
+  // Intercept signals asap (in particular intercept SIGTTOU before the first output)
+  signals         := make(chan os.Signal,    32)
+  signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGHUP, syscall.SIGTTOU }
+  signal.Notify(signals, signals_to_watch...)
+  
   config.ReadArgs(os.Args[1:])
   
   if config.PrintVersion {
@@ -122,11 +127,9 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   // The main() goroutine receives on all these channels 
   // and spawns new goroutines to handle the incoming events.
   tcp_connections := make(chan *net.TCPConn, 32)
-  signals         := make(chan os.Signal, 32)
+  // NOTE: signals channel is created at the beginning of main()
   
-  signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGHUP }
   util.Log(1, "INFO! Intercepting these signals: %v", signals_to_watch)
-  signal.Notify(signals, signals_to_watch...)
   
   util.Log(1, "INFO! Accepting connections on %v", tcp_addr);
   go acceptConnections(listener, tcp_connections)
@@ -137,7 +140,9 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   for{ 
     select {
       case sig := <-signals : //os.Signal
-                    util.Log(1, "Received signal \"%v\"", sig)
+                    if sig != syscall.SIGTTOU { // don't log SIGTTOU as that may cause another
+                      util.Log(1, "INFO! Received signal \"%v\"", sig)
+                    }
                     if sig == syscall.SIGUSR2 { 
                       go util.WithPanicHandler(message.Recreate_packages_db)
                     }
