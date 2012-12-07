@@ -43,7 +43,99 @@ import (
 //          "../message"
        )
 
-const HELP_MESSAGE = `# TODO: Write help message`
+const VERSION_MESSAGE = `sibridge %v (revision %v)
+Copyright (c) 2012 Landeshauptstadt München
+Author: Matthias S. Benkmann
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+`
+
+const USAGE_MESSAGE = `USAGE: sibridge [args] [targetserver][:targetport]
+
+Remote control for an siserver at targetserver:targetport.
+
+--help       print this text and exit
+--version    print version and exit
+
+-v           print operator debug messages (INFO)
+-vv          print developer debug messages (DEBUG)
+             ATTENTION! developer messages include keys!
+
+-c <file>    read config from <file> instead of default location
+-l           listen for socket connections (from localhost only) on
+             siserver port +10.
+-e <string>  execute commands from <string>
+-f <file>    execute commands from <file>. If <file> is not an ordinary
+             file, it will be processed concurrently with other special
+             files and data from other -e and -f arguments.
+             This permits using FIFOs and other special files for input.
+`
+
+const HELP_MESSAGE = `Basics:
+  * Multiple commands per line are permitted if separated by ";"
+  * Commands may be abbreviated to an arbitrary prefix (e.g. "wak" = "wakeup")
+  * If a command is invoked without any machine arguments, the list of
+    machines from the most recent command will be affected.
+    E.g.: 
+             examine m1 m2
+             localboot
+             wakeup
+             
+          sets both m1 and m2 to "localboot" and then wakes both of them up.
+
+Argument types:
+  Machine   - IP address, short name, fully qualified name, MAC address
+  "*"       - (only for "query" and "delete") all machines with pending jobs
+  Job type  - "update"/"softupdate", "reboot", "halt", "install"/"reinstall",
+              "wakeup", "localboot", "lock", "unlock"/"activate"
+              These may be abbreviated to prefixes (e.g. "wak" = "wakeup" )
+  date      - YYYY-MM-DD
+  abs. time - HH:MM, H:M, HH:M, H:MM
+  rel. time - a number followed by "s", "m", "h" or "d" for seconds, minutes,
+              hours and days respectively. Relative times are always relative
+              to the current time. I.e. "10m" means "10 minutes from now".
+
+Argument order:
+  Times may either precede or follow the machines they should affect, 
+  but the 2 styles cannot be mixed within the same command.
+  E.g.: (Install machine1 and machine2 10 minutes from now and machine3 in 30)
+                       install 10m machine1 machine2 30m machine3
+    means the same as: install machine1 machine2 10m machine3 30m 
+    But this is wrong: install machine1 machine2 10m 30m machine3
+  
+  The same applies to the job types that may be used with "query" and "delete".
+  E.g.: (Query install jobs that affect machine1 or machine2)   
+                        query i machine1 machine2
+     means the same as: query machine1 machine2 i
+  
+Commands:
+  help: Display this help.
+  
+  <job type>: Schedule job(s) of this type.
+              Argument types: Machine, Date, Time
+
+  examine, x: Print one line info about machine(s).
+              Argument types: Machine
+
+  query_jobdb, query_jobs, jobs: 
+              Query jobs matching the arguments.
+              Argument types: Machine, "*", Job type
+              NOTE:
+                Using "*" does not clear the list of affected machines.
+  
+  delete_jobdb_entry, delete_jobs: 
+              Delete jobs matching the arguments.
+              Argument types: Machine, "*", Job type
+              NOTE: 
+                The "delete" command clears the list of affected machines.
+  
+  xx: Run "examine" command repeatedly until an empty line or new command.
+      Argument types: Machine
+  
+  qq: Run "query" command repeatedly until an empty line or new command.
+      Argument types: Machine, "*", Job type
+`
 
 // host:port of the siserver to talk to.
 var TargetAddress = ""
@@ -61,32 +153,17 @@ func main() {
   // This is NOT config.ReadArgs() !!
   ReadArgs(os.Args[1:])
   
+  if len(os.Args) < 2 {
+    config.PrintVersion = true
+    config.PrintHelp = true
+  }
+  
   if config.PrintVersion {
-    fmt.Printf(`sibridge %v (revision %v)
-Copyright (c) 2012 Landeshauptstadt München
-Author: Matthias S. Benkmann
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-`, config.Version, config.Revision)
+    fmt.Printf(VERSION_MESSAGE, config.Version, config.Revision)
   }
   
   if config.PrintHelp {
-    fmt.Println(`USAGE: sibridge [args] [targetserver][:targetport]
-sibridge listens on the siserver port +10. Connect to that port with nc
-and issue the "help" command to get instructions.
-
---help       print this text and exit
---version    print version and exit
-
--c <file>    read config from <file> instead of default location
--l           listen for socket connections (from localhost only)
--e <string>  execute commands from <string>
--f <file>    execute commands from <file>. If <file> is not an ordinary
-             file, it will be processed concurrently with other special
-             files and data from other -e and -f arguments.
-             This permits using FIFOs and other special files for input.
-`)
+    fmt.Println(USAGE_MESSAGE)
   }
   
   if config.PrintVersion || config.PrintHelp { os.Exit(0) }
