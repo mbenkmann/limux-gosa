@@ -124,7 +124,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   tcp_connections := make(chan *net.TCPConn, 32)
   signals         := make(chan os.Signal, 32)
   
-  signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2 }
+  signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGHUP }
   util.Log(1, "INFO! Intercepting these signals: %v", signals_to_watch)
   signal.Notify(signals, signals_to_watch...)
   

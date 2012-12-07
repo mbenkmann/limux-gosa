@@ -131,7 +131,7 @@ and issue the "help" command to get instructions.
   tcp_connections := make(chan *net.TCPConn, 32)
   signals         := make(chan os.Signal, 32)
   
-  signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2 }
+  signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGHUP }
   signal.Notify(signals, signals_to_watch...)
   
   util.Log(1, "INFO! Accepting connections on %v", tcp_addr);
