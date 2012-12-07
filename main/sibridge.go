@@ -40,7 +40,6 @@ import (
           "../util/deque"
           "../config"
           "../message"
-//          "../message"
        )
 
 const VERSION_MESSAGE = `sibridge %v (revision %v)
