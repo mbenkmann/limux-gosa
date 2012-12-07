@@ -334,7 +334,7 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
     
     var deadline time.Time // zero value means "no deadline"
     if repeat > 0 { deadline = time.Now().Add(repeat) }
-    conn.SetDeadline(deadline)
+    conn.SetReadDeadline(deadline)
     n, err = conn.Read(buf[i:])
     if neterr,ok := err.(net.Error); ok && neterr.Timeout() {
       n = copy(buf[i:], repeat_command)
@@ -919,13 +919,59 @@ func ReadArgs(args []string) {
   }
 }
 
+type TimeoutError struct{}
+func (e *TimeoutError) Error() string { return "Timeout" }
+func (e *TimeoutError) String() string { return "Timeout" }
+func (e *TimeoutError) Temporary() bool { return true }
+func (e *TimeoutError) Timeout() bool { return true }
+
 type ReaderWriterConnection struct {
   reader io.Reader
   writer io.Writer
+  
+  // stores []byte slices and an error if it occurs
+  readbuf deque.Deque 
+  
+  // if an error is read from readbuf it is stored here and returned on every following call
+  readerr error 
+  rdeadline time.Time
+  wdeadline time.Time
+}
+
+func (conn* ReaderWriterConnection) bufferFiller() {
+  for {
+    buf := make([]byte, 4096)
+    n, err := conn.reader.Read(buf)
+    if n > 0 { conn.readbuf.Push(buf[0:n]) }
+    if err != nil { conn.readbuf.Push(err); return; }
+  }
 }
 
 func (conn *ReaderWriterConnection) Read(b []byte) (n int, err error) {
-  return conn.reader.Read(b)
+  if conn.readerr != nil { return 0, conn.readerr }
+  if time.Now().Before(conn.rdeadline) {
+    dura := conn.rdeadline.Sub(time.Now())
+    if dura > 0 {
+      if !conn.readbuf.WaitForItem(dura) { 
+        return 0,&TimeoutError{} 
+      }
+    }
+  }
+  item := conn.readbuf.Next()
+  if e,ok := item.(error); ok {
+    conn.readerr = e
+    return 0, conn.readerr
+  }
+  slice := item.([]byte)
+  if len(slice) <= len(b) {
+    return copy(b, slice), nil
+  } 
+  
+  // if len(slice) > len(b)  (i.e. buffer has more data)
+  n = copy(b, slice)
+  slice = slice[n:]
+  conn.readbuf.Insert(slice) // put remaining data back in buffer
+  return n, nil
 }
 
 
@@ -960,12 +1006,24 @@ func (conn *ReaderWriterConnection) LocalAddr() net.Addr {
 
 func (conn *ReaderWriterConnection) RemoteAddr() net.Addr { return conn.LocalAddr() }
 
-func (conn *ReaderWriterConnection) SetDeadline(t time.Time) error {return nil}
+func (conn *ReaderWriterConnection) SetDeadline(t time.Time) error {
+  conn.SetReadDeadline(t)
+  conn.SetWriteDeadline(t)
+  return nil
+}
 
-func (conn *ReaderWriterConnection) SetReadDeadline(t time.Time) error {return nil}
+func (conn *ReaderWriterConnection) SetReadDeadline(t time.Time) error {
+  conn.rdeadline = t
+  return nil
+}
 
-func (conn *ReaderWriterConnection) SetWriteDeadline(t time.Time) error {return nil}
+func (conn *ReaderWriterConnection) SetWriteDeadline(t time.Time) error {
+  conn.wdeadline = t
+  return nil
+}
 
 func NewReaderWriterConnection(r io.Reader, w io.Writer) *ReaderWriterConnection {
-  return &ReaderWriterConnection{r,w}
+  conn := &ReaderWriterConnection{reader:r,writer:w}
+  go conn.bufferFiller()
+  return conn
 }
