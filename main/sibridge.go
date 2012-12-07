@@ -22,6 +22,7 @@ package main
 
 import (
           "io"
+          "io/ioutil"
           "os"
           "os/signal"
           "fmt"
@@ -50,6 +51,12 @@ var TargetAddress = ""
 // whether to start a listener for incoming TCP connections.
 var ListenForConnections = false
 
+// All commands passed via -e and -f switches.
+var BatchCommands bytes.Buffer
+
+// Files passed via -f that are not ordinary files.
+var SpecialFiles = []string{}
+
 func main() {
   // This is NOT config.ReadArgs() !!
   ReadArgs(os.Args[1:])
@@ -74,6 +81,11 @@ and issue the "help" command to get instructions.
 
 -c <file>    read config from <file> instead of default location
 -l           listen for socket connections (from localhost only)
+-e <string>  execute commands from <string>
+-f <file>    execute commands from <file>. If <file> is not an ordinary
+             file, it will be processed concurrently with other special
+             files and data from other -e and -f arguments.
+             This permits using FIFOs and other special files for input.
 `)
   }
   
@@ -128,6 +140,21 @@ and issue the "help" command to get instructions.
   // Always treat target as go-susi to avoid side-effects from the
   // more complex protocol used to talk to gosa-si.
   message.Peer(TargetAddress).SetGoSusi(true)
+  
+  // Start a "connection" for the commands provided via -e and -f (ordinary files)
+  if BatchCommands.Len() > 0 {
+    connections <- NewReaderWriterConnection(&BatchCommands, os.Stdout)
+  }
+  
+  // Start connections for reading from special files
+  for _, special := range SpecialFiles {
+    file, err := os.Open(special)
+    if err != nil {
+      util.Log(0, "ERROR! Error opening \"%v\": %v", special, err)
+    } else {
+      connections <- NewReaderWriterConnection(file, os.Stdout)
+    }
+  }
   
   // Start a "connection" to Stdin/Stdout for interactive use
   interactive_conn := NewReaderWriterConnection(os.Stdin, os.Stdout)
@@ -245,7 +272,10 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
     }
     if err == io.EOF {
       util.Log(2, "DEBUG! Connection closed by %v", conn.RemoteAddr())
-      
+      // make sure the data is \n terminated
+      buf = append(buf, '\n') // in case i == len(buf)
+      buf[i] = '\n'
+      i++
     }
     if n == 0 && err == nil {
       util.Log(0, "ERROR! Read 0 bytes but no error reported")
@@ -291,10 +321,6 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
         }
       }
     }
-  }
-  
-  if  i != 0 {
-    util.Log(0, "ERROR! Incomplete message (i.e. not terminated by \"\\n\") of %v bytes: %v", i, buf[0:i])
   }
 }
 
@@ -484,7 +510,6 @@ func commandExamine(joblist *[]jobDescriptor) (reply string) {
     go func() {
       conn, err := net.Dial("tcp", j.IP+":22")
       if err != nil {
-        util.Log(0, "ERROR! Dial(\"tcp\",%v:22): %v",j.IP,err)
         ssh_reachable <- false
       } else {
         conn.Close()
@@ -763,6 +788,39 @@ func ReadArgs(args []string) {
       }
     } else if arg == "-l" {
       ListenForConnections = true
+    } else if arg == "-e" {
+      i++
+      if i >= len(args) {
+        util.Log(0, "ERROR! ReadArgs: missing argument to -e")
+      } else {
+        BatchCommands.Write([]byte("\n"+args[i]))
+      }
+    } else if arg == "-f" {
+      i++
+      if i >= len(args) {
+        util.Log(0, "ERROR! ReadArgs: missing argument to -f")
+      } else {
+        f := args[i]
+        fi, err := os.Stat(f)
+        if err != nil {
+          util.Log(0, "ERROR! ReadArgs: Cannot stat \"%v\": %v",f,err)
+        } else {
+          if fi.IsDir() {
+            util.Log(0, "ERROR! ReadArgs: \"%v\" is a directory",f)
+          } else {
+            if fi.Mode() & os.ModeType == 0 {
+              data, err := ioutil.ReadFile(f)
+              if err != nil {
+                util.Log(0, "ERROR! ReadArgs: Error reading \"%v\": %v",f,err)
+              } else {
+                BatchCommands.Write([]byte("\n"+string(data)))
+              }
+            } else {
+              SpecialFiles = append(SpecialFiles, f)
+            }
+          }
+        }
+      }
     } else if arg == "--help" {
     
       config.PrintHelp = true
