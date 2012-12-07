@@ -220,6 +220,11 @@ func handle_request(conn *net.TCPConn) {
       buf = buf_new
     }
 
+    // Replace ";" with "\n" to support multiple commands on one line
+    for k := 0; k < i; k++ {
+      if buf[k] == ';' { buf[k] = '\n' }
+    }
+
     // Find complete lines terminated by '\n' and process them.
     for start := 0;; {
       eol := bytes.IndexByte(buf[start:i], '\n')
