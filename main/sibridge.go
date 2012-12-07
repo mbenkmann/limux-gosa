@@ -36,6 +36,7 @@ import (
           "../db"
           "../xml"
           "../util"
+          "../util/deque"
           "../config"
           "../message"
 //          "../message"
@@ -43,8 +44,11 @@ import (
 
 const HELP_MESSAGE = `# TODO: Write help message`
 
-// host:port of the siserver to talk to
+// host:port of the siserver to talk to.
 var TargetAddress = ""
+
+// whether to start a listener for incoming TCP connections.
+var ListenForConnections = false
 
 func main() {
   // This is NOT config.ReadArgs() !!
@@ -69,6 +73,7 @@ and issue the "help" command to get instructions.
 --version    print version and exit
 
 -c <file>    read config from <file> instead of default location
+-l           listen for socket connections (from localhost only)
 `)
   }
   
@@ -88,17 +93,6 @@ and issue the "help" command to get instructions.
   config.ReadNetwork() // after config.ReadConfig()
   config.Timeout = 5*time.Second
   
-  tcp_addr, err := net.ResolveTCPAddr("ip4", config.ServerListenAddress)
-  if err != nil {
-    util.Log(0, "ERROR! ResolveTCPAddr: %v", err)
-    os.Exit(1)
-  }
-
-  listener, err := net.ListenTCP("tcp4", tcp_addr)
-  if err != nil {
-    util.Log(0, "ERROR! ListenTCP: %v", err)
-    os.Exit(1)
-  }
   
   target_reachable := make(chan bool, 2)
   go func() {
@@ -128,14 +122,40 @@ and issue the "help" command to get instructions.
   // Create channels for receiving events. 
   // The main() goroutine receives on all these channels 
   // and spawns new goroutines to handle the incoming events.
-  tcp_connections := make(chan *net.TCPConn, 32)
+  connections := make(chan net.Conn, 32)
   signals         := make(chan os.Signal, 32)
   
   signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGHUP }
   signal.Notify(signals, signals_to_watch...)
   
-  util.Log(1, "INFO! Accepting connections on %v", tcp_addr);
-  go acceptConnections(listener, tcp_connections)
+  // Start a "connection" to Stdin/Stdout for interactive use
+  connections <- NewReaderWriterConnection(os.Stdin, os.Stdout)
+  
+  // If requested, accept TCP connections
+  if ListenForConnections {
+    tcp_addr, err := net.ResolveTCPAddr("ip4", config.ServerListenAddress)
+    if err != nil {
+      util.Log(0, "ERROR! ResolveTCPAddr: %v", err)
+      os.Exit(1)
+    }
+
+    listener, err := net.ListenTCP("tcp4", tcp_addr)
+    if err != nil {
+      util.Log(0, "ERROR! ListenTCP: %v", err)
+      os.Exit(1)
+    }
+    util.Log(1, "INFO! Accepting connections on %v", tcp_addr);
+    go acceptConnections(listener, connections)
+  }
+  
+  connectionTracker := deque.New()
+  go func() {
+    for {
+      connectionTracker.WaitForItem(0)
+      connectionTracker.WaitForEmpty(0)
+      if !ListenForConnections { os.Exit(0) }
+    }
+  }()
   
   /********************  main event loop ***********************/  
   for{ 
@@ -143,36 +163,40 @@ and issue the "help" command to get instructions.
       case sig := <-signals : //os.Signal
                     util.Log(1, "Received signal \"%v\"", sig)
                     
-      case conn:= <-tcp_connections : // *net.TCPConn
+      case conn:= <-connections : // *net.TCPConn
                     util.Log(1, "INFO! Incoming TCP request from %v", conn.RemoteAddr())
-                    go util.WithPanicHandler(func(){handle_request(conn)})
+                    go util.WithPanicHandler(func(){handle_request(conn, connectionTracker)})
     }
   }
 }
 
-// Accepts TCP connections on listener and sends them on the channel tcp_connections.
-func acceptConnections(listener *net.TCPListener, tcp_connections chan<- *net.TCPConn) {
+// Accepts TCP connections on listener and sends them on the channel connections.
+func acceptConnections(listener *net.TCPListener, connections chan<- net.Conn) {
   for {
     tcpConn, err := listener.AcceptTCP()
     if err != nil { 
       util.Log(0, "ERROR! AcceptTCP: %v", err) 
     } else {
-      tcp_connections <- tcpConn
+      connections <- tcpConn
     }
   }
 }
 
 // Handles one or more messages received over conn. Each message is a single
 // line terminated by \n. The message may be encrypted as by message.GosaEncrypt().
-func handle_request(conn *net.TCPConn) {
+func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
+  connectionTracker.Push(true)
+  defer connectionTracker.Pop()
   defer conn.Close()
   defer util.Log(1, "INFO! Connection to %v closed", conn.RemoteAddr())
   
   var err error
   
-  err = conn.SetKeepAlive(true)
-  if err != nil {
-    util.Log(0, "ERROR! SetKeepAlive: %v", err)
+  if tcpconn,ok := conn.(*net.TCPConn); ok {
+    err = tcpconn.SetKeepAlive(true)
+    if err != nil {
+      util.Log(0, "ERROR! SetKeepAlive: %v", err)
+    }
   }
   
   // If the user does not specify any machines in the command,
@@ -242,7 +266,7 @@ func handle_request(conn *net.TCPConn) {
       start += eol+1
       if message != "" { // ignore empty lines
         var reply string
-        reply,repeat = processMessage(message, &jobs, conn.RemoteAddr().(*net.TCPAddr))
+        reply,repeat = processMessage(message, &jobs)
         repeat_command = message + "\n"
         
         // if we already have more data, cancel repeat immediately
@@ -288,7 +312,7 @@ func (j *jobDescriptor) HasTime() bool { return j.Time != "" }
 // Returns:
 //  reply: text to send back to the requestor
 //  repeat: if non-0, if the requestor does not send anything within that time, repeat the same command
-func processMessage(msg string, joblist *[]jobDescriptor, remote_addr *net.TCPAddr) (reply string, repeat time.Duration) {
+func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat time.Duration) {
   fields := strings.Fields(msg)
   cmd := fields[0] // always present because msg is non-empty
   i := 0
@@ -724,6 +748,8 @@ func ReadArgs(args []string) {
       } else {
         config.ServerConfigPath = args[i]
       }
+    } else if arg == "-l" {
+      ListenForConnections = true
     } else if arg == "--help" {
     
       config.PrintHelp = true
@@ -745,3 +771,45 @@ func ReadArgs(args []string) {
   }
 }
 
+type ReaderWriterConnection struct {
+  reader io.Reader
+  writer io.Writer
+}
+
+func (conn *ReaderWriterConnection) Read(b []byte) (n int, err error) {
+  return conn.reader.Read(b)
+}
+
+
+func (conn *ReaderWriterConnection) Write(b []byte) (n int, err error) {
+  return conn.writer.Write(b)
+}
+
+func (conn *ReaderWriterConnection) Close() error {
+  var err1 error
+  var err2 error
+  if closer, ok := conn.reader.(io.Closer); ok {
+    err1 = closer.Close()
+  }
+  if closer, ok := conn.writer.(io.Closer); ok {
+    err2 = closer.Close()
+  }
+  if err1 != nil { return err1 }
+  return err2
+}
+
+func (conn *ReaderWriterConnection) LocalAddr() net.Addr {
+  return &net.UnixAddr{fmt.Sprintf("%v/%v",conn.reader,conn.writer),"ReaderWriterConnection"}
+}
+
+func (conn *ReaderWriterConnection) RemoteAddr() net.Addr { return conn.LocalAddr() }
+
+func (conn *ReaderWriterConnection) SetDeadline(t time.Time) error {return nil}
+
+func (conn *ReaderWriterConnection) SetReadDeadline(t time.Time) error {return nil}
+
+func (conn *ReaderWriterConnection) SetWriteDeadline(t time.Time) error {return nil}
+
+func NewReaderWriterConnection(r io.Reader, w io.Writer) *ReaderWriterConnection {
+  return &ReaderWriterConnection{r,w}
+}
