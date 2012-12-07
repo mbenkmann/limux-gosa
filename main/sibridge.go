@@ -116,6 +116,11 @@ Commands:
 
   examine, x: Print one line info about machine(s).
               Argument types: Machine
+              Client states: x_x o_o o_O ^_^ X_x x_X o_^ ^.^
+              Server states: X_X O_O @_@ O_@ x_~ O_~ @_~ ^_~
+                        SSH:     yes     yes     yes     yes
+                  si-client:         yes yes         yes yes
+                  si-server:                 yes yes yes yes
 
   query_jobdb, query_jobs, jobs: 
               Query jobs matching the arguments.
@@ -147,6 +152,11 @@ var BatchCommands bytes.Buffer
 
 // Files passed via -f that are not ordinary files.
 var SpecialFiles = []string{}
+
+// nothing, SSH only, si-client only, SSH+si-client
+// si-server + ...
+var ClientStates = []string{"x_x", "o_o", "o_O", "^_^", "X_x", "x_X", "o_^", "^.^"}
+var ServerStates = []string{"X_X", "O_O", "@_@", "O_@", "x_~", "O_~", "@_~", "^_~"}
 
 func main() {
   // This is NOT config.ReadArgs() !!
@@ -582,20 +592,23 @@ func commandExamine(joblist *[]jobDescriptor) (reply string) {
   for _, j := range *joblist {
     if j.Name == "*" { continue }
     
-    ssh_reachable := make(chan bool, 2)
-    go func() {
-      conn, err := net.Dial("tcp", j.IP+":22")
-      if err != nil {
-        ssh_reachable <- false
-      } else {
-        conn.Close()
-        ssh_reachable <- true
-      }
-    }()
+    ports := []string{"22","20083","20081"}
+    reachable := []chan int{make(chan int, 2),make(chan int, 2),make(chan int, 2)}
+    for i := range ports {
+      go func(port string, c chan int) {
+        conn, err := net.Dial("tcp", j.IP+":"+port)
+        if err != nil {
+          c <- 0
+        } else {
+          conn.Close()
+          c <- 1
+        }
+      }(ports[i],reachable[i])
+    }
     
     go func() {
       time.Sleep(250*time.Millisecond)
-      ssh_reachable <- false
+      for i := range reachable { reachable[i] <- 0 }
     }()
     
     gotomode := db.SystemGetState(j.MAC, "gotoMode")
@@ -603,9 +616,13 @@ func commandExamine(joblist *[]jobDescriptor) (reply string) {
     faiclass := db.SystemGetState(j.MAC, "faiclass")
     release := "unknown"
     if strings.Index(faiclass,":")>=0 { release = faiclass[strings.Index(faiclass,":"):] }
-    ssh := <- ssh_reachable
     if reply != "" { reply += "\n" }
-    if ssh { reply += "+ " } else { reply += "- " }
+    if db.SystemIsWorkstation(j.MAC) {
+      reply += ClientStates[<-reachable[0]+ <-reachable[1]*2 + <-reachable[2]*4]
+    } else {
+      reply += ServerStates[<-reachable[0]+ <-reachable[1]*2 + <-reachable[2]*4]
+    }
+    reply += " "
     reply += fmt.Sprintf("%v %v (%v) \"%v\" %v",gotomode,j.MAC,j.Name,faistate,release)
   }
   
