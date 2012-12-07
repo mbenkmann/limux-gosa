@@ -419,13 +419,15 @@ func processMessage(msg string, joblist *[]jobDescriptor, remote_addr *net.TCPAd
 }
 
 func commandJob(joblist *[]jobDescriptor) (reply string) {
+  reply = "NO JOBS"
   for _, j := range *joblist {
     if j.Name == "*" { continue }
     
     if reply != "" {reply = reply + "\n" }
     reply = reply + fmt.Sprintf("=> %-10v %v  %v (%v)", j.Job, util.ParseTimestamp(j.Date+j.Time).Format("2006-01-02 15:04:05"), j.MAC, j.Name)
     xmlmess := fmt.Sprintf("<xml><header>job_trigger_action_%v</header><source>GOSA</source><target>%v</target><macaddress>%v</macaddress><timestamp>%v</timestamp></xml>", j.Job, j.MAC, j.MAC, j.Date+j.Time)
-    util.Log(2, "DEBUG! %v",xmlmess)
+    reply = <- message.Peer(TargetAddress).Ask(xmlmess, config.ModuleKey["[GOsaPackages]"])
+    reply = parseGosaReply(reply)
   }
   return reply
 }
@@ -541,7 +543,11 @@ func commandGosa(header string, use_job_type bool, joblist *[]jobDescriptor) (re
 
   gosa_cmd := "<xml><header>"+header+"</header><source>GOSA</source><target>GOSA</target><where>"+clauses+"</where></xml>"
   reply = <- message.Peer(TargetAddress).Ask(gosa_cmd, config.ModuleKey["[GOsaPackages]"])
-  x, err := xml.StringToHash(reply)
+  return parseGosaReply(reply)
+}
+
+func parseGosaReply(reply_from_gosa string) string {
+  x, err := xml.StringToHash(reply_from_gosa)
   if err != nil { return fmt.Sprintf("! %v",err) }
   if x.First("error_string") != nil { return fmt.Sprintf("! %v", x.Text("error_string")) }
   if x.First("answer1") == nil { return "NO MATCH" }
@@ -549,7 +555,7 @@ func commandGosa(header string, use_job_type bool, joblist *[]jobDescriptor) (re
       // workaround for gosa-si bug
      strings.HasPrefix(x.Text("answer1"),"ARRAY") { return "OK" }
   
-  reply = ""
+  reply := ""
   for _, tag := range x.Subtags() {
     if !strings.HasPrefix(tag, "answer") { continue }
     for answer := x.First(tag); answer != nil; answer = answer.Next() {
