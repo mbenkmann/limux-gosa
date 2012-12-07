@@ -98,5 +98,12 @@ func DB_test() {
   }
   
   check(len(db.SystemNetworksKnown())>0, true)
+  
+  check(db.SystemIsWorkstation("dontexist"), false)
+  check(db.SystemIsWorkstation(db.SystemMACForName("www.mit.edu")), false)
+  check(db.SystemIsWorkstation(db.SystemMACForName("wikipedia-lb")), false)
+  check(db.SystemIsWorkstation(db.SystemMACForName("systest1")), true)
+  check(db.SystemIsWorkstation(db.SystemMACForName("systest2")), true)
+  check(db.SystemIsWorkstation(db.SystemMACForName("systest3")), true)
 }
 

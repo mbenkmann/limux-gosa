@@ -236,6 +236,13 @@ func SystemMACForName(host string) string {
   return mac
 }
 
+// Returns true if the system identified by macaddress is known to be
+// a workstation (rather than a server).
+func SystemIsWorkstation(macaddress string) bool {
+  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=gotoWorkstation)(macaddress=%v)%v)",macaddress, config.UnitTagFilter),"macaddress"))
+  return (err == nil && system.First("macaddress") != nil)
+}
+
 // Returns a list of domains (all beginning with a ".", e.g. ".example.com")
 // go-susi has learned from a variety of sources. These domains can be used
 // to guess fully qualified names from short names that cannot be resolved by 
