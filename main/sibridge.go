@@ -578,7 +578,7 @@ func commandJob(joblist *[]jobDescriptor) (reply string) {
     if j.Name == "*" { continue }
     
     if reply != "" {reply = reply + "\n" }
-    reply = reply + fmt.Sprintf("=> %-10v %v  %v (%v)", j.Job, util.ParseTimestamp(j.Date+j.Time).Format("2006-01-02 15:04:05"), j.MAC, j.Name)
+    reply = reply + fmt.Sprintf("=> %-10v %v  %v (%v)\n", j.Job, util.ParseTimestamp(j.Date+j.Time).Format("2006-01-02 15:04:05"), j.MAC, j.Name)
     xmlmess := fmt.Sprintf("<xml><header>job_trigger_action_%v</header><source>GOSA</source><target>%v</target><macaddress>%v</macaddress><timestamp>%v</timestamp></xml>", j.Job, j.MAC, j.MAC, j.Date+j.Time)
     gosa_reply := <- message.Peer(TargetAddress).Ask(xmlmess, config.ModuleKey["[GOsaPackages]"])
     reply += parseGosaReply(gosa_reply)
