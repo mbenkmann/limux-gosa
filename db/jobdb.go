@@ -97,8 +97,8 @@ var MostRecentForwardModifyRequestTime = deque.New([]interface{}{time.Now().Add(
 var updatableFields = []string{"progress", "status", "periodic", "timestamp", "result"}
 
 // A packaged request to perform some action on the jobDB.
-// Most db.Job...() functions are just stubs that push
-// a jobDBRequest into the jobDBRequests channel and then return.
+// Most db.Job...() functions attach their core code to a jobDBRequest,
+// push that into the jobDBRequests channel and then return.
 type jobDBRequest struct {
   // The function to execute. It is passed a pointer to its own request.
   Action func(request *jobDBRequest)
