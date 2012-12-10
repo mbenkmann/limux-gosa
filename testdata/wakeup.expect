@@ -2,8 +2,8 @@
 
 # Script for testing the wakeup command.
 
-set testserver "devmaster.tvc.muenchen.de"
-set testclient "nova"
+set testserver "SERVER"
+set testclient "CLIENT_TO_WAKE_UP"
 
 
 # If any of the expected output does not appear within 180s, abort with error
@@ -26,8 +26,7 @@ puts "Waiting for the test machine to be shut down...\n"
 send "xx\n"
 
 expect {
-# ATTENTION! -ex flag is necessary because pattern starts with a "-".
-  -ex "- active" {} 
+  "x_x active" {} 
   timeout    { puts "TEST FAILED!" ; exit 1; }
 }
 
@@ -37,10 +36,12 @@ send "wake\n"
 expect "OK"
 send "xx\n"
 expect {
-  "+ active" {}
+    # \n is in the pattern to prevent ^ from being treated as anchor
+  "\n^_^ active" {}
   timeout    { puts "TEST FAILED!" ; exit 1; }
 }  
 
 puts "TEST SUCCESSFUL!\n"
 puts "Shutting down the test machine again...\n"
-send "halt 10s\n"
+send "halt\n"
+expect "OK"
