@@ -23,10 +23,13 @@ package tests
 import (
          "fmt"
          "log"
+         "time"
          "bytes"
          "strings"
+         "io/ioutil"
          
          "../db"
+         "../xml"
          "../util"
          "../config"
        )
@@ -35,9 +38,12 @@ import (
 func DB_test() {
   fmt.Printf("\n==== db ===\n\n")
 
-  check(db.JobGUID("0.0.0.0:0", 0), "00")
-  check(db.JobGUID("255.255.255.255:65535", 18446744073709551615), "18446744073709551615281474976710655")
-  check(db.JobGUID("1.2.3.4:20081", 18446744073709551615), "1844674407370955161586247305576961")
+  jobdb_test()
+  serverdb_test()
+}
+
+func serverdb_test() {  
+  db.ServersInit()
   
   server1 := hash("xml(header(new_server)key(foo)macaddress(00:17:31:a1:f8:19)source(172.16.2.52:20081)target(172.16.2.83:20081))")
   db.ServerUpdate(server1)
@@ -105,5 +111,30 @@ func DB_test() {
   check(db.SystemIsWorkstation(db.SystemMACForName("systest1")), true)
   check(db.SystemIsWorkstation(db.SystemMACForName("systest2")), true)
   check(db.SystemIsWorkstation(db.SystemMACForName("systest3")), true)
+}
+
+func jobdb_test() {
+  check(db.JobGUID("0.0.0.0:0", 0), "00")
+  check(db.JobGUID("255.255.255.255:65535", 18446744073709551615), "18446744073709551615281474976710655")
+  check(db.JobGUID("1.2.3.4:20081", 18446744073709551615), "1844674407370955161586247305576961")
+
+  data, err := ioutil.ReadFile("testdata/jobdb-test.xml")
+  if err != nil { panic(err) }
+  data = []byte(strings.Replace(strings.Join(strings.Fields(string(data)),""),"LOCAL",config.ServerSourceAddress,-1))
+  err = ioutil.WriteFile(config.JobDBPath, data, 0644)
+  if err != nil { panic(err) }
+  
+  db.JobsInit()
+  
+  // wait a little for jobs with timestamp in the past to go to status "processing"
+  time.Sleep(1*time.Second)
+  
+  jobs := db.JobsQuery(xml.FilterAll)
+  check(len(jobs.Get("job")),1)
+  check(jobs.First("job").Text("siserver"), config.ServerSourceAddress)
+  check(jobs.First("job").Text("status"), "processing")
+  
+  // check that id of next job added is 5
+  
 }
 
