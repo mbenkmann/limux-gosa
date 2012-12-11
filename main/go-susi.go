@@ -135,6 +135,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   go acceptConnections(listener, tcp_connections)
   
   go message.Broadcast_new_server()
+  go message.DistributeForeignJobUpdates()
 
   /********************  main event loop ***********************/  
   for{ 

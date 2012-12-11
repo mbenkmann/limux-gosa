@@ -72,7 +72,7 @@ var jobDB *xml.DB
 // 1000 machines are sending us progress updates at the same time (which we need to
 // forward to our peers).
 // The code that reads from this channel and forwards the messages to the
-// appropriate peers is in peer_connection.go:init()
+// appropriate peers is in peer_connection.go:DistributeForeignJobUpdates()
 //
 // NOTE: A message in this queue may have an empty tag <SyncIfNotGoSusi> attached
 //       at the level of <source>. In this case, PeerConnection.SyncIfNotGoSusi() will
@@ -539,6 +539,7 @@ func JobsAddOrModifyForeign(filter xml.HashFilter, job *xml.Hash) {
     } else // no job matches filter => add job
     {
       job := request.Job
+      job.Rename("job")
       job.FirstOrAdd("original_id").SetText(job.Text("id"))
       job.FirstOrAdd("id").SetText("%d", <-nextID)
       plainname := job.Text("plainname")

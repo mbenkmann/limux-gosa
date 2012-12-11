@@ -437,8 +437,7 @@ func Peer(addr string) *PeerConnection {
 
 // Infinite loop to forward db.ForeignJobUpdates (see jobdb.go) 
 // to the respective targets.
-func init() {
-  go func() {
+func DistributeForeignJobUpdates() {
     for fju := range db.ForeignJobUpdates {
       target := fju.Text("target")
       
@@ -469,7 +468,6 @@ func init() {
         connections_mutex.Unlock()
       }
     }
-  }()
 }
 
 
