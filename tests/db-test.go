@@ -133,8 +133,92 @@ func jobdb_test() {
   check(len(jobs.Get("job")),1)
   check(jobs.First("job").Text("siserver"), config.ServerSourceAddress)
   check(jobs.First("job").Text("status"), "processing")
+  fju := getFJU()
+  if check(len(fju),1) {
+    check(fju[0].First("answer1").Text("status"), "processing")
+    check(fju[0].First("answer1").Text("id"), "4")
+  }
   
-  // check that id of next job added is 5
+  db.JobsAddOrModifyForeign(xml.FilterNone, hash("xml(progress(none)status(waiting)siserver(1.2.3.4:20081)macaddress(11:22:33:44:55:6F)targettag(11:22:33:44:55:6F)timestamp(11110102030405)id(2)headertag(trigger_action_halt))"))
+  time.Sleep(1*time.Second) // wait for plainname to be asynchronously updated
+  jobs = db.JobsQuery(xml.FilterSimple("siserver","1.2.3.4:20081"))
+  if check(jobs.Subtags(), []string{"job"}) {
+    job := jobs.First("job")
+    check(job.Next(), nil)
+    check(job.Text("plainname"), "systest2")
+    check(job.Text("id"), "5")
+    check(job.Text("original_id"), "2")
+    check(job.Text("status"), "waiting")
+    check(job.Text("macaddress"), "11:22:33:44:55:6F")
+  }
   
+  db.JobsAddOrModifyForeign(xml.FilterNone, hash("xml(progress(none)status(waiting)siserver(1.2.3.4:20081)macaddress(11:22:33:44:55:6F)targettag(11:22:33:44:55:6F)timestamp(11110102030405)id(3)headertag(trigger_action_lock))"))
+  db.JobsAddOrModifyForeign(xml.FilterSimple("siserver","1.2.3.4:20081"), hash("xml(timestamp(99991111222222))"))
+  jobs = db.JobsQuery(xml.FilterSimple("siserver","1.2.3.4:20081"))
+  if check(jobs.First("job")!=nil, true) {
+    if check(jobs.First("job").Next()!=nil, true) {
+      check(jobs.First("job").Text("timestamp"), "99991111222222")
+      check(jobs.First("job").Next().Text("timestamp"), "99991111222222")
+      check(jobs.First("job").Next().Text("headertag")!=jobs.First("job").Text("headertag"), true)
+    }
+  }
+  
+  db.JobsAddOrModifyForeign(xml.FilterSimple("siserver","1.2.3.4:20081"), hash("job(status(done))"))
+  check(db.JobsQuery(xml.FilterSimple("siserver","1.2.3.4:20081")), hash("jobdb()"))
+  
+  check(len(getFJU()),0)
+  
+  db.JobsAddOrModifyForeign(xml.FilterNone, hash("xml(progress(none)status(waiting)siserver(1.2.3.4:20081)macaddress(11:22:33:44:55:6F)targettag(11:22:33:44:55:6F)timestamp(11110102030405)id(3)headertag(trigger_action_lock))"))
+  db.JobsAddOrModifyForeign(xml.FilterNone, hash("xml(progress(none)status(waiting)siserver(1.2.3.4:20081)macaddress(11:22:33:44:55:6F)targettag(11:22:33:44:55:6F)timestamp(11110102030405)id(2)headertag(trigger_action_halt))"))
+  db.JobsAddOrModifyForeign(xml.FilterNone, hash("xml(progress(none)status(waiting)siserver(7.7.7.7:20081)macaddress(11:22:33:44:55:6F)targettag(11:22:33:44:55:6F)timestamp(11110102030405)id(2)headertag(trigger_action_halt))"))
+  db.JobsForwardModifyRequest(xml.FilterNot(xml.FilterSimple("siserver",config.ServerSourceAddress)), hash("job(status(done))"))
+  
+  fju = getFJU()
+  if check(len(fju), 2) {
+    if fju[1].Text("target") == "1.2.3.4:20081" { fju[0],fju[1] = fju[1],fju[0] }
+    check(fju[0].First("answer1") != nil, true)
+    check(fju[0].First("answer2") != nil, true)
+    check(fju[0].First("answer1").Text("status"), "done")
+    check(fju[0].First("answer2").Text("status"), "done")
+    
+    check(fju[1].First("answer1") != nil, true)
+    check(fju[1].First("answer1").Text("status"), "done")
+  }
+  
+  db.JobsRemoveForeign(xml.FilterAll)
+  check(db.JobsQuery(xml.FilterAll), hash("jobdb()"))
+  
+  db.JobAddLocal(hash("job(progress(none)status(waiting)siserver(%v)macaddress(11:22:33:44:55:6F)targettag(11:22:33:44:55:6F)timestamp(91110102030405)headertag(trigger_action_lock))",config.ServerSourceAddress))
+  db.JobAddLocal(hash("job(progress(none)status(waiting)siserver(%v)macaddress(11:22:33:44:55:6F)targettag(11:22:33:44:55:6F)timestamp(81110102030405)headertag(trigger_action_lock))",config.ServerSourceAddress))
+  
+  time.Sleep(1*time.Second) // wait for plainname to be filled in
+  
+  fju = getFJU()
+  if check(len(fju), 4) { // 2 without and 2 with plain name
+    check(fju[0].First("answer1").Text("original_id"), "")
+    check(fju[1].First("answer1").Text("original_id"), "")
+    check(fju[2].First("answer1").Text("plainname"), "systest2")
+    check(fju[3].First("answer1").Text("plainname"), "systest2")
+  }
+  
+  jobs = db.JobsQuery(xml.FilterAll)
+  job := jobs.First("job")
+  check(job.Text("plainname"), "systest2")
+  check(job.Text("id"), job.Text("original_id"))
+  job = job.Next()
+  check(job.Text("plainname"), "systest2")
+  check(job.Text("id"), job.Text("original_id"))
+}
+
+func getFJU() []*xml.Hash {
+  db.JobsQuery(xml.FilterNone) // make sure previous calls have been processed
+  ret := []*xml.Hash{}
+  for {
+    select {
+      case f := <- db.ForeignJobUpdates: ret = append(ret, f)
+      default: return ret
+    }
+  }
+  return ret
 }
 
