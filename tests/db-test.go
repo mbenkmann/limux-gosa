@@ -188,8 +188,8 @@ func jobdb_test() {
   db.JobsRemoveForeign(xml.FilterAll)
   check(db.JobsQuery(xml.FilterAll), hash("jobdb()"))
   
-  db.JobAddLocal(hash("job(progress(none)status(waiting)siserver(%v)macaddress(11:22:33:44:55:6F)targettag(11:22:33:44:55:6F)timestamp(91110102030405)headertag(trigger_action_lock))",config.ServerSourceAddress))
-  db.JobAddLocal(hash("job(progress(none)status(waiting)siserver(%v)macaddress(11:22:33:44:55:6F)targettag(11:22:33:44:55:6F)timestamp(81110102030405)headertag(trigger_action_lock))",config.ServerSourceAddress))
+  db.JobAddLocal(hash("job(progress(none)status(waiting)siserver(%v)macaddress(11:22:33:44:55:6F)targettag(11:22:33:44:55:6F)timestamp(91110102030405)headertag(trigger_action_lock)periodic(1_minutes))",config.ServerSourceAddress))
+  db.JobAddLocal(hash("job(progress(none)status(waiting)siserver(%v)macaddress(11:22:33:44:55:6F)targettag(11:22:33:44:55:6F)timestamp(81110102030405)headertag(trigger_action_lock)periodic(1_minutes))",config.ServerSourceAddress))
   
   time.Sleep(1*time.Second) // wait for plainname to be filled in
   
@@ -197,6 +197,8 @@ func jobdb_test() {
   if check(len(fju), 4) { // 2 without and 2 with plain name
     check(fju[0].First("answer1").Text("original_id"), "")
     check(fju[1].First("answer1").Text("original_id"), "")
+    check(fju[0].First("answer1").Text("periodic"), "1_minutes")
+    check(fju[1].First("answer1").Text("periodic"), "1_minutes")
     check(fju[2].First("answer1").Text("plainname"), "systest2")
     check(fju[3].First("answer1").Text("plainname"), "systest2")
   }
@@ -205,9 +207,28 @@ func jobdb_test() {
   job := jobs.First("job")
   check(job.Text("plainname"), "systest2")
   check(job.Text("id"), job.Text("original_id"))
+  check(job.Text("timestamp"), "91110102030405")
   job = job.Next()
   check(job.Text("plainname"), "systest2")
   check(job.Text("id"), job.Text("original_id"))
+  check(job.Text("timestamp"), "81110102030405")
+  
+  db.JobsRemoveLocal(xml.FilterAll, true)
+  fju = getFJU()
+  if check(len(fju), 1) {
+    if check(fju[0].First("answer1")!=nil,true) {
+      check(fju[0].First("answer1").Text("original_id"), "")
+      check(fju[0].First("answer1").Text("periodic"), "none")
+      check(fju[0].First("answer1").Text("status"), "done")
+    }
+    if check(fju[0].First("answer2")!=nil,true) {
+      check(fju[0].First("answer2").Text("periodic"), "none")
+      check(fju[0].First("answer2").Text("status"), "done")
+      check(fju[0].First("answer2").Text("original_id"), "")
+    }
+  }
+  
+  check(db.JobsQuery(xml.FilterAll), hash("jobdb()"))
 }
 
 func getFJU() []*xml.Hash {

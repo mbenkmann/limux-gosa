@@ -480,7 +480,9 @@ func testHash() {
   check(mommy.Next() == mum, true)
   check(mum.Next() == mummy, true) 
   
-  family.AddWithOwnership(family.RemoveFirst("mother"))
+  temp_mother := family.RemoveFirst("mother")
+  check(temp_mother.Verify(),nil)
+  family.AddWithOwnership(temp_mother)
   check(mother.RemoveFirst("not_present"), nil)
   mom := mother.First("abbr")
   mother.AddWithOwnership(mother.RemoveFirst("abbr"))
@@ -493,7 +495,11 @@ func testHash() {
   check(family.Verify(), nil)
   
   ducks    := xml.NewHash("ducks")
+  dewey    := ducks.Add("duck", "dewey")
   donald   := ducks.Add("duck", "donald")
+  first_removed_duck := ducks.RemoveFirst("duck")
+  check(first_removed_duck == dewey, true)
+  check(dewey.Verify(), nil)
   daisy    := ducks.Add("duck", "daisy")
   darkwing := ducks.Add("duck", "darkwing")
   check(ducks.First("duck") == donald, true)
@@ -515,6 +521,28 @@ func testHash() {
   check(darkwing.Next(), nil)
   check(ducks.Verify(), nil)
   check(ducks, "<ducks><duck>donald</duck></ducks>")
+  
+  for num_kids := 1; num_kids < 5; num_kids++ {
+    kids := xml.NewHash("kids")
+    for i := 0; i < num_kids; i++ {
+      kids.Add("kid", fmt.Sprintf("%d",i+1))
+    }
+    test_kids := kids.Clone()
+    check(test_kids.Verify(),nil)
+    test_kid := test_kids.RemoveFirst("kid")
+    if !check(test_kid.Verify(), nil) { fmt.Printf("FAILED for num_kids=%v\n",num_kids) }
+    for i := 1; i < num_kids; i++ {
+       test_kids = kids.Clone()
+       test_kid = test_kids.First("kid")
+       for j := 0; j < i; j++ { test_kid = test_kid.Next() }
+       test_kid = test_kid.RemoveNext(test_kids)
+       if i+1 == num_kids { 
+         check(test_kid, nil) 
+       } else {
+         if !check(test_kid.Verify(), nil) { fmt.Printf("FAILED for num_kids=%v i=%v\n",num_kids,i) }
+       }
+    }
+  }
   
   xyzzy := xml.NewHash("x")
   xyzzy.Add("y","a")

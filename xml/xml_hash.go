@@ -309,9 +309,9 @@ func (self *Hash) RemoveFirst(subtag string) *Hash {
   self.refs[subtag] = next
   if last != next {
     next.refs["/last-sibling"] = last
-    delete(first.refs, "/last-sibling")
   }
   
+  delete(first.refs, "/last-sibling")
   delete(first.refs, "/next")
   return first
 }
