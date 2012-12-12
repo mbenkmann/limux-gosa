@@ -536,6 +536,7 @@ func testHash() {
        test_kid = test_kids.First("kid")
        for j := 0; j < i; j++ { test_kid = test_kid.Next() }
        test_kid = test_kid.RemoveNext(test_kids)
+       check(test_kids.Verify(),nil)
        if i+1 == num_kids { 
          check(test_kid, nil) 
        } else {
