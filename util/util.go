@@ -73,7 +73,13 @@ func Counter(start uint64) chan uint64 {
 // cause more than 10 minutes extra sleep. In no case will this function return
 // until time.Now() >= t.
 func WaitUntil(t time.Time) {
-  for { // for loop because clock might be adjusted while we're sleeping
+  // Wait in a for loop because clock might be adjusted while we're sleeping.
+  // ATTENTION! The check t.After(time.Now()) is NOT REDUNDANT with the check
+  // if dur <= 0 { return }
+  // A time.Duration has a limited range that can not express all differences
+  // between timestamps. Without the t.After(time.Now()) check, extreme timestamps
+  // in the past can cause large wait times due to overflow.
+  for ; t.After(time.Now()); { 
     dur := t.Sub(time.Now())
     if dur <= 0 { return }
     // wake up every 10 minutes to deal with clock adjustments (DST etc.)

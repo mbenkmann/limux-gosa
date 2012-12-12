@@ -368,5 +368,21 @@ func Util_test() {
   dur = time.Now().Sub(t0)
   if dur >= 1200*time.Millisecond && dur <= 1300*time.Millisecond { dur = 1200*time.Millisecond }
   check(dur, 1200*time.Millisecond)
+  
+  mess := "WaitUntil(Jesus first birthday) takes forever"
+  go func() {
+    util.WaitUntil(time.Date(1, time.December, 25, 0,0,0,0, time.UTC))
+    mess=""
+  }()
+  time.Sleep(100*time.Millisecond)
+  check(mess,"")
+  
+  mess = "WaitUntil(1000-11-10 00:00:00) takes forever"
+  go func() {
+    util.WaitUntil(time.Date(1000, time.October, 11, 0,0,0,0, time.UTC))
+    mess=""
+  }()
+  time.Sleep(100*time.Millisecond)
+  check(mess,"")
 }
 
