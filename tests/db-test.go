@@ -139,6 +139,10 @@ func jobdb_test() {
     check(fju[0].First("answer1").Text("id"), "4")
   }
   
+  if check(db.PendingActions.Count(), 1) {
+    check(db.PendingActions.Next().(*xml.Hash).Text("headertag"), "trigger_action_lock")
+  }
+  
   db.JobsAddOrModifyForeign(xml.FilterNone, hash("xml(progress(none)status(waiting)siserver(1.2.3.4:20081)macaddress(11:22:33:44:55:6F)targettag(11:22:33:44:55:6F)timestamp(11110102030405)id(2)headertag(trigger_action_halt))"))
   time.Sleep(1*time.Second) // wait for plainname to be asynchronously updated
   jobs = db.JobsQuery(xml.FilterSimple("siserver","1.2.3.4:20081"))
@@ -213,7 +217,7 @@ func jobdb_test() {
   check(job.Text("id"), job.Text("original_id"))
   check(job.Text("timestamp"), "81110102030405")
   
-  db.JobsRemoveLocal(xml.FilterAll, true)
+  db.JobsModifyLocal(xml.FilterAll, hash("job(status(done)periodic())"))
   fju = getFJU()
   if check(len(fju), 1) {
     if check(fju[0].First("answer1")!=nil,true) {
@@ -227,8 +231,66 @@ func jobdb_test() {
       check(fju[0].First("answer2").Text("original_id"), "")
     }
   }
-  
   check(db.JobsQuery(xml.FilterAll), hash("jobdb()"))
+  if check(db.PendingActions.Count(), 2) {
+    job = db.PendingActions.Next().(*xml.Hash)
+    check(job.Text("original_id"), "")
+    check(job.Text("periodic"), "none")
+    check(job.Text("status"), "done")
+    job = db.PendingActions.Next().(*xml.Hash)
+    check(job.Text("original_id"), "")
+    check(job.Text("periodic"), "none")
+    check(job.Text("status"), "done")
+  }
+  
+  db.JobAddLocal(hash("job(progress(none)status(waiting)siserver(%v)macaddress(11:22:33:44:55:6F)targettag(11:22:33:44:55:6F)timestamp(91110102030405)headertag(trigger_action_lock)periodic(1_minutes))",config.ServerSourceAddress))
+  db.JobAddLocal(hash("job(progress(none)status(waiting)siserver(%v)macaddress(11:22:33:44:55:6F)targettag(11:22:33:44:55:6F)timestamp(81110102030405)headertag(trigger_action_lock)periodic(1_minutes))",config.ServerSourceAddress))
+  
+  time.Sleep(1*time.Second) // wait for plainname to be filled in
+  getFJU()
+  
+  db.JobsModifyLocal(xml.FilterNone, hash("job(status(error))"))
+  check(getFJU(), []*xml.Hash{})
+  
+  db.JobsModifyLocal(xml.FilterAll, hash("job(timestamp(10001011000000))"))
+  time.Sleep(200*time.Millisecond) // wait for job to enter processing state
+  fju = getFJU()
+  if check(len(fju), 2) { // 1 for the timestamp change, 1 for waiting=>processing
+    check(fju[0].First("answer1").Text("periodic"), "1_minutes")
+    check(fju[0].First("answer1").Text("status"), "waiting")
+    check(fju[0].First("answer1").Text("timestamp"), "10001011000000")
+    check(fju[1].First("answer1").Text("periodic"), "1_minutes")
+    check(fju[1].First("answer1").Text("status"), "processing")
+    check(fju[1].First("answer1").Text("timestamp"), "10001011000000")
+  }
+  
+  if check(db.PendingActions.Count(), 2) {
+    job = db.PendingActions.Next().(*xml.Hash)
+    check(job.Text("timestamp"), "10001011000000")
+    check(job.Text("periodic"), "1_minutes")
+    check(job.Text("status"), "processing")
+    job = db.PendingActions.Next().(*xml.Hash)
+    check(job.Text("timestamp"), "10001011000000")
+    check(job.Text("periodic"), "1_minutes")
+    check(job.Text("status"), "processing")
+  }
+  
+  jobs = db.JobsQuery(xml.FilterAll)
+  job = jobs.First("job")
+  check(job.Text("plainname"), "systest2")
+  check(job.Text("id"), job.Text("original_id"))
+  check(job.Text("timestamp"), "10001011000000")
+  check(job.Text("periodic"), "1_minutes")
+  check(job.Text("status"), "processing")
+  check(job.Text("headertag"), "trigger_action_lock")
+  job = job.Next()
+  check(job.Text("plainname"), "systest2")
+  check(job.Text("id"), job.Text("original_id"))
+  check(job.Text("timestamp"), "10001011000000")
+  check(job.Text("periodic"), "1_minutes")
+  check(job.Text("status"), "processing")
+  check(job.Text("headertag"), "trigger_action_lock")
+  
 }
 
 func getFJU() []*xml.Hash {
