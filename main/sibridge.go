@@ -573,7 +573,7 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
 }
 
 func commandJob(joblist *[]jobDescriptor) (reply string) {
-  reply = "NO JOBS"
+  reply = ""
   for _, j := range *joblist {
     if j.Name == "*" { continue }
     
@@ -583,6 +583,7 @@ func commandJob(joblist *[]jobDescriptor) (reply string) {
     gosa_reply := <- message.Peer(TargetAddress).Ask(xmlmess, config.ModuleKey["[GOsaPackages]"])
     reply += parseGosaReply(gosa_reply)
   }
+  if reply == "" { reply = "NO JOBS" }
   return reply
 }
 
