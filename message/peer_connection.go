@@ -45,10 +45,9 @@ import (
 //     a single goroutine/thread). Replies are not permitted in this case (because
 //     proper synchronization is hard to achieve when some messages have and others
 //     don't have replies).
-//
-// The primary use for the synchronous channel is the sending of 
-// foreign_job_updates, to make sure they all arrive in a well-defined order.
-// See documentation in jobdb.go at handleJobDBRequests() for more information.
+//     The primary use for the synchronous channel is the sending of 
+//     foreign_job_updates, to make sure they all arrive in a well-defined order.
+//     See documentation in jobdb.go at handleJobDBRequests() for more information.
 type PeerConnection struct {
   // true when the peer is known to speak the go-susi protocol.
   is_gosusi bool

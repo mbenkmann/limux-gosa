@@ -61,7 +61,8 @@ func UnitTests() {
   Deque_test()
   Util_test()
   Xml_test()
-  DB_test()
+  DB_test() // Must run before Message_test()
+  Message_test() // DB_test() must run before this to init db.*
 }
 
 
