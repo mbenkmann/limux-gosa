@@ -5,8 +5,6 @@ import (
          "net"
          "fmt"
          "time"
-         "sync"
-         "bytes"
          "runtime"
          "syscall"
          "strings"
@@ -17,145 +15,16 @@ import (
          "../db"
          "../xml"
          "../util"
-         "../util/deque"
          "../config"
          "../message"
        )
 
-type queueElement struct {
-  // the decoded message. If an error occurred during decoding, this will be
-  // <error>Message</error>.
-  XML *xml.Hash
-  // The time at which the message was received.
-  Time time.Time
-  // The key with which the message was encrypted.
-  Key string
-  // IP address of sender.
-  SenderIP string 
-}
-
-// All incoming messages are appended to the queue. Access protected by queue_mutex
-var queue = []*queueElement{}
-// queue must only be accessed while holding queue_mutex.
-var queue_mutex sync.Mutex
-
-// returns all messages currently in the queue that were received at time t or later.
-func get(t time.Time) []*queueElement {
-  queue_mutex.Lock()
-  defer queue_mutex.Unlock()
-  
-  result := []*queueElement{}
-  for _, q := range queue {
-    if !q.Time.Before(t) {
-      result = append(result, q)
-    }
-  }
-  
-  return result
-}
-
-// Waits at most until time t+reply_timeout for a message that is/was received
-// at time t or later with the given header and returns that message. If none
-// is received within the timeframe, a dummy message is returned.
-func wait(t time.Time, header string) *queueElement {
-  end_time := t.Add(reply_timeout)
-  for ; !time.Now().After(end_time);  {
-    queue_mutex.Lock()
-    for _, q := range queue {
-      if !q.Time.Before(t) && q.XML.Text("header") == header {
-        queue_mutex.Unlock()
-        return q
-      }
-    }
-    queue_mutex.Unlock()
-    time.Sleep(100*time.Millisecond)
-  }
-  
-  return &queueElement{xml.NewHash("xml"), time.Now(), "", "0.0.0.0"}
-}
-
-// sends the xml message x to the gosa-si/go-susi server being tested
-// (config.ServerSourceAddress) encrypted with the module key identified by keyid
-// (e.g. "[ServerPackages]"). Use keyid "" to select the server key exchanged via
-// new_server/confirm_new_server
-// If x does not have <target> and/or <source> elements, they will be added
-// with the values config.ServerSourceAddress and listen_address respectively.
-//
-// ATTENTION! This method does not wait for a reply from the server.
-// Therefore you will usually need to wait a little for the server to have
-// processed the message before checking for effects.
-func send(keyid string, x *xml.Hash) {
-  var key string
-  if keyid == "" { key = keys[0] } else 
-  { 
-    key = config.ModuleKey[keyid] 
-  }
-  if x.First("source") == nil {
-    x.Add("source", listen_address)
-  }
-  if x.First("target") == nil {
-    x.Add("target", config.ServerSourceAddress)
-  }
-  util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(x.String(), key), config.Timeout)
-}
-
-// Sends a GOSA message to the server being tested and
-// returns the reply.
-// Automatically adds <header>gosa_typ</header> (unless typ starts with "job_" 
-// or "gosa_" in which case <header>typ</header> will be used.)
-// and <source>GOSA</source> as well as <target>GOSA</target> (unless a subelement
-// of the respective name is already present).
-func gosa(typ string, x *xml.Hash) *xml.Hash {
-  if !strings.HasPrefix(typ, "gosa_") && !strings.HasPrefix(typ, "job_") {
-    typ = "gosa_" + typ
-  }
-  if x.First("header") == nil {
-    x.Add("header", typ)
-  }
-  if x.First("source") == nil {
-    x.Add("source", "GOSA")
-  }
-  if x.First("target") == nil {
-    x.Add("target", "GOSA")
-  }
-  conn, err := net.Dial("tcp", config.ServerSourceAddress)
-  if err != nil {
-    util.Log(0, "ERROR! Dial: %v", err)
-    return xml.NewHash("error")
-  }
-  defer conn.Close()
-  util.SendLn(conn, message.GosaEncrypt(x.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
-  reply := message.GosaDecrypt(util.ReadLn(conn, config.Timeout), config.ModuleKey["[GOsaPackages]"])
-  x, err = xml.StringToHash(reply)
-  if err != nil { x = xml.NewHash("error") }
-  return x
-}
 
 // true if we're testing gosa-si instead of go-susi
 var gosasi bool
 
 // true if the daemon we're testing was launched by us (rather than being prelaunched)
 var launched_daemon bool
-
-// max time to wait for a reply
-var reply_timeout = 2000 * time.Millisecond
-
-// port the test server listens on for new_server etc.
-var listen_port = "18340" 
-
-// host:port address of the test server.
-var listen_address string
-
-// the listener of the test server
-var listener net.Listener
-
-// Elements of type net.Conn for all current active incoming connections
-// handled by handleConnection()
-var active_connections = deque.New()
-
-// keys[0] is the key of the test server started by listen(). The other
-// elements are copies of config.ModuleKeys
-var keys []string
 
 // start time of SystemTest()
 var StartTime time.Time
@@ -232,7 +101,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   //   listen_address is the address of the test server run by listen()
   //   config.ServerSourceAddress is the address of the go-susi or gosa-si being tested  
   
-
+  init_keys()
   run_startup_tests()
   
   check_connection_drop_on_error1()
@@ -786,10 +655,6 @@ func run_job_processing_tests() {
 }
 
 func run_startup_tests() {
-  keys = make([]string, len(config.ModuleKeys)+1)
-  for i := range config.ModuleKeys { keys[i+1] = config.ModuleKeys[i] }
-  keys[0] = "none"
-  
   if launched_daemon {
     check_new_server_on_startup(Jobs[0])
   } else {
@@ -1384,157 +1249,4 @@ func siFail(x interface{}, expected interface{}) bool {
   return true
 }
 
-
-// sets up a listening port that receives messages, decrypts them and
-// stores them in the queue.
-func listen() {
-  var err error
-  listener, err = net.Listen("tcp", ":" + listen_port)
-  if err != nil { panic(fmt.Sprintf("Test cannot run. Fatal error: %v", err)) }
-  
-  go func() {
-    defer listener.Close()
-    
-    for {
-      conn, err := listener.Accept()
-      if err != nil { return }
-      
-      go handleConnection(conn)
-    }
-  }()
-}
-
-// handles an individual connection received by listen().
-func handleConnection(conn net.Conn) {
-  defer conn.Close()
-  active_connections.Push(conn)
-  defer active_connections.Remove(conn)
-  
-  senderIP,_,_ := net.SplitHostPort(conn.RemoteAddr().String())
-  // translate loopback address to our own external IP  
-  if senderIP == "127.0.0.1" { senderIP = config.IP }
-  
-  conn.(*net.TCPConn).SetKeepAlive(true)
-  
-  var err error
-  
-  var buf = make([]byte, 65536)
-  i := 0
-  n := 1
-  for n != 0 {
-    n, err = conn.Read(buf[i:])
-    i += n
-    
-    if err != nil && err != io.EOF {
-      break
-    }
-    if err == io.EOF {
-      err = nil
-      break
-    }
-    if n == 0 && err == nil {
-      err = fmt.Errorf("Read 0 bytes but no error reported")
-      break
-    }
-    
-    if i == len(buf) {
-      buf_new := make([]byte, len(buf)+65536)
-      copy(buf_new, buf)
-      buf = buf_new
-    }
-
-    // Find complete lines terminated by '\n' and process them.
-    for start := 0;; {
-      eol := bytes.IndexByte(buf[start:i], '\n')
-      
-      // no \n found, go back to reading from the connection
-      // after purging the bytes processed so far
-      if eol < 0 {
-        copy(buf[0:], buf[start:i]) 
-        i -= start
-        break
-      }
-      
-      // process the message and get a reply (if applicable)
-      reply := processMessage(string(buf[start:start+eol]), senderIP)
-      if reply != "" { util.SendLn(conn, reply, 5*time.Second) }
-      start += eol+1
-    }
-  }
-  
-  if  i != 0 {
-    err = fmt.Errorf("ERROR! Incomplete message (i.e. not terminated by \"\\n\") of %v bytes: %v", i, buf[0:i])
-  }
-  
-  if err != nil {
-    msg := queueElement{}
-    msg.XML = hash("error(%v)", err)
-    msg.Time = time.Now()
-    msg.SenderIP = senderIP
-  
-    queue_mutex.Lock()
-    defer queue_mutex.Unlock()
-    queue = append(queue, &msg)
-  }
-}
-
-func processMessage(str string, senderIP string) string {
-  var err error
-  msg := queueElement{}
-  
-  decrypted := ""
-  for _, msg.Key = range keys {
-    decrypted = message.GosaDecrypt(str, msg.Key)
-    if decrypted != "" { break }
-  }
-  if decrypted == "" {
-    err = fmt.Errorf("Could not decrypt message")
-  } else {
-    msg.XML, err = xml.StringToHash(decrypted)
-  }
-
-  if err != nil {
-    msg.XML = hash("error(%v)", err)
-  }
-
-  // if we get a new_server or confirm_new_server message, update our server key  
-  header := msg.XML.Text("header")
-  if header == "new_server" || header == "confirm_new_server" {
-    keys = append(keys, keys[0])
-    keys[0] = msg.XML.Text("key")
-  }
-  
-  // The test server advertises "goSusi" in loaded_modules, so it is
-  // required to confirm changes made to its jobs via foreign_job_updates
-  if header == "foreign_job_updates" {
-    for _, tag := range msg.XML.Subtags() {
-      if !strings.HasPrefix(tag, "answer") { continue }
-      for job := msg.XML.First(tag); job != nil; job = job.Next() {
-        if job.Text("siserver") == listen_address {
-          fju := xml.NewHash("xml","header","foreign_job_updates")
-          fju.AddClone(job)
-          send("", fju)
-        }
-      }
-    }
-  }
-  
-  
-  msg.Time = time.Now()
-  msg.SenderIP = senderIP
-  //fmt.Printf("Received %v\n", msg.XML.String())
-  
-  queue_mutex.Lock()
-  defer queue_mutex.Unlock()
-  queue = append(queue, &msg)
-  
-  // Because initially go-susi doesn't know that we're also "goSusi"
-  // it may ask as for our database, so we need to be able to respond
-  if header == "gosa_query_jobdb" {
-    emptydb := fmt.Sprintf("<xml><header>query_jobdb</header><source>%v</source><target>GOSA</target></xml>",listen_address)
-    return message.GosaEncrypt(emptydb, config.ModuleKey["[GOsaPackages]"])
-  }
-  
-  return ""
-}
 

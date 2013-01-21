@@ -293,15 +293,4 @@ func jobdb_test() {
   
 }
 
-func getFJU() []*xml.Hash {
-  db.JobsQuery(xml.FilterNone) // make sure previous calls have been processed
-  ret := []*xml.Hash{}
-  for {
-    select {
-      case f := <- db.ForeignJobUpdates: ret = append(ret, f)
-      default: return ret
-    }
-  }
-  return ret
-}
 
