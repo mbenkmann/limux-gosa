@@ -100,6 +100,10 @@ var LogLevel int
 // is exceeded, the transmission is aborted.
 var Timeout = 5 * time.Minute
 
+// If a peer is down for more than this time, its jobs are removed from the
+// database.
+var MaxPeerDowntime = 7 * 24 * time.Hour
+
 // When a request comes in from GOsa to modify or delete a foreign job,
 // go-susi does not apply it directly to its own jobdb. Instead it
 // forwards the request to the responsible siserver. Because of this,

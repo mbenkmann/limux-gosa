@@ -85,7 +85,7 @@ func (conn *PeerConnection) IsGoSusi() bool {
 }
 
 // Returns how long this peer has been down (0 if everything is okay).
-// After 7 days of downtime, the PeerConnection will first tell the jobdb to
+// After config.MaxPeerDowntime the PeerConnection will first tell the jobdb to
 // remove all jobs whose <siserver> is the broken peer, then the PeerConnection
 // will dismantle itself.
 func (conn *PeerConnection) Downtime() time.Duration {
@@ -132,7 +132,7 @@ func (conn *PeerConnection) Tell(msg, key string) {
 // an error, the reply will be an error reply (as returned by
 // message.ErrorReply()). The returned channel will be buffered and
 // the producer goroutine will close it after writing the reply. This
-// means it is permissible to ignore reply without risk of a 
+// means it is permissible to ignore the reply without risk of a 
 // goroutine leak.
 // If key == "" the first key from db.ServerKeys(peer) is used.
 func (conn *PeerConnection) Ask(request, key string) <-chan string {
@@ -326,7 +326,7 @@ func (conn *PeerConnection) handleConnection() {
           util.Log(2, "DEBUG! handleConnection() SendLn #2 to %v failed: %v", conn.addr,err)
           conn.tcpConn.Close() // if resending failed, make sure connection is closed
           // NOTE: There will be no further retransmission attempts of the message.
-          //       It is now lost. However if get back online again, we will do
+          //       It is now lost. However if the peer comes online again, we will do
           //       a full sync to make up for any lost foreign_job_updates messages.
         } else {
           // resending succeed => We're back in business. Do full sync.
@@ -345,7 +345,8 @@ func (conn *PeerConnection) handleConnection() {
       // we wait a little and then ping the queue which will trigger another attempt
       // to re-establish the connection.
       // We increase the wait interval based on the length of the downtime. 
-      // After a downtime of 7 days we give up, clean remaining jobs associated
+      // After a downtime of config.MaxPeerDowntime we give up, clean remaining 
+      // jobs associated
       // with the peer from the jobdb, then remove this PeerConnection from the
       // list of connections and terminate.
       //
@@ -362,17 +363,17 @@ func (conn *PeerConnection) handleConnection() {
         util.Log(2, "DEBUG! handleConnection() connection to %v failed: %v", conn.addr, err)
         
         // start downtime if it's not already running
-        if conn.whendown == 0 { conn.startDowntime() } 
+        if atomic.LoadInt64(&(conn.whendown)) == 0 { conn.startDowntime() } 
         
         down := conn.Downtime()
         var delay time.Duration
         // For the first 10 minutes we try every 10s to re-establish the connection
-        if down < 10*time.Minute { delay = 10*time.Second } else
+        if down < config.MaxPeerDowntime && down < 10*time.Minute { delay = 10*time.Second } else
         // For the first day we try every 10 minutes
-        if down < 24*time.Hour { delay = 10*time.Minute } else
+        if down < config.MaxPeerDowntime && down < 24*time.Hour { delay = 10*time.Minute } else
         // Then we go to 30 minute intervals
-        if down < 7*24*time.Hour { delay = 30*time.Minute } else
-        // Finally after 7 days we give up
+        if down < config.MaxPeerDowntime { delay = 30*time.Minute } else
+        // Finally we give up
         {
           util.Log(2, "DEBUG! handleConnection() giving up. Removing jobs and PeerConnection for %v", conn.addr)
           db.JobsRemoveForeign(xml.FilterSimple("siserver",conn.addr))
