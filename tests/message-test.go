@@ -23,11 +23,21 @@ package tests
 
 import (
          "fmt"
+         "time"
+         "strings"
          
          "../db"
+         "../util"
          "../config"
          "../message"
        )
+
+func error_string(st string) string {
+  start := strings.Index(st,"<error_string>")
+  stop  := strings.Index(st,"</error_string>")
+  if start < 0 || stop < 0 { return "" }
+  return st[start+14:stop]
+}
 
 // Unit tests for the package go-susi/message.
 func Message_test() {
@@ -47,9 +57,15 @@ func Message_test() {
   // to be reading from this channel.
   defer func(){db.ForeignJobUpdates <- nil}()
   
+  check(error_string(<-message.Peer("Broken").Ask("foo","")),"missing port in address Broken")
+  check(error_string(<-message.Peer("192.168.250.128:55").Ask("foo","")),"PeerConnection.Ask: No key known for peer 192.168.250.128:55")
+  check(error_string(<-message.Peer("127.0.0.1:55551").Ask("foo","bar")),"dial tcp 127.0.0.1:55551: connection refused")
+  
   listen()
   defer func() {listener.Close()}()
   listen_address = config.IP + ":" + listen_port
+  init_keys()
+  db.ServerUpdate(hash("xml(key(%v)source(%v))", keys[0],listen_address))
   
   message.Peer(listen_address).SetGoSusi(true)
   check(message.Peer(listen_address).IsGoSusi(), true)
@@ -57,5 +73,29 @@ func Message_test() {
   check(message.Peer(listen_address).IsGoSusi(), false)
   message.Peer(listen_address).SetGoSusi(true)
   check(message.Peer(listen_address).IsGoSusi(), true)
+  
+  check(message.Peer(listen_address).Downtime(), 0)
+  t0 := time.Now()
+  message.Peer(listen_address).Tell("<xml><header>Hallo</header></xml>", keys[0])
+  check(wait(t0, "Hallo").XML.Text("header"), "Hallo")
+  t0 = time.Now()
+  message.Peer(listen_address).Tell("<xml><header>Aloha</header></xml>", "")
+  check(wait(t0, "Aloha").XML.Text("header"), "Aloha")
+  
+  // suppress error logs
+  oldlevel := util.LogLevel
+  util.LogLevel = -1
+  
+  check(error_string(<-message.Peer(listen_address).Ask("<xml><header>gosa_query_jobdb</header></xml>", config.ModuleKey["[GOsaPackages]"])),"")
+  check(error_string(<-message.Peer(listen_address).Ask("<xml><header>whatever</header></xml>", config.ModuleKey["[GOsaPackages]"])),"Communication error in Ask()")
+  
+  // restore old log level
+  time.Sleep(1*time.Second)
+  util.LogLevel = oldlevel
+  
+  // stop listener, wait, check downtime, restart listener, tell, check received, check downtime again, stop again, wait, check downtime
+  
+  
+  
 }
 

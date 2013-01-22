@@ -38,6 +38,7 @@ func UnitTests() {
   config.ReadArgs([]string{"-c", conffile, "--test="+confdir })
   config.ReadConfig()
   util.LogLevel = config.LogLevel
+  config.Timeout = 5*time.Second
   
   os.MkdirAll(path.Dir(config.JobDBPath), 0750)
   

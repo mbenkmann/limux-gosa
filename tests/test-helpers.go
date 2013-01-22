@@ -146,6 +146,7 @@ var active_connections = deque.New()
 
 // keys[0] is the key of the test server started by listen(). The other
 // elements are copies of config.ModuleKeys
+// ATTENTION! You must call init_keys() to initialize this.
 var keys []string
 
 // returns all messages currently in the queue that were received at time t or later.
