@@ -362,6 +362,16 @@ func listen() {
   }()
 }
 
+// shuts down the listener and all currently active connections
+func listen_stop() {
+  listener.Close()
+  for {
+    connection := active_connections.PopAt(0)
+    if connection == nil { break }
+    connection.(net.Conn).Close()
+  }  
+}
+
 // handles an individual connection received by listen().
 func handleConnection(conn net.Conn) {
   defer conn.Close()

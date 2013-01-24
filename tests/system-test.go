@@ -196,12 +196,8 @@ func SystemTest(daemon string, is_gosasi bool) {
   }
 
   // Shut down our test server and active connections
-  listener.Close()
-  for {
-    connection := active_connections.PopAt(0)
-    if connection == nil { break }
-    connection.(net.Conn).Close()
-  }
+  listen_stop()
+  
   // Wait a little so that the testee notices
   time.Sleep(1*time.Second)
   // Now test that our test server's jobs are marked as state "error" in query_jobdb
