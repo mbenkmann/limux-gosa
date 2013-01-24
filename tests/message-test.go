@@ -89,13 +89,31 @@ func Message_test() {
   check(error_string(<-message.Peer(listen_address).Ask("<xml><header>gosa_query_jobdb</header></xml>", config.ModuleKey["[GOsaPackages]"])),"")
   check(error_string(<-message.Peer(listen_address).Ask("<xml><header>whatever</header></xml>", config.ModuleKey["[GOsaPackages]"])),"Communication error in Ask()")
   
+  for repcount := 0; repcount < 2 ; repcount++ {
+    // shut down listener
+    listen_stop()
+    // wait 3 seconds and check downtime
+    time.Sleep((3+repcount)*time.Second)
+    downtime := int64((message.Peer(listen_address).Downtime() + 500*time.Millisecond)/time.Second)
+    check(downtime, 3+repcount)
+    // verify that connection is really down
+    t0 = time.Now()
+    message.Peer(listen_address).Tell("<xml><header>down</header></xml>", keys[0])
+    check(wait(t0, "down").XML.Text("header"), "")
+    
+    // restart listener
+    listen()
+    // send message and check if the listener receives it
+    t0 = time.Now()
+    message.Peer(listen_address).Tell("<xml><header>Wuseldusel</header></xml>", keys[0])
+    check(wait(t0, "Wuseldusel").XML.Text("header"), "Wuseldusel")
+    // check that downtime has stopped
+    check(message.Peer(listen_address).Downtime(), 0)
+  }
+  
   // restore old log level
   time.Sleep(1*time.Second)
   util.LogLevel = oldlevel
-  
-  // stop listener, wait, check downtime, restart listener, tell, check received, check downtime again, stop again, wait, check downtime
-  
-  
   
 }
 
