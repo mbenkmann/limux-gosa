@@ -101,7 +101,10 @@ var LogLevel int
 var Timeout = 5 * time.Minute
 
 // If a peer is down for more than this time, its jobs are removed from the
-// database.
+// database and the connection to the peer is dropped. No reconnect will be
+// attempted after this time, so unless the peer contacts us or go-susi is
+// restarted (and the peer is listed in DNS or server.conf) there will be
+// no further communication with this peer.
 var MaxPeerDowntime = 7 * 24 * time.Hour
 
 // When a request comes in from GOsa to modify or delete a foreign job,
