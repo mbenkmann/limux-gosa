@@ -417,7 +417,7 @@ func Peer(addr string) *PeerConnection {
     return &PeerConnection{err:err}
   }
   
-  if len(addrs) == 0 {
+  if len(addrs) == 0 { // I don't think this is possible but just in case...
     return &PeerConnection{err:fmt.Errorf("No IP address for %v",host)}
   }
   

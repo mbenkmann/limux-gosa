@@ -93,7 +93,7 @@ func Message_test() {
     // shut down listener
     listen_stop()
     // wait 3 seconds and check downtime
-    time.Sleep((3+repcount)*time.Second)
+    time.Sleep(time.Duration(3+repcount)*time.Second)
     downtime := int64((message.Peer(listen_address).Downtime() + 500*time.Millisecond)/time.Second)
     check(downtime, 3+repcount)
     // verify that connection is really down
@@ -115,5 +115,7 @@ func Message_test() {
   time.Sleep(1*time.Second)
   util.LogLevel = oldlevel
   
+  check(error_string(<-message.Peer("broken").Ask("", "")),"missing port in address broken")
+  check(error_string(<-message.Peer("doesnotexist.domain:10").Ask("", "")),"lookup doesnotexist.domain: no such host")
 }
 

@@ -85,7 +85,7 @@ var jobDB *xml.DB
 //       unlike go-susi gosa-si does not rebroadcast changes to its jobdb when those
 //       changes are the result of foreign_job_updates.
 //       The <SyncIfNotGoSusi> tag is used when forwarding change requests for
-//       jobs belongting to other servers to them via foreign_job_updates.
+//       jobs belonging to other servers to them via foreign_job_updates.
 var ForeignJobUpdates = make(chan *xml.Hash, 16384)
 
 // Stores exactly 1 time.Time that indicates when the most recent job modification
