@@ -124,7 +124,7 @@ func addServer(server string) {
       }
     } else 
     {
-      ip := "["+addrs[0].String()+"]" // this may be an IPv6 address
+      ip := addrs[0].String() // this may be an IPv6 address
       // try to find an IPv4 address
       for _, a := range addrs {
         if a.To4() != nil {
@@ -132,7 +132,7 @@ func addServer(server string) {
           break
         }
       }
-      // translate loopback address to our own IP for consitency
+      // translate loopback address to our own IP for consistency
       if ip == "127.0.0.1" { ip = config.IP }
       source := ip + ":" + port
       
