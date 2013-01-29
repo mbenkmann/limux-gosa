@@ -346,9 +346,8 @@ func (conn *PeerConnection) handleConnection() {
       // to re-establish the connection.
       // We increase the wait interval based on the length of the downtime. 
       // After a downtime of config.MaxPeerDowntime we give up, clean remaining 
-      // jobs associated
-      // with the peer from the jobdb, then remove this PeerConnection from the
-      // list of connections and terminate.
+      // jobs associated with the peer from the jobdb, remove the peer from serverdb
+      // and then remove this PeerConnection from the list of connections and terminate.
       //
       // NOTE: Every message that comes in due to other events will also result
       //       in an attempt to re-establish the connection. In particular if
@@ -377,6 +376,7 @@ func (conn *PeerConnection) handleConnection() {
         {
           util.Log(2, "DEBUG! handleConnection() giving up. Removing jobs and PeerConnection for %v", conn.addr)
           db.JobsRemoveForeign(xml.FilterSimple("siserver",conn.addr))
+          db.ServerRemove(conn.addr)
           connections_mutex.Lock()
           delete(connections,conn.addr)
           connections_mutex.Unlock()

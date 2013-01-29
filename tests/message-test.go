@@ -62,9 +62,10 @@ func Message_test() {
   check(error_string(<-message.Peer("127.0.0.1:55551").Ask("foo","bar")),"dial tcp 127.0.0.1:55551: connection refused")
   
   listen()
-  defer func() {listener.Close()}()
+  defer func() {listen_stop()}()
   listen_address = config.IP + ":" + listen_port
   init_keys()
+  keys[0] = "MessageTestKey"
   db.ServerUpdate(hash("xml(key(%v)source(%v))", keys[0],listen_address))
   
   message.Peer(listen_address).SetGoSusi(true)
@@ -110,6 +111,25 @@ func Message_test() {
     // check that downtime has stopped
     check(message.Peer(listen_address).Downtime(), 0)
   }
+  
+  // stop listener
+  listen_stop()
+  // set maximum downtime before removal
+  defer func(mpd time.Duration){ config.MaxPeerDowntime = mpd }(config.MaxPeerDowntime)
+  config.MaxPeerDowntime = 4*time.Second
+  // ping to make handleConnection() aware that we're down
+  message.Peer(listen_address).Tell("<xml><header>Ping</header></xml>", keys[0])
+  time.Sleep(1*time.Second)
+  message.Peer(listen_address).Tell("<xml><header>Ping</header></xml>", keys[0])
+  time.Sleep(1*time.Second)
+  // check we haven't been removed from serverdb, yet
+  check(db.ServerKeys(listen_address), []string{keys[0]})
+  time.Sleep(3*time.Second)
+  // ping again. This time handleConnection() should notice we're down to long
+  message.Peer(listen_address).Tell("<xml><header>Ping</header></xml>", keys[0])
+  time.Sleep(1*time.Second)
+  // check that we've been removed from serverdb
+  check(db.ServerKeys(listen_address), []string{})
   
   // restore old log level
   time.Sleep(1*time.Second)
