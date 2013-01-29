@@ -288,7 +288,7 @@ func SystemGetState(macaddress string, attrname string) string {
 
 func ldapSearch(query string, attr... string) *exec.Cmd {
   args := []string{"-x", "-LLL", "-H", config.LDAPURI, "-b", config.LDAPBase}
-  if config.LDAPUser != "" { args = append(args,"-D",config.LDAPUser,"-w",config.LDAPUserPassword) }
+  if config.LDAPUser != "" { args = append(args,"-D",config.LDAPUser,"-y",config.LDAPUserPasswordFile) }
   args = append(args, query)
   args = append(args, attr...)
   util.Log(2, "DEBUG! ldapsearch %v",args)
@@ -297,7 +297,7 @@ func ldapSearch(query string, attr... string) *exec.Cmd {
 
 func ldapModify(dn string, attrname, attrvalue string) *exec.Cmd {
   args := []string{"-x", "-H", config.LDAPURI}
-  args = append(args,"-D",config.LDAPAdmin,"-w",config.LDAPAdminPassword)
+  args = append(args,"-D",config.LDAPAdmin,"-y",config.LDAPAdminPasswordFile)
   util.Log(2, "DEBUG! ldapmodify %v (Set %v to '%v' for %v)",args, attrname, attrvalue, dn)
   cmd := exec.Command("ldapmodify", args...)
   cmd.Stdin = bytes.NewBufferString(fmt.Sprintf(`dn:: %v

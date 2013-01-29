@@ -23,6 +23,7 @@ package config
 
 import (
          "io"
+         "io/ioutil"
          "os"
          "net"
          "fmt"
@@ -64,6 +65,17 @@ var JobDBPath = "/var/lib/go-susi/jobdb.xml"
 
 // Path to database of peer servers.
 var ServerDBPath = "/var/lib/go-susi/serverdb.xml"
+
+// Temporary directory only accessible by the user running go-susi.
+// Used e.g. for storing password files. NOT deleted automatically!
+var TempDir = ""
+func init() {
+  tempdir, err := ioutil.TempDir("", "go-susi-")
+  TempDir = tempdir
+  if err != nil { panic(err) }
+  err = os.Chmod(tempdir, 0700)
+  if err != nil { panic(err) }
+}
 
 // host:port addresses of peer servers read from config file.
 var PeerServers = []string{}
@@ -148,14 +160,26 @@ var LDAPBase = "c=de"
 // DN of the admin user for writing to LDAP.
 var LDAPAdmin = "cn=clientmanager,ou=incoming,c=de"
 
-// Password of the admin user for writing to LDAP.
-var LDAPAdminPassword = "password"
+// File containing the password of the admin user for writing to LDAP.
+var LDAPAdminPasswordFile string
+func init() {
+  // must be in init() function because TempDir is initialized in init()
+  LDAPAdminPasswordFile = TempDir + "/" + "ldapadminpw"
+  err := ioutil.WriteFile(LDAPAdminPasswordFile, []byte{}, 0600)
+  if err != nil { panic(err) }
+}
 
 // DN of the user for reading from LDAP. Empty string means anonymous.
 var LDAPUser = ""
 
-// Password of the user for reading from LDAP.
-var LDAPUserPassword = ""
+// File containing the password of the user for reading from LDAP.
+var LDAPUserPasswordFile string
+func init() {
+  // must be in init() function because TempDir is initialized in init()
+  LDAPUserPasswordFile = TempDir + "/" + "ldapuserpw"
+  err := ioutil.WriteFile(LDAPUserPasswordFile, []byte{}, 0600)
+  if err != nil { panic(err) }
+}
 
 // Filter that is ANDed with all LDAP queries. Must be enclosed in parentheses if non-empty.
 var UnitTagFilter = ""
@@ -296,9 +320,15 @@ func ReadConfig() {
     if uri, ok := server["ldap-uri"]; ok { LDAPURI = uri }
     if base,ok := server["ldap-base"]; ok { LDAPBase = base }
     if admin,ok:= server["ldap-admin-dn"]; ok { LDAPAdmin = admin }
-    if pw  ,ok := server["ldap-admin-password"]; ok { LDAPAdminPassword = pw }
+    if pw  ,ok := server["ldap-admin-password"]; ok { 
+      err := ioutil.WriteFile(LDAPAdminPasswordFile, []byte(pw), 0600)
+      if err != nil { util.Log(0, "ERROR! Could not write admin password to file: %v", err) }
+    }
     if user,ok := server["ldap-user-dn"]; ok { LDAPUser = user }
-    if pw  ,ok := server["ldap-user-password"]; ok { LDAPUserPassword = pw }
+    if pw  ,ok := server["ldap-user-password"]; ok { 
+      err := ioutil.WriteFile(LDAPUserPasswordFile, []byte(pw), 0600)
+      if err != nil { util.Log(0, "ERROR! Could not write user password to file: %v", err) } 
+    }
   }
 }
 
