@@ -129,6 +129,8 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
          "job_trigger_action_reinstall", // "Neuinstallation"
          "job_trigger_action_wake":      // "Aufwecken"
                                 reply = job_trigger_action(xml)
+    case "trigger_wake":
+                                trigger_wake(xml)
     
     case "gosa_delete_jobdb_entry":
                                 reply = gosa_delete_jobdb_entry(xml)
