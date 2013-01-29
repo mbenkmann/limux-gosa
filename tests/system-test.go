@@ -269,6 +269,18 @@ func SystemTest(daemon string, is_gosasi bool) {
   if conn != nil { conn.Close() }
   check(checkTags(x, "header,source,target,answer1,answer2,session_id?"),"")
   
+  // Test if the server rejects messages encrypted with dummy-key or unencrypted
+  for repcount := 0; repcount < 2; repcount++ {
+    conn, err := net.Dial("tcp", config.ServerSourceAddress)
+    check(err, nil)
+    encrypted_msg := "<xml><header>gosa_query_jobdb</header><where></where><source>GOSA</source><target>GOSA</target></xml>"
+    if repcount == 1 { encrypted_msg = message.GosaEncrypt(encrypted_msg, "dummy-key") }
+    util.SendLn(conn, encrypted_msg, config.Timeout)
+    reply := message.GosaDecrypt(util.ReadLn(conn, config.Timeout), "dummy-key")
+    check(strings.Contains(reply,"<error_string>"), true)
+    if conn != nil { conn.Close() }
+  }
+  
   if gosasi {
     // The job processing tests require the following go-susi extensions:
     // * multiple jobs with the same headertag+macaddress combination

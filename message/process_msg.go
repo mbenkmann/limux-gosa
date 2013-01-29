@@ -99,6 +99,11 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string, di
 //   reply: reply to return
 //   disconnect: true if connection should be terminated due to error
 func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply string, disconnect bool) {
+  if key == "dummy-key" && xml.Text("header") != "gosa_ping" {
+    util.Log(0, "ERROR! Rejecting non-ping message encrypted with dummy-key or not at all")
+    return ErrorReply("ERROR! Rejecting non-ping message encrypted with dummy-key or not at all"),true
+  }
+  
   reply = ""
   disconnect = false
   switch xml.Text("header") {
