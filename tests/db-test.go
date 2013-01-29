@@ -47,6 +47,11 @@ func serverdb_test() {
   
   server1 := hash("xml(header(new_server)key(foo)macaddress(00:17:31:a1:f8:19)source(172.16.2.52:20081)target(172.16.2.83:20081))")
   db.ServerUpdate(server1)
+  check(db.ServerKeys("172.16.2.52:20081"),[]string{"foo"})
+  check(db.ServerRemove("172.16.2.52:20081"), server1)
+  check(db.ServerKeys("172.16.2.52:20081"),[]string{})
+  check(db.ServerRemove("172.16.2.52:20081"), nil)
+  db.ServerUpdate(server1)
   server2 := hash("xml(key(foobar)source(172.99.9.99:20081))")
   db.ServerUpdate(server2)
   
