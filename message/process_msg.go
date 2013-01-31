@@ -134,6 +134,8 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
     
     case "gosa_delete_jobdb_entry":
                                 reply = gosa_delete_jobdb_entry(xml)
+    case "gosa_update_status_jobdb_entry":
+                                reply = gosa_update_status_jobdb_entry(xml)
     case "sistats":             reply = sistats()
     case "panic":               go func(){panic("Panic by user request")}()
   default:

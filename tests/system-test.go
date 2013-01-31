@@ -816,14 +816,18 @@ func run_foreign_job_updates_tests() {
   time.Sleep(reply_timeout)
   x = gosa("query_jobdb", hash("xml(where())"))
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
+  x.RemoveFirst("session_id")
+  x.First("header").SetText("foreign_job_updates")
+  x.First("target").SetText(listen_address)
+  x.Add("sync", "ordered")
+  msg = &queueElement{XML:x,Key:keys[0]}
+  check_foreign_job_updates(msg, keys[0], listen_address, Jobs[0].Plainname, Jobs[0].Periodic, "waiting", "none", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
   t0 = time.Now()
   gosa("update_status_jobdb_entry", hash("xml(where()update(progress(20)))"))
   msg = wait(t0, "foreign_job_updates")
   
-  // update_status_jobdb_entry is not implemented yet, so the following checks fail ATM
-  
-  if checkFail(checkTags(msg.XML, "header,source,target,answer1,sync?"), "") {
-    check_foreign_job_updates(msg, keys[0], config.ServerSourceAddress, Jobs[0].Plainname, Jobs[0].Periodic, "done", "20", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
+  if check(checkTags(msg.XML, "header,source,target,answer1,sync?"), "") {
+    check_foreign_job_updates(msg, keys[0], listen_address, Jobs[0].Plainname, Jobs[0].Periodic, "waiting", "20", Jobs[0].MAC, Jobs[0].Trigger(), Jobs[0].Timestamp)
     check(msg.XML.First("answer1").Text("id"), "textID")
   }
   
