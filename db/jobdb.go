@@ -22,10 +22,12 @@ package db
 
 import (
          "os"
+         "fmt"
          "net"
          "time"
          "strconv"
          "strings"
+         "encoding/base64"
          
          "../xml"
          "../config"
@@ -302,6 +304,7 @@ func JobsForwardModifyRequest(filter xml.HashFilter, update *xml.Hash) {
         }
         job.Rename("answer"+strconv.FormatUint(count[siserver], 10))
         job.First("id").SetText(job.RemoveFirst("original_id").Text())
+        JobUpdateXMLMessage(job)
         count[siserver]++
         fju[siserver].AddWithOwnership(job)
       }
@@ -347,7 +350,8 @@ func JobsForwardModifyRequest(filter xml.HashFilter, update *xml.Hash) {
 //        </job>
 //
 // NOTE: This function expects job to be complete and well formed (except for
-//       plainname which will be automatically filled in if "none" or missing). 
+//       plainname which will be automatically filled in if "none" or missing
+//       and xmlmessage which will be re-generated).
 //       No error checking is performed on the data.
 //       The job added to the database will be a clone, however the <id> and
 //       <original_id> will be attached to the original job hash (and so can
@@ -366,6 +370,7 @@ func JobAddLocal(job *xml.Hash) {
     if plainname == "none" { 
       JobsUpdateNameForMAC(request.Job.Text("macaddress")) 
     }
+    JobUpdateXMLMessage(request.Job)
     jobDB.AddClone(request.Job)
     scheduleProcessPendingActions(request.Job.Text("timestamp"))
     request.Job.Rename("answer1")
@@ -406,6 +411,7 @@ func JobsRemoveLocal(filter xml.HashFilter, stop_periodic bool) {
           job.FirstOrAdd("periodic").SetText("none")
         }
         job.RemoveFirst("original_id")
+        JobUpdateXMLMessage(job)
         PendingActions.Push(job.Clone())
         job.Rename("answer"+strconv.FormatUint(count, 10))
         count++
@@ -475,6 +481,7 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
             
           }
         }
+        JobUpdateXMLMessage(job)
         jobDB.Replace(xml.FilterSimple("id", job.Text("id")), true, job)
         job.RemoveFirst("original_id")
         job.Rename("answer"+strconv.FormatUint(count, 10))
@@ -534,6 +541,7 @@ func JobsAddOrModifyForeign(filter xml.HashFilter, job *xml.Hash) {
           }
         }
         
+        JobUpdateXMLMessage(found)
         jobDB.Replace(xml.FilterSimple("id", found.Text("id")), true, found)
       }
     } else // no job matches filter => add job
@@ -550,6 +558,7 @@ func JobsAddOrModifyForeign(filter xml.HashFilter, job *xml.Hash) {
       if plainname == "none" { 
         JobsUpdateNameForMAC(job.Text("macaddress")) 
       }
+      JobUpdateXMLMessage(job)
       jobDB.AddClone(job)  
     }
   }
@@ -683,3 +692,12 @@ func JobGUID(addr string, num uint64) string {
   return strconv.FormatUint(num,10)+strconv.FormatUint(n,10)
 }
 
+// Takes a job and adds or replaces the <xmlmessage> element with one that
+// matches the job.
+func JobUpdateXMLMessage(job *xml.Hash) {
+  peri := job.Text("periodic")
+  if peri == "" { peri = "none" }
+  peri = "<periodic>" + peri + "</periodic>"
+  xmlmess := fmt.Sprintf("<xml><source>GOSA</source><header>job_%v</header><target>%v</target><macaddress>%v</macaddress><timestamp>%v</timestamp>%v</xml>", job.Text("headertag"), job.Text("targettag"), job.Text("macaddress"), job.Text("timestamp"), peri)
+  job.FirstOrAdd("xmlmessage").SetText(base64.StdEncoding.EncodeToString([]byte(xmlmess)))
+}
