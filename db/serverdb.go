@@ -113,7 +113,6 @@ func addServersFromDNS() {
 // Adds server (host:port) to the database if it does not exist yet (and if it
 // is not identical to this go-susi).
 func addServer(server string) {
-  if !strings.HasPrefix(server, config.Hostname + "." + config.Domain + ":") {
     host, port, _ := net.SplitHostPort(server)
     addrs, err := net.LookupIP(host)
     if err != nil || len(addrs) == 0 {
@@ -135,6 +134,9 @@ func addServer(server string) {
       // translate loopback address to our own IP for consistency
       if ip == "127.0.0.1" { ip = config.IP }
       source := ip + ":" + port
+      
+      // do not add our own address
+      if source == config.ServerSourceAddress { return }
       
       // if we don't have an entry for the server, generate a dummy entry.
       if len(ServerKeys(source)) == 0 {
@@ -160,7 +162,6 @@ func addServer(server string) {
         ServerUpdate(server_xml)
       }
     }
-  }
 }
 
 // Updates the data for server.
