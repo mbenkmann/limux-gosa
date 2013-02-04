@@ -442,7 +442,6 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
   cmd := fields[0] // always present because msg is non-empty
   i := 0
   for ; i < len(commands); i++ {
-    if commands[i] == "halt" && cmd == "h" { continue }  // "h" should be short for "help" not "halt"
     if strings.HasPrefix(commands[i], cmd) { break }
   }
   
