@@ -293,6 +293,31 @@ func SystemTest(daemon string, is_gosasi bool) {
   }
   
   run_foreign_job_updates_tests()
+  
+  /*
+NOTE: Test cases for clientdb:
+
+- send a job_trigger_action_wake for a client that is not in clientdb and
+  can't otherwise be resolved. Check that go-susi sends the test server a
+  "trigger_wake" message asking it to help with waking the client.
+
+- send a new_foreign_client message for the client from the previous test.
+  Now check that go-susi no longer sends trigger_wake when asked to
+  wake up the client (because now go-susi knows the client)
+
+- try the above 2 tests with new_server message and its <client> element
+
+- try the 2 tests with confirm_new_server's <client> element
+
+- try the 2 tests with a here_i_am message
+
+
+*/
+
+
+
+
+
 }
 
 

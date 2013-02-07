@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2012 Matthias S. Benkmann
+Copyright (c) 2013 Matthias S. Benkmann
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -19,34 +19,128 @@ MA  02110-1301, USA.
 
 package db
 
-import "../xml"
+import (
+         "os"
+         "time"
+         "regexp"
+         "strings"
+         
+         "../xml"
+         "../util"
+         "../config"
+       )
+
+// Stores our own and foreign clients. Format:
+// <clientdb>
+//   <xml>
+//     <header>new_foreign_client</header>
+//     <source>172.16.2.12:20081</source>   (the server where client is registered)
+//     <target>1.2.3.4:200081</target>      (me)
+//     <client>172.16.2.52:20083</client>
+//     <macaddress>12:34:56:78:9A:BC</macaddress> (the client's MAC)
+//     <key>current_key</key>  (optional)
+//     <key>previous_key</key> (optional)
+//     <new_foreign_client></new_foreign_client>
+//   </xml>
+//    ...
+// </clientdb>
+var clientDB *xml.DB
+
+// When ClientsInit() restores clients from config.ClientDBPath, it removes
+// all local clients and stores them in this hash, because before we can
+// accept them as our own, we need to check them, since they may already have
+// registered with a different server. The format of this hash is the same as
+// clientDB.
+var ClientsWeMayHave *xml.Hash
+
+// Initializes clientDB with data from the file config.ClientDBPath if it exists.
+// Not an init() because main() needs to set up some things first.
+func ClientsInit() {
+  db_storer := &LoggingFileStorer{xml.FileStorer{config.ClientDBPath}}
+  var delay time.Duration = 0
+  clientDB = xml.NewDB("clientdb", db_storer, delay)
+  if !config.FreshDatabase {
+    xmldata, err := xml.FileToHash(config.ClientDBPath)
+    if err != nil {
+      if os.IsNotExist(err) { 
+        /* File does not exist is not an error that needs to be reported */ 
+      } else
+      {
+        util.Log(0, "ERROR! ClientsInit reading '%v': %v", config.ClientDBPath, err)
+      }
+    } else
+    {
+      clientDB.Init(xmldata)
+      ClientsWeMayHave = clientDB.Remove(xml.FilterSimple("source",config.ServerSourceAddress))
+    }
+  }
+}  
 
 
-/*
-NOTE: Test cases for clientdb:
 
-- send a job_trigger_action_wake for a client that is not in clientdb and
-  can't otherwise be resolved. Check that go-susi sends the test server a
-  "trigger_wake" message asking it to help with waking the client.
+// Returns the entry from the clientdb or nil if the client is unknown.
+// Entries are formatted as new_foreign_client messages:
+//   <xml>
+//     <header>new_foreign_client</header>
+//     <source>172.16.2.12:20081</source>   (the server where client is registered)
+//     <target>1.2.3.4:200081</target>      (me)
+//     <client>172.16.2.52:20083</client>
+//     <macaddress>12:34:56:78:9A:BC</macaddress> (the client's MAC)
+//     <key>current_key</key>  (optional)
+//     <key>previous_key</key> (optional)
+//     <new_foreign_client></new_foreign_client>
+//   </xml>
+//
+// NOTE: Foreign clients are those with source != config.ServerSourceAddress and
+//       our clients are those with     source == config.ServerSourceAddress.
+func ClientWithMAC(macaddress string) *xml.Hash { 
+  return clientDB.Query(xml.FilterSimple("macaddress", macaddress)).First("xml")
+}
 
-- send a new_foreign_client message for the client from the previous test.
-  Now check that go-susi no longer sends trigger_wake when asked to
-  wake up the client (because now go-susi knows the client)
+// Returns a hash with the same format as clientDB that contains
+// all known clients that are registered at this server. If no client
+// is registered here, the result will be <clientdb></clientdb>.
+func ClientsRegisteredAtThisServer() *xml.Hash {
+  return clientDB.Query(xml.FilterSimple("source",config.ServerSourceAddress))
+}
 
-- try the above 2 tests with new_server message and its <client> element
+// Updates the data for client. client has the same format as returned by
+// ClientWithMAC(), i.e. a new_foreign_client message.
+func ClientUpdate(client *xml.Hash) {
+  macaddress := client.Text("macaddress")
+  caddr := client.Text("client")
+  keys := ClientKeys(caddr)
+  if len(keys) > 0 {
+    // Add previous key as 2nd key, because due to parallel processes
+    // we might still have pending messages encrypted with the previous key.
+    client.Add("key", keys[0])
+  }
+  util.Log(2, "DEBUG! ClientUpdate for %v, handled by %v.", caddr, client.Text("source"))
+  clientDB.Replace(xml.FilterSimple("macaddress", macaddress), false, client)
+}
 
-- try the 2 tests with confirm_new_server's <client> element
+// Returns all keys (0-length slice if none) known for the client identified by
+// the given address. If the address is an IP without a port, the result may
+// include keys from multiple clients running on the same machine. If the address
+// includes a port, only keys from that specific client will be returned.
+func ClientKeys(addr string) []string {
+  result := make([]string, 0, 2)
+  var filter xml.HashFilter
+  if strings.Index(addr, ":") >= 0 {
+    filter = xml.FilterSimple("client", addr)
+  } else {
+    filter = xml.FilterRegexp("client", "^"+regexp.QuoteMeta(addr+":")+"[0-9]+$")
+  }
+  for client := clientDB.Query(filter).First("xml");
+      client != nil;
+      client = client.Next() {
+    result = append(result, client.Get("key")...)
+  }
+  return result
+}
 
-- try the 2 tests with a here_i_am message
+// Returns all client keys for all clients in the database.
+func ClientKeysForAllClients() []string {
+  return clientDB.ColumnValues("key")
+}
 
-
-*/
-
-
-
-
-// Returns the entry from the clientdb 
-// (format: <xml><client>172.16.2.52:20083</client><macaddress>...</xml>) of
-// the client with the given MAC address, or nil if the client is not in
-// the clientdb.
-func ClientWithMAC(macaddress string) *xml.Hash { return nil }
