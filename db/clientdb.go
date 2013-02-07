@@ -51,7 +51,7 @@ var clientDB *xml.DB
 // accept them as our own, we need to check them, since they may already have
 // registered with a different server. The format of this hash is the same as
 // clientDB.
-var ClientsWeMayHave *xml.Hash
+var ClientsWeMayHave *xml.Hash = xml.NewHash("clientdb")
 
 // Initializes clientDB with data from the file config.ClientDBPath if it exists.
 // Not an init() because main() needs to set up some things first.
