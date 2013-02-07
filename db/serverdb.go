@@ -59,7 +59,7 @@ func ServersInit() {
         /* File does not exist is not an error that needs to be reported */ 
       } else
       {
-        util.Log(0, "ERROR! ServerInit reading '%v': %v", config.ServerDBPath, err)
+        util.Log(0, "ERROR! ServersInit reading '%v': %v", config.ServerDBPath, err)
       }
     } else
     {

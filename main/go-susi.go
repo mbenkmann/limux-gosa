@@ -109,6 +109,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   config.ReadNetwork() // after config.ReadConfig()
   db.ServersInit() // after config.ReadNetwork()
   db.JobsInit() // after config.ReadConfig()
+  db.ClientsInit() // after config.ReadConfig()
   action.Init()
   
   tcp_addr, err := net.ResolveTCPAddr("ip4", config.ServerListenAddress)
@@ -134,6 +135,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   util.Log(1, "INFO! Accepting connections on %v", tcp_addr);
   go acceptConnections(listener, tcp_connections)
   
+  go message.CheckPossibleClients()
   go message.Broadcast_new_server()
   go message.DistributeForeignJobUpdates()
 

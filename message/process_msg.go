@@ -111,6 +111,7 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
     case "new_server":          new_server(xml)
     case "confirm_new_server":  confirm_new_server(xml)
     case "foreign_job_updates": foreign_job_updates(xml)
+    case "new_foreign_client":  new_foreign_client(xml)
     case "gosa_trigger_action_lock",      // "Sperre"
          "gosa_trigger_action_halt",      // "Anhalten"
          "gosa_trigger_action_localboot", // "Erzwinge lokalen Start"

@@ -20,6 +20,8 @@ MA  02110-1301, USA.
 package message
 
 import (
+         "strings"
+         
          "../db"
          "../xml"
          "../util"
@@ -67,6 +69,7 @@ func Send_new_server(header string, target string) {
 func new_server(xmlmsg *xml.Hash) {
   setGoSusi(xmlmsg)
   db.ServerUpdate(xmlmsg)
+  handleClients(xmlmsg)
   server := xmlmsg.Text("source")
   go util.WithPanicHandler(func() {
     Send_new_server("confirm_new_server", server)
@@ -79,8 +82,32 @@ func new_server(xmlmsg *xml.Hash) {
 //  xmlmsg: the decrypted and parsed message
 func confirm_new_server(xmlmsg *xml.Hash) {
   setGoSusi(xmlmsg)
+  handleClients(xmlmsg)
   Peer(xmlmsg.Text("source")).SyncAll()
   db.ServerUpdate(xmlmsg)
+}
+
+// Takes a confirm_new_server or new_server message and evaluates the <client>
+// elements, converts them into new_foreign_client messages and passes these
+// (in parallel goroutines) to the new_foreign_client() handler.
+func handleClients(xmlmsg *xml.Hash) {
+  server := xmlmsg.Text("source")
+  for client := xmlmsg.First("client"); client != nil; client = client.Next() {
+    cli := strings.Split(client.Text(),",")
+    if len(cli) != 2 {
+      util.Log(0, "ERROR! Illegal <client> value: %v", client.Text())
+      continue
+    }
+    cxml := xml.NewHash("xml","header","new_foreign_client")
+    cxml.Add("source", server)
+    cxml.Add("target", config.ServerSourceAddress)
+    cxml.Add("client", cli[0])
+    cxml.Add("macaddress", cli[1])
+    cxml.Add("new_foreign_client")
+    go util.WithPanicHandler(func(){ 
+      new_foreign_client(cxml) 
+    })
+  }
 }
 
 // Takes the new_server/confirm_new_server message xmlmsg and if

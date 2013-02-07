@@ -66,6 +66,9 @@ var JobDBPath = "/var/lib/go-susi/jobdb.xml"
 // Path to database of peer servers.
 var ServerDBPath = "/var/lib/go-susi/serverdb.xml"
 
+// Path to database of clients (foreign and our own).
+var ClientDBPath = "/var/lib/go-susi/clientdb.xml"
+
 // Temporary directory only accessible by the user running go-susi.
 // Used e.g. for storing password files. NOT deleted automatically!
 var TempDir = ""
@@ -212,6 +215,7 @@ func ReadArgs(args []string) {
       ServerConfigPath = testdir + "/server.conf"
       JobDBPath = testdir + "/jobdb.xml"
       ServerDBPath = testdir + "/serverdb.xml"
+      ClientDBPath = testdir + "/clientdb.xml"
       
     } else if arg == "-c" {
       i++

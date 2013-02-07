@@ -39,7 +39,7 @@ func Wake(job *xml.Hash) {
     wake_target = append(wake_target, strings.Split(system.Text("source"),":")[0])
   }
   if system := db.ClientWithMAC(macaddress); system != nil {
-    wake_target = append(wake_target, strings.Split(system.Text("source"),":")[0])
+    wake_target = append(wake_target, strings.Split(system.Text("client"),":")[0])
   }
   if system := db.SystemFullyQualifiedNameForMAC(macaddress); system != "none" {
     wake_target = append(wake_target, system)
