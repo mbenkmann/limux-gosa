@@ -28,6 +28,6 @@ else
   (
     trap "" SIGHUP
     echo "$BASHPID" >"$pidfile"
-    exec &>- <- setsid /usr/lib/gosa-si-server "${args[@]}"
+    exec &>/dev/null </dev/null setsid /usr/lib/gosa-si-server "${args[@]}"
   )&
 fi
