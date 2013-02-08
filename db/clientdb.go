@@ -116,7 +116,21 @@ func ClientUpdate(client *xml.Hash) {
     client.Add("key", keys[0])
   }
   util.Log(2, "DEBUG! ClientUpdate for %v, handled by %v.", caddr, client.Text("source"))
-  clientDB.Replace(xml.FilterSimple("macaddress", macaddress), false, client)
+  old := clientDB.Replace(xml.FilterSimple("macaddress", macaddress), false, client)
+  
+  // if the update assigns a client that was previously assigned to this server to
+  // another server, double-check this new assignment by sending Müll to the the
+  // client, which will cause it to send us a here_i_am if it still feels attached
+  // to us. That here_i_am will then undo the incorrect assignment.
+  for _, tag := range old.Subtags() {
+    for oldclient := old.First(tag); oldclient != nil; oldclient = oldclient.Next() {
+      if oldclient.Text("source") == config.ServerSourceAddress {
+        addr := oldclient.Text("client")
+        util.Log(1, "INFO! Sending 'Müll' to %v", addr)
+        go util.SendLnTo(addr, "Müll", config.Timeout)
+      }
+    }
+  }
 }
 
 // Returns all keys (0-length slice if none) known for the client identified by
