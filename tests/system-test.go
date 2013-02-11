@@ -30,6 +30,8 @@ var launched_daemon bool
 // start time of SystemTest()
 var StartTime time.Time
 
+// the temporary directory where log and db files are stored
+var confdir string
 
 // Runs the system test.
 //  daemon: either "", host:port or the path to a binary. 
@@ -71,7 +73,6 @@ func SystemTest(daemon string, is_gosasi bool) {
     if err != nil { panic(err) }
     defer cmd.Process.Signal(syscall.SIGTERM)
     
-    var confdir string
     config.ServerConfigPath, confdir = createConfigFile("system-test-", listen_address)
     //defer os.RemoveAll(confdir)
     defer fmt.Printf("\nLog file directory: %v\n", confdir)
@@ -298,29 +299,43 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   run_here_i_am_tests()
   
+  if gosasi {
+    // The foreign client tests check success by examining clientdb.xml directly.
+    // There is not code to do the same with gosa-si's db files.
+    // Therefore we skip these tests if we're testing gosa-si.
+    fmt.Print("Foreign client tests not implemented for gosa-si => ")
+    siFail(true,false)
+  } else {
+    run_foreign_client_tests()
+  }
+  
+}
+
+func run_foreign_client_tests() {
   /*
-NOTE: Test cases for clientdb:
-
-- send a job_trigger_action_wake for a client that is not in clientdb and
-  can't otherwise be resolved. Check that go-susi sends the test server a
-  "trigger_wake" message asking it to help with waking the client.
-
-- send a new_foreign_client message for the client from the previous test.
-  Now check that go-susi no longer sends trigger_wake when asked to
-  wake up the client (because now go-susi knows the client)
-
-- try the above 2 tests with new_server message and its <client> element
-
-- try the 2 tests with confirm_new_server's <client> element
-
-- try the 2 tests with a here_i_am message
-
-
-*/
-
-
-
-
+    send new_server with 2 clients
+    send confirm_new_server with 2 clients
+    send 2 new_foreign_client messages
+    read and check clientdb.xml for the 6 clients
+  */
+  
+  client := []string{"1.2.3.4:5,00:00:00:00:FF:01", "11.22.33.44:55,00:00:00:00:FF:02", "111.222.33.4:555,00:00:00:00:FF:03","2.3.4.5:6,00:00:00:00:FF:04", "22.33.44.55:66,00:00:00:00:FF:05", "222.33.4.55:666,00:00:00:00:FF:06" }
+  
+  send("[ServerPackages]", hash("xml(header(new_server)new_server()key(%v)loaded_modules(goSusi)macaddress(00:00:00:00:00:00)client(%v)client(%v))", keys[0], client[0], client[1]))
+  send("[ServerPackages]", hash("xml(header(confirm_new_server)confirm_new_server()key(%v)loaded_modules(goSusi)macaddress(00:00:00:00:00:00)client(%v)client(%v))", keys[0], client[2], client[3]))
+  send("", hash("xml(header(new_foreign_client)new_foreign_client()source(%v)target(%v)client(%v)macaddress(%v))", listen_address, config.ServerSourceAddress, strings.Split(client[4],",")[0],strings.Split(client[4],",")[1]))
+  send("", hash("xml(header(new_foreign_client)new_foreign_client()source(%v)target(%v)client(%v)macaddress(%v))", listen_address, config.ServerSourceAddress, strings.Split(client[5],",")[0],strings.Split(client[5],",")[1]))
+  time.Sleep(reply_timeout)
+  
+  clientdb, err := xml.FileToHash(confdir+"/clientdb.xml")
+  if check(err,nil) {
+    for i := range client {
+      c := clientdb.Query(xml.FilterSimple("source", listen_address, "client", strings.Split(client[i],",")[0], "macaddress", strings.Split(client[i],",")[1]))
+      st := client[i] + " missing from clientdb"
+      if c.First("xml") != nil { st = c.First("xml").Text("client")+","+c.First("xml").Text("macaddress") }
+      check(st, client[i])
+    }
+  }
 }
 
 func run_here_i_am_tests() {
