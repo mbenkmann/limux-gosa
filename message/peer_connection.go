@@ -194,10 +194,17 @@ func (conn* PeerConnection) SyncIfNotGoSusi() {
   }()
 }
 
-// Sends all local jobs to the peer. If the peer is not a go-susi, also
+// Sends all local jobs and clients to the peer. If the peer is not a go-susi, also
 // requests all of the peer's local jobs and converts them to a <sync>all</sync>
 // message and feeds it into foreign_job_updates().
 func (conn *PeerConnection) SyncAll() {
+  
+  // send all our clients as new_foreign_client messages
+  for nfc := db.ClientsRegisteredAtThisServer().First("xml"); nfc != nil; nfc = nfc.Next() {
+    nfc.FirstOrAdd("target").SetText(conn.addr)
+    conn.Tell(nfc.String(), "")
+  }
+  
   if conn.IsGoSusi() {
     util.Log(1, "INFO! Full sync (go-susi protocol) with %v", conn.addr)
     db.JobsSyncAll(conn.addr, nil)
