@@ -4,6 +4,7 @@ import (
          "io"
          "net"
          "fmt"
+         "sort"
          "time"
          "runtime"
          "syscall"
@@ -217,6 +218,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   // Check for the <sync>all</sync> message we should get after the connection
   // is re-established
+  time.Sleep(1*time.Second)
   for _,msg = range get(t0) {
     if msg.XML.Text("sync") == "all" { break }
   }
@@ -294,6 +296,8 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   run_foreign_job_updates_tests()
   
+  run_here_i_am_tests()
+  
   /*
 NOTE: Test cases for clientdb:
 
@@ -317,10 +321,58 @@ NOTE: Test cases for clientdb:
 
 
 
-
 }
 
+func run_here_i_am_tests() {
+/*
+  send here_i_am for fakeMAC1
+  wait for new_foreign_client
+  send here_i_am for fakeMAC2
+  wait for new_foreign_client
+  send here_i_am for fakeMAC1 with different address
+  wait for new_foreign_client
+  
+  send new_server
+  wait for confirm_new_server
+  wait
+  collect all clients from <client> elements and new_foreign_client messages
+  check that there are exactly 2 clients with the correct addresses
+*/
 
+  port := []string{"7529","7535", "7574"}
+  client_addr := []string{config.IP + ":" + port[0], config.IP + ":" + port[1], config.IP + ":" + port[2]}
+  mac := []string{"1e:ff:c0:39:42:aa", "09:10:0d:33:ff:00", ""}
+  mac[2] = mac[0] // 3rd entry is same MAC but different address
+  hia := hash("xml(header(here_i_am)target(%v)new_passwd(xxx))", config.ServerSourceAddress)
+  
+  for i := 0; i < 3; i++ {
+    hia.FirstOrAdd("source").SetText(client_addr[i])
+    hia.FirstOrAdd("mac_address").SetText(mac[i])
+    t0 := time.Now()
+    send("", hia)
+    nfc := wait(t0, "new_foreign_client")
+    checkFail(nfc.XML.Text("source"), config.ServerSourceAddress)
+    checkFail(nfc.XML.Text("target"), listen_address)
+    checkFail(nfc.XML.Text("client"), client_addr[i])
+    checkFail(nfc.XML.Text("macaddress"), mac[i])
+    checkFail(nfc.XML.Text("key"), "xxx")
+  }
+  
+  t0 := time.Now()
+  send("[ServerPackages]", hash("xml(header(new_server)new_server()key(%v)loaded_modules(goSusi)macaddress(00:00:00:00:00:00))", keys[0]))
+  msg := wait(t0, "confirm_new_server")
+  check(checkTags(msg.XML,"header,confirm_new_server,source,target,key,loaded_modules*,client*,macaddress"), "")
+  clients := msg.XML.Get("client") 
+  time.Sleep(reply_timeout) // wait for new_foreign_client messages (if any)
+  for _,qe := range get(t0) {
+    if qe.XML.Text("header") == "new_foreign_client" {
+      clients = append(clients, fmt.Sprintf("%v,%v",qe.XML.Text("client"),qe.XML.Text("macaddress")))
+    }
+  }
+  // Check if the 2 clients (and only those) were either in cns or nfc
+  sort.Strings(clients)
+  checkFail(clients, []string{client_addr[0]+","+mac[0], client_addr[2]+","+mac[2]})
+}
 
 func run_job_processing_tests() {
   // clear database
@@ -678,6 +730,7 @@ func run_job_processing_tests() {
   
   check(msgset, map[string]string{})
   
+  // IDEA for further testing:
   // now test that the testee doesn't execute jobs from other siservers,
   // even when 
   // * their timestamp is changed via gosa_update_status_jobdb_entry
