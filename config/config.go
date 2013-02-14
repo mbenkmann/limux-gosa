@@ -115,6 +115,10 @@ var LogLevel int
 // is exceeded, the transmission is aborted.
 var Timeout = 5 * time.Minute
 
+// Maximum time to buffer and retry sending a message that is of interest only
+// to a local client, such as new_ldap_config. This TTL is very short.
+var LocalClientMessageTTL = 0 * time.Second
+
 // If a peer is down for more than this time, its jobs are removed from the
 // database and the connection to the peer is dropped. No reconnect will be
 // attempted after this time, so unless the peer contacts us or go-susi is
@@ -184,8 +188,18 @@ func init() {
   if err != nil { panic(err) }
 }
 
+// The unit tag for this server. If "", unit tags are not used.
+var UnitTag = ""
+
 // Filter that is ANDed with all LDAP queries. Must be enclosed in parentheses if non-empty.
 var UnitTagFilter = ""
+
+// only if UnitTag != "", this is the DN of the first object under LDAPBase that matches
+// (&(objectClass=gosaAdministrativeUnit)(gosaUnitTag=...))
+var AdminBase = ""
+
+// only if UnitTag != "", this is the ou attribute of AdminBase
+var Department = ""
 
 // true if "--version" is passed on command line
 var PrintVersion = false

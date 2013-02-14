@@ -51,9 +51,12 @@ var clientDB *xml.DB
 // accept them as our own, we need to check them, since they may already have
 // registered with a different server. The format of this hash is the same as
 // clientDB.
+// message/client_connection.go:CheckPossibleClients() pings each client
+// from this hash so that they are re-added to clientdb if they reply.
 var ClientsWeMayHave *xml.Hash = xml.NewHash("clientdb")
 
 // Initializes clientDB with data from the file config.ClientDBPath if it exists.
+// See ClientsWeMayHave above for important info.
 // Not an init() because main() needs to set up some things first.
 func ClientsInit() {
   db_storer := &LoggingFileStorer{xml.FileStorer{config.ClientDBPath}}

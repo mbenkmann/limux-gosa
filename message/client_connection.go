@@ -37,3 +37,12 @@ func CheckPossibleClients() {
     }
   }
 }
+
+// Tell(msg, ttl): Tries to send msg to the client. If the client is locally
+//                 registered the message will be sent directly, otherwise it
+//                 will be forwarded via the server responsible for the client.
+//                 The ttl determines how long the message will be buffered for
+//                 resend attempts if sending fails. ttl==0 (or some other
+//                 small ttl) should be set for
+//                 messages that are only of interest to locally registered
+//                 clients (like registered, ore new_ldap_config)
