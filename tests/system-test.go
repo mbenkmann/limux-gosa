@@ -366,11 +366,11 @@ func run_here_i_am_tests() {
     t0 := time.Now()
     send("", hia)
     nfc := wait(t0, "new_foreign_client")
-    checkFail(nfc.XML.Text("source"), config.ServerSourceAddress)
-    checkFail(nfc.XML.Text("target"), listen_address)
-    checkFail(nfc.XML.Text("client"), client_addr[i])
-    checkFail(nfc.XML.Text("macaddress"), mac[i])
-    checkFail(nfc.XML.Text("key"), "xxx")
+    check(nfc.XML.Text("source"), config.ServerSourceAddress)
+    check(nfc.XML.Text("target"), listen_address)
+    check(nfc.XML.Text("client"), client_addr[i])
+    check(nfc.XML.Text("macaddress"), mac[i])
+    check(nfc.XML.Text("key"), "xxx")
   }
   
   t0 := time.Now()
@@ -386,7 +386,7 @@ func run_here_i_am_tests() {
   }
   // Check if the 2 clients (and only those) were either in cns or nfc
   sort.Strings(clients)
-  checkFail(clients, []string{client_addr[0]+","+mac[0], client_addr[2]+","+mac[2]})
+  check(clients, []string{client_addr[1]+","+mac[1], client_addr[2]+","+mac[2]})
 }
 
 func run_job_processing_tests() {
