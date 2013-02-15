@@ -44,6 +44,9 @@ import (
 //   </xml>
 //    ...
 // </clientdb>
+//
+// NOTE: <client> and <macaddress> are both mandatory and unique within the
+// database. See ClientUpdate()
 var clientDB *xml.DB
 
 // When ClientsInit() restores clients from config.ClientDBPath, it removes
@@ -100,6 +103,12 @@ func ClientWithMAC(macaddress string) *xml.Hash {
   return clientDB.Query(xml.FilterSimple("macaddress", macaddress)).First("xml")
 }
 
+// Like ClientWithMAC() but finds the client by its IP:PORT address (i.e. the
+// <client> element).
+func ClientWithAddress(addr string) *xml.Hash { 
+  return clientDB.Query(xml.FilterSimple("client", addr)).First("xml")
+}
+
 // Returns a hash with the same format as clientDB that contains
 // all known clients that are registered at this server. If no client
 // is registered here, the result will be <clientdb></clientdb>.
@@ -109,9 +118,22 @@ func ClientsRegisteredAtThisServer() *xml.Hash {
 
 // Updates the data for client. client has the same format as returned by
 // ClientWithMAC(), i.e. a new_foreign_client message.
+// NOTE: client is required to have <client> and <macaddress>. All existing entries
+// with either the same <macaddress> or the same <client> will be removed to ensure
+// uniqueness in both values. This means that a single ClientUpdate() may replace
+// TWO old entries with ONE new entry.
 func ClientUpdate(client *xml.Hash) {
   macaddress := client.Text("macaddress")
+  if macaddress == "" {
+    util.Log(0, "ERROR! ClientUpdate() called without <macaddress>: %v", client)
+    return
+  }
   caddr := client.Text("client")
+  if caddr == "" {
+    util.Log(0, "ERROR! ClientUpdate() called without <client>: %v", client)
+    return
+  }
+  
   keys := ClientKeys(caddr)
   if len(keys) > 0 {
     // Add previous key as 2nd key, because due to parallel processes
@@ -119,7 +141,8 @@ func ClientUpdate(client *xml.Hash) {
     client.Add("key", keys[0])
   }
   util.Log(2, "DEBUG! ClientUpdate for %v, handled by %v.", caddr, client.Text("source"))
-  old := clientDB.Replace(xml.FilterSimple("macaddress", macaddress), false, client)
+  filter := xml.FilterOr([]xml.HashFilter{xml.FilterSimple("macaddress", macaddress),xml.FilterSimple("client", caddr)})
+  old := clientDB.Replace(filter, false, client)
   
   // if the update assigns a client that was previously assigned to this server to
   // another server, double-check this new assignment by sending Müll to the the
