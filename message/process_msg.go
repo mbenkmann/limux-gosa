@@ -54,7 +54,7 @@ func ErrorReply(msg interface{}) string {
 func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string, disconnect bool) {
   util.Log(2, "DEBUG! Processing message: %v", msg)
   
-  for attempt := 0 ; attempt < 3; attempt++ {
+  for attempt := 0 ; attempt < 4; attempt++ {
     var keys_to_try []string
     
     switch attempt {
@@ -64,10 +64,12 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string, di
                 util.Log(0, "ERROR! SplitHostPort: %v")
                 keys_to_try = []string{}
               } else {
-                keys_to_try = db.ServerKeys(host)
+                keys_to_try = append(db.ServerKeys(host), db.ClientKeys(host)...)
               }
       case 2: util.Log(1, "INFO! Last resort attempt to decrypt message from %v with all server keys", tcpAddr)
               keys_to_try = db.ServerKeysForAllServers()
+      case 3: util.Log(1, "INFO! Last resort attempt to decrypt message from %v with all client keys", tcpAddr)
+              keys_to_try = db.ClientKeysForAllClients()
     }
     
     for _, key := range keys_to_try {
