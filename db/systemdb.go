@@ -289,8 +289,8 @@ func SystemGetState(macaddress string, attrname string) string {
 }
 
 // Returns the complete data available for the system identified by the given 
-// macaddress. If an error occurs, the returned data is "<xml></xml>" and the
-// 2nd return value is the error.
+// macaddress. If an error occurs or the system is not found, 
+// the returned data is "<xml></xml>" and the 2nd return value is the error.
 // The format of the returned data is
 // <xml>
 //  <dn>...</dn>
@@ -303,7 +303,10 @@ func SystemGetState(macaddress string, attrname string) string {
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
 func SystemGetAllDataForMAC(macaddress string) (*xml.Hash, error) {
-  return xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter)))
+  x, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter)))
+  if err != nil { return x, err }
+  if x.First("dn") == nil { return x, fmt.Errorf("Could not find system with MAC %v", macaddress) }
+  return x, err
 }
 
 func ldapSearch(query string, attr... string) *exec.Cmd {

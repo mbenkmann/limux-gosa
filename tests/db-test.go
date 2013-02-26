@@ -219,6 +219,26 @@ func systemdb_test() {
   check(db.SystemIsWorkstation(db.SystemMACForName("systest3")), true)
   
   check(db.SystemGetState(Jobs[0].MAC, "objectclass"),"GOhard␞gotoWorkstation␞FAIobject␞gosaAdministrativeUnitTag")
+  
+  data, err := db.SystemGetAllDataForMAC("no-mac")
+  check(data, "<xml></xml>")
+  check(err, "Could not find system with MAC no-mac")
+  
+  ldapUri := config.LDAPURI
+  config.LDAPURI = "broken"
+  data, err = db.SystemGetAllDataForMAC(db.SystemMACForName("systest1"))
+  check(data, "<xml></xml>")
+  check(err, "Could not parse LDAP URI(s)=broken (3)\n")
+  config.LDAPURI = ldapUri
+  
+  data, err = db.SystemGetAllDataForMAC(db.SystemMACForName("systest1"))
+  check(err, nil)
+  check(data.Text("dn"), "cn=systest1,ou=workstations,ou=systems,o=go-susi,c=de")
+  check(data.Text("macaddress"), "01:02:03:04:05:06")
+  check(data.Text("cn"), "systest1")
+  ocls := data.Get("objectclass")
+  sort.Strings(ocls)
+  check(ocls, []string{"FAIobject","GOhard","gosaAdministrativeUnitTag","gotoWorkstation"})
 }
 
 func jobdb_test() {
