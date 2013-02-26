@@ -63,6 +63,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   config.ReadNetwork()
   listen_address = config.IP + ":" + listen_port
+  client_listen_address = config.IP + ":" + client_listen_port
   
   // if we got a program path (i.e. not host:port), create config and launch program
   if launched_daemon {
@@ -364,7 +365,7 @@ func run_here_i_am_tests() {
     hia.FirstOrAdd("source").SetText(client_addr[i])
     hia.FirstOrAdd("mac_address").SetText(mac[i])
     t0 := time.Now()
-    send("", hia)
+    send("[ClientPackages]", hia)
     nfc := wait(t0, "new_foreign_client")
     check(nfc.XML.Text("source"), config.ServerSourceAddress)
     check(nfc.XML.Text("target"), listen_address)
@@ -387,6 +388,47 @@ func run_here_i_am_tests() {
   // Check if the 2 clients (and only those) were either in cns or nfc
   sort.Strings(clients)
   check(clients, []string{client_addr[1]+","+mac[1], client_addr[2]+","+mac[2]})
+  
+  // send here_i_am from MAC not in LDAP with our test client's address
+  phantom_mac := "6c:d0:12:Fe:ce:50"
+  hia.FirstOrAdd("source").SetText(client_listen_address)
+  hia.FirstOrAdd("mac_address").SetText(phantom_mac)
+  hia.FirstOrAdd("new_passwd").SetText(keys[len(keys)-1])
+  t0 = time.Now()
+  send("[ClientPackages]", hia)
+  // check that we get a registered message
+  msg = wait(t0, "registered")
+  if check(checkTags(msg.XML,"header,registered,source,target,ldap_available"), "") {
+    check(msg.XML.Text("source"), config.ServerSourceAddress)
+    check(msg.XML.Text("target"), client_listen_address)
+    check(msg.IsClientMessage, true)
+    check(msg.Key, keys[len(keys)-1])
+  }
+  // check that we get a detect_hardware message (because there's no LDAP
+  // entry for phantom_mac)
+  msg = wait(t0, "detect_hardware")
+  if check(checkTags(msg.XML,"header,detect_hardware,source,target"), "") {
+    check(msg.XML.Text("source"), config.ServerSourceAddress)
+    check(msg.XML.Text("target"), client_listen_address)
+    check(msg.IsClientMessage, true)
+    check(msg.Key, keys[len(keys)-1])
+  }
+  
+  // change the client key, then test if the server understands messages with
+  // the new key.
+  send("CLIENT", hash("xml(header(new_key)new_key(new_client_key)source(%v)target(%v))", client_listen_address, config.ServerSourceAddress))
+  keys[len(keys)-1] = "new_client_key"
+  conn, err := net.Dial("tcp", config.ServerSourceAddress)
+  check(err,nil)
+  defer conn.Close()
+  util.SendLn(conn, message.GosaEncrypt("<xml><header>gosa_query_jobdb</header></xml>", keys[len(keys)-1]), config.Timeout)
+  reply := message.GosaDecrypt(util.ReadLn(conn, config.Timeout), keys[len(keys)-1])
+  x, err := xml.StringToHash(reply)
+  if check(err, nil) {
+    // This test fails on gosa-si because it AFAIK it can't understand
+    // GOsa messages encrypted with client keys.
+    siFail(x.Text("header"),"query_jobdb")
+  }
 }
 
 func run_job_processing_tests() {
