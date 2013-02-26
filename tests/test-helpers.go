@@ -121,6 +121,8 @@ type queueElement struct {
   Key string
   // IP address of sender.
   SenderIP string 
+  // true if the message was received via client_listener instead of listener
+  IsClientMessage bool
 }
 
 // All incoming messages are appended to the queue. Access protected by queue_mutex
@@ -140,12 +142,23 @@ var listen_address string
 // the listener of the test server
 var listener net.Listener
 
+// port the test client listens on
+var client_listen_port = "18341" 
+
+// host:port address of the test client.
+var client_listen_address string
+
+// the listener of the test client
+var client_listener net.Listener
+
+
 // Elements of type net.Conn for all current active incoming connections
 // handled by handleConnection()
 var active_connections = deque.New()
 
-// keys[0] is the key of the test server started by listen(). The other
-// elements are copies of config.ModuleKeys
+// keys[0] is the key of the test server started by listen(). 
+// keys[len(keys)-1] is the key of the test client started by listen()
+// The other elements are copies of config.ModuleKeys
 // ATTENTION! You must call init_keys() to initialize this.
 var keys []string
 
@@ -181,13 +194,14 @@ func wait(t time.Time, header string) *queueElement {
     time.Sleep(100*time.Millisecond)
   }
   
-  return &queueElement{xml.NewHash("xml"), time.Now(), "", "0.0.0.0"}
+  return &queueElement{xml.NewHash("xml"), time.Now(), "", "0.0.0.0", false}
 }
 
 // sends the xml message x to the gosa-si/go-susi server being tested
 // (config.ServerSourceAddress) encrypted with the module key identified by keyid
 // (e.g. "[ServerPackages]"). Use keyid "" to select the server key exchanged via
 // new_server/confirm_new_server
+// Use keyid "CLIENT" to select keys[len(keys)-1]
 // If x does not have <target> and/or <source> elements, they will be added
 // with the values config.ServerSourceAddress and listen_address respectively.
 //
@@ -197,6 +211,7 @@ func wait(t time.Time, header string) *queueElement {
 func send(keyid string, x *xml.Hash) {
   var key string
   if keyid == "" { key = keys[0] } else 
+  if keyid == "CLIENT" { key = keys[len(keys)-1] } else
   { 
     key = config.ModuleKey[keyid] 
   }
@@ -338,16 +353,20 @@ func getFJU() []*xml.Hash {
 
 //initializes var keys. ATTENTION! Must be called after config.* is initialized
 func init_keys() {
-  keys = make([]string, len(config.ModuleKeys)+1)
+  keys = make([]string, len(config.ModuleKeys)+2)
   for i := range config.ModuleKeys { keys[i+1] = config.ModuleKeys[i] }
   keys[0] = "none"
+  keys[len(keys)-1] = "client_key"
 }  
 
-// sets up a listening port that receives messages, decrypts them and
-// stores them in the queue.
+// sets up 2 listening ports (one for client and one for server) that receive 
+// messages, decrypt them and store them in the queue.
 func listen() {
   var err error
   listener, err = net.Listen("tcp", ":" + listen_port)
+  if err != nil { panic(fmt.Sprintf("Test cannot run. Fatal error: %v", err)) }
+  
+  client_listener, err = net.Listen("tcp", ":" + client_listen_port)
   if err != nil { panic(fmt.Sprintf("Test cannot run. Fatal error: %v", err)) }
   
   go func() {
@@ -357,7 +376,18 @@ func listen() {
       conn, err := listener.Accept()
       if err != nil { return }
       
-      go handleConnection(conn)
+      go handleConnection(conn, false)
+    }
+  }()
+  
+  go func() {
+    defer client_listener.Close()
+    
+    for {
+      conn, err := client_listener.Accept()
+      if err != nil { return }
+      
+      go handleConnection(conn, true)
     }
   }()
 }
@@ -365,6 +395,7 @@ func listen() {
 // shuts down the listener and all currently active connections
 func listen_stop() {
   listener.Close()
+  client_listener.Close()
   for {
     connection := active_connections.PopAt(0)
     if connection == nil { break }
@@ -373,7 +404,7 @@ func listen_stop() {
 }
 
 // handles an individual connection received by listen().
-func handleConnection(conn net.Conn) {
+func handleConnection(conn net.Conn, is_client bool) {
   defer conn.Close()
   active_connections.Push(conn)
   defer active_connections.Remove(conn)
@@ -424,7 +455,7 @@ func handleConnection(conn net.Conn) {
       }
       
       // process the message and get a reply (if applicable)
-      reply := processMessage(string(buf[start:start+eol]), senderIP)
+      reply := processMessage(string(buf[start:start+eol]), senderIP, is_client)
       if reply != "" { util.SendLn(conn, reply, 5*time.Second) }
       start += eol+1
     }
@@ -435,7 +466,7 @@ func handleConnection(conn net.Conn) {
   }
   
   if err != nil {
-    msg := queueElement{}
+    msg := queueElement{IsClientMessage:is_client}
     msg.XML = hash("error(%v)", err)
     msg.Time = time.Now()
     msg.SenderIP = senderIP
@@ -446,9 +477,9 @@ func handleConnection(conn net.Conn) {
   }
 }
 
-func processMessage(str string, senderIP string) string {
+func processMessage(str string, senderIP string, is_client bool) string {
   var err error
-  msg := queueElement{}
+  msg := queueElement{IsClientMessage:is_client}
   
   decrypted := ""
   for _, msg.Key = range keys {
