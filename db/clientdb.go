@@ -148,12 +148,14 @@ func ClientUpdate(client *xml.Hash) {
   // another server, double-check this new assignment by sending Müll to the the
   // client, which will cause it to send us a here_i_am if it still feels attached
   // to us. That here_i_am will then undo the incorrect assignment.
-  for _, tag := range old.Subtags() {
-    for oldclient := old.First(tag); oldclient != nil; oldclient = oldclient.Next() {
-      if oldclient.Text("source") == config.ServerSourceAddress {
-        addr := oldclient.Text("client")
-        util.Log(1, "INFO! Sending 'Müll' to %v", addr)
-        go util.SendLnTo(addr, "Müll", config.Timeout)
+  if client.Text("source") != config.ServerSourceAddress {
+    for _, tag := range old.Subtags() {
+      for oldclient := old.First(tag); oldclient != nil; oldclient = oldclient.Next() {
+        if oldclient.Text("source") == config.ServerSourceAddress {
+          addr := oldclient.Text("client")
+          util.Log(1, "INFO! Client taken away from us. Verifying by sending 'Müll' to %v", addr)
+          go util.SendLnTo(addr, "Müll", config.Timeout)
+        }
       }
     }
   }
