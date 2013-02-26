@@ -254,23 +254,40 @@ func SystemDomainsKnown() []string { return append(config.LookupDomains,"."+conf
 // addresses.
 func SystemNetworksKnown() []string { return []string{config.IP} }
 
-// Replaces the attribute attrname with the sole value attrvalue for the system
-// identified by the given macaddress.
+// Changes the attribute attrname to attrvalue for the system
+// identified by the given macaddress. If the system has multiple attribute
+// values for attrname they will all be removed and after this function call
+// only the single value attrvalue will remain.
 //
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
 func SystemSetState(macaddress string, attrname, attrvalue string) {
+  err := SystemSetStateMulti(macaddress, attrname, []string{attrvalue})
+  if err != nil {
+    util.Log(0, "ERROR! %v", err)
+  }
+}
+
+// Replaces the attribute attrname with the list of attrvalues for the system
+// identified by the given macaddress. If attrvalues is empty, the attribute is
+// removed from the object. If an error occurs or no system is found with the
+// given macaddress an error will be returned (otherwise nil).
+//
+// ATTENTION! This function accesses LDAP and may therefore take a while.
+// If possible you should use it asynchronously.
+func SystemSetStateMulti(macaddress string, attrname string, attrvalues []string) error {
   system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter),"dn"))
   dn := system.Text("dn")
   if dn == "" {
-    util.Log(0, "ERROR! Could not get dn for MAC %v: %v", macaddress, err)
-    return
+    return fmt.Errorf("Could not get dn for MAC %v: %v", macaddress, err)
   }
-  out, err := ldapModify(dn, attrname, attrvalue).CombinedOutput()
+  out, err := ldapModify(dn, attrname, attrvalues).CombinedOutput()
   if err != nil {
-    util.Log(0, "ERROR! Could not change state of object %v: %v (%v)",dn,err,string(out))
+    return fmt.Errorf("Could not change state of object %v: %v (%v)",dn,err,string(out))
   }
+  return nil
 }
+
 
 // Returns all values of attribute attrname for the system
 // identified by the given macaddress concatenated into a single string
@@ -318,17 +335,22 @@ func ldapSearch(query string, attr... string) *exec.Cmd {
   return exec.Command("ldapsearch", args...)
 }
 
-func ldapModify(dn string, attrname, attrvalue string) *exec.Cmd {
+func ldapModify(dn string, attrname string, attrvalues []string) *exec.Cmd {
   args := []string{"-x", "-H", config.LDAPURI}
   args = append(args,"-D",config.LDAPAdmin,"-y",config.LDAPAdminPasswordFile)
-  util.Log(2, "DEBUG! ldapmodify %v (Set %v to '%v' for %v)",args, attrname, attrvalue, dn)
+  util.Log(2, "DEBUG! ldapmodify %v (Set %v to %v for %v)",args, attrname, attrvalues, dn)
   cmd := exec.Command("ldapmodify", args...)
-  cmd.Stdin = bytes.NewBufferString(fmt.Sprintf(`dn:: %v
+  bufstr := bytes.NewBufferString(fmt.Sprintf(`dn:: %v
 changetype: modify
 replace: %v
-%v:: %v
 `,base64.StdEncoding.EncodeToString([]byte(dn)),
-  attrname,
-  attrname,base64.StdEncoding.EncodeToString([]byte(attrvalue))))
+  attrname))
+
+  for i := range attrvalues {
+    bufstr.WriteString(fmt.Sprintf(`%v:: %v
+`, attrname, base64.StdEncoding.EncodeToString([]byte(attrvalues[i]))))
+  }
+  
+  cmd.Stdin = bufstr
   return cmd
 }
