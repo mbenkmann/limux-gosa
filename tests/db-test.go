@@ -42,6 +42,7 @@ func DB_test() {
   jobdb_test()
   serverdb_test()
   clientdb_test()
+  systemdb_test()
 }
 
 func clientdb_test() {
@@ -155,7 +156,9 @@ func serverdb_test() {
   
   check(db.ServerWithMAC("00:17:31:a1:f8:19"),server1)
   check(db.ServerWithMAC("00:ff:cc:aa:ff:11"),nil)
-  
+}
+
+func systemdb_test() {
   check(db.SystemPlainnameForMAC(Jobs[0].MAC), Jobs[0].Plainname)
   check(db.SystemPlainnameForMAC(Jobs[1].MAC), Jobs[1].Plainname)
   check(db.SystemPlainnameForMAC(Jobs[2].MAC), Jobs[2].Plainname)
@@ -214,6 +217,8 @@ func serverdb_test() {
   check(db.SystemIsWorkstation(db.SystemMACForName("systest1")), true)
   check(db.SystemIsWorkstation(db.SystemMACForName("systest2")), true)
   check(db.SystemIsWorkstation(db.SystemMACForName("systest3")), true)
+  
+  check(db.SystemGetState(Jobs[0].MAC, "objectclass"),"GOhard␞gotoWorkstation␞FAIobject␞gosaAdministrativeUnitTag")
 }
 
 func jobdb_test() {

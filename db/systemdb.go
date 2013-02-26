@@ -272,8 +272,10 @@ func SystemSetState(macaddress string, attrname, attrvalue string) {
   }
 }
 
-// Returns the 1st value of attribute attrname for the system
-// identified by the given macaddress.
+// Returns all values of attribute attrname for the system
+// identified by the given macaddress concatenated into a single string
+// separated by \u241e (symbol for record separator). If the system is not
+// found or has no such attribute, the empty string "" is returned.
 //
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
