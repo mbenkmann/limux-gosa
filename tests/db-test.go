@@ -54,6 +54,7 @@ func clientdb_test() {
     mac := strings.Split(client[i],",")[1]
     
     check(db.ClientWithMAC(mac), nil)
+    check(db.ClientWithAddress(ip), nil)
     db.ClientUpdate(hash("xml(header(new_foreign_client)new_foreign_client()source(%v)target(%v)client(%v)macaddress(%v))", listen_address, config.ServerSourceAddress, ip,mac))
     if c := db.ClientWithMAC(mac); check(c!=nil, true) {
       check(c.Text("client"), ip)
@@ -62,12 +63,15 @@ func clientdb_test() {
       check(db.ClientKeys(ip), []string{})
       check(db.ClientKeys(strings.Split(ip,":")[0]), []string{})
     }
+    check(db.ClientWithMAC(mac), db.ClientWithAddress(ip))
   }
+  check(len(db.ClientKeysForAllClients()),0)
   
   for i := range client {
     ip  := strings.Split(client[i],",")[0]
     mac := strings.Split(client[i],",")[1]
     
+    // change key to "key_for_"+mac
     db.ClientUpdate(hash("xml(key(key_for_%v)header(new_foreign_client)new_foreign_client()source(%v)target(%v)client(%v)macaddress(%v))", mac,listen_address, config.ServerSourceAddress, ip,mac))
     if c := db.ClientWithMAC(mac); check(c!=nil, true) {
       check(c.Text("client"), ip)
@@ -77,11 +81,13 @@ func clientdb_test() {
       check(db.ClientKeys(strings.Split(ip,":")[0]), []string{"key_for_"+mac})
     }
   }
+  check(len(db.ClientKeysForAllClients()),len(client))
   
   for i := range client {
     ip  := strings.Split(client[i],",")[0]
     mac := strings.Split(client[i],",")[1]
     
+    // change key to "new_key_for_"+mac
     db.ClientUpdate(hash("xml(key(new_key_for_%v)header(new_foreign_client)new_foreign_client()source(%v)target(%v)client(%v)macaddress(%v))", mac,listen_address, config.ServerSourceAddress, ip,mac))
     if c := db.ClientWithMAC(mac); check(c!=nil, true) {
       check(c.Text("client"), ip)
@@ -91,12 +97,14 @@ func clientdb_test() {
       check(db.ClientKeys(strings.Split(ip,":")[0]), c.Get("key"))
     }
   }
+  check(len(db.ClientKeysForAllClients()),2*len(client))
   
   allkeys := []string{}
   for i := range client {
     ip  := strings.Split(client[i],",")[0]
     mac := strings.Split(client[i],",")[1]
     
+    // change key to "3rd_key_for_"+mac, which shifts out the "key_for_"+mac
     db.ClientUpdate(hash("xml(key(3rd_key_for_%v)header(new_foreign_client)new_foreign_client()source(%v)target(%v)client(%v)macaddress(%v))", mac,listen_address, config.ServerSourceAddress, ip,mac))
     if c := db.ClientWithMAC(mac); check(c!=nil, true) {
       check(c.Text("client"), ip)
@@ -107,11 +115,29 @@ func clientdb_test() {
       allkeys = append(allkeys, c.Get("key")...)
     }
   }
+  check(len(db.ClientKeysForAllClients()),2*len(client))
   
   sort.Strings(allkeys)
   allkeys2 := db.ClientKeysForAllClients()
   sort.Strings(allkeys2)
   check(allkeys2, allkeys)
+  
+  ip0  := strings.Split(client[0],",")[0]
+  mac0 := strings.Split(client[0],",")[1]
+  ip1  := strings.Split(client[1],",")[0]
+  mac1 := strings.Split(client[1],",")[1]
+  client0 := db.ClientWithMAC(mac0)
+  client0.First("macaddress").SetText(mac1) // client0 now has MAC 1 with IP 0
+  client0.RemoveFirst("key")
+  client0.FirstOrAdd("key").SetText("foobar")
+  check(db.ClientWithMAC(mac0) != nil, true)
+  check(db.ClientWithAddress(ip1) != nil, true)
+  check(len(db.ClientKeysForAllClients()), len(allkeys))
+  db.ClientUpdate(client0) // replaces MAC 1 and IP 0 entry
+  check(db.ClientWithMAC(mac0), nil)
+  check(db.ClientWithAddress(ip1), nil)
+  check(db.ClientWithAddress(ip0), db.ClientWithMAC(mac1))
+  check(len(db.ClientKeysForAllClients()), 2*(len(client)-1))
 }
 
 func serverdb_test() {  
