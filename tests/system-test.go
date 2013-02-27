@@ -318,60 +318,76 @@ func run_object_group_inheritance_tests() {
   hia := hash("xml(header(here_i_am)source(%v)target(%v)new_passwd(%v))", client_listen_address, config.ServerSourceAddress, keys[len(keys)-1])
   
   // nackt has neither gotoLdapServer nor gotoNtpServer, nor is it member of
-  // an object group. In that case go-susi falls back to sending its own
-  // data.
+  // an object group. 
   hia.FirstOrAdd("mac_address").SetText(db.SystemMACForName("nackt"))
   t0 := time.Now()
   send("[ClientPackages]", hia)
   msg := wait(t0, "new_ldap_config")
-  if check(checkTags(msg.XML,"header,new_ldap_config,source,target,admin_base?,unit_tag?,department?,ldap_base,ldap_uri,release"), "") {
-    check(msg.Key, keys[len(keys)-1])
-    check(msg.IsClientMessage, true)
-    check(msg.XML.Text("source"), config.ServerSourceAddress)
-    check(msg.XML.Text("target"), client_listen_address)
-    check(msg.XML.Text("ldap_base"), config.LDAPBase)
-    check(msg.XML.Text("ldap_uri"), config.LDAPURI)
-    check(msg.XML.Text("release"), "") // nackt has no faiclass attribute
-  }
-  msg = wait(t0, "new_ntp_config")
-  if check(checkTags(msg.XML,"header,new_ntp_config,source,target,server*"), "") {
-    check(msg.Key, keys[len(keys)-1])
-    check(msg.IsClientMessage, true)
-    check(msg.XML.Text("source"), config.ServerSourceAddress)
-    check(msg.XML.Text("target"), client_listen_address)
-    check(msg.XML.Text("server"), "pool.ntp.org") // default, because nackt has not gotoNtpServer
-  }
+  check(msg.XML, "<xml></xml>") // no new_ldap_config should be sent because nackt has no gotoLdapServer
   
-  // ogmember1 inherits both gotoLdapServer and gotoNtpServer from Objektgruppe,
+  msg = wait(t0, "new_ntp_config")
+  check(msg.XML, "<xml></xml>") // no new_ntp_config should be sent because nackt has no gotoNtpServer
+  
+  // ogmember1 inherits gotoLdapServer and gotoNtpServer from Objektgruppe,
   // as well as faiclass (i.e. release)
   hia.FirstOrAdd("mac_address").SetText(db.SystemMACForName("ogmember1"))
   t0 = time.Now()
   send("[ClientPackages]", hia)
   msg = wait(t0, "new_ldap_config")
-  if check(checkTags(msg.XML,"header,new_ldap_config,source,target,admin_base?,unit_tag?,department?,ldap_base,ldap_uri,release"), "") {
+  // fails because of missing object group support
+  if checkFail(checkTags(msg.XML,"header,new_ldap_config,source,target,admin_base?,unit_tag?,department?,ldap_base,ldap_uri,release"), "") {
+    check(msg.Key, keys[len(keys)-1])
+    check(msg.IsClientMessage, true)
+    check(msg.XML.Text("source"), config.ServerSourceAddress)
+    check(msg.XML.Text("target"), client_listen_address)
     check(msg.XML.Text("ldap_base"), "o=go-susi,c=de")
     check(msg.XML.Get("ldap_uri"), []string{"ldap://ldap01.tvc.example.com","ldap://ldap02.tvc.example.com:389"})
     check(msg.XML.Text("release"), "plophos/4.1.0")
   }
   msg = wait(t0, "new_ntp_config")
-  if check(checkTags(msg.XML,"header,new_ntp_config,source,target,server*"), "") {
+  // fails because of missing object group support
+  if checkFail(checkTags(msg.XML,"header,new_ntp_config,source,target,server*"), "") {
     check(msg.XML.Get("server"), []string{"ntp01.example.com","ntp02.example.com"})
   }
   
-  // ogmember2 inherits both gotoLdapServer and faiclass from Objektgruppe,
+  // ogmember2 inherits gotoLdapServer and faiclass from Objektgruppe,
   // but overrides gotoNtpServer
   hia.FirstOrAdd("mac_address").SetText(db.SystemMACForName("ogmember2"))
   t0 = time.Now()
   send("[ClientPackages]", hia)
   msg = wait(t0, "new_ldap_config")
-  if check(checkTags(msg.XML,"header,new_ldap_config,source,target,admin_base?,unit_tag?,department?,ldap_base,ldap_uri,release"), "") {
+  // fails because of missing object group support
+  if checkFail(checkTags(msg.XML,"header,new_ldap_config,source,target,admin_base?,unit_tag?,department?,ldap_base,ldap_uri,release"), "") {
     check(msg.XML.Text("ldap_base"), "o=go-susi,c=de")
     check(msg.XML.Get("ldap_uri"), []string{"ldap://ldap01.tvc.example.com","ldap://ldap02.tvc.example.com:389"})
     check(msg.XML.Text("release"), "plophos/4.1.0")
   }
   msg = wait(t0, "new_ntp_config")
   if check(checkTags(msg.XML,"header,new_ntp_config,source,target,server*"), "") {
-    check(msg.XML.Get("server"), []string{"override-ntp01.example.com","override-ntp02.example.com"})
+    check(msg.XML.Get("server"), []string{"override-ntp1.example.com","override-ntp2.example.com"})
+  }
+  
+  // systest1 has gotoLdapServer, gotoNtpServer and faiclass
+  hia.FirstOrAdd("mac_address").SetText(db.SystemMACForName("systest1"))
+  t0 = time.Now()
+  send("[ClientPackages]", hia)
+  msg = wait(t0, "new_ldap_config")
+  if check(checkTags(msg.XML,"header,new_ldap_config,source,target,admin_base?,unit_tag?,department?,ldap_base,ldap_uri,release"), "") {
+    check(msg.Key, keys[len(keys)-1])
+    check(msg.IsClientMessage, true)
+    check(msg.XML.Text("source"), config.ServerSourceAddress)
+    check(msg.XML.Text("target"), client_listen_address)
+    check(msg.XML.Text("ldap_base"), "o=go-susi,c=de")
+    check(msg.XML.Get("ldap_uri"), []string{"ldap://127.0.0.1:20088"})
+    check(msg.XML.Text("release"), "plophos")
+  }
+  msg = wait(t0, "new_ntp_config")
+  if check(checkTags(msg.XML,"header,new_ntp_config,source,target,server*"), "") {
+    check(msg.Key, keys[len(keys)-1])
+    check(msg.IsClientMessage, true)
+    check(msg.XML.Text("source"), config.ServerSourceAddress)
+    check(msg.XML.Text("target"), client_listen_address)
+    check(msg.XML.Get("server"), []string{"cool.ntp.org"})
   }
 }
 
