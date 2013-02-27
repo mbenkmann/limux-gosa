@@ -15,14 +15,13 @@ ghMemSize: 3355324
 ghUsbSupport: false
 gotoXMonitor: BELINEA 101911
 gotoHardwareChecksum: noVmheW0c0JqyAx4jj3Y/g
-gotoMode: active
 description: Test
 ghGfxAdapter: -
 gotoLastUser: -
 l: Nowhere
 goFonHardware: automatic
 FAIdebianMirror: http://dl.google.com/linux/chrome/deb/
-gotoNtpServer: pool.ntp.org
+gotoNtpServer: cool.ntp.org
 gotoBootKernel: default
 gotoXDriver: intel
 gotoXResolution: 1280x1024
@@ -67,6 +66,7 @@ structuralObjectClass: GOhard
 entryUUID: 7df8eb28-d1e0-1031-93f3-9110eab4bd55
 creatorsName: cn=admin,o=go-susi,c=de
 createTimestamp: 20121203215945Z
-entryCSN: 20121203215945.016673Z#000000#000#000000
+gotoMode: active
+entryCSN: 20130227141128.538627Z#000000#000#000000
 modifiersName: cn=admin,o=go-susi,c=de
-modifyTimestamp: 20121203215945Z
+modifyTimestamp: 20130227141128Z

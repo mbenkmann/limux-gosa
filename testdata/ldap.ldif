@@ -80,7 +80,7 @@ gotoLastUser: -
 l: Nowhere
 goFonHardware: automatic
 FAIdebianMirror: http://dl.google.com/linux/chrome/deb/
-gotoNtpServer: pool.ntp.org
+gotoNtpServer: cool.ntp.org
 gotoBootKernel: default
 gotoXDriver: intel
 gotoXResolution: 1280x1024
