@@ -310,6 +310,69 @@ func SystemTest(daemon string, is_gosasi bool) {
     run_foreign_client_tests()
   }
   
+  run_object_group_inheritance_tests()
+  
+}
+
+func run_object_group_inheritance_tests() {
+  hia := hash("xml(header(here_i_am)source(%v)target(%v)new_passwd(%v))", client_listen_address, config.ServerSourceAddress, keys[len(keys)-1])
+  
+  // nackt has neither gotoLdapServer nor gotoNtpServer, nor is it member of
+  // an object group. In that case go-susi falls back to sending its own
+  // data.
+  hia.FirstOrAdd("mac_address").SetText(db.SystemMACForName("nackt"))
+  t0 := time.Now()
+  send("[ClientPackages]", hia)
+  msg := wait(t0, "new_ldap_config")
+  if check(checkTags(msg.XML,"header,new_ldap_config,source,target,admin_base?,unit_tag?,department?,ldap_base,ldap_uri,release"), "") {
+    check(msg.Key, keys[len(keys)-1])
+    check(msg.IsClientMessage, true)
+    check(msg.XML.Text("source"), config.ServerSourceAddress)
+    check(msg.XML.Text("target"), client_listen_address)
+    check(msg.XML.Text("ldap_base"), config.LDAPBase)
+    check(msg.XML.Text("ldap_uri"), config.LDAPURI)
+    check(msg.XML.Text("release"), "") // nackt has no faiclass attribute
+  }
+  msg = wait(t0, "new_ntp_config")
+  if check(checkTags(msg.XML,"header,new_ntp_config,source,target,server*"), "") {
+    check(msg.Key, keys[len(keys)-1])
+    check(msg.IsClientMessage, true)
+    check(msg.XML.Text("source"), config.ServerSourceAddress)
+    check(msg.XML.Text("target"), client_listen_address)
+    check(msg.XML.Text("server"), "pool.ntp.org") // default, because nackt has not gotoNtpServer
+  }
+  
+  // ogmember1 inherits both gotoLdapServer and gotoNtpServer from Objektgruppe,
+  // as well as faiclass (i.e. release)
+  hia.FirstOrAdd("mac_address").SetText(db.SystemMACForName("ogmember1"))
+  t0 = time.Now()
+  send("[ClientPackages]", hia)
+  msg = wait(t0, "new_ldap_config")
+  if check(checkTags(msg.XML,"header,new_ldap_config,source,target,admin_base?,unit_tag?,department?,ldap_base,ldap_uri,release"), "") {
+    check(msg.XML.Text("ldap_base"), "o=go-susi,c=de")
+    check(msg.XML.Get("ldap_uri"), []string{"ldap://ldap01.tvc.example.com","ldap://ldap02.tvc.example.com:389"})
+    check(msg.XML.Text("release"), "plophos/4.1.0")
+  }
+  msg = wait(t0, "new_ntp_config")
+  if check(checkTags(msg.XML,"header,new_ntp_config,source,target,server*"), "") {
+    check(msg.XML.Get("server"), []string{"ntp01.example.com","ntp02.example.com"})
+  }
+  
+  // ogmember2 inherits both gotoLdapServer and faiclass from Objektgruppe,
+  // but overrides gotoNtpServer
+  hia.FirstOrAdd("mac_address").SetText(db.SystemMACForName("ogmember2"))
+  t0 = time.Now()
+  send("[ClientPackages]", hia)
+  msg = wait(t0, "new_ldap_config")
+  if check(checkTags(msg.XML,"header,new_ldap_config,source,target,admin_base?,unit_tag?,department?,ldap_base,ldap_uri,release"), "") {
+    check(msg.XML.Text("ldap_base"), "o=go-susi,c=de")
+    check(msg.XML.Get("ldap_uri"), []string{"ldap://ldap01.tvc.example.com","ldap://ldap02.tvc.example.com:389"})
+    check(msg.XML.Text("release"), "plophos/4.1.0")
+  }
+  msg = wait(t0, "new_ntp_config")
+  if check(checkTags(msg.XML,"header,new_ntp_config,source,target,server*"), "") {
+    check(msg.XML.Get("server"), []string{"override-ntp01.example.com","override-ntp02.example.com"})
+  }
 }
 
 func run_foreign_client_tests() {
@@ -1062,8 +1125,10 @@ func run_foreign_job_updates_tests() {
   fju = xml.NewHash("xml", "header", "foreign_job_updates")
   fju.Add("source", listen_address)
   fju.AddClone(job)
+  time.Sleep(2*time.Second)
   t0 = time.Now()
   send("", fju)
+  time.Sleep(2*time.Second)
   // check that we receive NO fju
   msg = wait(t0, "foreign_job_updates")
   check(msg.XML.Text("header"), "")
