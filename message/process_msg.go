@@ -65,6 +65,9 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string, di
                 keys_to_try = []string{}
               } else {
                 keys_to_try = append(db.ServerKeys(host), db.ClientKeys(host)...)
+                if host == "127.0.0.1" { // make sure we find the key even if registered under our external IP address
+                  keys_to_try = append(db.ServerKeys(config.IP), db.ClientKeys(config.IP)...)
+                }
               }
       case 2: util.Log(1, "INFO! Last resort attempt to decrypt message from %v with all server keys", tcpAddr)
               keys_to_try = db.ServerKeysForAllServers()
