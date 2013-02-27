@@ -242,14 +242,14 @@ func systemdb_test() {
   
   // check db.SystemSetStateMulti()
   systest1,_ := db.SystemGetAllDataForMAC(db.SystemMACForName("systest1"))
-  check(db.SystemGetState(systest1.Text("macaddress"), "gotontpserver"), "pool.ntp.org")
+  check(db.SystemGetState(systest1.Text("macaddress"), "gotontpserver"), "cool.ntp.org")
   check(db.SystemSetStateMulti(systest1.Text("macaddress"), "gotontpserver", []string{}), nil)
   check(db.SystemGetState(systest1.Text("macaddress"), "gotoNtpServer"), "")
   check(db.SystemSetStateMulti(systest1.Text("macaddress"), "gOtontpserver", []string{"ntp1.example.com","ntp2.example.com","ntp3.example.com"}), nil)
   check(db.SystemGetState(systest1.Text("macaddress"), "gotoNtpServer"), "ntp1.example.com␞ntp2.example.com␞ntp3.example.com")
   
   // restore old gotoNtpServer
-  db.SystemSetState(systest1.Text("macaddress"), "gotoNtpServer", "pool.ntp.org")
+  db.SystemSetState(systest1.Text("macaddress"), "gotoNtpServer", "cool.ntp.org")
   data,_ = db.SystemGetAllDataForMAC(systest1.Text("macaddress"))
   check(data, systest1)
   
