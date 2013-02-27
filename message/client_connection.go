@@ -81,6 +81,7 @@ type ClientConnection struct {
 //                 messages that are only of interest to locally registered
 //                 clients (like registered, ore new_ldap_config)
 func (conn *ClientConnection) Tell(msg string, ttl time.Duration) {
+  util.Log(2, "DEBUG! Queuing message for client %v with TTL %v: %v", conn.addr, ttl, msg)
   conn.queue.Push(ClientMessage{msg, time.Now().Add(ttl)})
 }
 
