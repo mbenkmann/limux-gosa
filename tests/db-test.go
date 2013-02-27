@@ -123,20 +123,27 @@ func clientdb_test() {
   sort.Strings(allkeys2)
   check(allkeys2, allkeys)
   
-  ip0  := strings.Split(client[0],",")[0]
+  addr0  := strings.Split(client[0],",")[0]
+  ip0 := strings.Split(addr0,":")[0]
+  check(ip0 != addr0, true)
   mac0 := strings.Split(client[0],",")[1]
-  ip1  := strings.Split(client[1],",")[0]
+  addr1  := strings.Split(client[1],",")[0]
+  ip1 := strings.Split(addr1,":")[0]
+  check(ip1 != addr1, true)
   mac1 := strings.Split(client[1],",")[1]
   client0 := db.ClientWithMAC(mac0)
   client0.First("macaddress").SetText(mac1) // client0 now has MAC 1 with IP 0
   client0.RemoveFirst("key")
   client0.FirstOrAdd("key").SetText("foobar")
   check(db.ClientWithMAC(mac0) != nil, true)
+  check(db.ClientWithAddress(addr1) != nil, true)
   check(db.ClientWithAddress(ip1) != nil, true)
   check(len(db.ClientKeysForAllClients()), len(allkeys))
   db.ClientUpdate(client0) // replaces MAC 1 and IP 0 entry
   check(db.ClientWithMAC(mac0), nil)
+  check(db.ClientWithAddress(addr1), nil)
   check(db.ClientWithAddress(ip1), nil)
+  check(db.ClientWithAddress(addr0), db.ClientWithMAC(mac1))
   check(db.ClientWithAddress(ip0), db.ClientWithMAC(mac1))
   check(len(db.ClientKeysForAllClients()), 2*(len(client)-1))
 }

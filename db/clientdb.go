@@ -103,10 +103,19 @@ func ClientWithMAC(macaddress string) *xml.Hash {
   return clientDB.Query(xml.FilterSimple("macaddress", macaddress)).First("xml")
 }
 
-// Like ClientWithMAC() but finds the client by its IP:PORT address (i.e. the
-// <client> element).
+// Returns the requested entry from the clientdb or nil if the client is unknown.
+// Usually addr is an IP:PORT address that corresponds to the <client> element of
+// the requested entry, but the :PORT may be omitted. In that case,
+// if there are multiple clients with different ports known at that IP, it is
+// unspecified which of them will be returned.
 func ClientWithAddress(addr string) *xml.Hash { 
-  return clientDB.Query(xml.FilterSimple("client", addr)).First("xml")
+  var filter xml.HashFilter
+  if strings.Index(addr, ":") >= 0 {
+    filter = xml.FilterSimple("client", addr)
+  } else {
+    filter = xml.FilterRegexp("client", "^"+regexp.QuoteMeta(addr+":")+"[0-9]+$")
+  }
+  return clientDB.Query(filter).First("xml")
 }
 
 // Returns a hash with the same format as clientDB that contains
