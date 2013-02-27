@@ -182,7 +182,7 @@ func get(t time.Time) []*queueElement {
 // is received within the timeframe, a dummy message is returned.
 func wait(t time.Time, header string) *queueElement {
   end_time := t.Add(reply_timeout)
-  for ; !time.Now().After(end_time);  {
+  for {
     queue_mutex.Lock()
     for _, q := range queue {
       if !q.Time.Before(t) && q.XML.Text("header") == header {
@@ -191,6 +191,7 @@ func wait(t time.Time, header string) *queueElement {
       }
     }
     queue_mutex.Unlock()
+    if time.Now().After(end_time) { break }
     time.Sleep(100*time.Millisecond)
   }
   
