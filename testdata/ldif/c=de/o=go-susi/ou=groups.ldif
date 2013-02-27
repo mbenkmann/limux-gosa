@@ -1,0 +1,12 @@
+dn: ou=groups
+ou: groups
+gosaUnitTag: 7
+objectClass: organizationalUnit
+objectClass: gosaAdministrativeUnitTag
+structuralObjectClass: organizationalUnit
+entryUUID: 84c518b6-150e-1032-9a1c-539d12270eb7
+creatorsName: cn=admin,o=go-susi,c=de
+createTimestamp: 20130227094801Z
+entryCSN: 20130227094801.176762Z#000000#000#000000
+modifiersName: cn=admin,o=go-susi,c=de
+modifyTimestamp: 20130227094801Z
