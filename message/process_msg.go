@@ -89,6 +89,21 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string, di
   
   // This part is only reached if none of the keys opened the message
   util.Log(0, "ERROR! Could not decrypt message from %v: %v", tcpAddr, msg)
+  
+  // If the sender is one of our clients, maybe we got out of sync with its
+  // encryption key (e.g. by missing a new_key message). In that case, spam
+  // the client to cause it to re-register.
+  ip := tcpAddr.IP.To4()
+  if ip == nil {
+    util.Log(0, "ERROR! Cannot convert sender address to IPv4 address: %v", tcpAddr)
+  } else {
+    client := db.ClientWithAddress(ip.String())
+    if client != nil && client.Text("source") == config.ServerSourceAddress {
+      util.Log(1, "INFO! Sender is one of my clients. Sending 'Müll' to make it re-register")
+      go util.SendLnTo(client.Text("client"), "Müll", config.Timeout)
+    }
+  }
+  
   return ErrorReply("Could not decrypt message"), true
 }
 
