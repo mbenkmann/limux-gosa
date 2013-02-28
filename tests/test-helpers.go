@@ -198,6 +198,16 @@ func wait(t time.Time, header string) *queueElement {
   return &queueElement{xml.NewHash("xml"), time.Now(), "", "0.0.0.0", false}
 }
 
+// like wait but waits some additional seconds
+// this is necessary for waiting for client messages because go-susi
+// intentionally puts delays between them.
+func waitlong(t time.Time, header string) *queueElement {
+  old_reply_timeout := reply_timeout
+  reply_timeout += 3*time.Second
+  defer func() { reply_timeout = old_reply_timeout }()
+  return wait(t,header)
+}
+
 // sends the xml message x to the gosa-si/go-susi server being tested
 // (config.ServerSourceAddress) encrypted with the module key identified by keyid
 // (e.g. "[ServerPackages]"). Use keyid "" to select the server key exchanged via

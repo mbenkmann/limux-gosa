@@ -322,10 +322,10 @@ func run_object_group_inheritance_tests() {
   hia.FirstOrAdd("mac_address").SetText(db.SystemMACForName("nackt"))
   t0 := time.Now()
   send("[ClientPackages]", hia)
-  msg := wait(t0, "new_ldap_config")
+  msg := waitlong(t0, "new_ldap_config")
   check(msg.XML, "<xml></xml>") // no new_ldap_config should be sent because nackt has no gotoLdapServer
   
-  msg = wait(t0, "new_ntp_config")
+  msg = waitlong(t0, "new_ntp_config")
   check(msg.XML, "<xml></xml>") // no new_ntp_config should be sent because nackt has no gotoNtpServer
   
   // ogmember1 inherits gotoLdapServer and gotoNtpServer from Objektgruppe,
@@ -333,7 +333,7 @@ func run_object_group_inheritance_tests() {
   hia.FirstOrAdd("mac_address").SetText(db.SystemMACForName("ogmember1"))
   t0 = time.Now()
   send("[ClientPackages]", hia)
-  msg = wait(t0, "new_ldap_config")
+  msg = waitlong(t0, "new_ldap_config")
   // fails because of missing object group support
   if checkFail(checkTags(msg.XML,"header,new_ldap_config,source,target,admin_base?,unit_tag?,department?,ldap_base,ldap_uri,release"), "") {
     check(msg.Key, keys[len(keys)-1])
@@ -344,7 +344,7 @@ func run_object_group_inheritance_tests() {
     check(msg.XML.Get("ldap_uri"), []string{"ldap://ldap01.tvc.example.com","ldap://ldap02.tvc.example.com:389"})
     check(msg.XML.Text("release"), "plophos/4.1.0")
   }
-  msg = wait(t0, "new_ntp_config")
+  msg = waitlong(t0, "new_ntp_config")
   // fails because of missing object group support
   if checkFail(checkTags(msg.XML,"header,new_ntp_config,source,target,server*"), "") {
     check(msg.XML.Get("server"), []string{"ntp01.example.com","ntp02.example.com"})
@@ -355,14 +355,14 @@ func run_object_group_inheritance_tests() {
   hia.FirstOrAdd("mac_address").SetText(db.SystemMACForName("ogmember2"))
   t0 = time.Now()
   send("[ClientPackages]", hia)
-  msg = wait(t0, "new_ldap_config")
+  msg = waitlong(t0, "new_ldap_config")
   // fails because of missing object group support
   if checkFail(checkTags(msg.XML,"header,new_ldap_config,source,target,admin_base?,unit_tag?,department?,ldap_base,ldap_uri,release"), "") {
     check(msg.XML.Text("ldap_base"), "o=go-susi,c=de")
     check(msg.XML.Get("ldap_uri"), []string{"ldap://ldap01.tvc.example.com","ldap://ldap02.tvc.example.com:389"})
     check(msg.XML.Text("release"), "plophos/4.1.0")
   }
-  msg = wait(t0, "new_ntp_config")
+  msg = waitlong(t0, "new_ntp_config")
   if check(checkTags(msg.XML,"header,new_ntp_config,source,target,server*"), "") {
     check(msg.XML.Get("server"), []string{"override-ntp1.example.com","override-ntp2.example.com"})
   }
@@ -371,7 +371,7 @@ func run_object_group_inheritance_tests() {
   hia.FirstOrAdd("mac_address").SetText(db.SystemMACForName("systest1"))
   t0 = time.Now()
   send("[ClientPackages]", hia)
-  msg = wait(t0, "new_ldap_config")
+  msg = waitlong(t0, "new_ldap_config")
   if check(checkTags(msg.XML,"header,new_ldap_config,source,target,admin_base?,unit_tag?,department?,ldap_base,ldap_uri,release"), "") {
     check(msg.Key, keys[len(keys)-1])
     check(msg.IsClientMessage, true)
@@ -381,7 +381,7 @@ func run_object_group_inheritance_tests() {
     check(msg.XML.Get("ldap_uri"), []string{"ldap://127.0.0.1:20088"})
     check(msg.XML.Text("release"), "plophos")
   }
-  msg = wait(t0, "new_ntp_config")
+  msg = waitlong(t0, "new_ntp_config")
   if check(checkTags(msg.XML,"header,new_ntp_config,source,target,server*"), "") {
     check(msg.Key, keys[len(keys)-1])
     check(msg.IsClientMessage, true)
@@ -476,7 +476,7 @@ func run_here_i_am_tests() {
   t0 = time.Now()
   send("[ClientPackages]", hia)
   // check that we get a registered message
-  msg = wait(t0, "registered")
+  msg = waitlong(t0, "registered")
   if check(checkTags(msg.XML,"header,registered,source,target,ldap_available"), "") {
     check(msg.XML.Text("source"), config.ServerSourceAddress)
     check(msg.XML.Text("target"), client_listen_address)
@@ -485,7 +485,7 @@ func run_here_i_am_tests() {
   }
   // check that we get a detect_hardware message (because there's no LDAP
   // entry for phantom_mac)
-  msg = wait(t0, "detect_hardware")
+  msg = waitlong(t0, "detect_hardware")
   if check(checkTags(msg.XML,"header,detect_hardware,source,target"), "") {
     check(msg.XML.Text("source"), config.ServerSourceAddress)
     check(msg.XML.Text("target"), client_listen_address)
