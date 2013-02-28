@@ -142,7 +142,7 @@ func Client(addr string) *ClientConnection {
 // Tries to actually send message to the client. Returns true if success, 
 // false if failure.
 func (conn *ClientConnection) tryToSend(message ClientMessage) bool {
-  util.Log(2, "DEBUG! Trying to send message to client %v: %v", conn.addr, message)
+  util.Log(2, "DEBUG! Trying to send message to client %v: %v", conn.addr, message.Text)
   
   var err error
   
@@ -259,6 +259,17 @@ func (conn *ClientConnection) handleConnection() {
         // back to main loop
         break
       }
+      
+      // gosa-si puts incoming messages into incomingdb and then
+      // processes them in the order they are returned by the database
+      // which causes messages to be processed in the wrong order.
+      // To counteract this we wait a little between messages.
+      // The wait time may seem long, but even with as much as 250ms
+      // I observed the fju for a new job and the fju that adds the
+      // plainname getting mixed up. Apparently gosa-si takes time
+      // in the seconds range to process messages.
+      // If we have >= 10 messages backlog, we don't wait. 
+      if !conn.buffer.IsEmpty() && conn.buffer.Count() < 10 { time.Sleep(1000*time.Millisecond) }
     }
   }
 }
