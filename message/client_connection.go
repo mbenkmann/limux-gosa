@@ -269,7 +269,8 @@ func (conn *ClientConnection) handleConnection() {
       // plainname getting mixed up. Apparently gosa-si takes time
       // in the seconds range to process messages.
       // If we have >= 10 messages backlog, we don't wait. 
-      if !conn.buffer.IsEmpty() && conn.buffer.Count() < 10 { time.Sleep(1000*time.Millisecond) }
+      count := conn.buffer.Count()+conn.queue.Count()
+      if count > 0 && count < 10 { time.Sleep(1000*time.Millisecond) }
     }
   }
 }
