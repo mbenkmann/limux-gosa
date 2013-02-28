@@ -43,9 +43,14 @@ func CheckPossibleClients() {
   }
 }
 
+// A message to be sent to the client paired with an expiration time after
+// which the message is discarded even if it could not be sent successfully.
 type ClientMessage struct {
   // unencrypted message text.
   Text string
+  
+  // Expiration time. If the message could not be sent until that time, it
+  // will be discarded.
   Expires time.Time
 }
 
@@ -61,6 +66,10 @@ type ClientConnection struct {
   // ClientMessage elements from the input queue are moved into this buffer 
   // for processing. They are removed from this buffer only after they have
   // either been sent successfully or have expired.
+  // NOTE: The separation between queue and buffer is done for technical
+  // reasons because it makes the code of handleConnection() more elegant
+  // because it avoids using explicit channels or timers and instead works
+  // solely with Deque's methods.
   buffer deque.Deque
   
   // IP:PORT of the peer.
@@ -79,7 +88,7 @@ type ClientConnection struct {
 //                 resend attempts if sending fails. ttl==0 (or some other
 //                 small ttl) should be set for
 //                 messages that are only of interest to locally registered
-//                 clients (like registered, ore new_ldap_config)
+//                 clients (like "registered", or "new_ldap_config")
 func (conn *ClientConnection) Tell(msg string, ttl time.Duration) {
   util.Log(2, "DEBUG! Queuing message for client %v with TTL %v: %v", conn.addr, ttl, msg)
   conn.queue.Push(ClientMessage{msg, time.Now().Add(ttl)})
@@ -91,7 +100,6 @@ var client_connections = map[string]*ClientConnection{}
 
 // All access to client_connections must be protected by this mutex.
 var client_connections_mutex sync.Mutex
-
 
 // Returns a ClientConnection for talking to addr, which can be either
 // IP:ADDR or HOST:ADDR (where HOST is something that DNS can resolve).
@@ -131,11 +139,16 @@ func Client(addr string) *ClientConnection {
   return conn
 }
 
+// Tries to actually send message to the client. Returns true if success, 
+// false if failure.
 func (conn *ClientConnection) tryToSend(message ClientMessage) bool {
+  util.Log(2, "DEBUG! Trying to send message to client %v: %v", conn.addr, message)
+  
   var err error
   
   client := db.ClientWithAddress(conn.addr)
   if client == nil {
+    util.Log(0, "ERROR! Client %v not found in clientdb", conn.addr)
     if conn.tcpConn != nil { conn.tcpConn.Close() }
     conn.tcpConn = nil
     return false
@@ -146,19 +159,23 @@ func (conn *ClientConnection) tryToSend(message ClientMessage) bool {
     if conn.tcpConn != nil { conn.tcpConn.Close() }
     conn.tcpConn = nil
     
+    util.Log(1, "INFO! Client %v is registered at %v => Forwarding message", conn.addr, client.Text("source"))
+    
     // MESSAGE FORWARDING NOT YET IMPLEMENTED
+    util.Log(0, "ERROR! Message forwarding not yet implemented")
     
   } else { // if client is registered at our server
   
     keys := client.Get("key")
     if len(keys) == 0 {
-      util.Log(0, "ERROR! ClientConnection.tryToSend: No key known for peer %v", conn.addr)
+      util.Log(0, "ERROR! ClientConnection.tryToSend: No key known for client %v", conn.addr)
       return false
     }
   
     encrypted := GosaEncrypt(message.Text, keys[0])
   
     if conn.tcpConn != nil { // try sending via existing connection if it exists
+      util.Log(2, "DEBUG! ClientConnection.tryToSend() to %v via existing connection", conn.addr)
       err = util.SendLn(conn.tcpConn, encrypted, config.Timeout) 
       if err == nil { return true }
         
@@ -167,6 +184,7 @@ func (conn *ClientConnection) tryToSend(message ClientMessage) bool {
     }
     
     // try to (re-)establish connection
+    util.Log(2, "DEBUG! ClientConnection.tryToSend() attempting to (re-)establish connection to %v", conn.addr)
     conn.tcpConn, err = net.Dial("tcp", conn.addr)
     if err != nil {
       util.Log(0,"ERROR! ClientConnection.tryToSend() failed to establish connection to %v: %v",conn.addr,err)
@@ -180,10 +198,10 @@ func (conn *ClientConnection) tryToSend(message ClientMessage) bool {
     }
     
     // try to send message over newly established connection
+    util.Log(2, "DEBUG! ClientConnection.tryToSend() to %v via newly established connection", conn.addr)
     err = util.SendLn(conn.tcpConn, encrypted, config.Timeout) 
     if err == nil { return true }
     
-    util.Log(0, "ERROR! ClientConnection.tryToSend() message to %v: %v", conn.addr, err)
     conn.tcpConn.Close()
     conn.tcpConn = nil
   }
@@ -191,8 +209,15 @@ func (conn *ClientConnection) tryToSend(message ClientMessage) bool {
   return false
 }
 
+// Runs in its own goroutine and attempts to actually transmit the messages
+// stored in conn's buffers. Message expiry is also managed here.
 func (conn *ClientConnection) handleConnection() {
   var delay time.Duration
+  
+  // REMINDER:
+  //   conn.queue: input queue. Tell() pushes messages into this queue.
+  //   conn.buffer: output buffer. Messages to be actually sent are taken from this
+  //                buffer. Messages move conn.queue => conn.buffer => TCP connection
 
   for {
     // if no messages buffered, reset resend delay to infinity
@@ -213,6 +238,7 @@ func (conn *ClientConnection) handleConnection() {
       
       if !conn.tryToSend(message) { // sending failed
         // put message back into buffer
+        util.Log(2, "DEBUG! Failed to send message to %v. Queuing for resend: ", conn.addr, message.Text)
         conn.buffer.Insert(message)
         
         // increase delay until resend
@@ -223,7 +249,8 @@ func (conn *ClientConnection) handleConnection() {
         now := time.Now()
         for i := 0; i < conn.buffer.Count(); {
           if conn.buffer.Peek(i).(ClientMessage).Expires.Before(now) {
-            conn.buffer.RemoveAt(i)
+            message = conn.buffer.RemoveAt(i).(ClientMessage)
+            util.Log(0, "ERROR! Discarding expired message to %v: %v", conn.addr, message.Text)
           } else {
             i++
           }
