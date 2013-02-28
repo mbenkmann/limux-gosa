@@ -177,7 +177,10 @@ func (conn *ClientConnection) tryToSend(message ClientMessage) bool {
     if conn.tcpConn != nil { // try sending via existing connection if it exists
       util.Log(2, "DEBUG! ClientConnection.tryToSend() to %v via existing connection", conn.addr)
       err = util.SendLn(conn.tcpConn, encrypted, config.Timeout) 
-      if err == nil { return true }
+      if err == nil { 
+        util.Log(2, "DEBUG! ClientConnection.tryToSend() successfully sent message to %v: %v", conn.addr, message.Text)
+        return true 
+      }
         
       conn.tcpConn.Close()
       conn.tcpConn = nil
