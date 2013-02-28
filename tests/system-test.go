@@ -497,6 +497,7 @@ func run_here_i_am_tests() {
   // the new key.
   send("CLIENT", hash("xml(header(new_key)new_key(new_client_key)source(%v)target(%v))", client_listen_address, config.ServerSourceAddress))
   keys[len(keys)-1] = "new_client_key"
+  time.Sleep(reply_timeout)
   conn, err := net.Dial("tcp", config.ServerSourceAddress)
   check(err,nil)
   defer conn.Close()
