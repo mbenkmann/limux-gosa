@@ -234,6 +234,23 @@ func (conn *ClientConnection) handleConnection() {
     // try to send messages
     for ; !conn.buffer.IsEmpty(); {
       
+      // gosa-si puts incoming messages into incomingdb and then
+      // processes them in the order they are returned by the database
+      // which causes messages to be processed in the wrong order.
+      // To counteract this we wait a little between messages.
+      // The wait time may seem long, but even with as much as 250ms
+      // I observed the fju for a new job and the fju that adds the
+      // plainname getting mixed up. Apparently gosa-si takes time
+      // in the seconds range to process messages.
+      // If we have >= 10 messages backlog, we don't wait. 
+      //
+      // NOTE: The delay is intentionally placed BEFORE the sending attempt.
+      // This guarantees that there will be a delay between all messages.
+      // If the delay was placed anywhere else it's easy (especially as a
+      // side effect of well-intentioned optimizations) to get situations
+      // where the delay may be skipped.
+      if conn.buffer.Count()+conn.queue.Count() < 10 { time.Sleep(1000*time.Millisecond) }
+      
       message := conn.buffer.Next().(ClientMessage)
       
       if !conn.tryToSend(message) { // sending failed
@@ -259,18 +276,6 @@ func (conn *ClientConnection) handleConnection() {
         // back to main loop
         break
       }
-      
-      // gosa-si puts incoming messages into incomingdb and then
-      // processes them in the order they are returned by the database
-      // which causes messages to be processed in the wrong order.
-      // To counteract this we wait a little between messages.
-      // The wait time may seem long, but even with as much as 250ms
-      // I observed the fju for a new job and the fju that adds the
-      // plainname getting mixed up. Apparently gosa-si takes time
-      // in the seconds range to process messages.
-      // If we have >= 10 messages backlog, we don't wait. 
-      count := conn.buffer.Count()+conn.queue.Count()
-      if count > 0 && count < 10 { time.Sleep(1000*time.Millisecond) }
     }
   }
 }
