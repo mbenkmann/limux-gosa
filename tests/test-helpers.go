@@ -199,8 +199,11 @@ func wait(t time.Time, header string) *queueElement {
 }
 
 // like wait but waits some additional seconds
-// this is necessary for waiting for client messages because go-susi
-// intentionally puts delays between them.
+// This used to be necessary for waiting for client messages because go-susi
+// intentionally put delays between them to ensure they are processed in the
+// proper order. This behaviour has been removed again because ATM there
+// does not seem to be a reason to enforce order. However I keep waitlong()
+// around because the wait may come back.
 func waitlong(t time.Time, header string) *queueElement {
   old_reply_timeout := reply_timeout
   reply_timeout += 3*time.Second
