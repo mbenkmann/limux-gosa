@@ -162,14 +162,14 @@ func SendLn(conn net.Conn, s string, timeout time.Duration) error {
 
 // Reads from the connection until \n is seen (or timeout or error) and
 // returns the first line with trailing \n and \r removed.
-// If timeout >= 0, then the connection will be terminated after at most this duration.
+// If timeout > 0, then the connection will be terminated after at most this duration.
 func ReadLn(conn net.Conn, timeout time.Duration) string {
   var buf = make([]byte, 65536)
   i := 0
   n := 1
 
   var deadline time.Time // zero value means "no deadline"
-  if timeout >= 0 { deadline = time.Now().Add(timeout) }
+  if timeout > 0 { deadline = time.Now().Add(timeout) }
   conn.SetReadDeadline(deadline)  
   
   var err error

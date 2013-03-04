@@ -254,15 +254,19 @@ func Util_test() {
   go func() {
     conn, err := net.Dial("tcp", "127.0.0.1:39390")
     if err != nil { panic(err) }
-    conn.Write([]byte("foo\r\n"))
+    time.Sleep(1*time.Second)
+    _, err = conn.Write([]byte("foo\r\n"))
+    if err != nil { panic(err) }
+    time.Sleep(2*time.Second)
   }()
   conn, err = listener.Accept()
   if err != nil { panic(err) }
   buffy.Reset()
   t0 = time.Now()
-  st := util.ReadLn(conn, 0 * time.Second)
+  st := util.ReadLn(conn, time.Duration(0))
   duration = time.Since(t0)
   check(duration < 2 * time.Second, true)
+  check(duration > 800 * time.Millisecond, true)
   check(buffy.String(), "")
   check(st, "foo")
   
