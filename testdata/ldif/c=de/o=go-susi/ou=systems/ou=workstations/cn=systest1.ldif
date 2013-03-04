@@ -21,7 +21,6 @@ gotoLastUser: -
 l: Nowhere
 goFonHardware: automatic
 FAIdebianMirror: http://dl.google.com/linux/chrome/deb/
-gotoNtpServer: cool.ntp.org
 gotoBootKernel: default
 gotoXDriver: intel
 gotoXResolution: 1280x1024
@@ -66,7 +65,8 @@ structuralObjectClass: GOhard
 entryUUID: 7df8eb28-d1e0-1031-93f3-9110eab4bd55
 creatorsName: cn=admin,o=go-susi,c=de
 createTimestamp: 20121203215945Z
+gotoNtpServer: cool.ntp.org
 gotoMode: active
-entryCSN: 20130227141128.538627Z#000000#000#000000
+entryCSN: 20130304100550.570340Z#000000#000#000000
 modifiersName: cn=admin,o=go-susi,c=de
-modifyTimestamp: 20130227141128Z
+modifyTimestamp: 20130304100550Z

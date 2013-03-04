@@ -175,7 +175,7 @@ func (conn *ClientConnection) tryToSend(message ClientMessage) bool {
     encrypted := GosaEncrypt(message.Text, keys[0])
   
     if conn.tcpConn != nil { // try sending via existing connection if it exists
-      util.Log(2, "DEBUG! ClientConnection.tryToSend() to %v via existing connection", conn.addr)
+      util.Log(2, "DEBUG! ClientConnection.tryToSend() to %v encrypted with key %v via existing connection", conn.addr, keys[0])
       err = util.SendLn(conn.tcpConn, encrypted, config.Timeout) 
       if err == nil { 
         util.Log(2, "DEBUG! ClientConnection.tryToSend() successfully sent message to %v: %v", conn.addr, message.Text)
@@ -200,10 +200,19 @@ func (conn *ClientConnection) tryToSend(message ClientMessage) bool {
       // This is not fatal => Don't abort
     }
     
+    // Fix for issue #58
+    // use monitorConnection from peer_connection.go because otherwise we can lose messages because
+    // if the remote end is closed for whatever reason write(2) does not return an error immediately.
+    // Probably has to do with buffering. monitorConnection() however notices the EOF.
+    go monitorConnection(conn.tcpConn, deque.New())
+    
     // try to send message over newly established connection
-    util.Log(2, "DEBUG! ClientConnection.tryToSend() to %v via newly established connection", conn.addr)
+    util.Log(2, "DEBUG! ClientConnection.tryToSend() to %v encrypted with key %v via newly established connection", conn.addr, keys[0])
     err = util.SendLn(conn.tcpConn, encrypted, config.Timeout) 
-    if err == nil { return true }
+    if err == nil { 
+      util.Log(2, "DEBUG! ClientConnection.tryToSend() successfully sent message to %v: %v", conn.addr, message.Text)
+      return true 
+    }
     
     conn.tcpConn.Close()
     conn.tcpConn = nil

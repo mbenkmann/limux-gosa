@@ -15,7 +15,6 @@ ghMemSize: 3355324
 ghUsbSupport: false
 gotoXMonitor: BELINEA 101911
 gotoHardwareChecksum: noVmheW0c0JqyAx4jj3Y/g
-gotoMode: active
 description: Test
 ghGfxAdapter: -
 gotoLastUser: -
@@ -67,6 +66,7 @@ structuralObjectClass: GOhard
 entryUUID: 7df90ca2-d1e0-1031-93f5-9110eab4bd55
 creatorsName: cn=admin,o=go-susi,c=de
 createTimestamp: 20121203215945Z
-entryCSN: 20121203215945.017530Z#000000#000#000000
+gotoMode: active
+entryCSN: 20130304100549.014527Z#000000#000#000000
 modifiersName: cn=admin,o=go-susi,c=de
-modifyTimestamp: 20121203215945Z
+modifyTimestamp: 20130304100549Z
