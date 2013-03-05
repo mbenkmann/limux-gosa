@@ -135,6 +135,9 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
     case "information_sharing": information_sharing(xml)
     case "here_i_am":           here_i_am(xml)
     case "new_key":             new_key(xml)
+    case "CLMSG_CURRENTLY_LOGGED_IN": clmsg_currently_logged_in(xml)
+    case "CLMSG_LOGIN":         clmsg_login(xml)
+    case "CLMSG_LOGOUT":        clmsg_logout(xml)
     case "gosa_trigger_action_lock",      // "Sperre"
          "gosa_trigger_action_halt",      // "Anhalten"
          "gosa_trigger_action_localboot", // "Erzwinge lokalen Start"
