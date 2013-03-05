@@ -22,11 +22,14 @@ MA  02110-1301, USA.
 package tests
 
 import (
+         "log"
          "fmt"
          "time"
+         "bytes"
          "strings"
          
          "../db"
+         "../xml"
          "../util"
          "../config"
          "../message"
@@ -137,5 +140,68 @@ func Message_test() {
   
   check(error_string(<-message.Peer("broken").Ask("", "")),"missing port in address broken")
   check(error_string(<-message.Peer("doesnotexist.domain:10").Ask("", "")),"lookup doesnotexist.domain: no such host")
+  
+  oldlogger := util.Logger
+  oldloglevel := util.LogLevel
+  defer func(){ util.Logger = oldlogger; util.LogLevel = oldloglevel }()
+  var buffy bytes.Buffer
+  buflogger := log.New(&buffy,"",0)
+  util.Logger = buflogger
+  util.LogLevel = 2 // we want all messages, including INFO! and DEBUG!
+  client := xml.NewHash("xml","header","new_foreign_client")
+  client.Add("source",config.ServerSourceAddress)
+  client.Add("target","127.0.0.1:12345")
+  client.Add("client",listen_address)
+  client.Add("macaddress","11:22:33:44:55:66")
+  keys[len(keys)-1] = "weissnich"
+  client.Add("key",keys[len(keys)-1])
+  db.ClientUpdate(client)
+  
+  t0 = time.Now()
+  message.Client(listen_address).Tell("<xml><header>Alle meine Entchen</header></xml>", 0)
+  time.Sleep(reply_timeout)
+  check(get(t0), []*queueElement{})
+  check(hasWords(buffy.String(),"ERROR","Cannot send message"),"")
+
+  buffy.Reset()
+  t0 = time.Now()
+  message.Client(listen_address).Tell("<xml><header>Alle meine Hündchen</header></xml>", -1200*time.Millisecond)
+  time.Sleep(reply_timeout)
+  check(get(t0), []*queueElement{})
+  check(hasWords(buffy.String(),"ERROR","Cannot send message"),"")
+  
+  buffy.Reset()
+  t0 = time.Now()
+  message.Client(listen_address).Tell("<xml><header>Alle meine Kätzchen</header></xml>", 2*time.Second)
+  time.Sleep(3*time.Second)
+  check(get(t0), []*queueElement{})
+  check(hasWords(buffy.String(),"ERROR","Cannot send message","Attempt #1","Attempt #2"),"")
+  
+  buffy.Reset()
+  t0 = time.Now()
+  message.Client(listen_address).Tell("<xml><header>Alle meine Häschen</header></xml>", 3*time.Second)
+  time.Sleep(2500*time.Millisecond)
+  listen()
+  time.Sleep(1*time.Second)
+  x := get(t0)
+  if check(len(x),1) {
+    check(x[0].XML.Text("header"),"Alle meine Häschen")
+    check(x[0].Key, keys[len(keys)-1])
+  }
+  check(hasWords(buffy.String(),"Attempt #1","Attempt #2","Attempt #3","Successfully sent message"),"")
+  
+  buffy.Reset()
+  t0 = time.Now()  
+  message.Client(listen_address).Tell("<xml><header>Alle meine Vöglein</header></xml>", -1200*time.Millisecond)
+  time.Sleep(reply_timeout)
+  x = get(t0)
+  if check(len(x),1) {
+    check(x[0].XML.Text("header"),"Alle meine Vöglein")
+    check(x[0].Key, keys[len(keys)-1])
+  }
+  check(hasWords(buffy.String(),"Successfully sent message"),"")
+  
+  listen_stop()
+
 }
 

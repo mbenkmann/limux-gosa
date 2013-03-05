@@ -373,6 +373,16 @@ func init_keys() {
   keys[len(keys)-1] = "client_key"
 }  
 
+// Returns "" if all words are contained in text, otherwise returns an error message.
+func hasWords(text string, words... string) string {
+  missing := ""
+  for _, w := range words {
+    if strings.Index(text, w) < 0 { if missing != "" { missing += ", " }; missing += "\""+w+"\"" }
+  }
+  if missing != "" { return "Missing word(s) " + missing + " in \"" + text +"\"" }
+  return ""
+}
+
 // sets up 2 listening ports (one for client and one for server) that receive 
 // messages, decrypt them and store them in the queue.
 func listen() {
