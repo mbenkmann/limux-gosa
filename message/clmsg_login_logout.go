@@ -27,7 +27,7 @@ import (
          "../util"
        )
 
-var mapUserToMAC map[string]string
+var mapUserToMAC = map[string]string{}
 
 // Handles the message "CLMSG_CURRENTLY_LOGGED_IN".
 //  xmlmsg: the decrypted and parsed message
