@@ -44,6 +44,17 @@ func clmsg_login(xmlmsg *xml.Hash) {
 // Handles the message "CLMSG_LOGOUT".
 //  xmlmsg: the decrypted and parsed message
 func clmsg_logout(xmlmsg *xml.Hash) {
+
+  // ATTENTION! This code is not correct. Because the same user can have 
+  // multiple active sessions, removing the user from the map may
+  // be premature. To be correct we would need to actually count
+  // the number of logins and logouts.
+  // But as we don't do anything with the map at this time
+  // implementing this would be a waste of time.
+  // BTW, gosa-si-server doesn't send information_sharing for
+  // LOGOUTs anyway, so there's really no way to have an accurate
+  // user tracking as long as there are gosa-si-servers involved.
+
   add_remove_users(false, xmlmsg, "CLMSG_LOGOUT")
 }
 
