@@ -412,6 +412,13 @@ func SystemRemoveFromGroups(dn string, groups *xml.Hash) {
 func SystemUpdate(system *xml.Hash) {
 }
 
+// Removes the system with the given dn from the database.
+//
+// ATTENTION! This function accesses LDAP and may therefore take a while.
+// If possible you should use it asynchronously.
+func SystemRemove(dn string) {
+}
+
 
 func ldapSearch(query string, attr... string) *exec.Cmd {
   args := []string{"-x", "-LLL", "-H", config.LDAPURI, "-b", config.LDAPBase}
