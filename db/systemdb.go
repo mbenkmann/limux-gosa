@@ -395,6 +395,15 @@ func SystemFillInMissingData(system *xml.Hash, defaults *xml.Hash) {
 func SystemAddToGroups(dn string, groups *xml.Hash) {
 }
 
+// Removes the system with the given dn from all gosaGroupOfNames
+// objects in groups which must have the same format as returned by
+// SystemGetGroupsWithMember().
+//
+// ATTENTION! This function accesses LDAP and may therefore take a while.
+// If possible you should use it asynchronously.
+func SystemRemoveFromGroups(dn string, groups *xml.Hash) {
+}
+
 // Updates the data for the given system, creating it if it does not yet exist.
 // The format of system is the same as returned by SystemGetAllDataForMAC().
 //
