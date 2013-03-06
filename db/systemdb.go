@@ -281,7 +281,7 @@ func SystemSetStateMulti(macaddress string, attrname string, attrvalues []string
   if dn == "" {
     return fmt.Errorf("Could not get dn for MAC %v: %v", macaddress, err)
   }
-  out, err := ldapModify(dn, attrname, attrvalues).CombinedOutput()
+  out, err := ldapModifyAttribute(dn, "replace", attrname, attrvalues).CombinedOutput()
   if err != nil {
     return fmt.Errorf("Could not change state of object %v: %v (%v)",dn,err,string(out))
   }
@@ -364,7 +364,13 @@ func SystemGetTemplatesFor(system *xml.Hash) *xml.Hash {
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
 func SystemGetGroupsWithMember(dn string) *xml.Hash {
-  return xml.NewHash("systemdb")
+  x, err := xml.LdifToHash("xml", true, ldapSearch(fmt.Sprintf("(&(objectClass=gosaGroupOfNames)(member=%v)%v)",dn, config.UnitTagFilter)))
+  if err != nil { 
+    util.Log(0, "ERROR! %v", err)
+    return xml.NewHash("systemdb")
+   }
+  x.Rename("systemdb")
+  return x
 }
 
 // Takes 2 hashes in the format returned by SystemGetAllDataForMAC() and adds
@@ -393,6 +399,12 @@ func SystemFillInMissingData(system *xml.Hash, defaults *xml.Hash) {
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
 func SystemAddToGroups(dn string, groups *xml.Hash) {
+  for group := groups.First("xml"); group != nil; group = group.Next() {
+    out, err := ldapModifyAttribute(group.Text("dn"), "add", "member", []string{dn}).CombinedOutput()
+    if err != nil {
+      util.Log(0, "ERROR! Could not add new member \"%v\" to group \"%v\": %v (%v)",dn, group.Text("dn"),err,string(out))
+    }
+  }
 }
 
 // Removes the system with the given dn from all gosaGroupOfNames
@@ -402,6 +414,12 @@ func SystemAddToGroups(dn string, groups *xml.Hash) {
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
 func SystemRemoveFromGroups(dn string, groups *xml.Hash) {
+  for group := groups.First("xml"); group != nil; group = group.Next() {
+    out, err := ldapModifyAttribute(group.Text("dn"), "delete", "member", []string{dn}).CombinedOutput()
+    if err != nil {
+      util.Log(0, "ERROR! Could not remove member \"%v\" from group \"%v\": %v (%v)",dn, group.Text("dn"),err,string(out))
+    }
+  }
 }
 
 // Updates the data for the given system, creating it if it does not yet exist.
@@ -429,15 +447,16 @@ func ldapSearch(query string, attr... string) *exec.Cmd {
   return exec.Command("ldapsearch", args...)
 }
 
-func ldapModify(dn string, attrname string, attrvalues []string) *exec.Cmd {
+func ldapModifyAttribute(dn, modifytype, attrname string, attrvalues []string) *exec.Cmd {
   args := []string{"-x", "-H", config.LDAPURI}
   args = append(args,"-D",config.LDAPAdmin,"-y",config.LDAPAdminPasswordFile)
   util.Log(2, "DEBUG! ldapmodify %v (Set %v to %v for %v)",args, attrname, attrvalues, dn)
   cmd := exec.Command("ldapmodify", args...)
   bufstr := bytes.NewBufferString(fmt.Sprintf(`dn:: %v
 changetype: modify
-replace: %v
+%v: %v
 `,base64.StdEncoding.EncodeToString([]byte(dn)),
+  modifytype,
   attrname))
 
   for i := range attrvalues {

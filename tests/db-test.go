@@ -263,6 +263,36 @@ func systemdb_test() {
   // Check that changing "dn" fails (it's not a real attribute)
   err = db.SystemSetStateMulti(systest1.Text("macaddress"), "dn", []string{"broken"})
   check(err != nil, true)
+  
+  groupsOf := func(dn string) []string {
+    r := []string{}
+    for g := db.SystemGetGroupsWithMember(dn).First("xml"); g!=nil; g=g.Next() {
+      r = append(r, g.Text("cn"))
+    }
+    sort.Strings(r)
+    return r
+  }
+  
+  ogmember1_dn := "cn=ogmember1,ou=workstations,ou=systems,o=go-susi,c=de"
+  groups := db.SystemGetGroupsWithMember(ogmember1_dn)
+  check(groups.Name(), "systemdb")
+  check(groups.Subtags(), []string{"xml"})
+  check(groupsOf(ogmember1_dn), []string{"Objektgruppe"})
+  
+  notebooks := db.SystemGetGroupsWithMember("cn=notebook-template,ou=workstations,ou=systems,o=go-susi,c=de")
+  db.SystemAddToGroups(ogmember1_dn, notebooks)
+  check(groupsOf(ogmember1_dn), []string{"Notebooks","Objektgruppe"})
+  
+  desktops := db.SystemGetGroupsWithMember("cn=desktop-template,ou=workstations,ou=systems,o=go-susi,c=de")
+  groups.AddClone(desktops.First("xml"))
+  check(groups.First("xml").Next().Text("cn"), "Desktops")
+  db.SystemAddToGroups(ogmember1_dn, groups)
+  check(groupsOf(ogmember1_dn), []string{"Desktops","Notebooks","Objektgruppe"})
+  
+  groups = desktops.Clone()
+  groups.AddClone(notebooks.First("xml"))
+  db.SystemRemoveFromGroups(ogmember1_dn, groups)
+  check(groupsOf(ogmember1_dn), []string{"Objektgruppe"})
 }
 
 func jobdb_test() {
