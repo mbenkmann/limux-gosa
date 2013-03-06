@@ -1,0 +1,25 @@
+dn: cn=notebook-template
+cn: notebook-template
+description: Template for notebook auto install
+ghCpuType: -
+ghGfxAdapter: -
+ghMemSize: -
+ghSoundAdapter: -
+ghUsbSupport: -
+goComment:: VGVtcGxhdGUgZm9yDQpjbj1+L15ub3RlfF50ZWxlLw0KY24hfi9ub3RlMTAxfG4yMD
+ IvDQpjbn49L1swLTldKyQv
+gosaUnitTag: 7
+gotoLastUser: -
+macAddress: 00:00:00:00:00:00
+objectClass: FAIobject
+objectClass: GOhard
+objectClass: gosaAdministrativeUnitTag
+objectClass: gotoWorkstation
+objectClass: top
+structuralObjectClass: GOhard
+entryUUID: 2024d1c6-1aef-1032-9fb1-575a10db2783
+creatorsName: cn=admin,o=go-susi,c=de
+createTimestamp: 20130306211824Z
+entryCSN: 20130306211824.932256Z#000000#000#000000
+modifiersName: cn=admin,o=go-susi,c=de
+modifyTimestamp: 20130306211824Z

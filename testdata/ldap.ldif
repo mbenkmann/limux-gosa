@@ -56,6 +56,110 @@ objectclass: gosaGroupOfNames
 objectclass: gotoWorkstationTemplate
 objectclass: top
 
+dn: cn=Notebooks,ou=groups,o=go-susi,c=de
+faiclass: Modul_Standard NOTEBOOK HARDENING :plophos/4.1.0
+faidebianmirror: http://warmachine.example.com/repository-all
+cn: Notebooks
+description: object group for notebooks
+gofonhardware: automatic
+gosagroupobjects: [W]
+gosaunittag: 7
+gotobootkernel: default
+gotoldapserver: 1:ldap01.tvc.example.com:ldap://ldap01.tvc.example.com/o=go-susi,c=de
+gotomode: active
+gotontpserver: time001.tvc.example.com
+gotoxcolordepth: 24
+gotoxdriver: 0
+gotoxhsync: 30+55
+gotoxkblayout: de
+gotoxkbmodel: pc105
+gotoxkbvariant: nodeadkeys
+gotoxmousetype: ImPS/2
+gotoxmouseport: /dev/input/mice
+gotoxresolution: 1280x800
+gotoxvsync: 50+70
+member: cn=notebook-template,ou=workstations,ou=systems,o=go-susi,c=de
+objectclass: FAIobject
+objectclass: gosaAdministrativeUnitTag
+objectclass: gosaGroupOfNames
+objectclass: gotoWorkstationTemplate
+objectclass: top
+
+dn: cn=Desktops,ou=groups,o=go-susi,c=de
+faiclass: Modul_Standard :plophos/4.1.0
+faidebianmirror: http://warmachine.example.com/repository-all
+cn: Desktops
+description: 4.1.0 Modul_Standard
+gofonhardware: automatic
+gosagroupobjects: [W]
+gosaunittag: 7
+gotobootkernel: default
+gotoldapserver: 1:ldap01.tvc.example.com:ldap://ldap01.tvc.example.com/o=go-susi,c=de
+gotomode: active
+gotontpserver: pool.ntp.org
+gotoxcolordepth: 8
+gotoxdriver: 0
+gotoxhsync: 30+55
+gotoxkblayout: de
+gotoxkbmodel: btc9000
+gotoxkbvariant: nodeadkeys
+gotoxmousetype: auto
+gotoxmouseport: /dev/input/mice
+gotoxresolution: 640x480
+gotoxvsync: 50+70
+member: cn=desktop-template,ou=workstations,ou=systems,o=go-susi,c=de
+objectclass: FAIobject
+objectclass: gosaAdministrativeUnitTag
+objectclass: gosaGroupOfNames
+objectclass: gotoWorkstationTemplate
+objectclass: top
+
+dn: cn=desktop-template,ou=workstations,ou=systems,o=go-susi,c=de
+cn: desktop-template
+description: Template for desktop auto installs
+ghcputype: -
+ghgfxadapter: -
+ghmemsize: -
+ghsoundadapter: -
+ghusbsupport: -
+gocomment:: VGVtcGxhdGUgZm9yIHNpc2VydmVyfj0vdnRzLXN1c2lcXC4uKi8NCmdoY3B1dHlwZT1+L0dlbnVpbmVJbnRlbCBcXC8gSW50ZWwv
+gofonhardware: automatic
+gosaunittag: 7
+gotolastuser: -
+gotomode: locked
+gotoxcolordepth: 8
+gotoxdriver: 0
+gotoxkblayout: de
+gotoxkbmodel: btc9000
+gotoxkbvariant: nodeadkeys
+gotoxmousetype: auto
+gotoxmouseport: /dev/input/mice
+gotoxresolution: 640x480
+macaddress: 00:00:00:00:00:00
+objectclass: FAIobject
+objectclass: GOhard
+objectclass: gosaAdministrativeUnitTag
+objectclass: gotoWorkstation
+objectclass: top
+
+dn: cn=notebook-template,ou=workstations,ou=systems,o=go-susi,c=de
+cn: notebook-template
+description: Template for notebook auto install
+ghcputype: -
+ghgfxadapter: -
+ghmemsize: -
+ghsoundadapter: -
+ghusbsupport: -
+gocomment:: VGVtcGxhdGUgZm9yDQpjbj1+L15ub3RlfF50ZWxlLw0KY24hfi9ub3RlMTAxfG4yMDIvDQpjbn49L1swLTldKyQv
+gosaunittag: 7
+gotolastuser: -
+macaddress: 00:00:00:00:00:00
+objectclass: FAIobject
+objectclass: GOhard
+objectclass: gosaAdministrativeUnitTag
+objectclass: gotoWorkstation
+objectclass: top
+
 dn: cn=systest1,ou=workstations,ou=systems,o=go-susi,c=de
 objectClass: GOhard
 objectClass: gotoWorkstation
