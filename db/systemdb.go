@@ -326,6 +326,84 @@ func SystemGetAllDataForMAC(macaddress string) (*xml.Hash, error) {
   return x, err
 }
 
+// Returns all system templates that apply to the given system (which may be
+// incomplete). 
+//
+// The format of the reply is:
+//   <systemdb>
+//     <xml>
+//       <dn>...</dn>
+//       <objectclass>objectclass_1</objectclass>
+//       <objectclass>objectclass_2</objectclass>
+//       ...
+//     </xml>
+//     <xml>
+//       <dn>...</dn>
+//       ...
+//     </xml>
+//     ...
+//   </systemdb>
+//
+// The order of the template objects is such that the first entry is the
+// best match (i.e. the template with the most specific matching rules).
+// See "detected_hardware" documentation in the go-susi operator's manual for 
+// information on how to mark a system object as a template and how to specify
+// the systems to which it should apply.
+//
+// If there is no matching template, the returned hash is <systemdb></systemdb>.
+// 
+// ATTENTION! This function accesses LDAP and may therefore take a while.
+// If possible you should use it asynchronously.
+func SystemGetTemplatesFor(system *xml.Hash) *xml.Hash {
+  return xml.NewHash("systemdb")
+}
+
+// Returns all gosaGroupOfNames objects that have the given dn as a member.
+// The format is the same as for SystemGetTemplatesFor().
+//
+// ATTENTION! This function accesses LDAP and may therefore take a while.
+// If possible you should use it asynchronously.
+func SystemGetGroupsWithMember(dn string) *xml.Hash {
+  return xml.NewHash("systemdb")
+}
+
+// Takes 2 hashes in the format returned by SystemGetAllDataForMAC() and adds
+// attributes from defaults to system where appropriate. This function understands
+// system objects and will not add inappropriate attributes. For instance if
+// defaults represents a gosaGroupOfNames, this function will not copy the "member"
+// attributes to system.
+// If defaults has objectClass gosaAdministrativeUnitTag but system doesn't,
+// this function will add that objetClass and the gosaUnitTag to system. Other
+// objectClasses are never touched.
+//
+// If system has no dn but defaults has one, then system will get a dn
+// derived by replacing the last component of defaults' dn by
+// cn=<system's cn>  (unless system has no cn).
+//
+// NOTE: The attribute names are treated as case-insensitive. It is not
+// necessary that defaults and system use the same case for the same
+// attributes.
+func SystemFillInMissingData(system *xml.Hash, defaults *xml.Hash) {
+}
+
+// Adds the system with the given dn as a member to the gosaGroupOfNames
+// objects in groups which must have the same format as returned by
+// SystemGetGroupsWithMember().
+//
+// ATTENTION! This function accesses LDAP and may therefore take a while.
+// If possible you should use it asynchronously.
+func SystemAddToGroups(dn string, groups *xml.Hash) {
+}
+
+// Updates the data for the given system, creating it if it does not yet exist.
+// The format of system is the same as returned by SystemGetAllDataForMAC().
+//
+// ATTENTION! This function accesses LDAP and may therefore take a while.
+// If possible you should use it asynchronously.
+func SystemUpdate(system *xml.Hash) {
+}
+
+
 func ldapSearch(query string, attr... string) *exec.Cmd {
   args := []string{"-x", "-LLL", "-H", config.LDAPURI, "-b", config.LDAPBase}
   if config.LDAPUser != "" { args = append(args,"-D",config.LDAPUser,"-y",config.LDAPUserPasswordFile) }
