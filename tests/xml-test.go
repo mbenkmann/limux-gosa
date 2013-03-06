@@ -411,6 +411,10 @@ func testHash() {
   _, xmlerr = xml.StringToHash("<-foo></-foo>")
   check(xmlerr, "StringToHash(): XML syntax error on line 1: invalid XML name: -foo")
   
+  y, xmlerr = xml.StringToHash("<foo bar=\"cool\"><drink more='yes' alcohol='sure'><sauf/></drink></foo>")
+  check(y,"<foo><bar>cool</bar><drink><alcohol>sure</alcohol><more>yes</more><sauf></sauf></drink></foo>")
+  check(xmlerr, nil)
+  
   x_str2 := x.String()
   x_clone2 := x.AddClone(x)
   x_str3 := x.String()

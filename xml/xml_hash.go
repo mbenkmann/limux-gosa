@@ -526,6 +526,8 @@ func (self *Hash) Remove(filter HashFilter) *Hash {
 // The conversion will not abort for errors, so even if xmlerr != nil,
 // you will get a valid result (although it may not have much to do with 
 // the input).
+// NOTE: Attributes are treated as if they were child elements.
+// E.g. <foo bar="bla"/> is equivalent to <foo><bar>bla</bar></foo>
 func StringToHash(xmlstr string) (xml *Hash, xmlerr error) {
   parser := encxml.NewDecoder(strings.NewReader(xmlstr))
   depth := -1
@@ -547,6 +549,11 @@ func StringToHash(xmlstr string) (xml *Hash, xmlerr error) {
                 path[depth + 1] = path[depth].Add(token.Name.Local)
                 depth++
               }
+              
+              for _, attr := range token.Attr {
+                path[depth].Add(attr.Name.Local, attr.Value)
+              }
+              
       case encxml.EndElement:
               depth--
       case encxml.CharData:
