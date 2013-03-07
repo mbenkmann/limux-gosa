@@ -122,7 +122,7 @@ ghgfxadapter: -
 ghmemsize: -
 ghsoundadapter: -
 ghusbsupport: -
-gocomment:: VGVtcGxhdGUgZm9yIHNpc2VydmVyfj0vdnRzLXN1c2lcXC4uKi8NCmdoY3B1dHlwZT1+L0dlbnVpbmVJbnRlbCBcXC8gSW50ZWwv
+gocomment:: VGVtcGxhdGUgZm9yIHNpc2VydmVyfj0vdnRzLXN1c2lcXC4uKi8NCmdoY3B1dHlwZT1+L0dlbnVpbmVJbnRlbCBcXC8gSW50ZWwvDQp4PX4veC95PX4veS8gej1+L3ovIHc9fi93Lw==
 gofonhardware: automatic
 gosaunittag: 7
 gotolastuser: -
