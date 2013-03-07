@@ -346,6 +346,34 @@ func systemdb_test() {
   check(db.SystemGetState(db.SystemMACForName("ogmember1"), "gotoNtpserver"),"ntp01.example.com␞ntp02.example.com")
   check(db.SystemGetState(db.SystemMACForName("ogmember1"), "member"),"") // "member" should not be inherited from object groups
   check(db.SystemGetState(db.SystemMACForName("ogmember1"), "doesnotexist"),"")
+  
+  // db.SystemGetTemplatesFor()
+  notebook_template := xml.NewHash("systemdb")
+  n,_ := db.SystemGetAllDataForMAC("00:00:11:11:00:00",false)
+  notebook_template.AddWithOwnership(n)
+  desktop_template  := xml.NewHash("systemdb")
+  d,_ := db.SystemGetAllDataForMAC("00:00:22:22:00:00",false)
+  desktop_template.AddWithOwnership(d)
+  checkFail(db.SystemGetTemplatesFor(xml.NewHash("xml")), "<systemdb></systemdb>")
+  checkFail(db.SystemGetTemplatesFor(hash("xml(cn(note))")), "<systemdb></systemdb>")
+  checkFail(db.SystemGetTemplatesFor(hash("xml(cn(tele))")), "<systemdb></systemdb>")
+  checkFail(db.SystemGetTemplatesFor(hash("xml(cn(note101))")), "<systemdb></systemdb>")
+  checkFail(db.SystemGetTemplatesFor(hash("xml(cn(n202))")), "<systemdb></systemdb>")
+  checkFail(db.SystemGetTemplatesFor(hash("xml(cn(n2022))")), "<systemdb></systemdb>")
+  checkFail(db.SystemGetTemplatesFor(hash("xml(cn(n2))")), notebook_template)
+  checkFail(db.SystemGetTemplatesFor(hash("xml(ghcputype(GenuineIntel / Intel))")), desktop_template)
+  // specificity sorting test 1: notebook-template is better match
+  templates := db.SystemGetTemplatesFor(hash("xml(cn(n2)ghcputype(GenuineIntel / Intel))"))
+  if check(templates.First("xml") != nil, true) {
+    check(templates.First("xml"), notebook_template.First("xml"))
+    check(templates.First("xml").Next(), desktop_template.First("xml"))
+  }
+  // specificity sorting test 2: desktop-template is better match
+  templates = db.SystemGetTemplatesFor(hash("xml(cn(n2)w(w)x(x)y(y)z(z))"))
+  if check(templates.First("xml") != nil, true) {
+    checkFail(templates.First("xml"), desktop_template.First("xml"))
+    checkFail(templates.First("xml").Next(), notebook_template.First("xml"))
+  }
 }
 
 func jobdb_test() {

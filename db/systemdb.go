@@ -25,11 +25,13 @@ import (
          "net"
          "bytes"
          "strings"
+         "strconv"
          "os/exec"
          "encoding/base64"
          
          "../xml"
          "../util"
+         "../util/deque"
          "../config"
        )
 
@@ -403,7 +405,48 @@ func SystemGetAllDataForMAC(macaddress string, use_groups bool) (*xml.Hash, erro
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
 func SystemGetTemplatesFor(system *xml.Hash) *xml.Hash {
-  return xml.NewHash("systemdb")
+  // ATTENTION: No space between "for" and "*" because there may be some other
+  // kind of whitespace (such as CR)
+  x, err := xml.LdifToHash("xml", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(gocomment=Template for*/*/*)%v)", config.UnitTagFilter)))
+  if err != nil { 
+    util.Log(0, "ERROR! LDAP error while looking for template objects: %v", err)
+    return xml.NewHash("systemdb")
+  }
+  
+  templates := deque.New() // templates.At(0) is the most specific match
+  templates.Push(xml.NewHash("xml","TEMPLATE_MATCH_SPECIFICITY","0")) //sentinel
+  
+  for t := x.RemoveFirst("xml"); t != nil; t = x.RemoveFirst("xml") {
+    specificity := templateMatch(system, t.Text("gocomment"))
+    if specificity > 0 {
+      t.Add("TEMPLATE_MATCH_SPECIFICITY").SetText("%v",specificity)
+      for i := 0; i < templates.Count(); i++ {
+        tspec,_ := strconv.Atoi(templates.At(i).(*xml.Hash).Text("TEMPLATE_MATCH_SPECIFICITY"))
+        if specificity >= tspec {
+          templates.InsertAt(i, t)
+          break
+        }
+      }
+    }
+  }
+  
+  templates.Pop() // remove sentinel
+  
+  ret := xml.NewHash("systemdb")
+  
+  for ; !templates.IsEmpty() ; {
+    t := templates.Next().(*xml.Hash)
+    t.RemoveFirst("TEMPLATE_MATCH_SPECIFICITY")
+    ret.AddWithOwnership(t)
+  }
+  
+  return ret
+}
+
+// Returns how well the rule gocomment matches system. 
+// 0 means no match. Greater values are better (more specific) matches.
+func templateMatch(system *xml.Hash, gocomment string) int {
+  return 1
 }
 
 // Returns all gosaGroupOfNames objects that have the given dn as a member.
