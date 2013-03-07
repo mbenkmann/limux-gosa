@@ -387,23 +387,58 @@ func SystemGetGroupsWithMember(dn string) *xml.Hash {
   return x
 }
 
+// Set of attributes that should not be copied by SystemFillInMissingData() even
+// if the target does not have them.
+var doNotCopyAttribute = map[string]bool{"member":true, "dn":true, "cn":true, 
+                         "objectclass":true, "gosagroupobjects":true,
+                         "gosaunittag":true, "macaddress": true, "iphostnumber":true,
+                         "description":true, "gocomment":true,
+                         "gotosysstatus":true}
+
 // Takes 2 hashes in the format returned by SystemGetAllDataForMAC() and adds
 // attributes from defaults to system where appropriate. This function understands
 // system objects and will not add inappropriate attributes. For instance if
 // defaults represents a gosaGroupOfNames, this function will not copy the "member"
 // attributes to system.
-// If defaults has objectClass gosaAdministrativeUnitTag but system doesn't,
-// this function will add that objetClass and the gosaUnitTag to system. Other
-// objectClasses are never touched.
+// If defaults has a gosaUnitTag but system doesn't,
+// this function will add the objectClass gosaAdministrativeUnitTag
+// and the gosaUnitTag to system. Other objectClasses are never touched.
 //
 // If system has no dn but defaults has one, then system will get a dn
 // derived by replacing the last component of defaults' dn by
 // cn=<system's cn>  (unless system has no cn).
 //
-// NOTE: The attribute names are treated as case-insensitive. It is not
-// necessary that defaults and system use the same case for the same
-// attributes.
+// NOTE: All attribute names must be lowercase.
 func SystemFillInMissingData(system *xml.Hash, defaults *xml.Hash) {
+  if system.First("dn") == nil {
+    if dn := defaults.Text("dn"); dn != "" {
+      if parts := strings.SplitN(dn, ",", 2); len(parts) == 2 {
+        if cn := system.Text("cn"); cn != "" {
+          dn = "cn=" + cn + "," + parts[1]
+          system.Add("dn", dn)
+        }
+      }
+    }
+  }
+  
+  if system.First("gosaunittag") == nil {
+    if unittag := defaults.Text("gosaunittag"); unittag != "" {
+      system.Add("objectclass", "gosaAdministrativeUnitTag")
+      system.Add("gosaunittag", unittag)
+    }
+  }
+  
+  
+  for _, tag := range defaults.Subtags() {
+    
+    if doNotCopyAttribute[tag] { continue }
+    
+    if system.First(tag) == nil {
+      for ele := defaults.First(tag); ele != nil; ele = ele.Next() {
+        system.AddClone(ele)
+      }
+    }
+  }
 }
 
 // Adds the system with the given dn as a member to the gosaGroupOfNames

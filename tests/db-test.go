@@ -227,18 +227,18 @@ func systemdb_test() {
   
   check(db.SystemGetState(Jobs[0].MAC, "objectclass"),"GOhard␞gotoWorkstation␞FAIobject␞gosaAdministrativeUnitTag")
   
-  data, err := db.SystemGetAllDataForMAC("no-mac")
+  data, err := db.SystemGetAllDataForMAC("no-mac", true)
   check(data, "<xml></xml>")
   check(err, "Could not find system with MAC no-mac")
   
   ldapUri := config.LDAPURI
   config.LDAPURI = "broken"
-  data, err = db.SystemGetAllDataForMAC(db.SystemMACForName("systest1"))
+  data, err = db.SystemGetAllDataForMAC(db.SystemMACForName("systest1"), true)
   check(data, "<xml></xml>")
   check(err, "Could not parse LDAP URI(s)=broken (3)\n")
   config.LDAPURI = ldapUri
   
-  data, err = db.SystemGetAllDataForMAC(db.SystemMACForName("systest1"))
+  data, err = db.SystemGetAllDataForMAC(db.SystemMACForName("systest1"), true)
   check(err, nil)
   check(data.Text("dn"), "cn=systest1,ou=workstations,ou=systems,o=go-susi,c=de")
   check(data.Text("macaddress"), "01:02:03:04:05:06")
@@ -248,7 +248,7 @@ func systemdb_test() {
   check(ocls, []string{"FAIobject","GOhard","gosaAdministrativeUnitTag","gotoWorkstation"})
   
   // check db.SystemSetStateMulti()
-  systest1,_ := db.SystemGetAllDataForMAC(db.SystemMACForName("systest1"))
+  systest1,_ := db.SystemGetAllDataForMAC(db.SystemMACForName("systest1"), true)
   check(db.SystemGetState(systest1.Text("macaddress"), "gotontpserver"), "cool.ntp.org")
   check(db.SystemSetStateMulti(systest1.Text("macaddress"), "gotontpserver", []string{}), nil)
   check(db.SystemGetState(systest1.Text("macaddress"), "gotoNtpServer"), "")
@@ -257,12 +257,19 @@ func systemdb_test() {
   
   // restore old gotoNtpServer
   db.SystemSetState(systest1.Text("macaddress"), "gotoNtpServer", "cool.ntp.org")
-  data,_ = db.SystemGetAllDataForMAC(systest1.Text("macaddress"))
+  data,_ = db.SystemGetAllDataForMAC(systest1.Text("macaddress"), true)
   check(data, systest1)
   
   // Check that changing "dn" fails (it's not a real attribute)
   err = db.SystemSetStateMulti(systest1.Text("macaddress"), "dn", []string{"broken"})
   check(err != nil, true)
+  
+  ogmember1,_ := db.SystemGetAllDataForMAC("fe:ce:5f:ec:e5:00", true) // with groups
+  check(ogmember1.Text("gotontpserver"),"ntp01.example.com␞ntp02.example.com")
+  check(ogmember1.Text("gotoldapserver"),"1:ldap01.tvc.example.com:ldap://ldap01.tvc.example.com/o=go-susi,c=de␞2:ldap02.tvc.example.com:ldap://ldap02.tvc.example.com:389/o=go-susi,c=de")
+  ogmember1,_ = db.SystemGetAllDataForMAC("fe:ce:5f:ec:e5:00", false) // without groups
+  check(ogmember1.First("gotontpserver"),nil)
+  check(ogmember1.First("gotoldapserver"),nil)
   
   groupsOf := func(dn string) []string {
     r := []string{}
@@ -293,6 +300,47 @@ func systemdb_test() {
   groups.AddClone(notebooks.First("xml"))
   db.SystemRemoveFromGroups(ogmember1_dn, groups)
   check(groupsOf(ogmember1_dn), []string{"Objektgruppe"})
+  
+  sys := xml.NewHash("xml")
+  dfl := xml.NewHash("xml")
+  db.SystemFillInMissingData(sys, dfl)
+  check(sys, "<xml></xml>")
+  dfl.Add("dn")
+  db.SystemFillInMissingData(sys, dfl)
+  check(sys, "<xml></xml>")
+  dfl.First("dn").SetText("bullshit")
+  db.SystemFillInMissingData(sys, dfl)
+  check(sys, "<xml></xml>")
+  dfl.First("dn").SetText("cn=bull,ou=shit")
+  db.SystemFillInMissingData(sys, dfl)
+  check(sys, "<xml></xml>")
+  sys.Add("cn")
+  db.SystemFillInMissingData(sys, dfl)
+  check(sys, "<xml><cn></cn></xml>")
+  sys.First("cn").SetText("horse")
+  db.SystemFillInMissingData(sys, dfl)
+  check(sys, "<xml><cn>horse</cn><dn>cn=horse,ou=shit</dn></xml>")
+  dfl.Add("objectclass","gosaAdministrativeUnitTag")
+  dfl.Add("gosaunittag","4567")
+  db.SystemFillInMissingData(sys, dfl)
+  check(sys.Text("objectclass"), "gosaAdministrativeUnitTag")
+  check(sys.Text("gosaunittag"), "4567")
+  dfl.First("gosaunittag").SetText("999999")
+  db.SystemFillInMissingData(sys, dfl)
+  check(sys.Text("objectclass"), "gosaAdministrativeUnitTag")
+  check(sys.Text("gosaunittag"), "4567")
+  
+  sys = xml.NewHash("xml","dn","")
+  dfl.RemoveFirst("gosaunittag")
+  for _, bad := range []string{"cn","member","objectclass","gosagroupobjects","macaddress","description","iphostnumber","gotosysstatus","gocomment"} {
+    dfl.Add(bad, "do not copy")
+    db.SystemFillInMissingData(sys, dfl)
+    check(sys, "<xml><dn></dn></xml>")
+  }
+  dfl.Add("foo", "bar")
+  dfl.Add("gotomodules", "pups")
+  db.SystemFillInMissingData(sys, dfl)
+  check(sys, "<xml><dn></dn><foo>bar</foo><gotomodules>pups</gotomodules></xml>")
 }
 
 func jobdb_test() {
