@@ -56,7 +56,7 @@ func here_i_am(xmlmsg *xml.Hash) {
   registered := message_start + "<header>registered</header><ldap_available>true</ldap_available><registered></registered></xml>"
   Client(client_addr).Tell(registered, config.LocalClientMessageTTL)
   
-  system, err := db.SystemGetAllDataForMAC(macaddress)
+  system, err := db.SystemGetAllDataForMAC(macaddress, true)
   if err != nil { // if no LDAP data available for system, do hardware detection
     util.Log(1, "INFO! %v => Sending detect_hardware to %v", err, macaddress)
     

@@ -317,12 +317,23 @@ func SystemGetState(macaddress string, attrname string) string {
 //   ...
 // <xml>
 //
+// If use_groups is true, then data from object groups the system is a member of
+// will be used to complete the data. If use_groups is false, only the system
+// object's data is returned.
+//
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
-func SystemGetAllDataForMAC(macaddress string) (*xml.Hash, error) {
+func SystemGetAllDataForMAC(macaddress string, use_groups bool) (*xml.Hash, error) {
   x, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter)))
   if err != nil { return x, err }
   if x.First("dn") == nil { return x, fmt.Errorf("Could not find system with MAC %v", macaddress) }
+  if use_groups {
+    dn := x.Text("dn")
+    groups := SystemGetGroupsWithMember(dn)
+    for group := groups.First("xml"); group != nil; group = group.Next() {
+      SystemFillInMissingData(x, group)
+    }
+  }
   return x, err
 }
 
@@ -351,6 +362,9 @@ func SystemGetAllDataForMAC(macaddress string) (*xml.Hash, error) {
 // the systems to which it should apply.
 //
 // If there is no matching template, the returned hash is <systemdb></systemdb>.
+//
+// NOTE: The returned template objects always contain only the attributes from
+// the objects themselves, not from any groups they may be members of.
 // 
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
@@ -450,7 +464,7 @@ func ldapSearch(query string, attr... string) *exec.Cmd {
 func ldapModifyAttribute(dn, modifytype, attrname string, attrvalues []string) *exec.Cmd {
   args := []string{"-x", "-H", config.LDAPURI}
   args = append(args,"-D",config.LDAPAdmin,"-y",config.LDAPAdminPasswordFile)
-  util.Log(2, "DEBUG! ldapmodify %v (Set %v to %v for %v)",args, attrname, attrvalues, dn)
+  util.Log(2, "DEBUG! ldapmodify %v (%v %v -> %v for %v)",args, modifytype, attrname, attrvalues, dn)
   cmd := exec.Command("ldapmodify", args...)
   bufstr := bytes.NewBufferString(fmt.Sprintf(`dn:: %v
 changetype: modify

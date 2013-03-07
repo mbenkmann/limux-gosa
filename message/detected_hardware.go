@@ -71,7 +71,7 @@ func detected_hardware(xmlmsg *xml.Hash) {
     system.Add("gosaunittag", config.UnitTag)
   }
   
-  oldentry,_ := db.SystemGetAllDataForMAC(system.Text("macaddress"))
+  oldentry,_ := db.SystemGetAllDataForMAC(system.Text("macaddress"), false)
   if oldentry != nil { // If we have an existing entry, merge it with the new hardware data
   
     system.Add("cn", oldentry.Text("cn"))
