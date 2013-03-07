@@ -938,7 +938,7 @@ func run_foreign_job_updates_tests() {
   count := 10
   for _, source := range []string{listen_address, "foo","1.2.3.4","1.2.3:9999","","missing"} {
     x := hash("xml(header(foreign_job_updates)source(%v)target(%v))",source,config.ServerSourceAddress)
-    if source == "missing" { x.Remove(xml.FilterSimple("source")) }
+    if source == "missing" { x.RemoveFirst("source") }
     i := 1
     for _, siserver := range []string{"localhost","foo","1.2.3.4","1.2.3:9999","","missing" } {
       job := hash("answer%d(plainname(%v)progress(none)status(waiting)siserver(%v)modified(1)macaddress(00:00:00:00:00:%d)targettag(00:00:00:00:00:%d)timestamp(%v)id(%d)headertag(%v)result(none))",
