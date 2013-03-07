@@ -33,6 +33,16 @@ import (
          "../config"
        )
 
+// Set of attributes that should not be copied by SystemFillInMissingData() even
+// if the target does not have them.
+var doNotCopyAttribute = map[string]bool{"member":true, "dn":true, "cn":true, 
+                         "objectclass":true, "gosagroupobjects":true,
+                         "gosaunittag":true, "macaddress": true, "iphostnumber":true,
+                         "description":true, "gocomment":true,
+                         "gotosysstatus":true}
+
+
+
 // Returns a short name for the system with the given MAC address.
 // The name will not include a domain. Use FullyQualifiedNameForMAC() if
 // you need a domain.
@@ -288,21 +298,45 @@ func SystemSetStateMulti(macaddress string, attrname string, attrvalues []string
   return nil
 }
 
-
 // Returns all values of attribute attrname for the system
 // identified by the given macaddress concatenated into a single string
-// separated by \u241e (symbol for record separator). If the system is not
+// separated by '␞' (\u241e, i.e. symbol for record separator). If the system is not
 // found or has no such attribute, the empty string "" is returned.
 //
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
 func SystemGetState(macaddress string, attrname string) string {
+  attrname = strings.ToLower(attrname)
   system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter),attrname))
   if err != nil {
     util.Log(0, "ERROR! Could not get attribute %v for MAC %v: %v", attrname, macaddress, err)
     return ""
   }
-  return system.Text(strings.ToLower(attrname))
+  
+  if system.First(attrname) == nil && !doNotCopyAttribute[attrname] {
+    dn := system.Text("dn")
+    if dn == "" {
+      util.Log(0, "ERROR! WTF? LDAP did not return dn in its reply: %v", system)
+      return ""
+    }
+    groups, err := xml.LdifToHash("xml", true, ldapSearch(fmt.Sprintf("(&(objectClass=gosaGroupOfNames)(member=%v)%v)",dn, config.UnitTagFilter), attrname))  
+    if err != nil {
+      util.Log(0, "ERROR! Could not get groups with member %v: %v", dn, err)
+      return ""
+    }
+    count := 0
+    for group := groups.First("xml"); group != nil; group = group.Next() {
+      if group.First(attrname) != nil {
+        system = group
+        count++
+      }
+    }
+    if count > 0 {
+      util.Log(0, "WARNING! Multiple groups provide attribute %v for %v: %v", attrname, dn, groups)
+    }
+  }
+  
+  return system.Text(attrname)
 }
 
 // Returns the complete data available for the system identified by the given 
@@ -386,14 +420,6 @@ func SystemGetGroupsWithMember(dn string) *xml.Hash {
   x.Rename("systemdb")
   return x
 }
-
-// Set of attributes that should not be copied by SystemFillInMissingData() even
-// if the target does not have them.
-var doNotCopyAttribute = map[string]bool{"member":true, "dn":true, "cn":true, 
-                         "objectclass":true, "gosagroupobjects":true,
-                         "gosaunittag":true, "macaddress": true, "iphostnumber":true,
-                         "description":true, "gocomment":true,
-                         "gotosysstatus":true}
 
 // Takes 2 hashes in the format returned by SystemGetAllDataForMAC() and adds
 // attributes from defaults to system where appropriate. This function understands

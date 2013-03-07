@@ -341,6 +341,11 @@ func systemdb_test() {
   dfl.Add("gotomodules", "pups")
   db.SystemFillInMissingData(sys, dfl)
   check(sys, "<xml><dn></dn><foo>bar</foo><gotomodules>pups</gotomodules></xml>")
+  
+  // object groups support in db.SystemGetState()
+  check(db.SystemGetState(db.SystemMACForName("ogmember1"), "gotoNtpserver"),"ntp01.example.com␞ntp02.example.com")
+  check(db.SystemGetState(db.SystemMACForName("ogmember1"), "member"),"") // "member" should not be inherited from object groups
+  check(db.SystemGetState(db.SystemMACForName("ogmember1"), "doesnotexist"),"")
 }
 
 func jobdb_test() {

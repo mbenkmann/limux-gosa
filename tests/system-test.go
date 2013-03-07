@@ -334,8 +334,7 @@ func run_object_group_inheritance_tests() {
   t0 = time.Now()
   send("[ClientPackages]", hia)
   msg = waitlong(t0, "new_ldap_config")
-  // fails because of missing object group support
-  if checkFail(checkTags(msg.XML,"header,new_ldap_config,source,target,admin_base?,unit_tag?,department?,ldap_base,ldap_uri,release"), "") {
+  if check(checkTags(msg.XML,"header,new_ldap_config,source,target,admin_base?,unit_tag?,department?,ldap_base,ldap_uri+,release"), "") {
     check(msg.Key, keys[len(keys)-1])
     check(msg.IsClientMessage, true)
     check(msg.XML.Text("source"), config.ServerSourceAddress)
@@ -345,8 +344,7 @@ func run_object_group_inheritance_tests() {
     check(msg.XML.Text("release"), "plophos/4.1.0")
   }
   msg = waitlong(t0, "new_ntp_config")
-  // fails because of missing object group support
-  if checkFail(checkTags(msg.XML,"header,new_ntp_config,source,target,server*"), "") {
+  if check(checkTags(msg.XML,"header,new_ntp_config,source,target,server*"), "") {
     check(msg.XML.Get("server"), []string{"ntp01.example.com","ntp02.example.com"})
   }
   
@@ -356,8 +354,7 @@ func run_object_group_inheritance_tests() {
   t0 = time.Now()
   send("[ClientPackages]", hia)
   msg = waitlong(t0, "new_ldap_config")
-  // fails because of missing object group support
-  if checkFail(checkTags(msg.XML,"header,new_ldap_config,source,target,admin_base?,unit_tag?,department?,ldap_base,ldap_uri,release"), "") {
+  if check(checkTags(msg.XML,"header,new_ldap_config,source,target,admin_base?,unit_tag?,department?,ldap_base,ldap_uri+,release"), "") {
     check(msg.XML.Text("ldap_base"), "o=go-susi,c=de")
     check(msg.XML.Get("ldap_uri"), []string{"ldap://ldap01.tvc.example.com","ldap://ldap02.tvc.example.com:389"})
     check(msg.XML.Text("release"), "plophos/4.1.0")
