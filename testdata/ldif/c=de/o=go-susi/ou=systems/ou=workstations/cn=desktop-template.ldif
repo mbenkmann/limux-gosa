@@ -20,7 +20,7 @@ gotoXKbVariant: nodeadkeys
 gotoXMouseType: auto
 gotoXMouseport: /dev/input/mice
 gotoXResolution: 640x480
-macAddress: 00:00:00:00:00:00
+macAddress: 00:00:22:22:00:00
 objectClass: FAIobject
 objectClass: GOhard
 objectClass: gosaAdministrativeUnitTag

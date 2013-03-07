@@ -135,7 +135,7 @@ gotoxkbvariant: nodeadkeys
 gotoxmousetype: auto
 gotoxmouseport: /dev/input/mice
 gotoxresolution: 640x480
-macaddress: 00:00:00:00:00:00
+macaddress: 00:00:22:22:00:00
 objectclass: FAIobject
 objectclass: GOhard
 objectclass: gosaAdministrativeUnitTag
@@ -153,7 +153,7 @@ ghusbsupport: -
 gocomment:: VGVtcGxhdGUgZm9yDQpjbj1+L15ub3RlfF50ZWxlLw0KY24hfi9ub3RlMTAxfG4yMDIvDQpjbn49L1swLTldKyQv
 gosaunittag: 7
 gotolastuser: -
-macaddress: 00:00:00:00:00:00
+macaddress: 00:00:11:11:00:00
 objectclass: FAIobject
 objectclass: GOhard
 objectclass: gosaAdministrativeUnitTag
