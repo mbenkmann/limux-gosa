@@ -400,7 +400,7 @@ func (self *Hash) Get(subtag ...string) []string {
 
 // With no arguments Text() returns the single text child of the receiver element;
 // with arguments Text(s1, s2,...) returns the concatenation of Get(s1, s2,...)
-// separated by \u241e (symbol for record separator).
+// separated by '␞' (\u241e, i.e. symbol for record separator).
 func (self *Hash) Text(subtag ...string) string {
   if len(subtag) == 0 {
     var buffy bytes.Buffer
