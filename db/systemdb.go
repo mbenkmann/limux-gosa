@@ -552,6 +552,11 @@ func templateMatch(system *xml.Hash, gocomment string) int {
                   
                   attrs := system.Get(attrname)
                   
+                  // pseudo-attribute "siserver" resolves to our own IP address and name
+                  if attrname == "siserver" {
+                    attrs = []string{config.IP, SystemNameForIPAddress(config.IP)}
+                  }
+                  
                   if matchstate == 0 {
                     if len(attrs) == 0 && re.MatchString("") { return 0 }
                     for _, attr := range attrs {
