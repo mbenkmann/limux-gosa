@@ -6,8 +6,8 @@ ghGfxAdapter: -
 ghMemSize: -
 ghSoundAdapter: -
 ghUsbSupport: -
-goComment:: VGVtcGxhdGUgZm9yIHNpc2VydmVyfj0vdnRzLXN1c2lcXC4uKi8NCmdoY3B1dHlwZT
- 1+L0dlbnVpbmVJbnRlbCBcXC8gSW50ZWwvDQp4PX4veC95PX4veS8gej1+L3ovIHc9fi93Lw==
+goComment:: VGVtcGxhdGUgZm9yIHNpc2VydmVyfj0vdnRzLXN1c2lcLi4qLw0KZ2hjcHV0eXBlPX4vR2VudWlu
+ ZUludGVsIFwvIEludGVsLw0KeD1+L3gveT1+L3kvIHo9fi96LyB3PX4vdy8=
 goFonHardware: automatic
 gosaUnitTag: 7
 gotoLastUser: -
