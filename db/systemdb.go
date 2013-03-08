@@ -24,6 +24,7 @@ import (
          "fmt"
          "net"
          "bytes"
+         "regexp"
          "strings"
          "strconv"
          "os/exec"
@@ -43,7 +44,8 @@ var doNotCopyAttribute = map[string]bool{"member":true, "dn":true, "cn":true,
                          "description":true, "gocomment":true,
                          "gotosysstatus":true}
 
-
+// template matching rules are rejected if an attribute name does not match this re.
+var attributeNameRegexp = regexp.MustCompile("^[a-zA-Z]+$")
 
 // Returns a short name for the system with the given MAC address.
 // The name will not include a domain. Use FullyQualifiedNameForMAC() if
@@ -445,8 +447,155 @@ func SystemGetTemplatesFor(system *xml.Hash) *xml.Hash {
 
 // Returns how well the rule gocomment matches system. 
 // 0 means no match. Greater values are better (more specific) matches.
+// Matching is done case-insensitive. Attribute names from system
+// must be lowercase.
 func templateMatch(system *xml.Hash, gocomment string) int {
-  return 1
+  
+  /*
+    If you come here to debug a problem in the matching of template rules, 
+    please accept my sincere apologies. I should have tested this code better.
+    I didn't do it for the same reason you will hate debugging this code:
+    It's 2 nested state machines with lots of if-then-else alternatives.
+    It's too long and too clever.
+    If it works, it's impressive. If it fails, it's bad engineering.
+    
+    But you have to give me some credit. At least I documented the meaning of the states.
+  */
+  
+  rules := strings.ToLower(gocomment)
+  if strings.Index(rules,"template for") == 0 { rules = rules[12:] }
+
+  state := 0  // 0 => expect attribute name, 1 => expect match operator, 2 => expect regex start, 3 => expect regex end
+  matchstate := 0 // 0 => processing negative matches, 1 => waiting for positive match, 2 => have positive match for current group
+  
+  attrname := "" // the attribute name of the matching rule being parsed
+  regex := ""    // the regex of the matching rule being parsed
+  score := 0     // counts the number of successful regex matches
+  
+  parts := strings.Fields(rules)
+  
+  for i := 0; i < len(parts); i++ {
+    if parts[i] == "" { continue }
+    
+    switch state {
+      case 0: attrname = parts[i]
+              k := 0
+              for k < len(attrname) && (attrname[k] != '!' && attrname[k] != '~' && attrname[k] != '=') { k++ }
+              
+              attrname = attrname[0:k]
+              if !attributeNameRegexp.MatchString(attrname) {
+                util.Log(0, "ERROR! Matching rule \"%v\" contains illegal attribute name \"%v\"", gocomment, attrname)
+                return 0
+              }
+              if k != len(parts[i]) {
+                parts[i] = parts[i][k:]
+                i--
+              }
+              state++
+      
+      case 1: k := 0
+              for k < len(parts[i]) && (parts[i][k] == '=' || parts[i][k] == '~' || parts[i][k] == '!') { k++ }
+              op := parts[i][0:k]
+              
+              if op == "~=" || op == "=~" || op == "="||  op == "~" {
+                if matchstate != 2 {
+                  matchstate = 1
+                }
+              } else if op == "!=" || op == "!~" || op == "!" || op == "~!" {
+                if matchstate == 1 { // no positive match for the preceding positive matching group
+                  return 0
+                }
+                matchstate = 0
+              } else {
+                util.Log(0, "ERROR! Encountered \"%v\" but expected \"=~\" or \"!~\" in matching rule \"%v\"", parts[i], gocomment)
+                return 0
+              }
+              if k != len(parts[i]) {
+                parts[i] = parts[i][k:]
+                i--
+              }
+              state++
+      
+      case 2: if parts[i][0] != '/' {
+                util.Log(0, "ERROR! Encountered \"%v\" but expected \"/\" in matching rule \"%v\"", parts[i], gocomment)
+                return 0
+              }
+              
+              regex = ""
+              parts[i] = parts[i][1:]
+              state++
+              fallthrough
+      case 3:
+              // except in the fallthrough case from state==2 (which we recognize by regex=="") whenever we
+              // come here that means that the original gocomment contained whitespace within the regex.
+              // We translate such whitespace to \s+.
+              if regex != "" { regex += "\\s+" }
+
+              chars := strings.Split(parts[i],"") // split parts[i] int UTF-8 sequences
+              for k := 0; k < len(chars); k++ {
+                ch := chars[k]
+                if ch == "\\" && k == len(chars)-1 {
+                  // If the part ends with an unescaped backslash that means that the original string
+                  // contained backslash followed by some whitespace character. Since we replace all
+                  // whitespace characters with "\s+" the backslash needs to be removed or it would
+                  // combine with the "\s" to "\\s" which is wrong.
+                } else if ch == "\\" {
+                  regex += ch
+                  k++
+                  regex += chars[k]
+                } else if ch == "/" { // regex end marker
+                  re, err := regexp.Compile(regex)
+                  if err != nil {
+                    util.Log(0, "ERROR! Cannot parse regular expression \"%v\" in matching rule \"%v\"", regex, gocomment)
+                    return 0
+                  }
+                  
+                  attrs := system.Get(attrname)
+                  
+                  if matchstate == 0 {
+                    if len(attrs) == 0 && re.MatchString("") { return 0 }
+                    for _, attr := range attrs {
+                      if re.MatchString(strings.ToLower(attr)) { return 0 }
+                    }
+                    score++
+                  } else { // if matchstate == 1 || matchstate == 2
+                    if len(attrs) == 0 && re.MatchString("") { 
+                      matchstate = 2 
+                      score++
+                    } 
+                    for _, attr := range attrs {
+                      if re.MatchString(strings.ToLower(attr)) { 
+                        matchstate = 2
+                        score++
+                        break
+                      }
+                    }
+                  }
+                  
+                  k++ // skip "/"
+                  if k < len(chars) {
+                    parts[i] = strings.Join(chars[k:],"")
+                    i--
+                  }
+                  
+                  state = 0
+                  break
+                  
+                } else {
+                  regex += ch
+                }
+              } // for (case 3)
+    } // switch state
+  } // for 
+  
+  switch state {
+    case 0: if matchstate == 1 { return 0 } else { return score }
+    case 1: util.Log(0, "ERROR! Premature end of matching rule. Expected \"=~\" or \"!~\" in matching rule \"%v\"", gocomment)
+    case 2: util.Log(0, "ERROR! Premature end of matching rule. Expected \"/\" in matching rule \"%v\"", gocomment)
+    case 3: util.Log(0, "ERROR! Unterminated regex in matching rule \"%v\"", gocomment)
+  }
+  
+  return 0
 }
 
 // Returns all gosaGroupOfNames objects that have the given dn as a member.

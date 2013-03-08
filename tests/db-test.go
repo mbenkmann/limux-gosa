@@ -354,25 +354,26 @@ func systemdb_test() {
   desktop_template  := xml.NewHash("systemdb")
   d,_ := db.SystemGetAllDataForMAC("00:00:22:22:00:00",false)
   desktop_template.AddWithOwnership(d)
-  checkFail(db.SystemGetTemplatesFor(xml.NewHash("xml")), "<systemdb></systemdb>")
-  checkFail(db.SystemGetTemplatesFor(hash("xml(cn(note))")), "<systemdb></systemdb>")
-  checkFail(db.SystemGetTemplatesFor(hash("xml(cn(tele))")), "<systemdb></systemdb>")
-  checkFail(db.SystemGetTemplatesFor(hash("xml(cn(note101))")), "<systemdb></systemdb>")
-  checkFail(db.SystemGetTemplatesFor(hash("xml(cn(n202))")), "<systemdb></systemdb>")
-  checkFail(db.SystemGetTemplatesFor(hash("xml(cn(n2022))")), "<systemdb></systemdb>")
-  checkFail(db.SystemGetTemplatesFor(hash("xml(cn(n2))")), notebook_template)
-  checkFail(db.SystemGetTemplatesFor(hash("xml(ghcputype(GenuineIntel / Intel))")), desktop_template)
+  check(db.SystemGetTemplatesFor(xml.NewHash("xml")), "<systemdb></systemdb>")
+  check(db.SystemGetTemplatesFor(hash("xml(cn(note))")), "<systemdb></systemdb>")
+  check(db.SystemGetTemplatesFor(hash("xml(cn(tele))")), "<systemdb></systemdb>")
+  check(db.SystemGetTemplatesFor(hash("xml(cn(note101))")), "<systemdb></systemdb>")
+  check(db.SystemGetTemplatesFor(hash("xml(cn(n202))")), "<systemdb></systemdb>")
+  check(db.SystemGetTemplatesFor(hash("xml(cn(n2022))")), "<systemdb></systemdb>")
+  check(db.SystemGetTemplatesFor(hash("xml(cn(note2))")), notebook_template)
+  check(db.SystemGetTemplatesFor(hash("xml(cn(tele2))")), notebook_template)
+  check(db.SystemGetTemplatesFor(hash("xml(ghcputype(GenuineIntel / Intel))")), desktop_template)
   // specificity sorting test 1: notebook-template is better match
-  templates := db.SystemGetTemplatesFor(hash("xml(cn(n2)ghcputype(GenuineIntel / Intel))"))
+  templates := db.SystemGetTemplatesFor(hash("xml(cn(note2)ghcputype(GenuineIntel / Intel))"))
   if check(templates.First("xml") != nil, true) {
     check(templates.First("xml"), notebook_template.First("xml"))
     check(templates.First("xml").Next(), desktop_template.First("xml"))
   }
   // specificity sorting test 2: desktop-template is better match
-  templates = db.SystemGetTemplatesFor(hash("xml(cn(n2)w(w)x(x)y(y)z(z))"))
+  templates = db.SystemGetTemplatesFor(hash("xml(cn(note2)w(w)x(x)y(y)z(z))"))
   if check(templates.First("xml") != nil, true) {
-    checkFail(templates.First("xml"), desktop_template.First("xml"))
-    checkFail(templates.First("xml").Next(), notebook_template.First("xml"))
+    check(templates.First("xml"), desktop_template.First("xml"))
+    check(templates.First("xml").Next(), notebook_template.First("xml"))
   }
 }
 
