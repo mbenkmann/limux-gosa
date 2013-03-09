@@ -228,13 +228,13 @@ func systemdb_test() {
   check(db.SystemGetState(Jobs[0].MAC, "objectclass"),"GOhard␞gotoWorkstation␞FAIobject␞gosaAdministrativeUnitTag")
   
   data, err := db.SystemGetAllDataForMAC("no-mac", true)
-  check(data, "<xml></xml>")
+  check(data, nil)
   check(err, "Could not find system with MAC no-mac")
   
   ldapUri := config.LDAPURI
   config.LDAPURI = "broken"
   data, err = db.SystemGetAllDataForMAC(db.SystemMACForName("systest1"), true)
-  check(data, "<xml></xml>")
+  check(data, nil)
   check(err, "Could not parse LDAP URI(s)=broken (3)\n")
   config.LDAPURI = ldapUri
   
@@ -375,6 +375,38 @@ func systemdb_test() {
     check(templates.First("xml"), desktop_template.First("xml"))
     check(templates.First("xml").Next(), notebook_template.First("xml"))
   }
+  
+  check(db.SystemReplace(nil,nil), nil)
+  check(hasWords(db.SystemReplace(xml.NewHash("xml","dn","cn=foo,ou=systems,o=go-susi,c=de"),nil),"Error","No such object"), "")
+  syssy := xml.NewHash("xml","dn","cn=syssy,ou=systems,o=go-susi,c=de")
+  syssy.Add("cn","syssy")
+  syssy.Add("objectclass","GOhard")
+  syssy.Add("gotoldapserver","Heike")
+  syssy.Add("gotoldapserver","Julia")
+  syssy.Add("gotontpserver","Bettina")
+  syssy.Add("gotontpserver","Andrea")
+  syssy.Add("macaddress","KeineAhnungWieDieHeisst")
+  check(db.SystemReplace(nil,syssy), nil)
+  check(hasWords(db.SystemReplace(nil,syssy),"Error","Already exists"), "")
+  syssy_new := syssy.Clone()
+  syssy_new.First("cn").SetText("judith")
+  syssy_new.Add("gotomodules","Kirsten")
+  syssy_new.Add("gotomodules","Jutta")
+  syssy_new.RemoveFirst("gotoldapserver")
+  syssy_new.RemoveFirst("gotoldapserver")
+  syssy_new.First("gotontpserver").SetText("Margot")
+  syssy_new.Add("gotontpserver", "Simona")
+  syssy_compare := syssy_new.Clone()
+  syssy_compare.First("dn").SetText("cn=judith,ou=systems,o=go-susi,c=de")
+  check(db.SystemReplace(syssy,syssy_new), nil) //fixes up dn, too
+  check(strings.SplitN(syssy_new.Text("dn"),",",2)[0],"cn=judith")
+  syssy_compare2,_ := db.SystemGetAllDataForMAC("KeineAhnungWieDieHeisst",false)
+  check(syssy_compare2,syssy_compare)
+  syssy_new.First("dn").SetText("cn=judith,ou=workstations,ou=systems,o=go-susi,c=de")
+  check(db.SystemReplace(syssy_compare,syssy_new), nil)
+  syssy_compare2,_ = db.SystemGetAllDataForMAC("KeineAhnungWieDieHeisst",false)
+  check(syssy_compare2,syssy_new)
+  check(db.SystemReplace(syssy_new,nil), nil)
 }
 
 func jobdb_test() {

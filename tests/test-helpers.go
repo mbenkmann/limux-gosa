@@ -374,12 +374,13 @@ func init_keys() {
 }  
 
 // Returns "" if all words are contained in text, otherwise returns an error message.
-func hasWords(text string, words... string) string {
+func hasWords(text interface{}, words... string) string {
+  txt := fmt.Sprintf("%v",text)
   missing := ""
   for _, w := range words {
-    if strings.Index(text, w) < 0 { if missing != "" { missing += ", " }; missing += "\""+w+"\"" }
+    if strings.Index(txt, w) < 0 { if missing != "" { missing += ", " }; missing += "\""+w+"\"" }
   }
-  if missing != "" { return "Missing word(s) " + missing + " in \"" + text +"\"" }
+  if missing != "" { return "Missing word(s) " + missing + " in \"" + txt +"\"" }
   return ""
 }
 

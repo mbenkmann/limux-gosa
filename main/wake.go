@@ -73,7 +73,7 @@ func main() {
 }
 
 func PlainnameForMAC(macaddress string) string {
-  system, err := xml.LdifToHash("", true, LdapSearch(fmt.Sprintf("(&(objectClass=GOHard)(macAddress=%v)%v)",macaddress, ""),"cn"))
+  system, err := xml.LdifToHash("", true, LdapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",macaddress, ""),"cn"))
   name := system.Text("cn")
   if name == "" {
     util.Log(0, "ERROR! Error getting cn for MAC %v: %v", macaddress, err)

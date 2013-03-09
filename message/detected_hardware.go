@@ -65,7 +65,7 @@ func detected_hardware(xmlmsg *xml.Hash) {
   }
   
   // standard objectClasses
-  system.Add("objectclass", "GOHard")
+  system.Add("objectclass", "GOhard")
   if config.UnitTag != "" {
     system.Add("objectclass", "gosaAdministrativeUnitTag")
     system.Add("gosaunittag", config.UnitTag)
@@ -114,7 +114,7 @@ func detected_hardware(xmlmsg *xml.Hash) {
   }
   
   // Update LDAP data or create new entry
-  db.SystemUpdate(system)
+  db.SystemReplace(oldentry, system)
   
   // if the system is not locked, tell it to start the installation right away
   if system.Text("gotomode") == "active" {

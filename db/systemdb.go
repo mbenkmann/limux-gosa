@@ -72,7 +72,7 @@ func SystemPlainnameForMAC(macaddress string) string {
 // ATTENTION! This function accesses LDAP and may perform multiple DNS lookups.
 // It may therefore take a while. If possible you should use it asynchronously.
 func SystemFullyQualifiedNameForMAC(macaddress string) string {
-  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter),"cn","ipHostNumber"))
+  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter),"cn","ipHostNumber"))
   name := system.Text("cn")
   if name == "" {
     util.Log(0, "ERROR! Error getting cn for MAC %v: %v", macaddress, err)
@@ -145,7 +145,7 @@ func SystemFullyQualifiedNameForMAC(macaddress string) string {
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
 func SystemCommonNameForMAC(macaddress string) string {
-  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter),"cn"))
+  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter),"cn"))
   name := system.Text("cn")
   if name == "" {
     util.Log(0, "ERROR! Error getting cn for MAC %v: %v", macaddress, err)
@@ -174,7 +174,7 @@ func SystemIPAddressForName(host string) string {
     // ipHostNumber if it is accurate.
     util.Log(1, "INFO! Could not resolve short name %v (error: %v). Trying LDAP.", host, err)
     var system *xml.Hash
-    system, err = xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(|(cn=%v)(cn=%v.*))%v)",host, host,config.UnitTagFilter),"ipHostNumber"))
+    system, err = xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(|(cn=%v)(cn=%v.*))%v)",host, host,config.UnitTagFilter),"ipHostNumber"))
     // the search may give multiple results. Use reverse lookup of ipHostNumber to
     // find the correct one (if there is one)
     for ihn := system.First("iphostnumber"); ihn != nil; ihn = ihn.Next() {
@@ -231,15 +231,15 @@ func SystemNameForIPAddress(ip string) string {
 
 // Returns the MAC address for the given host name or "none" if it can't be determined.
 func SystemMACForName(host string) string {
-  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(cn=%v)%v)",host, config.UnitTagFilter),"macaddress"))
+  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(cn=%v)%v)",host, config.UnitTagFilter),"macaddress"))
   mac := system.Text("macaddress")
   if mac == "" {
     parts := strings.SplitN(host,".",2)
     if len(parts) == 2 {
-      system, err = xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(cn=%v)%v)",parts[0], config.UnitTagFilter),"macaddress"))
+      system, err = xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(cn=%v)%v)",parts[0], config.UnitTagFilter),"macaddress"))
       mac = system.Text("macaddress")
     } else {
-      system, err = xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(cn=%v.*)%v)",parts[0], config.UnitTagFilter),"macaddress"))
+      system, err = xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(cn=%v.*)%v)",parts[0], config.UnitTagFilter),"macaddress"))
       mac = system.Text("macaddress")
     }
     if mac == "" {  
@@ -290,7 +290,7 @@ func SystemSetState(macaddress string, attrname, attrvalue string) {
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
 func SystemSetStateMulti(macaddress string, attrname string, attrvalues []string) error {
-  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter),"dn"))
+  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter),"dn"))
   dn := system.Text("dn")
   if dn == "" {
     return fmt.Errorf("Could not get dn for MAC %v: %v", macaddress, err)
@@ -311,7 +311,7 @@ func SystemSetStateMulti(macaddress string, attrname string, attrvalues []string
 // If possible you should use it asynchronously.
 func SystemGetState(macaddress string, attrname string) string {
   attrname = strings.ToLower(attrname)
-  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter),attrname))
+  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter),attrname))
   if err != nil {
     util.Log(0, "ERROR! Could not get attribute %v for MAC %v: %v", attrname, macaddress, err)
     return ""
@@ -345,7 +345,7 @@ func SystemGetState(macaddress string, attrname string) string {
 
 // Returns the complete data available for the system identified by the given 
 // macaddress. If an error occurs or the system is not found, 
-// the returned data is "<xml></xml>" and the 2nd return value is the error.
+// the returned data is nil and the 2nd return value is the error.
 // The format of the returned data is
 // <xml>
 //  <dn>...</dn>
@@ -362,9 +362,9 @@ func SystemGetState(macaddress string, attrname string) string {
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
 func SystemGetAllDataForMAC(macaddress string, use_groups bool) (*xml.Hash, error) {
-  x, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter)))
-  if err != nil { return x, err }
-  if x.First("dn") == nil { return x, fmt.Errorf("Could not find system with MAC %v", macaddress) }
+  x, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter)))
+  if err != nil { return nil, err }
+  if x.First("dn") == nil { return nil, fmt.Errorf("Could not find system with MAC %v", macaddress) }
   if use_groups {
     dn := x.Text("dn")
     groups := SystemGetGroupsWithMember(dn)
@@ -409,7 +409,7 @@ func SystemGetAllDataForMAC(macaddress string, use_groups bool) (*xml.Hash, erro
 func SystemGetTemplatesFor(system *xml.Hash) *xml.Hash {
   // ATTENTION: No space between "for" and "*" because there may be some other
   // kind of whitespace (such as CR)
-  x, err := xml.LdifToHash("xml", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOHard)(gocomment=Template for*/*/*)%v)", config.UnitTagFilter)))
+  x, err := xml.LdifToHash("xml", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(gocomment=Template for*/*/*)%v)", config.UnitTagFilter)))
   if err != nil { 
     util.Log(0, "ERROR! LDAP error while looking for template objects: %v", err)
     return xml.NewHash("systemdb")
@@ -694,19 +694,124 @@ func SystemRemoveFromGroups(dn string, groups *xml.Hash) {
   }
 }
 
-// Updates the data for the given system, creating it if it does not yet exist.
-// The format of system is the same as returned by SystemGetAllDataForMAC().
+// General method for making changes (additions, removals, modifications) to
+// the system database.
+// If non-nil, old and new must have the same format as returned by
+// SystemGetAllDataForMAC().
+// If old == nil, then a new object is added to the database with the
+// data from nu. It is an error if an object with the same dn already exists.
+// If nu == nil, then the object whose dn is old.Text("dn") will be deleted
+// from the database. It is an error if it does not exist.
+// If old and nu are both non-nil, the object old is modified so that its
+// data is nu. The changes may include a change of dn. If the dn of
+// old and nu is the same but the cn of nu is different, the
+// dn of nu will be changed accordingly. This means that to change the cn
+// of an object you can just change the cn attribute and SystemReplace() will
+// take care of the dn.
+// This doesn't work the other way, around, though. If you change the dn,
+// you must change the cn accordingly.
 //
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
-func SystemUpdate(system *xml.Hash) {
-}
+func SystemReplace(old *xml.Hash, nu *xml.Hash) error {
+  if nu == nil { // delete
+    if old == nil { return nil } // nothing to do
+    dn := old.Text("dn")
+    ldif := fmt.Sprintf("dn:: %v\nchangetype: delete\n",base64.StdEncoding.EncodeToString([]byte(dn)))
+    out, err := ldapModify(ldif).CombinedOutput()
+    if err != nil {
+      return fmt.Errorf("Error while attempting to delete %v: %v (%v)",dn,err,string(out))
+    }
+    return nil
+  }
+  
+  if old == nil { // create
+    dn := nu.Text("dn")
+    bufstr := bytes.NewBufferString(fmt.Sprintf(`dn:: %v
+changetype: add
+`,base64.StdEncoding.EncodeToString([]byte(dn))))
 
-// Removes the system with the given dn from the database.
-//
-// ATTENTION! This function accesses LDAP and may therefore take a while.
-// If possible you should use it asynchronously.
-func SystemRemove(dn string) {
+    for _, tag := range nu.Subtags() {
+      if tag == "dn" { continue }
+      for x := nu.First(tag); x != nil; x = x.Next() {
+        bufstr.WriteString(fmt.Sprintf("%v:: %v\n", tag, base64.StdEncoding.EncodeToString([]byte(x.Text()))))
+      }
+    }
+    
+    out, err := ldapModify(bufstr.String()).CombinedOutput()
+    if err != nil {
+      return fmt.Errorf("Error while attempting to add %v: %v (%v)",dn, err, string(out))
+    }
+    return nil
+  }
+  
+  // modify
+  
+  olddn := old.Text("dn")
+  dn := nu.Text("dn")
+  cn := nu.Text("cn")
+  if olddn == dn && old.Text("cn") != cn { // if cn has changed but dn has not,
+    // we must update dn to match the changed cn
+    i := strings.Index(dn,",")
+    if i < 0 {
+      return fmt.Errorf("Broken or missing dn: %v", dn)
+    }
+    dn = "cn="+cn+dn[i:]
+    nu.First("dn").SetText(dn)
+  }
+  
+  bufstr := bytes.NewBufferString(fmt.Sprintf(`dn:: %v
+changetype: modify
+`,base64.StdEncoding.EncodeToString([]byte(olddn))))
+
+  for _, tag := range nu.Subtags() {
+    if tag == "dn" || tag == "cn" { continue }
+    if old.First(tag) == nil { 
+      bufstr.WriteString("add: ") 
+    } else {
+      bufstr.WriteString("replace: ")
+    }
+
+    bufstr.WriteString(tag)
+    bufstr.WriteString("\n")
+
+    for x := nu.First(tag); x != nil; x = x.Next() {
+      bufstr.WriteString(fmt.Sprintf("%v:: %v\n", tag, base64.StdEncoding.EncodeToString([]byte(x.Text()))))
+    }
+
+    bufstr.WriteString("-\n")
+  }
+
+  for _, tag := range old.Subtags() {
+    if tag == "dn" || tag == "cn" { continue }
+    if nu.First(tag) != nil { continue }
+
+    bufstr.WriteString("delete: ") 
+    bufstr.WriteString(tag)
+    bufstr.WriteString("\n-\n")
+  }
+  
+  if dn != olddn {
+    i := strings.Index(dn,",") + 1
+    
+    bufstr.WriteString(fmt.Sprintf(`
+dn:: %v
+changetype: modrdn
+newrdn: cn=%v
+deleteoldrdn: 1
+newsuperior:: %v
+`,base64.StdEncoding.EncodeToString([]byte(olddn)),
+cn,
+base64.StdEncoding.EncodeToString([]byte(dn[i:])),
+))
+  }
+   
+  out, err := ldapModify(bufstr.String()).CombinedOutput()
+  if err != nil {
+    return fmt.Errorf("Error while attempting to change %v/%v: %v (%v)",olddn, dn, err, string(out))
+  }
+
+  return nil
 }
 
 
@@ -736,6 +841,16 @@ changetype: modify
 `, attrname, base64.StdEncoding.EncodeToString([]byte(attrvalues[i]))))
   }
   
+  cmd.Stdin = bufstr
+  return cmd
+}
+
+func ldapModify(ldif string) *exec.Cmd {
+  args := []string{"-x", "-H", config.LDAPURI}
+  args = append(args,"-D",config.LDAPAdmin,"-y",config.LDAPAdminPasswordFile)
+  util.Log(2, "DEBUG! ldapmodify %v (LDIF:\n%v\n)",args, ldif)
+  cmd := exec.Command("ldapmodify", args...)
+  bufstr := bytes.NewBufferString(ldif)
   cmd.Stdin = bufstr
   return cmd
 }
