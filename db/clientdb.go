@@ -149,7 +149,7 @@ func ClientUpdate(client *xml.Hash) {
     // we might still have pending messages encrypted with the previous key.
     client.Add("key", keys[0])
   }
-  util.Log(2, "DEBUG! ClientUpdate for %v, handled by %v.", caddr, client.Text("source"))
+  util.Log(2, "DEBUG! ClientUpdate for %v: %v", caddr, client)
   filter := xml.FilterOr([]xml.HashFilter{xml.FilterSimple("macaddress", macaddress),xml.FilterSimple("client", caddr)})
   old := clientDB.Replace(filter, false, client)
   
