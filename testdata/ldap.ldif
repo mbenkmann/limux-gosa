@@ -122,7 +122,7 @@ ghgfxadapter: -
 ghmemsize: -
 ghsoundadapter: -
 ghusbsupport: -
-gocomment:: VGVtcGxhdGUgZm9yIHNpc2VydmVyfj0vdnRzLXN1c2lcLi4qLw0KZ2hjcHV0eXBlPX4vR2VudWluZUludGVsIFwvIEludGVsLw0KeD1+L3gveT1+L3kvIHo9fi96LyB3PX4vdy8=
+gocomment:: VGVtcGxhdGUgZm9yIHNpc2VydmVyfj0vdnRzLXN1c2lcLi4qLw0KZ2hjcHV0eXBlPX4vR2VudWluZUludGVsIFwvIEludGVsLw0KeD1+L3gveT1+L3kvIHo9fi96LyB3PX4vdy8NCm5vdGVtcGxhdGUhfi8uLw==
 gofonhardware: automatic
 gosaunittag: 7
 gotolastuser: -
@@ -150,7 +150,7 @@ ghgfxadapter: -
 ghmemsize: -
 ghsoundadapter: -
 ghusbsupport: -
-gocomment:: VGVtcGxhdGUgZm9yDQpjbj1+L15ub3RlfF50ZWxlLw0KY24hfi9ub3RlMTAxfG4yMDIvDQpjbn49L1swLTldKyQv
+gocomment:: VGVtcGxhdGUgZm9yDQpjbj1+L15ub3RlfF50ZWxlLw0KY24hfi9ub3RlMTAxfG4yMDIvDQpub3RlbXBsYXRlIX4vLi8NCmNufj0vWzAtOV0rJC8=
 gosaunittag: 7
 gotolastuser: -
 macaddress: 00:00:11:11:00:00
