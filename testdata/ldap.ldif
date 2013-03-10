@@ -21,6 +21,10 @@ dn: ou=systems,o=go-susi,c=de
 ou: systems
 objectClass: organizationalUnit
 
+dn: ou=incoming,o=go-susi,c=de
+ou: incoming
+objectClass: organizationalUnit
+
 dn: ou=workstations,ou=systems,o=go-susi,c=de
 ou: workstations
 objectClass: organizationalUnit
