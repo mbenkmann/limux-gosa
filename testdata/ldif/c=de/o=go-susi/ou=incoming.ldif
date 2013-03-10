@@ -1,5 +1,5 @@
-dn: ou=systems
-ou: systems
+dn: ou=incoming
+ou: incoming
 objectClass: organizationalUnit
 structuralObjectClass: organizationalUnit
 entryUUID: 7df8ccd8-d1e0-1031-93f1-9110eab4bd55
