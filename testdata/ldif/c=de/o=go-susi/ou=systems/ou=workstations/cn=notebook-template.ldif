@@ -6,8 +6,8 @@ ghGfxAdapter: -
 ghMemSize: -
 ghSoundAdapter: -
 ghUsbSupport: -
-goComment:: VGVtcGxhdGUgZm9yDQpjbj1+L15ub3RlfF50ZWxlLw0KY24hfi9ub3RlMTAxfG4yMD
- IvDQpub3RlbXBsYXRlIX4vLi8NCmNufj0vWzAtOV0rJC8=
+goComment:: VGVtcGxhdGUgZm9yDQpjbj1+L15ub3RlfF50ZWxlLw0KY24hfi9ub3RlMTAxfG4yMDIvDQpnb3Rv
+ eGRyaXZlciF+L25vdGVtcGxhdGUvDQpjbn49L1swLTldKyQv
 gosaUnitTag: 7
 gotoLastUser: -
 macAddress: 00:00:11:11:00:00
