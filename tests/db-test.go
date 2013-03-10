@@ -332,7 +332,8 @@ func systemdb_test() {
   
   sys = xml.NewHash("xml","dn","")
   dfl.RemoveFirst("gosaunittag")
-  for _, bad := range []string{"cn","member","objectclass","gosagroupobjects","macaddress","description","iphostnumber","gotosysstatus","gocomment"} {
+  dfl.RemoveFirst("objectclass")
+  for _, bad := range []string{"cn","member","gosagroupobjects","description","gocomment"} {
     dfl.Add(bad, "do not copy")
     db.SystemFillInMissingData(sys, dfl)
     check(sys, "<xml><dn></dn></xml>")

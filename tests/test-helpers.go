@@ -508,6 +508,7 @@ func processMessage(str string, senderIP string, is_client bool) string {
   
   decrypted := ""
   for _, msg.Key = range keys {
+    //fmt.Printf("Trying key %v\n",msg.Key)
     decrypted = message.GosaDecrypt(str, msg.Key)
     if decrypted != "" { break }
   }
@@ -524,7 +525,6 @@ func processMessage(str string, senderIP string, is_client bool) string {
   // if we get a new_server or confirm_new_server message, update our server key  
   header := msg.XML.Text("header")
   if header == "new_server" || header == "confirm_new_server" {
-    keys = append(keys, keys[0])
     keys[0] = msg.XML.Text("key")
   }
   

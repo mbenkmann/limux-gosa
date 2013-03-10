@@ -37,12 +37,10 @@ import (
        )
 
 // Set of attributes that should not be copied by SystemFillInMissingData() even
-// if the target does not have them.
-var doNotCopyAttribute = map[string]bool{"member":true, "dn":true, "cn":true, 
-                         "objectclass":true, "gosagroupobjects":true,
-                         "gosaunittag":true, "macaddress": true, "iphostnumber":true,
-                         "description":true, "gocomment":true,
-                         "gotosysstatus":true}
+// if the target does not have them. 
+var DoNotCopyAttribute = map[string]bool{"dn":true, "cn":true, 
+                                         "member":true, "gosagroupobjects":true,
+                                         "description":true, "gocomment":true }
 
 // template matching rules are rejected if an attribute name does not match this re.
 var attributeNameRegexp = regexp.MustCompile("^[a-zA-Z]+$")
@@ -317,7 +315,7 @@ func SystemGetState(macaddress string, attrname string) string {
     return ""
   }
   
-  if system.First(attrname) == nil && !doNotCopyAttribute[attrname] {
+  if system.First(attrname) == nil && !DoNotCopyAttribute[attrname] {
     dn := system.Text("dn")
     if dn == "" {
       util.Log(0, "ERROR! WTF? LDAP did not return dn in its reply: %v", system)
@@ -625,7 +623,8 @@ func SystemGetGroupsWithMember(dn string) *xml.Hash {
 // attributes to system.
 // If defaults has a gosaUnitTag but system doesn't,
 // this function will add the objectClass gosaAdministrativeUnitTag
-// and the gosaUnitTag to system. Other objectClasses are never touched.
+// and the gosaUnitTag to system. Other objectClasses are only copied if
+// system has no objectClass at all.
 //
 // If system has no dn but defaults has one, then system will get a dn
 // derived by replacing the last component of defaults' dn by
@@ -644,17 +643,17 @@ func SystemFillInMissingData(system *xml.Hash, defaults *xml.Hash) {
     }
   }
   
-  if system.First("gosaunittag") == nil {
-    if unittag := defaults.Text("gosaunittag"); unittag != "" {
-      system.Add("objectclass", "gosaAdministrativeUnitTag")
-      system.Add("gosaunittag", unittag)
-    }
+  // If system does not have a gosaUnitTag but does have objectClass(es), 
+  // add objectClass gosaAdministrativeUnitTag, because the loop below
+  // only copies objectClass if system has none.
+  if system.First("gosaunittag") == nil && defaults.First("gosaunittag") != nil && 
+     system.First("objectclass") != nil {
+        system.Add("objectclass", "gosaAdministrativeUnitTag")
   }
-  
   
   for _, tag := range defaults.Subtags() {
     
-    if doNotCopyAttribute[tag] { continue }
+    if DoNotCopyAttribute[tag] { continue }
     
     if system.First(tag) == nil {
       for ele := defaults.First(tag); ele != nil; ele = ele.Next() {

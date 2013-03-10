@@ -60,12 +60,13 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   // start our own "server" that will take messages
   listen()
+  time.Sleep(1*time.Second) // give the server time to start up
   
   config.ReadNetwork()
   listen_address = config.IP + ":" + listen_port
   client_listen_address = config.IP + ":" + client_listen_port
   
-  // if we got a program path (i.e. not host:port), create config and launch program
+  // if we got a program path (i.e. not host:port), create config and launch slapd
   if launched_daemon {
     //first launch the test ldap server
     cmd := exec.Command("/usr/sbin/slapd","-f","./slapd.conf","-h","ldap://127.0.0.1:20088","-d","0")
@@ -77,18 +78,6 @@ func SystemTest(daemon string, is_gosasi bool) {
     config.ServerConfigPath, confdir = createConfigFile("system-test-", listen_address)
     //defer os.RemoveAll(confdir)
     defer fmt.Printf("\nLog file directory: %v\n", confdir)
-    args := []string{ "-f", "-vvvvvv"}
-    if !gosasi { args = append(args,"--test="+confdir) }
-    args = append(args, "-c", config.ServerConfigPath)
-    cmd = exec.Command(daemon, args...)
-    cmd.Stderr,_ = os.Create(confdir+"/go-susi+panic.log")
-    err = cmd.Start()
-    if err != nil { panic(err) }
-    defer cmd.Process.Signal(syscall.SIGTERM)
-    daemon = ""
-    
-    // Give daemon time to process data and write logs before sending SIGTERM
-    defer time.Sleep(reply_timeout)
   }
   
   // this reads either the default config or the one we created above
@@ -96,7 +85,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   config.Timeout = reply_timeout
   
-  if daemon != "" {
+  if !launched_daemon {
     config.ServerSourceAddress = daemon
   }
   
@@ -105,8 +94,24 @@ func SystemTest(daemon string, is_gosasi bool) {
   //   config.ServerSourceAddress is the address of the go-susi or gosa-si being tested  
   
   init_keys()
-  run_startup_tests()
   
+  // now that our server is ready, start the daemon to be tested if necessary
+  if launched_daemon {
+    args := []string{ "-f", "-vvvvvv"}
+    if !gosasi { args = append(args,"--test="+confdir) }
+    args = append(args, "-c", config.ServerConfigPath)
+    cmd := exec.Command(daemon, args...)
+    cmd.Stderr,_ = os.Create(confdir+"/go-susi+panic.log")
+    err := cmd.Start()
+    if err != nil { panic(err) }
+    time.Sleep(3*time.Second) // give daemon a little time to start up
+    defer cmd.Process.Signal(syscall.SIGTERM)
+    
+    // Give daemon time to process data and write logs before sending SIGTERM
+    defer time.Sleep(reply_timeout)
+  }
+  
+  run_startup_tests()
   check_connection_drop_on_error1()
   check_connection_drop_on_error2()
   
@@ -311,6 +316,131 @@ func SystemTest(daemon string, is_gosasi bool) {
   }
   
   run_object_group_inheritance_tests()
+  
+  run_detected_hardware_tests()
+  
+}
+
+func run_detected_hardware_tests() {
+  /*
+    TEST 1: New system sends here_i_am, then detected_hardware, no templates match
+    send here_i_am for our client_listen_address with a MAC for which there is no LDAP entry
+    wait for the detect_hardware message from the server
+    Send detected_hardware with
+      * two <detected_hardware> elements
+      * multiple <gotoModules> sub-elements in both <detected_hardware> elements
+        with different capitalizations of the word "GoTOmodulEs"
+      * ghMemSize and gotoSndModule as XML attributes
+      * gotoxdriver="notemplate" to make sure we don't accidentally match a template
+        due to the name of the machine the test is being run on
+    wait a bit for LDAP to be updated
+    check LDAP for the new entry (use checkTags!)
+    check in particular cn (should start with config.Hostname) and dn (under ou=incoming)
+    check that we did not receive a set_activated_for_installation message
+  */
+  mac := "aa:00:bb:11:cc:99"
+  hia := hash("xml(header(here_i_am)source(%v)target(%v)new_passwd(%v)mac_address(%v))", client_listen_address, config.ServerSourceAddress, keys[len(keys)-1], mac)
+  t0 := time.Now()
+  send("[ClientPackages]", hia)
+  check(wait(t0, "detect_hardware").XML.Text("header"),"detect_hardware")
+  detected_hardware := hash("xml(header(detected_hardware)source(%v))",client_listen_address)
+  dh := hash("detected_hardware(gotoModules(m1)goTOModules(m2)gotoxdriver(notemplate))")
+  detected_hardware.AddWithOwnership(dh)
+  dh2 := "<detected_hardware ghMemSize='12345' gotoSndModule=\"snd_noisemaster\"><gotoMODULES>m3</gotoMODULES><GOTOModulES>m4</GOTOModulES></detected_hardware>"
+  dh_string := strings.Replace(detected_hardware.String(),"<detected_hardware>",dh2+"<detected_hardware>",-1)
+  t0 = time.Now()
+  util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(dh_string, keys[len(keys)-1]), config.Timeout)
+  check(waitlong(t0, "set_activated_for_installation").XML,"<xml></xml>")
+  sys,err := db.SystemGetAllDataForMAC(mac, false)
+  if check(err,nil) {
+    check(checkTags(sys,"dn,cn,macaddress,objectclass+,gotosysstatus?,gotoxdriver,gotomodules+,ghmemsize,gotosndmodule,objectclass,gotomode,iphostnumber"),"")
+    check(hasWords(sys.Text("cn"),config.Hostname),"")
+    check(hasWords(sys.Text("dn"),"cn="+config.Hostname,"ou=incoming,"+config.LDAPBase),"")
+    check(sys.Text("macaddress"),mac)
+    check(sys.Text("iphostnumber"),config.IP)
+    modules := sys.Get("gotomodules")
+    sort.Strings(modules)
+    check(modules,[]string{"m1","m2","m3","m4"})
+    check(sys.Text("ghmemsize"),"12345")
+    check(sys.Text("gotosndmodule"),"snd_noisemaster")
+    check(sys.Text("gotoxdriver"),"notemplate")
+    check(sys.Text("gotomode"),"locked")
+    oc := sys.Get("objectclass")
+    sort.Strings(oc)
+    check(oc, []string{"GOhard"})
+  }
+  
+  if sys != nil { 
+    db.SystemReplace(hash("xml(dn(cn=%v,ou=incoming,%v))",sys.Text("cn"),config.LDAPBase), nil) 
+  }
+  
+  /*  
+    TEST 2: System sends updated hardware information
+    Send detected_hardware with
+      * changed ghMemSize with different capitalization of "GhMemSIZe"
+      * removed gotoSndModule
+      * added gotoXMouseType
+      * one new and one removed <gotoModules> element
+      * gotoMode "active"
+      * no gotoxdriver="notemplate" (should be unnecessary because
+                  templates should not be applied because object exists)
+    wait a bit for LDAP to be updated
+    check that object has been updated (check complete object, checkTags!)
+    check that we do receive set_activated_for_installation message (because of gotoMode "active")
+    delete system from LDAP
+  */
+  
+  //check(wait(t0, "set_activated_for_installation").IsClientMessage, true)
+  
+  /*
+    TEST 3: New system with matching template object in object group; override IP
+    Send detected_hardware with
+      * ipHostNumber element with IP that can't be resolved to a name
+      * ghcputype that includes "GenuineIntel / Intel" so that desktop-template matches
+      * gotoxresolution=1280x1024
+    wait a bit for LDAP to be updated
+    Check LDAP for new entry
+    Check that generated cn is system-<MAC_with_minus_instead_of_colon>
+    Check that gotoxresolution, ghcputype and ipHostNumber come from detected_hardware
+        but the rest comes from the template object
+    Check that gocomment and description are not copied from the template object
+    Check objectClass=gosaAdministrativeUnitTag and gosaUnitTag
+  */
+  /*
+    TEST 4: Use detected_hardware to change cn
+    Send detected_hardware with
+      * macAddress attribute(not sub-element!) of <detected_hardware> element
+      * ipHostNumber attribute with different IP
+      * missing <source> element
+      * cn=mrhyde
+      * no dn
+      * encrypted with [GOsaPackages] key
+    Wait a bit for LDAP to be updated
+    Check that object is the same as after TEST 3 except for
+      * ipHostNumber
+      * cn
+      * dn matching cn
+  */
+  /*
+    TEST 5: Use detected_hardware to change dn
+    Send detected_hardware with
+      * macAddress sub-element(not attribute!) of <detected_hardware> element
+      * target dn outside of ou=incoming, with cn part cn=drjekyll
+      * No cn attribute (is derivable from dn)
+    Wait a bit for LDAP to be updated
+    Check that object is the same as after TEST 3 except for
+      * cn
+      * dn
+  */
+  /*
+    TEST 6: Try to change dn to top-level (outside of base). Must fail!
+    Send detected_hardware identical to the one from TEST 5, except for
+      * dn: cn=drjekyll,c=de
+    Check that object is unchanged and has NOT changed its DN.
+    
+    Delete system from LDAP
+  */
+
   
 }
 
@@ -886,7 +1016,6 @@ func run_startup_tests() {
   
   // Send new_server and check that we receive confirm_new_server in response
   t0 := time.Now()
-  keys = append(keys, keys[0])
   keys[0] = "new_server_key"
   send("[ServerPackages]", hash("xml(header(new_server)new_server()key(%v)loaded_modules(goSusi)macaddress(00:00:00:00:00:00))", keys[0]))
   msg := wait(t0, "confirm_new_server")
@@ -1287,7 +1416,12 @@ func check_new_server_on_startup(job Job) {
 
     // send confirm_new_server with a different key to check that c_n_s does not
     // need to use the same key as new_server
-    keys = append(keys, keys[0])
+    // We need to wait a little first, because due to the complications of starting
+    // both go-susi and our test server go-susi sometimes sees the test server as
+    // down for a moment which causes 2 new_server messages being sent, the second
+    // of which (if it is received by the test server after we send our
+    // confirm_new_server) may overwrite keys[0].
+    time.Sleep(3*time.Second)
     keys[0] = "confirm_new_server_key"
     send("[ServerPackages]", hash("xml(header(confirm_new_server)confirm_new_server()key(%v)loaded_modules(goSusi)macaddress(01:02:03:04:05:06))",keys[0]))
 
@@ -1300,7 +1434,7 @@ func check_new_server_on_startup(job Job) {
     t0 := time.Now()
     
     trigger_first_test_job(Jobs[0])
-
+    
     msg = wait(t0, "foreign_job_updates")
     check_foreign_job_updates(msg, "confirm_new_server_key", config.ServerSourceAddress, test_name, "7_days", "waiting", "none", test_mac, "trigger_action_wake", test_timestamp)
   }
