@@ -37,5 +37,7 @@ func Activate(job *xml.Hash) {
         // do something, even if system data is not available.
     }
     message.Send_set_activated_for_installation(client.Text("client"), system)
+  } else {
+    util.Log(0, "ERROR! Unknown client %v => Cannot send set_activated_for_installation", macaddress)
   }
 }
