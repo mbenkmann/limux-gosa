@@ -369,28 +369,61 @@ func run_detected_hardware_tests() {
     sort.Strings(oc)
     check(oc, []string{"GOhard"})
   }
-  
-  if sys != nil { 
-    db.SystemReplace(hash("xml(dn(cn=%v,ou=incoming,%v))",sys.Text("cn"),config.LDAPBase), nil) 
-  }
-  
   /*  
     TEST 2: System sends updated hardware information
     Send detected_hardware with
       * changed ghMemSize with different capitalization of "GhMemSIZe"
-      * removed gotoSndModule
+      * empty <gotoSndModule></gotoSndModule>
       * added gotoXMouseType
       * one new and one removed <gotoModules> element
       * gotoMode "active"
       * no gotoxdriver="notemplate" (should be unnecessary because
                   templates should not be applied because object exists)
     wait a bit for LDAP to be updated
-    check that object has been updated (check complete object, checkTags!)
     check that we do receive set_activated_for_installation message (because of gotoMode "active")
+    check that object has been updated (check complete object, checkTags!)
     delete system from LDAP
   */
+  dh = detected_hardware.First("detected_hardware")
+  dh.Add("GhMemSIZe","1976")
+  dh.Add("gotoSndModule")
+  dh.Add("gotoModules","m0")
+  dh.Add("gotoModules","m4")
+  dh.Add("gotoXMouseType","FetteRatte")
+  dh.Add("gotoMode","active")
+  dh.RemoveFirst("gotoxdriver")
+  t0 = time.Now()
+  send("CLIENT", detected_hardware)
   
-  //check(wait(t0, "set_activated_for_installation").IsClientMessage, true)
+  check(wait(t0, "set_activated_for_installation").IsClientMessage, true)
+  
+  sys, err = db.SystemGetAllDataForMAC(mac, false)
+  if check(err,nil) {
+    check(checkTags(sys,"dn,cn,macaddress,objectclass+,gotoxmousetype,gotosysstatus?,gotoxdriver,gotomodules+,ghmemsize,objectclass,gotomode,iphostnumber"),"")
+    check(hasWords(sys.Text("cn"),config.Hostname),"")
+    check(hasWords(sys.Text("dn"),"cn="+config.Hostname,"ou=incoming,"+config.LDAPBase),"")
+    check(sys.Text("macaddress"),mac)
+    check(sys.Text("iphostnumber"),config.IP)
+    modules := sys.Get("gotomodules")
+    sort.Strings(modules)
+    check(modules,[]string{"m0","m1","m2","m4"})
+    check(sys.Text("ghmemsize"),"1976")
+    check(sys.Text("gotomode"),"active")
+    check(sys.Text("gotoxmousetype"),"FetteRatte")
+    check(sys.Text("gotoxdriver"),"notemplate")
+    oc := sys.Get("objectclass")
+    sort.Strings(oc)
+    check(oc, []string{"GOhard"})
+  }
+  
+  if sys != nil { 
+    err = db.SystemReplace(hash("xml(dn(cn=%v,ou=incoming,%v))",sys.Text("cn"),config.LDAPBase), nil) 
+    if err != nil {
+      fmt.Printf("ERROR! Could not delete test system. Manual cleanup of testdata/ldif may be necessary! LDAP error: %v\n", err)
+    }
+  }
+  
+
   
   /*
     TEST 3: New system with matching template object in object group; override IP

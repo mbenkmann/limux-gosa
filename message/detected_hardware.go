@@ -85,7 +85,7 @@ func detected_hardware(xmlmsg *xml.Hash) {
   
     // copy attributes that db.SystemFillInMissingData() does not copy
     for attr := range db.DoNotCopyAttribute {
-      if system.First(attr) == nil {
+      if system.First(attr) == nil && oldentry.First(attr) != nil {
         system.Add(attr, oldentry.Text(attr))
       }
     }
