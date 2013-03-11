@@ -733,7 +733,10 @@ changetype: add
     for _, tag := range nu.Subtags() {
       if tag == "dn" { continue }
       for x := nu.First(tag); x != nil; x = x.Next() {
-        bufstr.WriteString(fmt.Sprintf("%v:: %v\n", tag, base64.StdEncoding.EncodeToString([]byte(x.Text()))))
+        txt := x.Text()
+        if txt != "" {
+          bufstr.WriteString(fmt.Sprintf("%v:: %v\n", tag, base64.StdEncoding.EncodeToString([]byte(txt))))
+        }
       }
     }
     
@@ -765,20 +768,30 @@ changetype: modify
 
   for _, tag := range nu.Subtags() {
     if tag == "dn" || tag == "cn" { continue }
+    skip_because_empty := false
     if old.First(tag) == nil { 
-      bufstr.WriteString("add: ") 
+      if nu.Text(tag) != "" {
+        bufstr.WriteString("add: ") 
+      } else {
+        skip_because_empty = true
+      }
     } else {
       bufstr.WriteString("replace: ")
     }
+    
+    if !skip_because_empty {
+      bufstr.WriteString(tag)
+      bufstr.WriteString("\n")
 
-    bufstr.WriteString(tag)
-    bufstr.WriteString("\n")
+      for x := nu.First(tag); x != nil; x = x.Next() {
+        txt := x.Text()
+        if txt != "" {
+          bufstr.WriteString(fmt.Sprintf("%v:: %v\n", tag, base64.StdEncoding.EncodeToString([]byte(txt))))
+        }
+      }
 
-    for x := nu.First(tag); x != nil; x = x.Next() {
-      bufstr.WriteString(fmt.Sprintf("%v:: %v\n", tag, base64.StdEncoding.EncodeToString([]byte(x.Text()))))
+      bufstr.WriteString("-\n")
     }
-
-    bufstr.WriteString("-\n")
   }
 
   for _, tag := range old.Subtags() {

@@ -386,11 +386,14 @@ func systemdb_test() {
   syssy.Add("gotoldapserver","Julia")
   syssy.Add("gotontpserver","Bettina")
   syssy.Add("gotontpserver","Andrea")
+  syssy.Add("gotoxmousetype","Langschwanzratte")
+  syssy.Add("gotoxdriver")
   syssy.Add("macaddress","KeineAhnungWieDieHeisst")
   check(db.SystemReplace(nil,syssy), nil)
   check(hasWords(db.SystemReplace(nil,syssy),"Error","Already exists"), "")
   syssy_new := syssy.Clone()
   syssy_new.First("cn").SetText("judith")
+  syssy_new.First("gotoxmousetype").SetText("")
   syssy_new.Add("gotomodules","Kirsten")
   syssy_new.Add("gotomodules","Jutta")
   syssy_new.RemoveFirst("gotoldapserver")
@@ -399,6 +402,8 @@ func systemdb_test() {
   syssy_new.Add("gotontpserver", "Simona")
   syssy_compare := syssy_new.Clone()
   syssy_compare.First("dn").SetText("cn=judith,ou=systems,o=go-susi,c=de")
+  syssy_compare.RemoveFirst("gotoxdriver") // empty elements are removed
+  syssy_compare.RemoveFirst("gotoxmousetype") // empty elements are removed
   check(db.SystemReplace(syssy,syssy_new), nil) //fixes up dn, too
   check(strings.SplitN(syssy_new.Text("dn"),",",2)[0],"cn=judith")
   syssy_compare2,_ := db.SystemGetAllDataForMAC("KeineAhnungWieDieHeisst",false)
@@ -406,8 +411,12 @@ func systemdb_test() {
   syssy_new.First("dn").SetText("cn=judith,ou=workstations,ou=systems,o=go-susi,c=de")
   check(db.SystemReplace(syssy_compare,syssy_new), nil)
   syssy_compare2,_ = db.SystemGetAllDataForMAC("KeineAhnungWieDieHeisst",false)
+  syssy_new.RemoveFirst("gotoxdriver") // empty elements are removed
+  syssy_new.RemoveFirst("gotoxmousetype") // empty elements are removed
   check(syssy_compare2,syssy_new)
   check(db.SystemReplace(syssy_new,nil), nil)
+  _,err = db.SystemGetAllDataForMAC("KeineAhnungWieDieHeisst",false)
+  check(hasWords(err,"Could not find","KeineAhnungWieDieHeisst"), "")
 }
 
 func jobdb_test() {
