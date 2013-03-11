@@ -23,7 +23,6 @@ import (
          "regexp"
          "strings"
          
-         "../db"
          "../xml"
          "../util"
          "../config"
@@ -31,39 +30,13 @@ import (
 
 var gotoLdapServerRegexp = regexp.MustCompile("^([0-9]+):([^:]+):([^:/]+:/{0,2}[^/]+)/(.*)$")
 
-// Handles the message "here_i_am".
-//  xmlmsg: the decrypted and parsed message
-func here_i_am(xmlmsg *xml.Hash) {
-  client := xml.NewHash("xml","header","new_foreign_client")
-  client.Add("new_foreign_client")
-  client.Add("source",config.ServerSourceAddress)
-  client.Add("target",config.ServerSourceAddress)
-  client_addr := xmlmsg.Text("source")
-  macaddress  := xmlmsg.Text("mac_address") //Yes, that's "mac_address" with "_"
-  client.Add("client", client_addr)
-  client.Add("macaddress",macaddress)
-  client.Add("key",xmlmsg.Text("new_passwd"))
-  db.ClientUpdate(client)
-  
-  util.Log(1, "INFO! Informing all peers about new registered client %v at %v", macaddress, client_addr)
-  for _, server := range db.ServerAddresses() {
-    client.First("target").SetText(server)
-    Peer(server).Tell(client.String(), "")
-  }
-
+// If system == nil or <xml></xml>, this function does nothing; otherwise it
+// takes the information from system (format as returned by db.SystemGetAllDataForMAC())
+// and sends new_ldap_config and new_ntp_config messages to client_addr (IP:PORT).
+func Send_new_ldap_config(client_addr string, system *xml.Hash) {
   message_start := "<xml><source>"+config.ServerSourceAddress+"</source><target>"+client_addr+"</target>"
   
-  registered := message_start + "<header>registered</header><ldap_available>true</ldap_available><registered></registered></xml>"
-  Client(client_addr).Tell(registered, config.LocalClientMessageTTL)
-  
-  system, err := db.SystemGetAllDataForMAC(macaddress, true)
-  if err != nil { // if no LDAP data available for system, do hardware detection
-    util.Log(1, "INFO! %v => Sending detect_hardware to %v", err, macaddress)
-    
-    detect_hardware := message_start + "<header>detect_hardware</header><detect_hardware></detect_hardware></xml>"
-    Client(client_addr).Tell(detect_hardware, config.LocalClientMessageTTL)
-    
-  } else { // if LDAP data for system is available
+  if system != nil && len(system.Subtags()) > 0 { // if LDAP data for system is available
 
     // send new_ntp_config if gotoNtpServer available
     ntps := system.Get("gotontpserver")
