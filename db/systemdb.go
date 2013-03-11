@@ -333,7 +333,7 @@ func SystemGetState(macaddress string, attrname string) string {
         count++
       }
     }
-    if count > 0 {
+    if count > 1 {
       util.Log(0, "WARNING! Multiple groups provide attribute %v for %v: %v", attrname, dn, groups)
     }
   }
