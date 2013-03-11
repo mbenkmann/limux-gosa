@@ -22,8 +22,20 @@ package action
 import (
          "../db"
          "../xml"
+         "../util"
+         "../message"
        )
 
 func Activate(job *xml.Hash) {
-  db.SystemSetState(job.Text("macaddress"), "gotoMode", "active")
+  macaddress := job.Text("macaddress")
+  db.SystemSetState(macaddress, "gotoMode", "active")
+  if client := db.ClientWithMAC(macaddress); client != nil {
+    system, err := db.SystemGetAllDataForMAC(macaddress, true)
+    if err != nil {
+      util.Log(0, "ERROR! %v", err)
+        // Don't abort. Send_set_activated_for_installation() can still
+        // do something, even if system data is not available.
+    }
+    message.Send_set_activated_for_installation(client.Text("client"), system)
+  }
 }
