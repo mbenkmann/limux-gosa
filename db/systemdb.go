@@ -860,7 +860,7 @@ changetype: modify
 func ldapModify(ldif string) *exec.Cmd {
   args := []string{"-x", "-H", config.LDAPURI}
   args = append(args,"-D",config.LDAPAdmin,"-y",config.LDAPAdminPasswordFile)
-  util.Log(2, "DEBUG! ldapmodify %v (LDIF:\n%v\n)",args, ldif)
+  util.Log(2, "DEBUG! ldapmodify %v (LDIF:\n%v)",args, ldif)
   cmd := exec.Command("ldapmodify", args...)
   bufstr := bytes.NewBufferString(ldif)
   cmd.Stdin = bufstr
