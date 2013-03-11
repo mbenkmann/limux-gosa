@@ -139,6 +139,10 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
     case "CLMSG_CURRENTLY_LOGGED_IN": clmsg_currently_logged_in(xml)
     case "CLMSG_LOGIN":         clmsg_login(xml)
     case "CLMSG_LOGOUT":        clmsg_logout(xml)
+    case "gosa_set_activated_for_installation": 
+                                // same as gosa_trigger_action_activate
+                                // without the reply
+                                gosa_set_activated_for_installation(xml)
     case "gosa_trigger_action_lock",      // "Sperre"
          "gosa_trigger_action_halt",      // "Anhalten"
          "gosa_trigger_action_localboot", // "Erzwinge lokalen Start"
