@@ -153,8 +153,12 @@ func detected_hardware(xmlmsg *xml.Hash) {
   
   // if the system is not locked, tell it to start the installation right away
   if system.Text("gotomode") == "active" {
-    source := xmlmsg.Text("source")
-    set_activated_for_installation := "<xml><header>set_activated_for_installation</header><set_activated_for_installation></set_activated_for_installation><source>"+ config.ServerSourceAddress +"</source><target>"+ source +"</target></xml>"
-    Client(source).Tell(set_activated_for_installation, config.LocalClientMessageTTL)
+    system, err = db.SystemGetAllDataForMAC(macaddress, true)
+    if err != nil {
+      util.Log(0, "ERROR! %v", err)
+      // Don't abort. Send_set_activated_for_installation() can still
+      // do something, even if system data is not available.
+    }
+    Send_set_activated_for_installation(xmlmsg.Text("source"), system)
   }
 }
