@@ -333,10 +333,12 @@ func run_detected_hardware_tests() {
       * ghMemSize and gotoSndModule as XML attributes
       * gotoxdriver="notemplate" to make sure we don't accidentally match a template
         due to the name of the machine the test is being run on
+      * gotoLdapServer
     wait a bit for LDAP to be updated
     check LDAP for the new entry (use checkTags!)
     check in particular cn (should start with config.Hostname) and dn (under ou=incoming)
     check that we did not receive a set_activated_for_installation message
+    check that we did receive ldap information
   */
   mac := "aa:00:bb:11:cc:99"
   hia := hash("xml(header(here_i_am)source(%v)target(%v)new_passwd(%v)mac_address(%v))", client_listen_address, config.ServerSourceAddress, keys[len(keys)-1], mac)
@@ -346,14 +348,15 @@ func run_detected_hardware_tests() {
   detected_hardware := hash("xml(header(detected_hardware)source(%v))",client_listen_address)
   dh := hash("detected_hardware(gotoModules(m1)goTOModules(m2)gotoxdriver(notemplate))")
   detected_hardware.AddWithOwnership(dh)
-  dh2 := "<detected_hardware ghMemSize='12345' gotoSndModule=\"snd_noisemaster\"><gotoMODULES>m3</gotoMODULES><GOTOModulES>m4</GOTOModulES></detected_hardware>"
+  dh2 := "<detected_hardware ghMemSize='12345' gotoLdapServer='1:ldap01.tvc.example.com:ldap://ldap01.tvc.example.com/o=go-susi,c=de' gotoSndModule=\"snd_noisemaster\"><gotoMODULES>m3</gotoMODULES><GOTOModulES>m4</GOTOModulES></detected_hardware>"
   dh_string := strings.Replace(detected_hardware.String(),"<detected_hardware>",dh2+"<detected_hardware>",-1)
   t0 = time.Now()
   util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(dh_string, keys[len(keys)-1]), config.Timeout)
   check(waitlong(t0, "set_activated_for_installation").XML,"<xml></xml>")
+  check(waitlong(t0, "new_ldap_config").XML.Text("ldap_uri"), "ldap://ldap01.tvc.example.com")
   sys,err := db.SystemGetAllDataForMAC(mac, false)
   if check(err,nil) {
-    check(checkTags(sys,"dn,cn,macaddress,objectclass+,gotosysstatus?,gotoxdriver,gotomodules+,ghmemsize,gotosndmodule,gotomode,iphostnumber"),"")
+    check(checkTags(sys,"dn,cn,macaddress,gotoldapserver,objectclass+,gotosysstatus?,gotoxdriver,gotomodules+,ghmemsize,gotosndmodule,gotomode,iphostnumber"),"")
     check(hasWords(sys.Text("cn"),config.Hostname),"")
     check(hasWords(sys.Text("dn"),"cn="+config.Hostname,"ou=incoming,"+config.LDAPBase),"")
     check(sys.Text("macaddress"),mac)
