@@ -150,15 +150,19 @@ func detected_hardware(xmlmsg *xml.Hash) {
     util.Log(0, "ERROR! Could not create/update LDAP object %v: %v", system.Text("dn"), err)
     return
   }
+
+  // Read final system info including data from object groups
+  system, err = db.SystemGetAllDataForMAC(macaddress, true)
+  if err != nil {
+    util.Log(0, "ERROR! %v", err)
+    // Don't abort. Send_set_activated_for_installation() can still
+    // do something, even if system data is not available.
+  }
   
   // if the system is not locked, tell it to start the installation right away
   if system.Text("gotomode") == "active" {
-    system, err = db.SystemGetAllDataForMAC(macaddress, true)
-    if err != nil {
-      util.Log(0, "ERROR! %v", err)
-      // Don't abort. Send_set_activated_for_installation() can still
-      // do something, even if system data is not available.
-    }
     Send_set_activated_for_installation(xmlmsg.Text("source"), system)
+  } else { // otherwise we can at least tell the system its LDAP and NTP server(s)
+    Send_new_ldap_config(xmlmsg.Text("source"), system)
   }
 }
