@@ -61,7 +61,9 @@ func detected_hardware(xmlmsg *xml.Hash) {
   ip := detected.Text("iphostnumber")
   if ip == "" {
     ip = strings.SplitN(xmlmsg.Text("source"),":",2)[0]
-    detected.FirstOrAdd("iphostnumber").SetText(ip)
+    if ip != "" {
+      detected.FirstOrAdd("iphostnumber").SetText(ip)
+    }
   }
 
   system := detected.Clone()

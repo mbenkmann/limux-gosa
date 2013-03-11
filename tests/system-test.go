@@ -353,7 +353,7 @@ func run_detected_hardware_tests() {
   check(waitlong(t0, "set_activated_for_installation").XML,"<xml></xml>")
   sys,err := db.SystemGetAllDataForMAC(mac, false)
   if check(err,nil) {
-    check(checkTags(sys,"dn,cn,macaddress,objectclass+,gotosysstatus?,gotoxdriver,gotomodules+,ghmemsize,gotosndmodule,objectclass,gotomode,iphostnumber"),"")
+    check(checkTags(sys,"dn,cn,macaddress,objectclass+,gotosysstatus?,gotoxdriver,gotomodules+,ghmemsize,gotosndmodule,gotomode,iphostnumber"),"")
     check(hasWords(sys.Text("cn"),config.Hostname),"")
     check(hasWords(sys.Text("dn"),"cn="+config.Hostname,"ou=incoming,"+config.LDAPBase),"")
     check(sys.Text("macaddress"),mac)
@@ -395,11 +395,11 @@ func run_detected_hardware_tests() {
   t0 = time.Now()
   send("CLIENT", detected_hardware)
   
-  check(wait(t0, "set_activated_for_installation").IsClientMessage, true)
+  check(waitlong(t0, "set_activated_for_installation").IsClientMessage, true)
   
   sys, err = db.SystemGetAllDataForMAC(mac, false)
   if check(err,nil) {
-    check(checkTags(sys,"dn,cn,macaddress,objectclass+,gotoxmousetype,gotosysstatus?,gotoxdriver,gotomodules+,ghmemsize,objectclass,gotomode,iphostnumber"),"")
+    check(checkTags(sys,"dn,cn,macaddress,objectclass+,gotoxmousetype,gotosysstatus?,gotoxdriver,gotomodules+,ghmemsize,gotomode,iphostnumber"),"")
     check(hasWords(sys.Text("cn"),config.Hostname),"")
     check(hasWords(sys.Text("dn"),"cn="+config.Hostname,"ou=incoming,"+config.LDAPBase),"")
     check(sys.Text("macaddress"),mac)
@@ -423,8 +423,6 @@ func run_detected_hardware_tests() {
     }
   }
   
-
-  
   /*
     TEST 3: New system with matching template object in object group; override IP
     Send detected_hardware with
@@ -432,13 +430,51 @@ func run_detected_hardware_tests() {
       * ghcputype that includes "GenuineIntel / Intel" so that desktop-template matches
       * gotoxresolution=1280x1024
     wait a bit for LDAP to be updated
+    Check that we don't receive set_activated_for_installation message
     Check LDAP for new entry
     Check that generated cn is system-<MAC_with_minus_instead_of_colon>
     Check that gotoxresolution, ghcputype and ipHostNumber come from detected_hardware
         but the rest comes from the template object
+    Check that system is member of object group Desktops
     Check that gocomment and description are not copied from the template object
     Check objectClass=gosaAdministrativeUnitTag and gosaUnitTag
+    Check that system is under ou=workstations,ou=systems instead of ou=incoming
   */
+  
+  detected_hardware = hash("xml(header(detected_hardware)source(%v))",client_listen_address)
+  dh = hash("detected_hardware(ipHostNumber(10.255.255.255)gotoxresolution(1280x1024)ghCPUType(GenuineIntel  /  Intel Celery))")
+  detected_hardware.AddWithOwnership(dh)
+  t0 = time.Now()
+  send("CLIENT", detected_hardware)
+  
+  check(waitlong(t0, "set_activated_for_installation").XML, "<xml></xml>")
+  
+  sys, err = db.SystemGetAllDataForMAC(mac, false)
+  test3_result := sys.Clone()
+  if check(err,nil) {
+    check(checkTags(sys,"dn,cn,macaddress,objectclass+,gotosysstatus?,gotomode,iphostnumber,ghcputype,ghgfxadapter,ghmemsize,ghsoundadapter,ghusbsupport,gofonhardware,gosaunittag,gotolastuser,gotoxcolordepth,gotoxresolution,gotoxdriver,gotoxkblayout,gotoxkbmodel,gotoxkbvariant,gotoxmousetype,gotoxmouseport"),"")
+    check(sys.Text("cn"),"system-aa-00-bb-11-cc-99")
+    check(hasWords(sys.Text("dn"),"cn="+sys.Text("cn"),"ou=workstations,ou=systems,"+config.LDAPBase),"")
+    check(sys.Text("macaddress"),mac)
+    check(sys.Text("iphostnumber"),"10.255.255.255")
+    check(sys.Text("ghmemsize"),"-")
+    check(sys.Text("gotomode"),"locked")
+    check(sys.Text("gosaunittag"),"7")
+    check(sys.Text("ghcputype"),"GenuineIntel  /  Intel Celery")
+    check(sys.Text("gotoxresolution"),"1280x1024")
+    oc := sys.Get("objectclass")
+    sort.Strings(oc)
+    check(oc, []string{"FAIobject","GOhard","gosaAdministrativeUnitTag","gotoWorkstation","top"})
+    groups :=db.SystemGetGroupsWithMember(sys.Text("dn"))
+    if check(groups.First("xml")!=nil, true) {
+      check(groups.First("xml").Next(),nil)
+      check(groups.First("xml").Text("cn"),"Desktops")
+    }
+  } else {
+    test3_result = xml.NewHash("xml")
+  }
+  
+  
   /*
     TEST 4: Use detected_hardware to change cn
     Send detected_hardware with
@@ -454,17 +490,45 @@ func run_detected_hardware_tests() {
       * cn
       * dn matching cn
   */
+  
+  t0 = time.Now()
+  dh_string = "<xml><header>detected_hardware</header><detected_hardware macAddress='"+mac+"' ipHostNumber='"+config.IP+"'><cn>mrhyde</cn></detected_hardware></xml>"
+  util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(dh_string, config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+  check(waitlong(t0, "set_activated_for_installation").XML,"<xml></xml>")
+
+  sys, err = db.SystemGetAllDataForMAC(mac, false)
+  if check(err,nil) {
+    test3_result.First("cn").SetText("mrhyde")
+    test3_result.First("dn").SetText("cn=mrhyde,ou=workstations,ou=systems,o=go-susi,c=de")
+    test3_result.First("iphostnumber").SetText(config.IP)
+    check(sys, test3_result)
+  }
+  
+  
   /*
     TEST 5: Use detected_hardware to change dn
     Send detected_hardware with
       * macAddress sub-element(not attribute!) of <detected_hardware> element
-      * target dn outside of ou=incoming, with cn part cn=drjekyll
+      * target dn in ou=systems, with cn part cn=drjekyll
       * No cn attribute (is derivable from dn)
     Wait a bit for LDAP to be updated
     Check that object is the same as after TEST 3 except for
       * cn
       * dn
   */
+  
+  t0 = time.Now()
+  dh_string = "<xml><header>detected_hardware</header><detected_hardware><macAddress>"+mac+"</macAddress><dn>cn=drjekyll,ou=systems,o=go-susi,c=de</dn></detected_hardware></xml>"
+  util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(dh_string, config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+  check(waitlong(t0, "set_activated_for_installation").XML,"<xml></xml>")
+
+  sys, err = db.SystemGetAllDataForMAC(mac, false)
+  if check(err,nil) {
+    test3_result.First("cn").SetText("drjekyll")
+    test3_result.First("dn").SetText("cn=drjekyll,ou=systems,o=go-susi,c=de")
+    check(sys, test3_result)
+  }
+  
   /*
     TEST 6: Try to change dn to top-level (outside of base). Must fail!
     Send detected_hardware identical to the one from TEST 5, except for
@@ -473,8 +537,23 @@ func run_detected_hardware_tests() {
     
     Delete system from LDAP
   */
-
   
+  t0 = time.Now()
+  dh_string = "<xml><header>detected_hardware</header><detected_hardware><macAddress>"+mac+"</macAddress><dn>cn=drjekyll,c=de</dn></detected_hardware></xml>"
+  util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(dh_string, config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+  check(waitlong(t0, "set_activated_for_installation").XML,"<xml></xml>")
+
+  sys, err = db.SystemGetAllDataForMAC(mac, false)
+  if check(err,nil) {
+    check(sys, test3_result)
+  }
+
+  if sys != nil { 
+    err = db.SystemReplace(hash("xml(dn(%v))",sys.Text("dn")), nil)
+    if err != nil {
+      fmt.Printf("ERROR! Could not delete test system. Manual cleanup of testdata/ldif may be necessary! LDAP error: %v\n", err)
+    }
+  }
 }
 
 func run_object_group_inheritance_tests() {
