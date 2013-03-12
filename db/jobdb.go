@@ -401,6 +401,7 @@ func JobAddLocal(job *xml.Hash) {
 func JobsRemoveLocal(filter xml.HashFilter, stop_periodic bool) {
   deljob := func(request *jobDBRequest) {
     jobdb_xml := jobDB.Remove(request.Filter)
+    util.Log(2, "DEBUG! JobsRemoveLocal(stop_periodic=%v) removing job(s): %v", stop_periodic, jobdb_xml)
     fju := xml.NewHash("xml","header","foreign_job_updates")
     var count uint64 = 1
     for _, tag := range jobdb_xml.Subtags() {
