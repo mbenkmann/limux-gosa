@@ -185,6 +185,12 @@ func Forward(job *xml.Hash) bool {
   if strings.Contains(reply,"error_string") {
     util.Log(0, "ERROR! Could not forward %v for client %v to server %v => Will try to execute job myself.", headertag, macaddress, siserver)
     
+    // We need to clone the job before modifying it, because otherwise the
+    // if done { db.JobsRemoveLocal() ...  code which is executed in the caller
+    // because we return true would remove our freshly added job, 
+    // because db.JobAddLocal() updates its id.
+    job = job.Clone()
+    
     job.FirstOrAdd("result").SetText("none")
     job.FirstOrAdd("progress").SetText("forward-failed")
     job.FirstOrAdd("status").SetText("waiting")
