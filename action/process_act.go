@@ -48,30 +48,44 @@ func Init() { // not init() because we need to call it from go-susi.go
         util.Log(1, "INFO! Taking action for job: %v", job)
         
         go util.WithPanicHandler(func(){
-          done := true
-          switch job.Text("headertag") {
-                 // Jobs that I can always execute myself
-            case "trigger_action_wake":      Wake(job)      // "Aufwecken"
-            case "trigger_action_lock":      Lock(job)      // "Sperre"
-            case "trigger_action_localboot": Localboot(job) // "Erzwinge lokalen Start"
-            
-                 // Jobs that I need to forward to a peer if the affected client
-                 // is registered there
-            case "trigger_action_halt":                     // "Anhalten"
-                                             done = Forward(job) || Halt(job)
-            case "trigger_action_reboot":                   // "Neustarten"
-                                             done = Forward(job) || Reboot(job)    
-            case "trigger_action_activate":                 // "Sperre aufheben"
-                                             done = Forward(job) || Activate(job)  
-            case "trigger_action_update":                   // "Aktualisieren"
-                                             done = Forward(job) || Update(job)    
-            case "trigger_action_reinstall":                // "Neuinstallation"
-                                             done = Forward(job) || Reinstall(job)
-            default:
-                 util.Log(0, "ERROR! Unknown headertag in PendingActions for job: %v", job)
-          }
           
-          if done { db.JobsRemoveLocal(xml.FilterSimple("id", job.Text("id")), false) }
+          if !Forward(job) {
+            
+            // Tell the lucky winner what we're going to do with it.
+            
+            macaddress := job.Text("macaddress")
+            headertag  := job.Text("headertag")
+            client := db.ClientWithMAC(macaddress)
+            if client == nil {
+              util.Log(0, "ERROR! Client with MAC %v unknown. Cannot send %v", macaddress, headertag)
+              // Don't abort. Some jobs work even if we can't reach the client.
+            } else { 
+              client_addr := client.Text("client")
+              util.Log(1, "INFO! Sending %v to %v", headertag, client_addr)
+              trigger_action := "<xml><header>"+headertag+"</header><"+headertag+"></"+headertag+"><source>"+config.ServerSourceAddress+"</source><target>"+client_addr+"</target></xml>"
+              message.Client(client_addr).Tell(trigger_action, config.LocalClientMessageTTL)
+            }
+            
+            // Now that the client is rightfully excited, give it our best shot.
+            
+            done := true
+            switch headertag {
+              case "trigger_action_wake":      Wake(job)      // "Aufwecken"
+              case "trigger_action_lock":      Lock(job)      // "Sperre"
+              case "trigger_action_localboot": Localboot(job) // "Erzwinge lokalen Start"
+              case "trigger_action_halt":      Halt(job)      // "Anhalten"
+              case "trigger_action_reboot":    Reboot(job)    // "Neustarten"
+              case "trigger_action_activate":  Activate(job)  // "Sperre aufheben"
+              case "trigger_action_update":    Update(job)    // "Aktualisieren"
+                                               done = false    
+              case "trigger_action_reinstall": Reinstall(job) // "Neuinstallation"
+                                               done = false
+              default:
+                   util.Log(0, "ERROR! Unknown headertag in PendingActions for job: %v", job)
+            }
+            
+            if done { db.JobsRemoveLocal(xml.FilterSimple("id", job.Text("id")), false) }
+          }
         })
         
       } else // if status == "done"
@@ -136,7 +150,8 @@ func Init() { // not init() because we need to call it from go-susi.go
 }
 
 // If job belongs to an unknown client or a client registered here or if
-// job has <progress>forward-failed</progress>, this function returns false.
+// job has <progress>forward-failed</progress> or if the job's <headertag>
+// is trigger_action_wake,_lock or _localboot, this function returns false.
 // Otherwise this function removes the job from the jobdb and then tries to 
 // forward the job to the siserver where the client is registered.
 // If forwarding fails, the job is re-added to the jobdb but marked with 
@@ -147,6 +162,10 @@ func Init() { // not init() because we need to call it from go-susi.go
 // sense to return false in the case of a failed forward.
 func Forward(job *xml.Hash) bool {
   if job.Text("progress") == "forward-failed" { return false }
+  switch job.Text("headertag") { 
+    case "trigger_action_wake", "trigger_action_lock", "trigger_action_localboot": 
+      return false
+  }
   
   macaddress := job.Text("macaddress")
   
@@ -185,10 +204,9 @@ func Forward(job *xml.Hash) bool {
   if strings.Contains(reply,"error_string") {
     util.Log(0, "ERROR! Could not forward %v for client %v to server %v => Will try to execute job myself.", headertag, macaddress, siserver)
     
-    // We need to clone the job before modifying it, because otherwise the
-    // if done { db.JobsRemoveLocal() ...  code which is executed in the caller
-    // because we return true would remove our freshly added job, 
-    // because db.JobAddLocal() updates its id.
+    // Clone that job before modifying it. This is safety measure. I once had a very
+    // hard to find bug which turned out to be caused by a function modifying a job
+    // and the caller not expecting it.
     job = job.Clone()
     
     job.FirstOrAdd("result").SetText("none")

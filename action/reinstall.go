@@ -3,8 +3,7 @@ package action
 import "../db"
 import "../xml"
 
-func Reinstall(job *xml.Hash) bool {
+func Reinstall(job *xml.Hash) {
   db.SystemSetState(job.Text("macaddress"), "faiState", "install")
-  Reboot(job)
-  return false
+  Wake(job)
 }
