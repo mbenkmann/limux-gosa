@@ -26,7 +26,7 @@ import (
          "../message"
        )
 
-func Activate(job *xml.Hash) {
+func Activate(job *xml.Hash) bool {
   macaddress := job.Text("macaddress")
   db.SystemSetState(macaddress, "gotoMode", "active")
   if client := db.ClientWithMAC(macaddress); client != nil {
@@ -40,4 +40,6 @@ func Activate(job *xml.Hash) {
   } else {
     util.Log(0, "ERROR! Unknown client %v => Cannot send set_activated_for_installation", macaddress)
   }
+  
+  return true
 }

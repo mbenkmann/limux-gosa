@@ -456,9 +456,10 @@ func run_detected_hardware_tests() {
   
   check(waitlong(t0, "set_activated_for_installation").XML, "<xml></xml>")
   
+  test3_result := xml.NewHash("xml")
   sys, err = db.SystemGetAllDataForMAC(mac, false)
-  test3_result := sys.Clone()
   if check(err,nil) {
+    test3_result = sys.Clone()
     check(checkTags(sys,"dn,cn,macaddress,objectclass+,gotosysstatus?,gotomode,iphostnumber,ghcputype,ghgfxadapter,ghmemsize,ghsoundadapter,ghusbsupport,gofonhardware,gosaunittag,gotolastuser,gotoxcolordepth,gotoxresolution,gotoxdriver,gotoxkblayout,gotoxkbmodel,gotoxkbvariant,gotoxmousetype,gotoxmouseport"),"")
     check(sys.Text("cn"),"system-aa-00-bb-11-cc-99")
     check(hasWords(sys.Text("dn"),"cn="+sys.Text("cn"),"ou=workstations,ou=systems,"+config.LDAPBase),"")
@@ -477,8 +478,6 @@ func run_detected_hardware_tests() {
       check(groups.First("xml").Next(),nil)
       check(groups.First("xml").Text("cn"),"Desktops")
     }
-  } else {
-    test3_result = xml.NewHash("xml")
   }
   
   

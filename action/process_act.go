@@ -28,6 +28,8 @@ import (
          "../db"
          "../xml"
          "../util"
+         "../config"
+         "../message"
        )
 
 
@@ -48,16 +50,23 @@ func Init() { // not init() because we need to call it from go-susi.go
         go util.WithPanicHandler(func(){
           done := true
           switch job.Text("headertag") {
-            case "trigger_action_lock":      Lock(job)      // "Sperre"
-            case "trigger_action_halt":      Halt(job)      // "Anhalten"
-            case "trigger_action_localboot": Localboot(job) // "Erzwinge lokalen Start"
-            case "trigger_action_reboot":    Reboot(job)    // "Neustarten"
-            case "trigger_action_activate":  Activate(job)  // "Sperre aufheben"
+                 // Jobs that I can always execute myself
             case "trigger_action_wake":      Wake(job)      // "Aufwecken"
-            case "trigger_action_update":    Update(job)    // "Aktualisieren"
-                                             done = false
-            case "trigger_action_reinstall": Reinstall(job) // "Neuinstallation"
-                                             done = false
+            case "trigger_action_lock":      Lock(job)      // "Sperre"
+            case "trigger_action_localboot": Localboot(job) // "Erzwinge lokalen Start"
+            
+                 // Jobs that I need to forward to a peer if the affected client
+                 // is registered there
+            case "trigger_action_halt":                     // "Anhalten"
+                                             done = Forward(job) || Halt(job)
+            case "trigger_action_reboot":                   // "Neustarten"
+                                             done = Forward(job) || Reboot(job)    
+            case "trigger_action_activate":                 // "Sperre aufheben"
+                                             done = Forward(job) || Activate(job)  
+            case "trigger_action_update":                   // "Aktualisieren"
+                                             done = Forward(job) || Update(job)    
+            case "trigger_action_reinstall":                // "Neuinstallation"
+                                             done = Forward(job) || Reinstall(job)
             default:
                  util.Log(0, "ERROR! Unknown headertag in PendingActions for job: %v", job)
           }
@@ -124,4 +133,65 @@ func Init() { // not init() because we need to call it from go-susi.go
       }
     }
   }()
+}
+
+// If job belongs to an unknown client or a client registered here or if
+// job has <progress>forward-failed</progress>, this function returns false.
+// Otherwise this function removes the job from the jobdb and then tries to 
+// forward the job to the siserver where the client is registered.
+// If forwarding fails, the job is re-added to the jobdb but marked with 
+// <progress>forward-failed</progress>. No matter if forwarding succeeds or fails, 
+// if it is attempted this function returns true. Note, that the re-added job has
+// a different id from the original job (which has been removed from the database)
+// and will independently come up in PendingActions. This is why it doesn't make
+// sense to return false in the case of a failed forward.
+func Forward(job *xml.Hash) bool {
+  if job.Text("progress") == "forward-failed" { return false }
+  
+  macaddress := job.Text("macaddress")
+  
+  client := db.ClientWithMAC(macaddress)
+  if client == nil || client.Text("source") == config.ServerSourceAddress {
+    return false
+  }
+  
+  siserver := client.Text("source")
+  headertag := job.Text("headertag")
+  
+  util.Log(1, "INFO! %v for client %v must be forwarded to server %v where client is registered", headertag, macaddress, siserver)
+  
+  // remove job with stop_periodic=true
+  db.JobsRemoveLocal(xml.FilterSimple("id", job.Text("id")), true)
+  
+  if !message.Peer(siserver).IsGoSusi() {
+    // Wait if the peer is not a go-susi, to prevent the fju caused by 
+    // db.JobsRemoveLocal() above from killing the forwarded job; which 
+    // might otherwise happen because gosa-si uses macaddress+headertag to
+    // identify jobs and therefore cannot differentiate between the old and
+    // the new job.
+    time.Sleep(5*time.Second)
+  }
+    
+  util.Log(1, "INFO! Forwarding %v for client %v to server %v", headertag, macaddress, siserver)
+    
+  job_trigger_action := xml.NewHash("xml","header","job_"+headertag)
+  job_trigger_action.Add("source","GOSA")
+  job_trigger_action.Add("macaddress",macaddress)
+  job_trigger_action.Add("target",macaddress)
+  if job.First("timestamp") != nil { job_trigger_action.Add("timestamp", job.Text("timestamp")) }
+  if job.First("periodic") != nil  { job_trigger_action.Add("periodic",  job.Text("periodic")) }
+  
+  reply := <-message.Peer(siserver).Ask(job_trigger_action.String(), config.ModuleKey["[GOsaPackages]"])
+  if strings.Contains(reply,"error_string") {
+    util.Log(0, "ERROR! Could not forward %v for client %v to server %v => Will try to execute job myself.", headertag, macaddress, siserver)
+    
+    job.FirstOrAdd("result").SetText("none")
+    job.FirstOrAdd("progress").SetText("forward-failed")
+    job.FirstOrAdd("status").SetText("waiting")
+    
+    util.Log(1, "INFO! Re-Scheduling job tagged with \"forward-failed\": %v", job)
+    db.JobAddLocal(job)
+  }
+  
+  return true
 }
