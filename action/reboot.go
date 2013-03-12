@@ -8,11 +8,13 @@ import (
          "../message"
        )
 
-func Reboot(job *xml.Hash) bool {
+func Reboot(job *xml.Hash) (retval bool) {
+  retval = true // job is done when we return
+  
   client := db.ClientWithMAC(job.Text("macaddress"))
   if client == nil {
     util.Log(0, "ERROR! Client with MAC %v unknown. Cannot execute job: %v", job.Text("macaddress"), job)
-    return false
+    return
   } 
   
   client_addr := client.Text("client")
@@ -24,5 +26,5 @@ func Reboot(job *xml.Hash) bool {
   // expects machine to be on after a reboot.
   // NOTE: Other jobs call Reboot() and expect the Wake().
   Wake(job)
-  return true
+  return
 }
