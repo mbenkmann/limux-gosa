@@ -10,7 +10,7 @@ macAddress: 0f:C3:d2:Aa:11:22
 cn: www.mit.edu
 gotoSysStatus: new-system
 ipHostNumber: 18.9.22.169
-gosaUnitTag: 7
+gosaUnitTag: 99
 gotoSndModule: snd_hda_intel
 ghSoundAdapter: Intel 82801JD/DO (ICH10 Family) HD Audio Controller
 ghCpuType: GenuineIntel / Intel(R) Celeron(R) CPU E3300 @ 2.50GHz - 2500.000
@@ -43,8 +43,7 @@ ghIdeDev: ST3160318AS
 ghNetNic: Intel 82567LM-3 Gigabit Network Connection
 FAIclass: Verteilserver-Produktiv :plophos/4.1.0
 FAIdebianMirror: http://de.archive.ubuntu.com/ubuntu/
-FAIrepository: http://www.mit.edu/repo|de.archive.ubuntu.com|plophos/4.1.0|mai
- n,restricted,universe,multiverse
+FAIrepository: http://www.mit.edu/repo3|de.archive.ubuntu.com|tramp/5.0.0|cool,super,geil
 FAIrepository: http://www.mit.edu/repo2|de.archive.ubuntu.com|plophos|dusch,gel
 gotoModules: async_memcpy
 gotoModules: async_pq
