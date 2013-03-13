@@ -27,7 +27,6 @@ import (
          "regexp"
          "strings"
          "strconv"
-         "os/exec"
          "encoding/base64"
          
          "../xml"
@@ -836,45 +835,4 @@ base64.StdEncoding.EncodeToString([]byte(dn[i:])),
   }
 
   return nil
-}
-
-
-func ldapSearch(query string, attr... string) *exec.Cmd {
-  args := []string{"-x", "-LLL", "-H", config.LDAPURI, "-b", config.LDAPBase}
-  if config.LDAPUser != "" { args = append(args,"-D",config.LDAPUser,"-y",config.LDAPUserPasswordFile) }
-  args = append(args, query)
-  args = append(args, attr...)
-  util.Log(2, "DEBUG! ldapsearch %v",args)
-  return exec.Command("ldapsearch", args...)
-}
-
-func ldapModifyAttribute(dn, modifytype, attrname string, attrvalues []string) *exec.Cmd {
-  args := []string{"-x", "-H", config.LDAPURI}
-  args = append(args,"-D",config.LDAPAdmin,"-y",config.LDAPAdminPasswordFile)
-  util.Log(2, "DEBUG! ldapmodify %v (%v %v -> %v for %v)",args, modifytype, attrname, attrvalues, dn)
-  cmd := exec.Command("ldapmodify", args...)
-  bufstr := bytes.NewBufferString(fmt.Sprintf(`dn:: %v
-changetype: modify
-%v: %v
-`,base64.StdEncoding.EncodeToString([]byte(dn)),
-  modifytype,
-  attrname))
-
-  for i := range attrvalues {
-    bufstr.WriteString(fmt.Sprintf(`%v:: %v
-`, attrname, base64.StdEncoding.EncodeToString([]byte(attrvalues[i]))))
-  }
-  
-  cmd.Stdin = bufstr
-  return cmd
-}
-
-func ldapModify(ldif string) *exec.Cmd {
-  args := []string{"-x", "-H", config.LDAPURI}
-  args = append(args,"-D",config.LDAPAdmin,"-y",config.LDAPAdminPasswordFile)
-  util.Log(2, "DEBUG! ldapmodify %v (LDIF:\n%v)",args, ldif)
-  cmd := exec.Command("ldapmodify", args...)
-  bufstr := bytes.NewBufferString(ldif)
-  cmd.Stdin = bufstr
-  return cmd
 }
