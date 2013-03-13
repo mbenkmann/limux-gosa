@@ -39,10 +39,10 @@ import (
 func DB_test() {
   fmt.Printf("\n==== db ===\n\n")
 
-  jobdb_test()
   serverdb_test()
   clientdb_test()
   systemdb_test()
+  jobdb_test()
 }
 
 func clientdb_test() {

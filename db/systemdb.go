@@ -52,13 +52,25 @@ var attributeNameRegexp = regexp.MustCompile("^[a-zA-Z]+$")
 // system name, you should NOT special case this (e.g. use it to check if
 // the system is known).
 //
-// ATTENTION! This function accesses LDAP and may therefore take a while.
+// ATTENTION! This function may access LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
 func SystemPlainnameForMAC(macaddress string) string {
-  name := SystemCommonNameForMAC(macaddress)
-  if name == "" { return "none" }
+  name := "none"
   
-  // return only the name without the domain (in case the cn includes a domain)
+  // if we have an IP for the client, try reverse DNS
+  client := ClientWithMAC(macaddress)
+  if client != nil {
+    ip := strings.SplitN(client.Text("client"),":",2)[0]
+    name = SystemNameForIPAddress(ip)
+  }
+  
+  // if DNS failed (probably because we don't know the client), try LDAP
+  if name == "none" {
+    name = SystemCommonNameForMAC(macaddress)
+    if name == "" { name = "none" }
+  }
+  
+  // return only the name without the domain (if there is one)
   return strings.SplitN(name, ".", 2)[0]
 }  
 
