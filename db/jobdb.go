@@ -209,7 +209,7 @@ func handleJobDBRequests() {
                                              "status", "waiting")
                beforenow := xml.FilterRel("timestamp", util.MakeTimestamp(time.Now()), -1, 0)
                filter := xml.FilterAnd([]xml.HashFilter{localwait,beforenow})
-               JobsModifyLocal(filter, xml.NewHash("job","status","processing"))
+               JobsModifyLocal(filter, xml.NewHash("job","status","launch"))
     }
   }
 }
@@ -444,7 +444,8 @@ func JobsRemoveLocal(filter xml.HashFilter, stop_periodic bool) {
 //       where stop_periodic is true iff update has a <periodic> element
 //       that is empty or "none".
 //
-//       If update has status=="processing", jobs that have status "waiting" 
+//       If update has status=="launch", the matching jobs will be
+//       set to status "processing" and
 //       will be pushed into the PendingActions queue. 
 //       This will cause the job's action to be performed asap.
 func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
@@ -468,18 +469,17 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
         for _, field := range updatableFields {
           x := request.Job.First(field)
           if x != nil {
-            oldval := job.Text(field)
-            job.FirstOrAdd(field).SetText(x.Text())
+            if field == "status" && x.Text() == "launch" {
+              job.FirstOrAdd(field).SetText("processing")
+              util.Log(1, "INFO! Launching job: %v",job)
+              PendingActions.Push(job.Clone()) 
+            } else {
+              job.FirstOrAdd(field).SetText(x.Text())
+            }
             
             if field == "timestamp" {
               scheduleProcessPendingActions(job.Text("timestamp"))
             }
-            
-            if field == "status" && oldval == "waiting" && x.Text() == "processing" {
-              util.Log(2, "DEBUG! Local job changed from \"waiting\" to \"processing\": %v",job)
-              PendingActions.Push(job.Clone()) 
-            }
-            
           }
         }
         JobUpdateXMLMessage(job)
