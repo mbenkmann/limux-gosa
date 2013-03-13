@@ -48,5 +48,8 @@ func gosa_query_fai_release(xmlmsg *xml.Hash) string {
   answer.Add("fai_release", release)
   answer.Add("type", "FAIprofile")
   answer.Add("state")
+  
+  reply.AddWithOwnership(answer)
+  
   return reply.String()
 }
