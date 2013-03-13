@@ -127,11 +127,15 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
   reply = ""
   disconnect = false
   switch xml.Text("header") {
-    case "gosa_query_jobdb":    reply = gosa_query_jobdb(xml)
-    case "gosa_query_fai_server":reply = gosa_query_fai_server(xml)
-    case "gosa_show_log_by_mac":reply = gosa_show_log_by_mac(xml)
-    case "gosa_show_log_files_by_date_and_mac":reply = gosa_show_log_files_by_date_and_mac(xml)
-    case "gosa_get_log_file_by_date_and_mac":reply = gosa_get_log_file_by_date_and_mac(xml)
+    case "gosa_query_jobdb":       reply = gosa_query_jobdb(xml)
+    case "gosa_query_fai_server":  reply = gosa_query_fai_server(xml)
+    case "gosa_query_fai_release": reply = gosa_query_fai_release(xml)
+    case "gosa_show_log_by_mac":   reply = gosa_show_log_by_mac(xml)
+    case "gosa_show_log_files_by_date_and_mac": 
+                                   reply = gosa_show_log_files_by_date_and_mac(xml)
+    case "gosa_get_log_file_by_date_and_mac":   
+                                   reply = gosa_get_log_file_by_date_and_mac(xml)
+                                   
     case "new_server":          new_server(xml)
     case "confirm_new_server":  confirm_new_server(xml)
     case "foreign_job_updates": foreign_job_updates(xml)
