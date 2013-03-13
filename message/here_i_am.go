@@ -66,6 +66,7 @@ func here_i_am(xmlmsg *xml.Hash) {
     job.Add("siserver", config.ServerSourceAddress)
     job.Add("targettag", macaddress)
     job.Add("macaddress", macaddress)
+    job.Add("modified", "1")
     job.Add("timestamp", util.MakeTimestamp(time.Now()))
     job.Add("headertag", "trigger_action_reinstall")
     job.Add("result", "none")
