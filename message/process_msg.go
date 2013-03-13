@@ -135,6 +135,8 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
                                    reply = gosa_show_log_files_by_date_and_mac(xml)
     case "gosa_get_log_file_by_date_and_mac":   
                                    reply = gosa_get_log_file_by_date_and_mac(xml)
+    case "gosa_get_available_kernel":   
+                                   reply = gosa_get_available_kernel(xml)
                                    
     case "new_server":          new_server(xml)
     case "confirm_new_server":  confirm_new_server(xml)
