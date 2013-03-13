@@ -45,6 +45,7 @@ FAIclass: Verteilserver-Produktiv :plophos/4.1.0
 FAIdebianMirror: http://de.archive.ubuntu.com/ubuntu/
 FAIrepository: http://www.mit.edu/repo|de.archive.ubuntu.com|plophos/4.1.0|mai
  n,restricted,universe,multiverse
+FAIrepository: http://www.mit.edu/repo2|de.archive.ubuntu.com|plophos|dusch,gel
 gotoModules: async_memcpy
 gotoModules: async_pq
 gotoModules: async_tx

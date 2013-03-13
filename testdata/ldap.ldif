@@ -412,6 +412,7 @@ ghNetNic: Intel 82567LM-3 Gigabit Network Connection
 faiclass: Verteilserver-Produktiv :plophos/4.1.0
 faidebianmirror: http://de.archive.ubuntu.com/ubuntu/
 fairepository: http://www.mit.edu/repo|de.archive.ubuntu.com|plophos/4.1.0|main,restricted,universe,multiverse
+fairepository: http://www.mit.edu/repo2|de.archive.ubuntu.com|plophos|dusch,gel
 gotoModules: async_memcpy
 gotoModules: async_pq
 gotoModules: async_tx
