@@ -351,6 +351,91 @@ func hash(format string, args... interface{}) *xml.Hash {
   return hash
 }
 
+// Returns a hash of the form
+// <xml>
+//   <answer>...</answer>
+//   <answer>...</answer>
+//   ...
+// </xml>
+//
+// where each <answer> element corresponds to an <answerX> element from
+// the input x. The <answer> elements are sorted by their SortedString() values.
+func extract_sorted_answers(x *xml.Hash) *xml.Hash {
+  result := xml.NewHash("xml")
+
+  answers := []*xml.Hash{}
+  
+  for _, tag := range x.Subtags() {
+    if !strings.HasPrefix(tag, "answer") { continue }
+    for ele := x.First(tag); ele != nil; ele = ele.Next() {
+      answer := ele.Clone()
+      answer.Rename("answer")
+      answers = append(answers, answer)
+    }
+  }
+  
+  // sort
+  for i := range answers {
+    for k := i+1; k < len(answers); k++ {
+      if bytes.Compare([]byte(answers[k].SortedString()),[]byte(answers[i].SortedString())) < 0 {
+        answers[i],answers[k] = answers[k],answers[i]
+      }
+    }
+  }
+  
+  for i := range answers {
+    result.AddWithOwnership(answers[i])
+  }
+  
+  return result
+}
+
+// Checks if x has the given tags and if there is a difference, returns a
+// string describing the issue. If everything's okay, returns "".
+//  taglist: A comma-separated string of tag names. A tag may be followed by "?"
+//        if it is optional, "*" if 0 or more are allowed or "+" if 1 or more
+//        are allowed.
+//        x is considered okay if it has all non-optional tags from the list and
+//        has no unlisted tags and no tags appear more times than permitted. 
+func checkTags(x *xml.Hash, taglist string) string {
+  if x == nil { return "No data" }
+  tags := map[string]bool{}
+  for _, tag := range strings.Split(taglist, ",") {
+    switch tag[len(tag)-1] {
+      case '?': tag := tag[0:len(tag)-1]
+                tags[tag] = true
+                if len(x.Get(tag)) > 1 {
+                  return(fmt.Sprintf("More than 1 <%v>", tag))
+                }
+      case '*': tag := tag[0:len(tag)-1]
+                tags[tag] = true
+      case '+': tag := tag[0:len(tag)-1]
+                tags[tag] = true
+                if len(x.Get(tag)) == 0 {
+                  return(fmt.Sprintf("Missing <%v>", tag))
+                }
+      default: 
+                if len(x.Get(tag)) == 0 {
+                  return(fmt.Sprintf("Missing <%v>", tag))
+                }
+                if len(x.Get(tag)) > 1 {
+                  return(fmt.Sprintf("More than 1 <%v>", tag))
+                }
+                tags[tag] = true
+    }
+  }
+  
+  for _, tag := range x.Subtags() {
+    if !tags[tag] {
+      return(fmt.Sprintf("Unknown <%v>", tag))
+    }
+  }
+  
+  return ""
+}
+
+
+
 // Waits until all pending changes to jobdb are processed, then returns all
 // messages from db.ForeignJobUpdates.
 func getFJU() []*xml.Hash {

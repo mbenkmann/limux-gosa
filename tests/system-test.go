@@ -89,6 +89,9 @@ func SystemTest(daemon string, is_gosasi bool) {
     config.ServerSourceAddress = daemon
   }
   
+  config.ClientDBPath = confdir + "/dummy-clientdb.xml"
+  db.ClientsInit()
+  
   // At this point:
   //   listen_address is the address of the test server run by listen()
   //   config.ServerSourceAddress is the address of the go-susi or gosa-si being tested  
@@ -300,7 +303,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   } else {
     run_job_processing_tests()
   }
-  
+
   run_foreign_job_updates_tests()
   
   run_here_i_am_tests()
@@ -318,8 +321,46 @@ func SystemTest(daemon string, is_gosasi bool) {
   run_object_group_inheritance_tests()
   
   run_detected_hardware_tests()
+
+  run_fai_query_tests()
   
 }
+
+func run_fai_query_tests() {
+  x := gosa("query_fai_server", hash("xml()"))
+  if check(x.Text("header"), "query_fai_server") {
+    answers := extract_sorted_answers(x)
+    
+    a := answers.First("answer")
+    
+    if check(checkTags(a,"timestamp,fai_release,tag,server,sections"),"") {
+      check(a.Text("fai_release"),"plophos/4.1.0")
+      check(a.Text("tag"),"7")
+      check(a.Text("server"),"http://www.mit.edu/repo")
+      check(a.Text("sections"),"main,restricted,universe,multiverse")
+      a = a.Next()
+    }
+    
+    if check(checkTags(a,"timestamp,fai_release,tag,server,sections"),"") {
+      check(a.Text("fai_release"),"plophos")
+      check(a.Text("tag"),"99")
+      check(a.Text("server"),"http://www.mit.edu/repo2")
+      check(a.Text("sections"),"dusch,gel")
+      a = a.Next()
+    }
+    
+    if check(checkTags(a,"timestamp,fai_release,tag,server,sections"),"") {
+      check(a.Text("fai_release"),"tramp/5.0.0")
+      check(a.Text("tag"),"99")
+      check(a.Text("server"),"http://www.mit.edu/repo3")
+      check(a.Text("sections"),"cool,super,geil")
+      a = a.Next()
+    }
+
+    check(a, nil)
+  }
+}
+
 
 func run_detected_hardware_tests() {
   /*
@@ -1661,49 +1702,6 @@ func check_answer(a *xml.Hash, name, progress, status, siserver, mac, timestamp,
     check(peri, periodic)
     check(xmlmessage.Text("macaddress"), mac)
   }
-}
-
-// Checks if x has the given tags and if there is a difference, returns a
-// string describing the issue. If everything's okay, returns "".
-//  taglist: A comma-separated string of tag names. A tag may be followed by "?"
-//        if it is optional, "*" if 0 or more are allowed or "+" if 1 or more
-//        are allowed.
-//        x is considered okay if it has all non-optional tags from the list and
-//        has no unlisted tags and no tags appear more times than permitted. 
-func checkTags(x *xml.Hash, taglist string) string {
-  tags := map[string]bool{}
-  for _, tag := range strings.Split(taglist, ",") {
-    switch tag[len(tag)-1] {
-      case '?': tag := tag[0:len(tag)-1]
-                tags[tag] = true
-                if len(x.Get(tag)) > 1 {
-                  return(fmt.Sprintf("More than 1 <%v>", tag))
-                }
-      case '*': tag := tag[0:len(tag)-1]
-                tags[tag] = true
-      case '+': tag := tag[0:len(tag)-1]
-                tags[tag] = true
-                if len(x.Get(tag)) == 0 {
-                  return(fmt.Sprintf("Missing <%v>", tag))
-                }
-      default: 
-                if len(x.Get(tag)) == 0 {
-                  return(fmt.Sprintf("Missing <%v>", tag))
-                }
-                if len(x.Get(tag)) > 1 {
-                  return(fmt.Sprintf("More than 1 <%v>", tag))
-                }
-                tags[tag] = true
-    }
-  }
-  
-  for _, tag := range x.Subtags() {
-    if !tags[tag] {
-      return(fmt.Sprintf("Unknown <%v>", tag))
-    }
-  }
-  
-  return ""
 }
 
 

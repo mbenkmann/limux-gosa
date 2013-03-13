@@ -128,6 +128,7 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
   disconnect = false
   switch xml.Text("header") {
     case "gosa_query_jobdb":    reply = gosa_query_jobdb(xml)
+    case "gosa_query_fai_server":reply = gosa_query_fai_server(xml)
     case "new_server":          new_server(xml)
     case "confirm_new_server":  confirm_new_server(xml)
     case "foreign_job_updates": foreign_job_updates(xml)
