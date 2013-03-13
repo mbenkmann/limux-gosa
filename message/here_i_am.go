@@ -20,6 +20,8 @@ MA  02110-1301, USA.
 package message
 
 import (
+         "time"
+         
          "../db"
          "../xml"
          "../util"
@@ -52,11 +54,23 @@ func here_i_am(xmlmsg *xml.Hash) {
   Client(client_addr).Tell(registered, config.LocalClientMessageTTL)
   
   system, err := db.SystemGetAllDataForMAC(macaddress, true)
-  if err != nil { // if no LDAP data available for system, do hardware detection
-    util.Log(1, "INFO! %v => Sending detect_hardware to %v", err, macaddress)
+  if err != nil { // if no LDAP data available for system, create install job, do hardware detection
+    util.Log(1, "INFO! %v => Creating install job and sending detect_hardware to %v", err, macaddress)
     
     detect_hardware := message_start + "<header>detect_hardware</header><detect_hardware></detect_hardware></xml>"
     Client(client_addr).Tell(detect_hardware, config.LocalClientMessageTTL)
+    
+    job := xml.NewHash("job")
+    job.Add("progress", "hardware-detection")
+    job.Add("status", "processing")
+    job.Add("siserver", config.ServerSourceAddress)
+    job.Add("targettag", macaddress)
+    job.Add("macaddress", macaddress)
+    job.Add("timestamp", util.MakeTimestamp(time.Now()))
+    job.Add("headertag", "trigger_action_reinstall")
+    job.Add("result", "none")
+    
+    db.JobAddLocal(job)
     
   } else { // if LDAP data for system is available
 
