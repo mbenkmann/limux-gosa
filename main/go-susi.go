@@ -110,6 +110,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   db.ServersInit() // after config.ReadNetwork()
   db.JobsInit() // after config.ReadConfig()
   db.ClientsInit() // after config.ReadConfig()
+  setConfigUnitTag() // after config.ReadNetwork()
   action.Init()
   
   tcp_addr, err := net.ResolveTCPAddr("ip4", config.ServerListenAddress)
@@ -243,3 +244,13 @@ func handle_request(conn *net.TCPConn) {
   }
 }
 
+func setConfigUnitTag() {
+  util.Log(1, "INFO! Getting my own system's gosaUnitTag from LDAP")
+  config.UnitTag = db.SystemGetState(config.MAC, "gosaUnitTag")
+  if config.UnitTag == "" {
+    util.Log(1, "INFO! No gosaUnitTag found for %v => gosaUnitTag support disabled", config.MAC)
+  } else {
+    config.UnitTagFilter = "(gosaUnitTag="+config.UnitTag+")"
+    config.AdminBase, config.Department = db.LDAPAdminBase()
+  }
+}

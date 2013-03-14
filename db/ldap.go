@@ -26,11 +26,23 @@ import (
          "os/exec"
          "encoding/base64"
          
+         "../xml"
          "../util"
          "../config"
        )
 
-
+// Returns the dn and ou of the first object under config.LDAPBase that matches
+// (&(objectClass=gosaAdministrativeUnit)(gosaUnitTag=<config.UnitTag>)).
+// Logs and error and returns "","" if an error occurs or no object is found.
+func LDAPAdminBase() (dn string, ou string) {
+  adminunit, err := xml.LdifToHash("adminunit", true, ldapSearch(fmt.Sprintf("(&(objectClass=gosaAdministrativeUnit)%v)", config.UnitTagFilter),"ou"))
+  if err != nil || adminunit.First("adminunit") == nil {
+    util.Log(0, "ERROR! Could not find gosaAdministrativeUnit for gosaUnitTag %v under base %v: %v", config.UnitTag, config.LDAPBase, err)
+    return "",""
+  }
+  adminunit = adminunit.First("adminunit")
+  return adminunit.Text("dn"),adminunit.Text("ou")
+}
 
 func ldapSearch(query string, attr... string) *exec.Cmd {
   args := []string{"-x", "-LLL", "-H", config.LDAPURI, "-b", config.LDAPBase}
