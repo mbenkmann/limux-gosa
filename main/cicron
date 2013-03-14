@@ -1,5 +1,6 @@
 #!/bin/bash
 
+umask 022
 export GOROOT="/opt/go"
 export GOPATH="/home/limux/devel/go"
 export PATH="$GOROOT/bin:$PATH:/sbin:/usr/sbin:/bin:/usr/bin"
@@ -77,6 +78,9 @@ grep --color=never ion /home/limux/devel/go/susi/deploy/version.go
 if test "$oldpid" != "$newpid" -a -n "$newpid" -a $result == 0 ; then
   for mail in $(echo "$tester $developer" | tr ';' ' ') ; do
     cat "$susi_dir/testdata/citest.log" | mail -s "$sub" $mail
+  done
+  for release in plophos plophos/4.1.0 tramp ; do
+    ( umask 022 ; cd /srv/www/daily && reprepro --keepunreferencedfiles -C lhm includedeb $release "$susi_dir"/go-susi_*.deb )
   done
 else
   for mail in $(echo "$developer" | tr ';' ' ') ; do
