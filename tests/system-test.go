@@ -763,7 +763,7 @@ func run_here_i_am_tests() {
   send("[ClientPackages]", hia)
   // check that we get a registered message
   msg = waitlong(t0, "registered")
-  if check(checkTags(msg.XML,"header,registered,source,target,ldap_available"), "") {
+  if check(checkTags(msg.XML,"header,registered,source,target"), "") {
     check(msg.XML.Text("source"), config.ServerSourceAddress)
     check(msg.XML.Text("target"), client_listen_address)
     check(msg.IsClientMessage, true)
