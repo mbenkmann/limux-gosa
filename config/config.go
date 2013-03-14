@@ -201,6 +201,20 @@ var AdminBase = ""
 // only if UnitTag != "", this is the ou attribute of AdminBase
 var Department = ""
 
+// the dn of the ou=fai that contains all the FAI classes
+var FAIBase = ""
+
+// db.FAIClasses() will not return entries older than this.
+// See also FAIClassesCacheYoungAge
+var FAIClassesMaxAge = 30 * time.Second
+
+// go-susi tries to speed up FAIClasses() calls by holding the cache
+// fresh. When certain messages are received that make it appear likely that
+// db.FAIClasses() will be called in the near future, go-susi will
+// automatically refresh the cache, but not if it is more recent than
+// FAIClassesCacheYoungAge.
+var FAIClassesCacheYoungAge = 15 * time.Second
+
 // true if "--version" is passed on command line
 var PrintVersion = false
 

@@ -33,7 +33,7 @@ import (
 
 // Returns the dn and ou of the first object under config.LDAPBase that matches
 // (&(objectClass=gosaAdministrativeUnit)(gosaUnitTag=<config.UnitTag>)).
-// Logs and error and returns "","" if an error occurs or no object is found.
+// Logs an error and returns "","" if an error occurs or no object is found.
 func LDAPAdminBase() (dn string, ou string) {
   adminunit, err := xml.LdifToHash("adminunit", true, ldapSearch(fmt.Sprintf("(&(objectClass=gosaAdministrativeUnit)%v)", config.UnitTagFilter),"ou"))
   if err != nil || adminunit.First("adminunit") == nil {
@@ -44,14 +44,33 @@ func LDAPAdminBase() (dn string, ou string) {
   return adminunit.Text("dn"),adminunit.Text("ou")
 }
 
+// Returns the dn of the first object under config.LDAPBase that matches
+// (&(objectClass=organizationalUnit)(ou=fai)).
+// Logs an error and returns "" if an error occurs or no object is found.
+func LDAPFAIBase() string {
+  // NOTE: config.UnitTagFilter is not used here because AFAICT gosa-si-server does
+  // not use it either when looking for ou=fai.
+  fai, err := xml.LdifToHash("fai", true, ldapSearch(fmt.Sprintf("(&(objectClass=organizationalUnit)(ou=fai))"),"dn"))
+  if err != nil || fai.First("fai") == nil {
+    util.Log(0, "ERROR! Could not find ou=fai under base %v: %v", config.LDAPBase, err)
+    return ""
+  }
+  return fai.First("fai").Text("dn")
+}
+
 func ldapSearch(query string, attr... string) *exec.Cmd {
-  args := []string{"-x", "-LLL", "-H", config.LDAPURI, "-b", config.LDAPBase}
+  return ldapSearchBase(config.LDAPBase, query, attr...)
+}
+
+func ldapSearchBase(base string, query string, attr... string) *exec.Cmd {
+  args := []string{"-x", "-LLL", "-H", config.LDAPURI, "-b", base}
   if config.LDAPUser != "" { args = append(args,"-D",config.LDAPUser,"-y",config.LDAPUserPasswordFile) }
   args = append(args, query)
   args = append(args, attr...)
   util.Log(2, "DEBUG! ldapsearch %v",args)
   return exec.Command("ldapsearch", args...)
 }
+
 
 func ldapModifyAttribute(dn, modifytype, attrname string, attrvalues []string) *exec.Cmd {
   args := []string{"-x", "-H", config.LDAPURI}

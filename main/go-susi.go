@@ -111,6 +111,8 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   db.JobsInit() // after config.ReadConfig()
   db.ClientsInit() // after config.ReadConfig()
   setConfigUnitTag() // after config.ReadNetwork()
+  config.FAIBase = db.LDAPFAIBase()
+  util.Log(1, "INFO! FAI base: %v", config.FAIBase)
   action.Init()
   
   tcp_addr, err := net.ResolveTCPAddr("ip4", config.ServerListenAddress)
