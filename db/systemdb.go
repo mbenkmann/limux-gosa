@@ -321,6 +321,9 @@ func SystemSetStateMulti(macaddress string, attrname string, attrvalues []string
 func SystemGetState(macaddress string, attrname string) string {
   attrname = strings.ToLower(attrname)
   system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter),attrname))
+  if err == nil && system.Text("dn") == "" {
+    err = fmt.Errorf("Object not found")
+  }
   if err != nil {
     util.Log(0, "ERROR! Could not get attribute %v for MAC %v: %v", attrname, macaddress, err)
     return ""
@@ -328,10 +331,6 @@ func SystemGetState(macaddress string, attrname string) string {
   
   if system.First(attrname) == nil && !DoNotCopyAttribute[attrname] {
     dn := system.Text("dn")
-    if dn == "" {
-      util.Log(0, "ERROR! WTF? LDAP did not return dn in its reply: %v", system)
-      return ""
-    }
     groups, err := xml.LdifToHash("xml", true, ldapSearch(fmt.Sprintf("(&(objectClass=gosaGroupOfNames)(member=%v)%v)",dn, config.UnitTagFilter), attrname))  
     if err != nil {
       util.Log(0, "ERROR! Could not get groups with member %v: %v", dn, err)
