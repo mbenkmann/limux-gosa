@@ -252,5 +252,6 @@ func setConfigUnitTag() {
   } else {
     config.UnitTagFilter = "(gosaUnitTag="+config.UnitTag+")"
     config.AdminBase, config.Department = db.LDAPAdminBase()
+    util.Log(1, "INFO! gosaUnitTag: %v  Admin base: %v  Department: %v", config.UnitTag, config.AdminBase, config.Department)
   }
 }
