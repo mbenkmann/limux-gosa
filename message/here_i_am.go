@@ -49,14 +49,18 @@ func here_i_am(xmlmsg *xml.Hash) {
   }
 
   message_start := "<xml><source>"+config.ServerSourceAddress+"</source><target>"+client_addr+"</target>"
-  
+  registered := message_start + "<header>registered</header><registered></registered>"
   
   system, err := db.SystemGetAllDataForMAC(macaddress, true)
+  
+  if system != nil && system.Text("gotoldapserver") != "" {
+    registered += "<ldap_available>true</ldap_available>"
+  }
+  registered += "</xml>"
+  Client(client_addr).Tell(registered, config.LocalClientMessageTTL)
+  
   if err != nil { // if no LDAP data available for system, create install job, do hardware detection
     util.Log(1, "INFO! %v => Creating install job and sending detect_hardware to %v", err, macaddress)
-    
-    registered := message_start + "<header>registered</header><registered></registered></xml>"
-    Client(client_addr).Tell(registered, config.LocalClientMessageTTL)
     
     detect_hardware := message_start + "<header>detect_hardware</header><detect_hardware></detect_hardware></xml>"
     Client(client_addr).Tell(detect_hardware, config.LocalClientMessageTTL)
@@ -75,10 +79,6 @@ func here_i_am(xmlmsg *xml.Hash) {
     db.JobAddLocal(job)
     
   } else { // if LDAP data for system is available
-
-    registered := message_start + "<header>registered</header><ldap_available>true</ldap_available><registered></registered></xml>"
-    Client(client_addr).Tell(registered, config.LocalClientMessageTTL)
-
     Send_new_ldap_config(client_addr, system)
   }
 }
