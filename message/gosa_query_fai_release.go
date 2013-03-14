@@ -54,6 +54,7 @@ func gosa_query_fai_release(xmlmsg *xml.Hash) string {
     answer.Add("state")
   
     reply.AddWithOwnership(answer)
+    count++
   }
   
   return reply.String()
