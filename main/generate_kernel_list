@@ -1,0 +1,29 @@
+#!/bin/bash
+
+kernel_dir=/srv/fai/nfsroot/boot
+repo_dir=/srv/www
+
+list=""
+
+for kernel in $(find "$kernel_dir" -name "vmlinuz-*" -printf '%f\n') ; do
+  version=${kernel##vmlinuz-}
+  for packagesbz2 in $(find "$repo_dir" -path "*/dists/*/binary-i386/Packages.bz2" -print) ; do
+    bzcat "$packagesbz2" | grep -q "^Package: linux-image-$version"'$'
+    test $? = 0 && {
+      release=${packagesbz2##*/dists/}
+      release=${release%%/binary-i386/*}
+      release=${release%/*}
+      releaseou=$(echo "$release" | sed -r '/\//s%(.*)/(.*)%\2,ou=\1%')
+      dn="cn=$kernel,ou=kernels,ou=$releaseou,ou=fai"
+      listentry="dn: $dn
+cn: $kernel
+release: $release
+
+"
+      # Eliminate duplicates
+      echo "$list" | grep -qF "$dn" || list="${list}${listentry}"
+    }
+  done
+done
+
+echo "$list"
