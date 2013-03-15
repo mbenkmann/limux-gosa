@@ -47,7 +47,7 @@ import (
 //
 // NOTE: <client> and <macaddress> are both mandatory and unique within the
 // database. See ClientUpdate()
-var clientDB *xml.DB
+var clientDB *xml.DB = xml.NewDB("clientdb",nil,0)
 
 // When ClientsInit() restores clients from config.ClientDBPath, it removes
 // all local clients and stores them in this hash, because before we can
