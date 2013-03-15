@@ -22,6 +22,7 @@ MA  02110-1301, USA.
 package db
 
 import (
+         "sync"
          "time"
          "strings"
          
@@ -85,28 +86,50 @@ func FAIServers() *xml.Hash {
   return result 
 }
 
+// faiTypes and typeMap are used to translate from a FAI class type to a bit and back.
+// Given a bit index i the corresponding FAI type is faiTypes[1<<i].
+// Given a FAI type T, a mask with just the correct bit set is typeMap[T].
 var faiTypes = []string{"FAIhook","FAIpackageList","FAIpartitionTable","FAIprofile","FAIscript","FAItemplate","FAIvariable"}
 var typeMap = map[string]int{"FAIhook":1,"FAIpackageList":2,"FAIpartitionTable":4,"FAIprofile":8,"FAIscript":16,"FAItemplate":32,"FAIvariable":64}
+
+// See FAIClasses() for the format of this database.
+var faiClassCache = xml.NewDB("faidb",nil,0)
+
+// all access to faiClassCacheUpdateTime must be protected by this mutex
+var faiClassCacheUpdateTime_mutex sync.Mutex
+var faiClassCacheUpdateTime = time.Now().Add(-1000*time.Hour)
 
 // If the contents of the FAI classes cache are no older than age,
 // this function returns immediately. Otherwise the cache is refreshed.
 // If age is 0 the cache is refreshed unconditionally.
 func FAIClassesCacheNoOlderThan(age time.Duration) { 
+  faiClassCacheUpdateTime_mutex.Lock()
+  if time.Since(faiClassCacheUpdateTime) <= age { 
+    faiClassCacheUpdateTime_mutex.Unlock()
+    return 
+  }
+  faiClassCacheUpdateTime_mutex.Unlock()
   
-  // test age
-  
-  
-  
-  // NOTE: config.UnitTagFilter is not used here because AFAICT from the
-  // gosa-si-server code it doesn't use it either for the faidb.
-  x, err := xml.LdifToHash("fai", true, ldapSearchBase(config.FAIBase, "(|(objectClass=FAIhook)(objectClass=FAIpackageList)(objectClass=FAIpartitionTable)(objectClass=FAIprofile)(objectClass=FAIscript)(objectClass=FAItemplate)(objectClass=FAIvariable))","objectClass","cn","FAIstate"))
+  // NOTE: config.UnitTagFilter is not used here because unit tag filtering is done
+  // in the FAIClasses() query.
+  x, err := xml.LdifToHash("fai", true, ldapSearchBase(config.FAIBase, "(|(objectClass=FAIhook)(objectClass=FAIpackageList)(objectClass=FAIpartitionTable)(objectClass=FAIprofile)(objectClass=FAIscript)(objectClass=FAItemplate)(objectClass=FAIvariable))","objectClass","cn","FAIstate","gosaUnitTag"))
   if err != nil { 
     util.Log(0, "ERROR! LDAP error while trying to fill FAI classes cache: %v", err)
     return
   }
 
-  // "HARDENING" => "ou=plophos/4.1.0,ou=plophos" => 0x007F
-  //
+  FAIClassesCacheInit(x)  
+}
+
+// Parses the hash x and replaces faiClassCache with the result.
+// This function is public only for the sake of the unit tests. 
+// It's not meant to be used by application code and the format of x
+// is subject to change without notice.
+func FAIClassesCacheInit(x *xml.Hash) {
+  // "HARDENING" => "ou=plophos/4.1.0,ou=plophos" => { 0x007F,"45192" }
+  // where
+  // Tag: the gosaUnitTag
+  // Type:
   // bit  0=1: has explicit instance of FAIhook of the class name
   // bit  1=1: has explicit instance of FAIpackageList of the class name
   // bit  2=1: has explicit instance of FAIpartitionTable of the class name
@@ -124,7 +147,11 @@ func FAIClassesCacheNoOlderThan(age time.Duration) {
   // bit 14=1: removes FAIvariable of the class name
   // bit 15=1: branch
   // 
-  class2release2type := map[string]map[string]int{}
+  type info struct {
+    Type int
+    Tag string
+  }
+  class2release2info := map[string]map[string]info{}
 
   // Only the key set matters. Keys are releases such as
   // "ou=plophos" and "ou=halut/2.4.0,ou=halut".
@@ -141,12 +168,22 @@ func FAIClassesCacheNoOlderThan(age time.Duration) {
     idx := strings.LastIndex(dn, ","+config.FAIBase)
     if idx < 0 {
       util.Log(0, "ERROR! Huh? I guess there's something about DNs I don't understand. \",%v\" is not a suffix of \"%v\"", config.FAIBase, dn)
-      idx = len(dn)
+      continue
     }
     sub := dn[0:idx]
-    release := sub[strings.Index(sub[strings.Index(sub,",")+1:],",")+1:]
+    idx = strings.Index(sub,",")+1
+    idx2 := strings.Index(sub[idx:],",")+1
+    if idx == 0 || idx2 == 0 {
+      util.Log(0, "ERROR! FAI class %v does not belong to any release", dn)
+      continue
+    }
+    release:= sub[idx+idx2:]
     
-    typ := typeMap[fai.Text("objectclass")]
+    typ := 0
+    for _, oc := range fai.Get("objectclass") {
+      var ok bool
+      if typ, ok = typeMap[oc]; ok { break }
+    }
     
     state := fai.Text("faistate")
     if strings.Contains(state,"remove") { typ = typ << 8 }
@@ -154,39 +191,76 @@ func FAIClassesCacheNoOlderThan(age time.Duration) {
     if strings.Contains(state,"branch") { typ = typ | 0x8000 }
     
     all_releases[release] = true
-    class2release2type[class][release] = typ
+    release2info := class2release2info[class]
+    if release2info == nil {
+      release2info := map[string]info{release:info{typ, fai.Text("gosaunittag")}}
+      class2release2info[class] = release2info
+    } else {
+      inf, ok := release2info[release]
+      if ok && inf.Tag != fai.Text("gosaunittag") {
+        util.Log(0, "ERROR! Release \"%v\" has 2 FAI classes with same name \"%v\" but differing unit tags \"%v\" and \"%v\"", release, class, fai.Text("gosaunittag"), inf.Tag )
+      }
+      release2info[release] = info{typ|inf.Type, fai.Text("gosaunittag")}
+    }
   }
   
   timestamp := util.MakeTimestamp(time.Now())
   
   faidb := xml.NewHash("faidb")
   
-  for class, release2type := range class2release2type {
+  for class, release2info := range class2release2info {
     for release := range all_releases {
       types := 0
-      for comma := len(release); comma != 0; {
+      for comma := len(release); comma > 0; {
         comma = strings.LastIndex(release[0:comma],",")+1
-        t := release2type[release[comma:]]
-        types = types &^ (t >> 8)
+        t := release2info[release[comma:]].Type
+        
+        // If any explicit instance exists for ou=foo,ou=bar, 
+        // then do not inherit freeze bit from ou=bar because doing that would
+        // lead to the following problem:
+        // 1) We start with release ou=bar that has class FOO (freeze)
+        //    and release ou=foo,ou=bar that does not have class FOO (delete)
+        // 2) The admin looks at release ou=foo,ou=bar in GOsa and doesn't see
+        //    an entry for FOO, so he decides to name his own class FOO
+        // 3) Suddenly the freeze would be inherited and his newly created class
+        //    gets state freeze.
+        if (t & 0x7f) != 0 { types = types &^ 0x80 }
+        
+        types = types &^ ((t >> 8) & 0x7f)
         types = types | t
+        comma--
       }
+      
+      info := release2info[release]
       
       for i := 0; i < 7; i++ {
         if types & (1<<uint(i)) != 0 {
           faitype := faiTypes[i]
           state := ""
-          if release2type[release] & 0x0080 != 0 { state = "freeze" }
-          if release2type[release] & 0x8000 != 0 { state = "branch" }
+          if info.Type & 0x0080 != 0 { state = "freeze" }
+          if info.Type & 0x8000 != 0 { state = "branch" }
           fai := xml.NewHash("fai","timestamp",timestamp)
-          fai.Add("fai_release", strings.SplitN(strings.SplitN(release,",",2)[0],"=",2)[1])
+          parts := strings.Split(strings.Replace(release,"ou=","",-1),",")
+          for i := 0; i < len(parts)/2; i++ { 
+            parts[i], parts[len(parts)-1-i] = parts[len(parts)-1-i], parts[i]
+          }
+          fai.Add("fai_release", strings.Join(parts,"/"))
           fai.Add("type", faitype)
           fai.Add("class",class)
+          if info.Tag != "" { fai.Add("tag", info.Tag) }
           fai.Add("state",state)
           faidb.AddWithOwnership(fai)
         }
       }
     }
   }
+  
+  // lock the time mutex before calling faiClassCache.Init()
+  // so that faiClassCache is never newer than faiClassCacheUpdateTime.
+  faiClassCacheUpdateTime_mutex.Lock()
+  defer faiClassCacheUpdateTime_mutex.Unlock()
+  faiClassCache.Init(faidb)
+  faiClassCacheUpdateTime = time.Now()
 }
 
 // Returns the entries from the FAI classes database that match query.
@@ -198,9 +272,16 @@ func FAIClassesCacheNoOlderThan(age time.Duration) {
 //       <fai_release>plophos/4.1.0</fai_release>
 //       <type>FAIscript</type>
 //       <class>HARDENING</class>
+//       <tag>456789</tag>
 //       <state></state>
 //     </fai>
+//     <fai>
+//      ...
+//     </fai>
+//     ...
 //   </faidb>
-func FAIClasses(query xml.HashFilter) *xml.Hash { return nil }
-
+func FAIClasses(query xml.HashFilter) *xml.Hash { 
+  FAIClassesCacheNoOlderThan(config.FAIClassesMaxAge)
+  return faiClassCache.Query(query)
+}
 

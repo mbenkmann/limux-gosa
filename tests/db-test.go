@@ -21,6 +21,7 @@ MA  02110-1301, USA.
 package tests
 
 import (
+         "os"
          "fmt"
          "log"
          "sort"
@@ -43,6 +44,55 @@ func DB_test() {
   clientdb_test()
   systemdb_test()
   jobdb_test()
+  faidb_test()
+}
+
+func faidb_test() {
+  oldlogger := util.Logger
+  defer func(){ util.Logger = oldlogger }()
+  var buffy bytes.Buffer
+  buflogger := log.New(&buffy,"",0)
+  util.Logger = buflogger
+  
+  faiclasses,_ := os.Open("testdata/faiclasses.ldif")
+  x, err := xml.LdifToHash("fai", true, faiclasses)
+  check(err, nil)
+  config.FAIBase = "ou=fai,ou=configs,ou=systems,o=go-susi,c=de"
+  db.FAIClassesCacheInit(x)
+  
+  check(hasWords(buffy.String(),"ERROR!","does not belong to any release","cn=_fdgdfsgdsf,ou=scripts,ou=fai,ou=configs,ou=systems,o=go-susi,c=de","cn=_sadggfdsg,ou=templates,ou=fai,ou=configs,ou=systems,o=go-susi,c=de","cn=_fdsagdfagsf,ou=hooks,ou=fai,ou=configs,ou=systems,o=go-susi,c=de","cn=_fdsgffdsgfgfsdgdfg,ou=variables,ou=fai,ou=configs,ou=systems,o=go-susi,c=de", "cn=_fsdgffdgsfsd,ou=disk,ou=fai,ou=configs,ou=systems,o=go-susi,c=de", "cn=_fdlkgjdfksohgfhgfgfdjhhjfg,ou=profiles,ou=fai,ou=configs,ou=systems,o=go-susi,c=de"),"")
+  
+  fai1 := map[string]bool{}
+  for fai := db.FAIClasses(xml.FilterAll).First("fai"); fai != nil; fai = fai.Next() {
+    fai.RemoveFirst("tag")
+    fai.RemoveFirst("timestamp")
+    fai1[fai.InnerXML("class","type","fai_release","state")] = true
+  }  
+  
+  x, err = xml.FileToHash("testdata/query_fai_release.log")
+  check(err, nil)
+  fai2 := map[string]bool{}
+  x.RemoveFirst("header")
+  x.RemoveFirst("source")
+  x.RemoveFirst("target")
+  x.RemoveFirst("session_id")
+  for _, tag := range x.Subtags() {
+    fai := x.First(tag)
+    fai.RemoveFirst("timestamp")
+    fai2[fai.InnerXML("class","type","fai_release","state")] = true
+  }
+  
+  for cls := range fai2 { 
+    cls1 := cls
+    if _, ok := fai1[cls1]; !ok {
+      cls1 = strings.Replace(cls,"<state></state>","<state>freeze</state>",1)
+    }
+    if _, ok := fai1[cls1]; ok { delete(fai2,cls) }
+    delete(fai1,cls1)
+  }
+  check(fai1,map[string]bool{})
+  check(fai2,map[string]bool{})
+  
 }
 
 func clientdb_test() {
