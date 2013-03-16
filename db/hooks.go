@@ -52,7 +52,11 @@ func KernelListHook() {
   
   kerneldata := xml.NewHash("kerneldb")
   
+  accepted := 0
+  total := 0
+  
   for kernel := klist.First("kernel"); kernel != nil; kernel = kernel.Next() {
+    total++
     cn := kernel.Get("cn")
     if len(cn) == 0 {
       util.Log(0, "ERROR! kernel-list-hook %v returned entry without cn: %v", config.KernelListHookPath, kernel)
@@ -76,11 +80,13 @@ func KernelListHook() {
     k := xml.NewHash("kernel","fai_release",release[0])
     k.Add("cn", cn[0])
     kerneldata.AddWithOwnership(k)
+    accepted++
   }
   
   if kerneldata.First("kernel") == nil {
     util.Log(0, "ERROR! kernel-list-hook %v returned no valid entries", config.KernelListHookPath)
   } else {
+    util.Log(1, "INFO! kernel-list-hook: %v/%v entries accepted into database", accepted,total)
     kerneldb.Init(kerneldata)
   }
 }
