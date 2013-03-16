@@ -113,6 +113,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   setConfigUnitTag() // after config.ReadNetwork()
   config.FAIBase = db.LDAPFAIBase()
   util.Log(1, "INFO! FAI base: %v", config.FAIBase)
+  db.HooksExecute() // after config.ReadConfig()
   action.Init()
   
   tcp_addr, err := net.ResolveTCPAddr("ip4", config.ServerListenAddress)
@@ -150,7 +151,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
                       util.Log(1, "INFO! Received signal \"%v\"", sig)
                     }
                     if sig == syscall.SIGUSR2 { 
-                      go util.WithPanicHandler(message.Recreate_packages_db)
+                      db.HooksExecute()
                     }
                     
       case conn:= <-tcp_connections : // *net.TCPConn

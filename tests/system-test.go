@@ -2,6 +2,7 @@ package tests
 
 import (
          "io"
+         "io/ioutil"
          "net"
          "fmt"
          "sort"
@@ -32,6 +33,9 @@ var StartTime time.Time
 
 // the temporary directory where log and db files are stored
 var confdir string
+
+// if launched_daemon == true, this gives access to the process of the daemon.
+var daemonProcess *os.Process
 
 // Runs the system test.
 //  daemon: either "", host:port or the path to a binary. 
@@ -74,7 +78,6 @@ func SystemTest(daemon string, is_gosasi bool) {
     err := cmd.Start()
     if err != nil { panic(err) }
     defer cmd.Process.Signal(syscall.SIGTERM)
-    
     config.ServerConfigPath, confdir = createConfigFile("system-test-", listen_address)
     //defer os.RemoveAll(confdir)
     defer fmt.Printf("\nLog file directory: %v\n", confdir)
@@ -108,6 +111,7 @@ func SystemTest(daemon string, is_gosasi bool) {
     err := cmd.Start()
     if err != nil { panic(err) }
     time.Sleep(3*time.Second) // give daemon a little time to start up
+    daemonProcess = cmd.Process
     defer cmd.Process.Signal(syscall.SIGTERM)
     
     // Give daemon time to process data and write logs before sending SIGTERM
@@ -323,6 +327,86 @@ func SystemTest(daemon string, is_gosasi bool) {
   run_detected_hardware_tests()
 
   run_fai_query_tests()
+  
+  if launched_daemon {
+    if gosasi {
+      fmt.Print("gosa-si does not support hooks => ")
+      siFail(true,false)
+    } else {
+      run_hook_tests()
+    }
+  }
+}
+
+func run_hook_tests() {
+  // createConfigFile() has already generated hook scripts and go-susi
+  // should have run them once right after starting. So we start by
+  // checking if the initial data corresponds to what the hook scripts
+  // from createConfigFile() output
+
+  x := gosa("get_available_kernel", hash("xml(fai_release(ignaz))"))
+  if check(x.Text("header"), "get_available_kernel") {
+    answers := extract_sorted_answers(x)
+    check(answers.Get("answer"),[]string{"michael","tobi"})
+  }
+  
+  x = gosa("get_available_kernel", hash("xml(fai_release(dennis))"))
+  if check(x.Text("header"), "get_available_kernel") {
+    answers := extract_sorted_answers(x)
+    check(answers.Get("answer"),[]string{"jan-marek"})
+  }
+  
+  x = gosa("get_available_kernel", hash("xml(fai_release(matthias))"))
+  if check(x.Text("header"), "get_available_kernel") {
+    answers := extract_sorted_answers(x)
+    check(answers.Get("answer"),[]string{})
+  }
+  
+  x = gosa("get_available_kernel", hash("xml(fai_release(chef))"))
+  if check(x.Text("header"), "get_available_kernel") {
+    answers := extract_sorted_answers(x)
+    check(answers.Get("answer"),[]string{})
+  }
+  
+  // Now we replace the hook scripts and send SIGUSR2, causing go-susi
+  // to run the new hooks. Then we check for the respective data.
+  
+  ioutil.WriteFile(generate_kernel_list, []byte(`#!/bin/bash
+echo "release: matthias"
+echo "cn: matze"
+echo
+echo "cn: benki"
+echo "release: matthias"
+echo
+echo "release: matthias"
+echo "cn: brownie"
+echo
+echo "release: chef"
+echo "cn: matthias"
+echo
+echo "release: chef"
+echo "cn: andrea"
+`), 0755)
+
+  ioutil.WriteFile(generate_package_list, []byte(`#!/bin/bash
+exit 1
+`), 0755)
+
+  daemonProcess.Signal(syscall.SIGUSR2)
+  time.Sleep(2*time.Second)
+  
+  x = gosa("get_available_kernel", hash("xml(fai_release(matthias))"))
+  if check(x.Text("header"), "get_available_kernel") {
+    answers := extract_sorted_answers(x)
+    check(answers.Get("answer"),[]string{"benki","brownie","matze"})
+  }
+  
+  x = gosa("get_available_kernel", hash("xml(fai_release(chef))"))
+  if check(x.Text("header"), "get_available_kernel") {
+    answers := extract_sorted_answers(x)
+    check(answers.Get("answer"),[]string{"andrea","matthias"})
+  }
+
   
 }
 

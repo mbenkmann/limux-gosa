@@ -285,3 +285,21 @@ func FAIClasses(query xml.HashFilter) *xml.Hash {
   return faiClassCache.Query(query)
 }
 
+// See FAIKernels(). Updated by db.KernelListHook().
+var kerneldb = xml.NewDB("kerneldb",nil,0)
+
+// Returns the entries from the kernels database that match query.
+// The format of the kerneldb and the return value is as follows:
+//   <kerneldb>
+//     <kernel>
+//       <cn>vmlinuz-2.6.32-44-generic</cn>
+//       <fai_release>plophos/4.1.0</fai_release>
+//     </kernel>
+//     <kernel>
+//      ...
+//     </kernel>
+//     ...
+//   </kerneldb>
+func FAIKernels(query xml.HashFilter) *xml.Hash {
+  return kerneldb.Query(query)
+}

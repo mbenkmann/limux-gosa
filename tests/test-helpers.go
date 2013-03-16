@@ -47,6 +47,11 @@ var clientRegexp = regexp.MustCompile("^[0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}[.][
 // Regexp for recognizing valid <siserver> elements
 var serverRegexp = regexp.MustCompile("^[0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}:[0-9]+$")
 
+// The paths of the hook scripts. Filled in (and initially generated) by
+// createConfigFile()
+var generate_kernel_list = ""
+var generate_package_list = ""
+
 type Job struct {
   Type string
   MAC string
@@ -272,14 +277,38 @@ func gosa(typ string, x *xml.Hash) *xml.Hash {
 
 // creates a temporary config file and returns the path to it as well as the
 // path to the containing temporary directory.
+// Also creates initial hook files for system-test.go:run_hook_tests()
 func createConfigFile(prefix, addresses string) (conffile, confdir string) {
   tempdir, err := ioutil.TempDir("", prefix)
   if err != nil { panic(err) }
+  
+  generate_kernel_list = tempdir+"/generate_kernel_list" 
+  ioutil.WriteFile(generate_kernel_list, []byte(`#!/bin/bash
+echo
+echo
+echo "cn: tobi"
+echo "release: ignaz"
+echo
+echo "cn: michael"
+echo "release: ignaz"
+echo
+echo
+echo "cn: jan-marek"
+echo "release: dennis"
+`), 0755)
+
+  generate_package_list = tempdir+"/generate_package_list"
+  ioutil.WriteFile(generate_package_list, []byte(`#!/bin/bash
+exit 1
+`), 0755)
+  
   fpath := tempdir + "/server.conf"
   ioutil.WriteFile(fpath, []byte(`
 [general]
 log-file = `+tempdir+`/go-susi.log
 pid-file = `+tempdir+`/go-susi.pid
+kernel-list-hook = `+tempdir+`/generate_kernel_list
+package-list-hook = `+tempdir+`/generate_package_list
 
 [bus]
 enabled = false

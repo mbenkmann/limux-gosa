@@ -69,6 +69,12 @@ var ServerDBPath = "/var/lib/go-susi/serverdb.xml"
 // Path to database of clients (foreign and our own).
 var ClientDBPath = "/var/lib/go-susi/clientdb.xml"
 
+// Called by db.HooksExecute() to generate the kernel db.
+var KernelListHookPath = "/usr/lib/go-susi/generate_kernel_list"
+
+// Called by db.HooksExecute() to generate the packages db.
+var PackageListHookPath = "/usr/lib/go-susi/generate_package_list"
+
 // Temporary directory only accessible by the user running go-susi.
 // Used e.g. for storing password files. NOT deleted automatically!
 var TempDir = ""
@@ -317,6 +323,12 @@ func ReadConfig() {
   if general, ok := conf["[general]"]; ok {
     if logfile, ok := general["log-file"]; ok {
       LogFilePath = logfile
+    }
+    if kernel_list_hook, ok := general["kernel-list-hook"]; ok {
+      KernelListHookPath = kernel_list_hook
+    }
+    if package_list_hook, ok := general["package-list-hook"]; ok {
+      PackageListHookPath = package_list_hook
     }
   }
   

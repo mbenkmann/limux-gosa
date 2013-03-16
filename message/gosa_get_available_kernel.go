@@ -21,6 +21,9 @@ MA  02110-1301, USA.
 package message
 
 import (
+         "strconv"
+         
+         "../db"
          "../xml"
          "../config"
        )
@@ -32,12 +35,18 @@ import (
 func gosa_get_available_kernel(xmlmsg *xml.Hash) string {
   reply := xml.NewHash("xml","header","get_available_kernel")
   reply.Add("source", config.ServerSourceAddress)
-  reply.Add("target", "GOSA")
+  reply.Add("target", xmlmsg.Text("source"))
   reply.Add("session_id","1")
-  reply.Add("answer1","default")
-  reply.Add("answer2","kirschkernel")
-  reply.Add("answer3","pfirsichkernel")
   reply.Add("get_available_kernel")
+  
+  var count uint64 = 1
+  kernels := db.FAIKernels(xml.FilterSimple("fai_release",xmlmsg.Text("fai_release")))
+  for kernel := kernels.First("kernel"); kernel != nil; kernel = kernel.Next() {
+    answer := xml.NewHash("answer"+strconv.FormatUint(count, 10))
+    answer.SetText(kernel.Text("cn"))
+    reply.AddWithOwnership(answer)
+    count++
+  }
   
   return reply.String()
 }
