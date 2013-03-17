@@ -69,7 +69,7 @@ func clmsg_save_fai_log(xmlmsg *xml.Hash) {
   go util.WithPanicHandler(func() {
     if plainname := db.SystemPlainnameForMAC(macaddress); plainname != "none" {
       err := os.Symlink(macaddress, path.Join(config.FAILogPath, plainname))
-      if err != nil && !os.IsExist(err) {
+      if err != nil && !os.IsExist(err.(*os.LinkError).Err) {
         util.Log(0, "ERROR! Could not create symlink %v => %v: %v", path.Join(config.FAILogPath, plainname), macaddress, err)
       }
     }
