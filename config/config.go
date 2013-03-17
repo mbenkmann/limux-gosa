@@ -75,6 +75,12 @@ var KernelListHookPath = "/usr/lib/go-susi/generate_kernel_list"
 // Called by db.HooksExecute() to generate the packages db.
 var PackageListHookPath = "/usr/lib/go-susi/generate_package_list"
 
+// Path where log files from CLMSG_save_fai_log are stored.
+// Within this directory go-susi creates sub-directories named
+// after the clients' MAC addresses and symlinks named after the
+// clients' plain names.
+var FAILogPath = "/var/log/fai"
+
 // Temporary directory only accessible by the user running go-susi.
 // Used e.g. for storing password files. NOT deleted automatically!
 var TempDir = ""
@@ -250,6 +256,7 @@ func ReadArgs(args []string) {
       JobDBPath = testdir + "/jobdb.xml"
       ServerDBPath = testdir + "/serverdb.xml"
       ClientDBPath = testdir + "/clientdb.xml"
+      FAILogPath = testdir
       
     } else if arg == "-c" {
       i++

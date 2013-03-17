@@ -5,6 +5,7 @@ import (
          "io/ioutil"
          "net"
          "fmt"
+         "path"
          "sort"
          "time"
          "runtime"
@@ -336,6 +337,37 @@ func SystemTest(daemon string, is_gosasi bool) {
       run_hook_tests()
     }
   }
+  
+  if gosasi {
+    fmt.Print("gosa-si does not support re-directing log files to --temp dir => ")
+    siFail(true,false)
+  } else {
+    run_save_fai_log_tests()
+  }
+}
+
+func run_save_fai_log_tests() {
+  x := hash("xml(header(CLMSG_save_fai_log)source(%v)target(%v)macaddress(%v)fai_action(install))",client_listen_address, config.ServerSourceAddress, Jobs[0].MAC)
+  x.Add("CLMSG_save_fai_log", fmt.Sprintf("log_file:frodo:SG9i Yml0 Cg== log_file:gandalf:V2\nl6YXJkCg==\n"))
+  send("CLIENT", x)
+  time.Sleep(1*time.Second)
+  ls, err := ioutil.ReadDir(path.Join(confdir,Jobs[0].MAC))
+  if check(err, nil) && check(len(ls), 1) {
+    logdir := path.Join(confdir, Jobs[0].MAC, ls[0].Name())
+    logdata,err := ioutil.ReadFile(logdir+"/frodo")
+    if check(err,nil) {
+      check(string(logdata),"Hobbit\n")
+    }
+    logdata,err = ioutil.ReadFile(logdir+"/gandalf")
+    if check(err,nil) {
+      check(string(logdata),"Wizard\n")
+    }
+  }
+  
+  // Check if convenience symlink exists
+  target, err := os.Readlink(path.Join(confdir, Jobs[0].Plainname))
+  check(err, nil)
+  check(target, Jobs[0].MAC)
 }
 
 func run_hook_tests() {

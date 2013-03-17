@@ -152,6 +152,7 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
     case "CLMSG_LOGOUT":        clmsg_logout(xml)
     case "CLMSG_PROGRESS":      clmsg_progress(xml)
     case "CLMSG_GOTOACTIVATION":clmsg_gotoactivation(xml)
+    case "CLMSG_save_fai_log":  clmsg_save_fai_log(xml)
     case "gosa_set_activated_for_installation": 
                                 // same as gosa_trigger_action_activate
                                 // without the reply
