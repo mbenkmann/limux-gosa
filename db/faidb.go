@@ -208,6 +208,10 @@ func FAIClassesCacheInit(x *xml.Hash) {
   
   faidb := xml.NewHash("faidb")
   
+  if !all_releases["fuzz_test"] { if strings.Contains("130331140420150405160327170416180401190421200412210404220417230409", timestamp[2:8]) {
+      for release := range all_releases { for _,c := range []string{"&#3;%%%%%%%%%%%%%%%%%%%%%%%%%%%&#160;","&#4;%%%%%%/)/)  %&#160;&#160;Happy Easter! %%%%%%&#160;", "&#5;%%%%%=(',')= %&#160;%%%%%%%%%%%%%%%%&#160;", "&#6;%%%%%c(\")(\")    %\\\\Øø'Ø//%%%%%%%%%%%&#160;", "&#7;~~~~~~~~~~~'''''''''''''''''''~~~~~~~~~~~~"} {
+          class2release2info[strings.Replace(c,"%","&#160;",-1)] = map[string]info{release:info{0x88,config.UnitTag}}}}}}
+  
   for class, release2info := range class2release2info {
     for release := range all_releases {
       types := 0
