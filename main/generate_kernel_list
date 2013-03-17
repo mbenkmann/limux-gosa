@@ -6,11 +6,11 @@ repo_dir=/srv/www
 list=""
 
 append() {
-  release=$1
-  kernel=$2
-  releaseou=$(echo "$release" | sed -r '/\//s%(.*)/(.*)%\2,ou=\1%')
-  dn="cn=$kernel,ou=kernels,ou=$releaseou,ou=fai"
-  listentry="dn: $dn
+  local release=$1
+  local kernel=$2
+  local releaseou=$(echo "$release" | sed -r '/\//s%(.*)/(.*)%\2,ou=\1%')
+  local dn="cn=$kernel,ou=kernels,ou=$releaseou,ou=fai"
+  local listentry="dn: $dn
 cn: $kernel
 release: $release
 
@@ -22,15 +22,16 @@ release: $release
 
 for kernel in $(find "$kernel_dir" -name "vmlinuz-*" -printf '%f\n') ; do
   version=${kernel##vmlinuz-}
-  for packagesbz2 in $(find "$repo_dir" -path "*/dists/*/binary-i386/Packages.bz2" -print) ; do
+  for packagesbz2 in $(find "$repo_dir" -not -path "*/.temp/*" -path "*/dists/*/binary-i386/Packages.bz2" -print) ; do
     bzcat "$packagesbz2" | grep -q "^Package: linux-image-$version"'$'
     test $? = 0 && {
       release=${packagesbz2##*/dists/}
       release=${release%%/binary-i386/*}
       release=${release%/*}
-      append $release $kernel
-      # for each release that has at least 1 supported kernel we have a defaul option
+      # for each release that has at least 1 supported kernel we add a default option
       append $release default
+      # now add the kernel we just found
+      append $release $kernel
     }
   done
 done
