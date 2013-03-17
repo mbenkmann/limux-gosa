@@ -307,3 +307,29 @@ var kerneldb = xml.NewDB("kerneldb",nil,0)
 func FAIKernels(query xml.HashFilter) *xml.Hash {
   return kerneldb.Query(query)
 }
+
+// See FAIPackages(). Updated by db.PackageListHook().
+var packagedb = xml.NewDB("packagedb",nil,0)
+
+// Returns the entries from the kernels database that match query.
+// The format of the kerneldb and the return value is as follows.
+// See the description of gosa_query_packages_list in the manual
+// for the explanation of the elements.
+//   <packagedb>
+//     <pkg>
+//       <timestamp>20130317185123</timestamp>
+//       <distribution>plophos</distribution>
+//       <package>srv-customize-default-parent-servers</package>
+//       <version>1.0</version>
+//       <section>updates/misc</section>
+//       <description>VWViZXIgZGViY29uZ...dlc2V0enQ=</description>
+//       <template>ClRlbXBsYXRlOi...wgdXNlCgo=</template>
+//     </pkg>
+//     <pkg>
+//      ...
+//     </pkg>
+//    ...
+//   </packagedb>
+func FAIPackages(query xml.HashFilter) *xml.Hash {
+  return packagedb.Query(query)
+}

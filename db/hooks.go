@@ -21,6 +21,7 @@ MA  02110-1301, USA.
 package db
 
 import (
+         "time"
          "os/exec"
          
          "../xml"
@@ -95,6 +96,8 @@ func KernelListHook() {
 // Reads the output from the program config.PackageListHookPath (LDIF) and
 // uses it to replace packagedb.
 func PackageListHook() {
+  timestamp := util.MakeTimestamp(time.Now())
+
   util.Log(1, "INFO! Running package-list-hook %v", config.PackageListHookPath)
   plist, err := xml.LdifToHash("pkg", true, exec.Command(config.PackageListHookPath))
   if err != nil {
@@ -106,5 +109,67 @@ func PackageListHook() {
     return
   }
   util.Log(1, "INFO! Finished package-list-hook %v ", config.PackageListHookPath)
+  
+  pkgdata := xml.NewHash("packagedb")
+  
+  accepted := 0
+  total := 0
+  
+  for pkg := plist.First("pkg"); pkg != nil; pkg = pkg.Next() {
+    total++
+    pkgname := pkg.Get("package")
+    if len(pkgname) == 0 {
+      util.Log(0, "ERROR! kernel-list-hook %v returned entry without \"Package\": %v", config.PackageListHookPath, pkg)
+      continue
+    }
+    if len(pkgname) > 1 {
+      util.Log(0, "ERROR! kernel-list-hook %v returned entry with multiple \"Package\" values: %v", config.PackageListHookPath, pkg)
+      continue
+    }
+    
+    release := pkg.Get("release")
+    if len(release) == 0 {
+      util.Log(0, "ERROR! package-list-hook %v returned entry without \"Release\": %v", config.PackageListHookPath, pkg)
+      continue
+    }
+    if len(release) > 1 {
+      util.Log(0, "ERROR! package-list-hook %v returned entry with multiple \"Release\" values: %v", config.PackageListHookPath, pkg)
+      continue
+    }
+    
+    version := pkg.Text("version")
+    if version == "" {
+      util.Log(0, "WARNING! package-list-hook %v returned entry for \"%v\" without \"Version\". Assuming \"1.0\"", config.PackageListHookPath, pkgname[0])
+      version = "1.0"
+    }
+    
+    section := pkg.Text("section")
+    if section == "" {
+      util.Log(0, "WARNING! package-list-hook %v returned entry for \"%v\" without \"Section\". Assuming \"main\"", config.PackageListHookPath, pkgname[0])
+      section = "main"
+    }
+    
+    description := pkg.Text("description")
+    if description == "" { description = pkgname[0] }
+    
+    p := xml.NewHash("pkg","distribution",release[0])
+    p.Add("package", pkgname[0])
+    p.Add("timestamp",timestamp)
+    p.Add("version",version)
+    p.Add("section",section)
+    p.Add("description", description)
+      // accept "template" and "templates" (with and without "s")
+    p.Add("template",pkg.Text("template")+pkg.Text("templates"))
+
+    pkgdata.AddWithOwnership(p)
+    accepted++
+  }
+  
+  if pkgdata.First("pkg") == nil {
+    util.Log(0, "ERROR! package-list-hook %v returned no valid entries", config.PackageListHookPath)
+  } else {
+    util.Log(1, "INFO! package-list-hook: %v/%v entries accepted into database", accepted,total)
+    packagedb.Init(pkgdata)
+  }
 }
 

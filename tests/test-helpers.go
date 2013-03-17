@@ -299,7 +299,17 @@ echo "release: dennis"
 
   generate_package_list = tempdir+"/generate_package_list"
   ioutil.WriteFile(generate_package_list, []byte(`#!/bin/bash
-exit 1
+echo "
+Release: kuschel
+Package: baer
+
+Package: faultier
+Release: kuschel
+Description: knuddelig und langsam
+Version: 9.8
+Section: tree
+Templates: foo
+"
 `), 0755)
   
   fpath := tempdir + "/server.conf"

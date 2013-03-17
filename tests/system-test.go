@@ -400,6 +400,40 @@ func run_hook_tests() {
     check(answers.Get("answer"),[]string{})
   }
   
+  
+  x = gosa("query_packages_list", hash("xml(where(clause(phrase(distribution(kuschel)))))"))
+  if check(x.Text("header"), "query_packages_list") {
+    answers := extract_sorted_answers(x)
+    
+    a := answers.First("answer")
+    
+    if check(checkTags(a,"timestamp,distribution,package,version,section,description,template"),"") {
+      check(a.Text("distribution"),"kuschel")
+      check(a.Text("package"),"baer")
+      check(a.Text("template"),"")
+      a = a.Next()
+    }
+    
+    if check(checkTags(a,"timestamp,distribution,package,version,section,description,template"),"") {
+      check(a.Text("distribution"),"kuschel")
+      check(a.Text("package"),"faultier")
+      check(a.Text("description"),"knuddelig und langsam")
+      check(a.Text("version"),"9.8")
+      check(a.Text("section"),"tree")
+      check(a.Text("template"),"foo")
+      a = a.Next()
+    }
+    
+    check(a, nil)
+  }
+  
+  x = gosa("query_packages_list", hash("xml(where(clause(phrase(distribution(schmusen)))))"))
+  if check(x.Text("header"), "query_packages_list") {
+    answers := extract_sorted_answers(x)
+    check(answers.Get("answer"),[]string{})
+  }
+  
+  
   // Now we replace the hook scripts and send SIGUSR2, causing go-susi
   // to run the new hooks. Then we check for the respective data.
   
@@ -421,7 +455,14 @@ echo "cn: andrea"
 `), 0755)
 
   ioutil.WriteFile(generate_package_list, []byte(`#!/bin/bash
-exit 1
+echo "
+Release: schmusen
+Package: hund
+Version: weich
+Section: sofa
+Description: lieb
+Template: hundkatzemaus
+"
 `), 0755)
 
   daemonProcess.Signal(syscall.SIGUSR2)
@@ -438,7 +479,32 @@ exit 1
     answers := extract_sorted_answers(x)
     check(answers.Get("answer"),[]string{"andrea","matthias"})
   }
-
+  
+  
+  x = gosa("query_packages_list", hash("xml(where(clause(phrase(distribution(schmusen)))))"))
+  if check(x.Text("header"), "query_packages_list") {
+    answers := extract_sorted_answers(x)
+    
+    a := answers.First("answer")
+    
+    if check(checkTags(a,"timestamp,distribution,package,version,section,description,template"),"") {
+      check(a.Text("distribution"),"schmusen")
+      check(a.Text("package"),"hund")
+      check(a.Text("description"),"lieb")
+      check(a.Text("version"),"weich")
+      check(a.Text("section"),"sofa")
+      check(a.Text("template"),"hundkatzemaus")
+      a = a.Next()
+    }
+    
+    check(a, nil)
+  }
+  
+  x = gosa("query_packages_list", hash("xml(where(clause(phrase(distribution(kuschel)))))"))
+  if check(x.Text("header"), "query_packages_list") {
+    answers := extract_sorted_answers(x)
+    check(answers.Get("answer"),[]string{})
+  }
   
 }
 

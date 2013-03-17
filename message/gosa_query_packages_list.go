@@ -1,6 +1,5 @@
 /*
-Copyright (c) 2013 Landeshauptstadt München
-Author: Matthias S. Benkmann
+Copyright (c) 2013 Matthias S. Benkmann
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -21,9 +20,11 @@ MA  02110-1301, USA.
 package message
 
 import (
-         "fmt"
+         "strconv"
          
+         "../db"
          "../xml"
+         "../util"
          "../config"
        )
 
@@ -32,6 +33,30 @@ import (
 // Returns:
 //  unencrypted reply
 func gosa_query_packages_list(xmlmsg *xml.Hash) string {
-  header := "query_packages_list"
-  return fmt.Sprintf("<xml><header>%v</header><%v></%v><source>%v</source><target>GOSA</target><session_id>1</session_id></xml>",header,header,header,config.ServerSourceAddress)
+  where := xmlmsg.First("where")
+  if where == nil { where = xml.NewHash("where") }
+  filter, err := xml.WhereFilter(where)
+  if err != nil {
+    util.Log(0, "ERROR! gosa_query_packages_list: Error parsing <where>: %v", err)
+    filter = xml.FilterNone
+  }
+  
+  packages := db.FAIPackages(filter)
+  
+  var count uint64 = 1
+  for _, tag := range packages.Subtags() {
+    answer := packages.RemoveFirst(tag)
+    for ; answer != nil; answer = packages.RemoveFirst(tag) {
+      answer.Rename("answer"+strconv.FormatUint(count, 10))
+      packages.AddWithOwnership(answer)
+      count++
+    }
+  }
+  
+  packages.Add("header", "query_packages_list")
+  packages.Add("source", config.ServerSourceAddress)
+  packages.Add("target", xmlmsg.Text("source"))
+  packages.Add("session_id", "1")
+  packages.Rename("xml")
+  return packages.String()
 }
