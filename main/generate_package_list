@@ -1,0 +1,21 @@
+#!/bin/bash
+
+repo_dir=/srv/www
+
+for packagesbz2 in $(find "$repo_dir" -not -path "*/.temp/*" -path "*/dists/*/binary-i386/Packages.bz2" -print) ; do
+  root=${packagesbz2%%/dists/*}
+  release=${packagesbz2##*/dists/}
+  release=${release%%/binary-i386/*}
+  release=${release%/*}
+  bzcat "$packagesbz2" | sed -n "/^Package:/p;s%^Maintainer:.*%Release: $release%p;/^Section:/p;/^Version:/p;/^Description:/p;/^ *$/p;s%Filename: %Filename: $root/%p"
+done | 
+
+while read -r line ; do
+  case "$line" in
+    Filename:*) deb=${line#Filename: }
+                templates="$(dpkg --info "$deb" templates 2>/dev/null | base64 --wrap=0)"
+                test -n "$templates" && echo "Templates:: $templates"
+                ;;
+    *) echo "$line" ;;
+  esac
+done

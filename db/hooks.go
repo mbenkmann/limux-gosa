@@ -23,6 +23,7 @@ package db
 import (
          "time"
          "os/exec"
+         "encoding/base64"
          
          "../xml"
          "../util"
@@ -162,7 +163,7 @@ func PackageListHook() {
     p.Add("section",section)
     p.Add("description", description)
       // accept "template" and "templates" (with and without "s")
-    p.Add("template",pkg.Text("template")+pkg.Text("templates"))
+    p.Add("template",base64.StdEncoding.EncodeToString([]byte(pkg.Text("template")+pkg.Text("templates"))))
 
     pkgdata.AddWithOwnership(p)
     accepted++

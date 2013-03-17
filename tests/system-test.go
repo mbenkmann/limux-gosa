@@ -420,7 +420,9 @@ func run_hook_tests() {
       check(a.Text("description"),"knuddelig und langsam")
       check(a.Text("version"),"9.8")
       check(a.Text("section"),"tree")
-      check(a.Text("template"),"foo")
+      decoded,err := base64.StdEncoding.DecodeString(a.Text("template"))
+      check(err,nil)
+      check(string(decoded),"foo")
       a = a.Next()
     }
     
@@ -493,7 +495,9 @@ Template: hundkatzemaus
       check(a.Text("description"),"lieb")
       check(a.Text("version"),"weich")
       check(a.Text("section"),"sofa")
-      check(a.Text("template"),"hundkatzemaus")
+      decoded,err := base64.StdEncoding.DecodeString(a.Text("template"))
+      check(err,nil)
+      check(string(decoded),"hundkatzemaus")
       a = a.Next()
     }
     
