@@ -96,7 +96,8 @@ func KernelListHook() {
 // Reads the output from the program config.PackageListHookPath (LDIF) and
 // uses it to replace packagedb.
 func PackageListHook() {
-  timestamp := util.MakeTimestamp(time.Now())
+  start := time.Now()
+  timestamp := util.MakeTimestamp(start)
 
   util.Log(1, "INFO! Running package-list-hook %v", config.PackageListHookPath)
   plist, err := xml.LdifToHash("pkg", true, exec.Command(config.PackageListHookPath))
@@ -108,7 +109,9 @@ func PackageListHook() {
     util.Log(0, "ERROR! package-list-hook %v returned no data", config.PackageListHookPath)
     return
   }
-  util.Log(1, "INFO! Finished package-list-hook %v ", config.PackageListHookPath)
+  util.Log(1, "INFO! Finished package-list-hook. Running time: %v", time.Since(start))
+  
+  start = time.Now()
   
   pkgdata := xml.NewHash("packagedb")
   
@@ -168,7 +171,7 @@ func PackageListHook() {
   if pkgdata.First("pkg") == nil {
     util.Log(0, "ERROR! package-list-hook %v returned no valid entries", config.PackageListHookPath)
   } else {
-    util.Log(1, "INFO! package-list-hook: %v/%v entries accepted into database", accepted,total)
+    util.Log(1, "INFO! package-list-hook: %v/%v entries accepted into database. Processing time: %v", accepted,total, time.Since(start))
     packagedb.Init(pkgdata)
   }
 }
