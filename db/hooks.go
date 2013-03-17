@@ -161,7 +161,7 @@ func PackageListHook() {
     p.Add("timestamp",timestamp)
     p.Add("version",version)
     p.Add("section",section)
-    p.Add("description", description)
+    p.Add("description",base64.StdEncoding.EncodeToString([]byte(description)))
       // accept "template" and "templates" (with and without "s")
     p.Add("template",base64.StdEncoding.EncodeToString([]byte(pkg.Text("template")+pkg.Text("templates"))))
 
