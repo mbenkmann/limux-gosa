@@ -1,6 +1,6 @@
 #!/bin/bash
 
-kernel_dir=/srv/fai/nfsroot/boot
+kernel_dir=/srv/fai/tftp
 repo_dir=/srv/www
 
 list=""
