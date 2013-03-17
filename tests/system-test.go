@@ -111,7 +111,7 @@ func SystemTest(daemon string, is_gosasi bool) {
     cmd.Stderr,_ = os.Create(confdir+"/go-susi+panic.log")
     err := cmd.Start()
     if err != nil { panic(err) }
-    time.Sleep(3*time.Second) // give daemon a little time to start up
+    time.Sleep(5*time.Second) // give daemon a little time to start up
     daemonProcess = cmd.Process
     defer cmd.Process.Signal(syscall.SIGTERM)
     

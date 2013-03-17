@@ -28,6 +28,7 @@ import (
          "../db"
          "../xml"
          "../util"
+         "../util/deque"
          "../config"
        )
 
@@ -50,6 +51,27 @@ func gosa_query_jobdb(xmlmsg *xml.Hash) string {
   if delay > 0 { time.Sleep(delay) }
   
   jobdb_xml := db.JobsQuery(filter)
+  
+  // sort jobs
+/*  cmp  := func(a,b interface{}) int {
+    x  := a.(*xml.Hash)
+    y  := b.(*xml.Hash)
+    ts := x.Text("timestamp")+"00000000000000"
+    c1 := ts[0:10]+x.Text("headertag","status","plainname","macaddress")
+    ts  = y.Text("timestamp")+"00000000000000"
+    c2 := ts[0:10]+y.Text("headertag","status","plainname","macaddress")
+    if c1 < c2 { return -1 }
+    if c1 > c2 { return +1 }
+    return 0
+  }*/
+  answers := deque.New()
+  for _, tag := range jobdb_xml.Subtags() {
+    answer := jobdb_xml.RemoveFirst(tag)
+    for ; answer != nil; answer = jobdb_xml.RemoveFirst(tag) {
+      //answers.InsertSorted(answer, cmp)
+      answers.Insert(answer)
+    }
+  }
 
   // maps IP:PORT to a string representation of that peer's downtime
   // the empty string represents a peer that is up
@@ -58,10 +80,10 @@ func gosa_query_jobdb(xmlmsg *xml.Hash) string {
   // maps IP:PORT to server name
   servername := map[string]string{}
   
-  var count uint64 = 1
-  for _, tag := range jobdb_xml.Subtags() {
-    answer := jobdb_xml.RemoveFirst(tag)
-    for ; answer != nil; answer = jobdb_xml.RemoveFirst(tag) {
+  for count := 0; count < answers.Count(); {
+    answer := answers.At(count).(*xml.Hash)
+    count++
+    {
       siserver := answer.Text("siserver")
       
       // If we encounter this siserver for the first time,
@@ -99,9 +121,8 @@ func gosa_query_jobdb(xmlmsg *xml.Hash) string {
         answer.FirstOrAdd("result").SetText("%v has been down for %v.",servername[siserver],downtime[siserver])
       }
        
-      answer.Rename("answer"+strconv.FormatUint(count, 10))
+      answer.Rename("answer"+strconv.FormatUint(uint64(count), 10))
       jobdb_xml.AddWithOwnership(answer)
-      count++
     }
   }
   
