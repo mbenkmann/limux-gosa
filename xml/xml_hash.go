@@ -681,10 +681,10 @@ func LdifToHash(itemtag string, casefold bool, ldif interface{}) (xml *Hash, err
         if colon > 0 {
           attr := line[:colon]
           b64 := false
-          if colon < len(line) && line[colon+1] == ':' { b64 = true ; colon++ }
+          if colon+1 < len(line) && line[colon+1] == ':' { b64 = true ; colon++ }
           
-          if colon < len(line) { colon++ }
-          if colon < len(line) { colon++ }
+          if colon < len(line) { colon++ } // skip colon
+          if colon < len(line) && line[colon] == ' ' { colon++ } // skip space after colon
           
           val := line[colon:]
           if casefold { attr = strings.ToLower(attr) }

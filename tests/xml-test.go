@@ -644,9 +644,13 @@ func testLDIF() {
     check(d.Text("dn"), fmt.Sprintf("cn=%v,ou=workstations,ou=systems,ou=Direktorium,o=Landeshauptstadt München,c=de",d.Text("cn")))
     check(d.Get("objectclass"),[]string{"GOhard", "top", "gotoWorkstation", "FAIobject", "gosaAdministrativeUnitTag"})
     check(d.Text("faistate"), "localboot")
-    tags := d.Subtags()
-    sort.Strings(tags)
-    check(tags, []string{"cn","dn","faistate","objectclass"})
+    check(checkTags(d,"cn,dn,faistate,objectclass+,broken1?,broken2?,broken3?,broken4?"),"")
   }
   check(count, 4)
+  check(x.First("dev").First("broken1") != nil,true)
+  check(x.First("dev").Text("broken1"),"")
+  check(x.First("dev").First("broken4") != nil,true)
+  check(x.First("dev").Text("broken4"),"")
+  check(x.First("dev").Text("broken2"),"B0rken2")
+  check(x.First("dev").Text("broken3"),"b0rken")
 }

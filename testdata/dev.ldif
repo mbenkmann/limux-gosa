@@ -17,6 +17,10 @@ objectClass: gotoWorkstation
 objectClass: FAIobject
 objectClass: gosaAdministrativeUnitTag
 FAIstate: localboot
+Broken1:
+Broken2:B0rken2
+Broken3::YjBya2Vu
+Broken4::
 
 # dev12, workstations, systems, Direktorium, Landeshauptstadt M\C3\BCnchen, d
  e
