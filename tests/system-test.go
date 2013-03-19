@@ -78,6 +78,7 @@ func SystemTest(daemon string, is_gosasi bool) {
     cmd.Dir = "./testdata"
     err := cmd.Start()
     if err != nil { panic(err) }
+    time.Sleep(2*time.Second) // give LDAP server time to start
     defer cmd.Process.Signal(syscall.SIGTERM)
     config.ServerConfigPath, confdir = createConfigFile("system-test-", listen_address)
     //defer os.RemoveAll(confdir)
@@ -544,6 +545,112 @@ func run_fai_query_tests() {
       check(a.Text("tag"),"99")
       check(a.Text("server"),"http://www.mit.edu/repo3")
       check(a.Text("sections"),"cool,super,geil")
+      a = a.Next()
+    }
+
+    check(a, nil)
+  }
+  
+  /////////////////////////////////// xavier //////////////////////////////////////
+  x = gosa("query_fai_release", hash("xml(where(clause(phrase(fai_release(xavier)))))"))
+  if check(x.Text("header"), "query_fai_release") {
+    answers := extract_sorted_answers(x,"class")
+    a := answers.First("answer")
+    
+    if check(checkTags(a,"timestamp,fai_release,tag,type,class,state"),"") {
+      check(a.Text("fai_release"),"xavier")
+      check(a.Text("class"),"TURTLE")
+      check(a.Text("state"),"freeze")
+      check(a.Text("tag"),"7")
+      check(a.Text("type"),"FAIpartitionTable")
+      
+      a = a.Next()
+    }
+    
+    if check(checkTags(a,"timestamp,fai_release,tag,type,class,state"),"") {
+      check(a.Text("fai_release"),"xavier")
+      check(a.Text("class"),"WORLD")
+      check(a.Text("state"),"freeze")
+      check(a.Text("tag"),"7")
+      check(a.Text("type"),"FAIpartitionTable")
+      
+      a = a.Next()
+    }
+
+    check(a, nil)
+  }
+  
+  /////////////////////////////////// xavier/charles //////////////////////////////////////
+  x = gosa("query_fai_release", hash("xml(where(clause(phrase(fai_release(xavier/charles)))))"))
+  if check(x.Text("header"), "query_fai_release") {
+    answers := extract_sorted_answers(x,"class")
+    a := answers.First("answer")
+    
+    if check(checkTags(a,"timestamp,fai_release,tag,type,class,state"),"") {
+      check(a.Text("fai_release"),"xavier/charles")
+      check(a.Text("class"),"WORLD")
+      check(a.Text("state"),"freeze")
+      check(a.Text("tag"),"7")
+      check(a.Text("type"),"FAIpartitionTable")
+      
+      a = a.Next()
+    }
+
+    check(a, nil)
+  }
+  
+  /////////////////////////////////// xavier/charles/prof //////////////////////////////////////
+  x = gosa("query_fai_release", hash("xml(where(clause(phrase(fai_release(xavier/charles/prof)))))"))
+  if check(x.Text("header"), "query_fai_release") {
+    answers := extract_sorted_answers(x,"class")
+    a := answers.First("answer")
+    
+    if check(checkTags(a,"timestamp,fai_release,tag,type,class,state"),"") {
+      check(a.Text("fai_release"),"xavier/charles/prof")
+      check(a.Text("class"),"TURTLE")
+      check(a.Text("state"),"")
+      check(a.Text("tag"),"7")
+      check(a.Text("type"),"FAIpartitionTable")
+      
+      a = a.Next()
+    }
+    
+    if check(checkTags(a,"timestamp,fai_release,tag,type,class,state"),"") {
+      check(a.Text("fai_release"),"xavier/charles/prof")
+      check(a.Text("class"),"WORLD")
+      check(a.Text("state"),"")
+      check(a.Text("tag"),"7")
+      check(a.Text("type"),"FAIpartitionTable")
+      
+      a = a.Next()
+    }
+
+    check(a, nil)
+  }
+  
+  /////////////////////////////////// xavier/charles/prof/x-men //////////////////////////////////////
+  x = gosa("query_fai_release", hash("xml(where(clause(phrase(fai_release(xavier/charles/prof/x-men)))))"))
+  if check(x.Text("header"), "query_fai_release") {
+    answers := extract_sorted_answers(x,"class")
+    a := answers.First("answer")
+    
+    if checkFail(checkTags(a,"timestamp,fai_release,tag,type,class,state"),"") {
+      check(a.Text("fai_release"),"xavier/charles/prof/x-men")
+      check(a.Text("class"),"TURTLE")
+      check(a.Text("state"),"")
+      check(a.Text("tag"),"7")
+      check(a.Text("type"),"FAIpartitionTable")
+      
+      a = a.Next()
+    }
+    
+    if checkFail(checkTags(a,"timestamp,fai_release,tag,type,class,state"),"") {
+      check(a.Text("fai_release"),"xavier/charles/prof/x-men")
+      check(a.Text("class"),"WORLD")
+      check(a.Text("state"),"")
+      check(a.Text("tag"),"7")
+      check(a.Text("type"),"FAIpartitionTable")
+      
       a = a.Next()
     }
 
