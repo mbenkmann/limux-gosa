@@ -640,7 +640,7 @@ objectClass: top
 objectClass: FAIclass
 objectClass: FAIpartitionTable
 objectClass: gosaAdministrativeUnitTag
-faistate: freeze
+faistate: |freeze
 cn: WORLD
 gosaUnitTag: 7
 
@@ -657,7 +657,7 @@ objectClass: top
 objectClass: FAIclass
 objectClass: FAIpartitionTable
 objectClass: gosaAdministrativeUnitTag
-faistate: freeze
+faistate: freeze|
 cn: TURTLE
 gosaUnitTag: 7
 
@@ -666,7 +666,7 @@ objectClass: top
 objectClass: FAIclass
 objectClass: FAIpartitionTable
 objectClass: gosaAdministrativeUnitTag
-faistate: remove
+faistate: |remove
 cn: TURTLE
 gosaUnitTag: 7
 

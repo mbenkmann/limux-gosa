@@ -3,7 +3,7 @@ objectClass: top
 objectClass: FAIclass
 objectClass: FAIpartitionTable
 objectClass: gosaAdministrativeUnitTag
-FAIstate: freeze
+FAIstate: |freeze
 cn: WORLD
 gosaUnitTag: 7
 structuralObjectClass: FAIclass

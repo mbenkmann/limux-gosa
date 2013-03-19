@@ -3,7 +3,7 @@ objectClass: top
 objectClass: FAIclass
 objectClass: FAIpartitionTable
 objectClass: gosaAdministrativeUnitTag
-FAIstate: remove
+FAIstate: |remove
 cn: TURTLE
 gosaUnitTag: 7
 structuralObjectClass: FAIclass
