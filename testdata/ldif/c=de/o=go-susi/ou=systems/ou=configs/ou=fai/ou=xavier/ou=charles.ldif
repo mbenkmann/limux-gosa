@@ -1,0 +1,11 @@
+dn: ou=charles
+ou: charles
+objectClass: organizationalUnit
+objectClass: FAIbranch
+structuralObjectClass: organizationalUnit
+entryUUID: d932549a-24e5-1032-858f-d718854dbd5c
+creatorsName: cn=admin,o=go-susi,c=de
+createTimestamp: 20130319133712Z
+entryCSN: 20130319133712.059779Z#000000#000#000000
+modifiersName: cn=admin,o=go-susi,c=de
+modifyTimestamp: 20130319133712Z

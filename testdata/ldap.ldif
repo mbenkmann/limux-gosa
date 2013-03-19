@@ -29,6 +29,14 @@ dn: ou=workstations,ou=systems,o=go-susi,c=de
 ou: workstations
 objectClass: organizationalUnit
 
+dn: ou=configs,ou=systems,o=go-susi,c=de
+ou: configs
+objectClass: organizationalUnit
+
+dn: ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: fai
+objectClass: organizationalUnit
+
 dn: cn=Objektgruppe,ou=groups,o=go-susi,c=de
 faiclass: Modul_Standard :plophos/4.1.0
 faidebianmirror: http://warmachine.tvc.example.com/repository-all
@@ -586,3 +594,86 @@ objectclass: GOhard
 objectclass: gosaAdministrativeUnitTag
 objectclass: gotoWorkstation
 objectclass: top
+
+dn: ou=configs,ou=systems,o=go-susi,c=de
+ou: configs
+objectClass: organizationalUnit
+
+dn: ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: fai
+objectClass: organizationalUnit
+
+dn: ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: xavier
+objectClass: organizationalUnit
+objectClass: FAIbranch
+
+dn: ou=charles,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: charles
+objectClass: organizationalUnit
+objectClass: FAIbranch
+
+dn: ou=prof,ou=charles,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: prof
+objectClass: organizationalUnit
+objectClass: FAIbranch
+
+dn: ou=x-men,ou=prof,ou=charles,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: x-men
+objectClass: organizationalUnit
+objectClass: FAIbranch
+
+dn: ou=disk,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: disk
+objectClass: organizationalUnit
+
+dn: ou=disk,ou=charles,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: disk
+objectClass: organizationalUnit
+
+dn: ou=disk,ou=prof,ou=charles,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: disk
+objectClass: organizationalUnit
+
+dn: cn=WORLD,ou=disk,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+objectClass: top
+objectClass: FAIclass
+objectClass: FAIpartitionTable
+objectClass: gosaAdministrativeUnitTag
+faistate: freeze
+cn: WORLD
+gosaUnitTag: 7
+
+dn: cn=WORLD,ou=disk,ou=prof,ou=charles,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+objectClass: top
+objectClass: FAIclass
+objectClass: FAIpartitionTable
+objectClass: gosaAdministrativeUnitTag
+cn: WORLD
+gosaUnitTag: 7
+
+dn: cn=TURTLE,ou=disk,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+objectClass: top
+objectClass: FAIclass
+objectClass: FAIpartitionTable
+objectClass: gosaAdministrativeUnitTag
+faistate: freeze
+cn: TURTLE
+gosaUnitTag: 7
+
+dn: cn=TURTLE,ou=disk,ou=charles,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+objectClass: top
+objectClass: FAIclass
+objectClass: FAIpartitionTable
+objectClass: gosaAdministrativeUnitTag
+faistate: remove
+cn: TURTLE
+gosaUnitTag: 7
+
+dn: cn=TURTLE,ou=disk,ou=prof,ou=charles,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+objectClass: top
+objectClass: FAIclass
+objectClass: FAIpartitionTable
+objectClass: gosaAdministrativeUnitTag
+cn: TURTLE
+gosaUnitTag: 7
