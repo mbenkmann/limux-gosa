@@ -217,9 +217,10 @@ func FAIClassesCacheInit(x *xml.Hash) {
   
   if !all_releases["fuzz_test"] { for d := 0; d<7; d++ {
     if strings.Contains("130331140420150405160327170416180401190421200412210404220417230409", util.MakeTimestamp(time.Now().Add(time.Duration(-d*24)*time.Hour))[2:8]) {
-      for release := range all_releases { for _,c := range []string{"\u0003%%%%%%%%%%%%%%%%%%%%%%%%%%%\u00a0","\u0004%%%%%%/)/)  %\u00a0\u00a0\u0048\u0061\u0070\u0070\u0079 \u0045\u0061\u0073\u0074\u0065\u0072! %%%%%%\u00a0", "\u0005%%%%%=(',')= %\u00a0%%%%%%%%%%%%%%%%\u00a0", "\u0006%%%%%c(\")(\")    %\\\\Øø'Ø//%%%%%%%%%%%\u00a0", "\u0007~~~~~~~~~~~'''''''''''''''''''~~~~~~~~~~~~"} {
-          class2release2info[strings.Replace(c,"%","\u00a0",-1)] = map[string]info{release:info{0x88,config.UnitTag}}}}}}}
-  
+      for release := range all_releases { for _,c := range []string{"+%%%%%%%%%%%%%%%%%%%%%%%%%%%\u00a0",",%%%%%%/)/)  %\u00a0\u00a0\u0048\u0061\u0070\u0070\u0079 \u0045\u0061\u0073\u0074\u0065\u0072! %%%%%%\u00a0", "-%%%%%=(',')= %\u00a0%%%%%%%%%%%%%%%%\u00a0", ".%%%%%c(\")(\") %\\\\Øø'Ø//%%%%%%%%%%%\u00a0", "/~~~~~~~~~~~'''''''''''''''''''~~~~~~~~~~~~"} {
+        c = strings.Replace(c,"%","\u00a0 ",-1); if class2release2info[c] == nil { class2release2info[c] = map[string]info{}}
+          class2release2info[c][release]=info{0x080008,config.UnitTag}}}}}}
+
   for class, release2info := range class2release2info {
     
     // class is the name of the FAI class(es) 
