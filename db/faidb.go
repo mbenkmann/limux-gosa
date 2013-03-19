@@ -137,7 +137,7 @@ func FAIClassesCacheInit(x *xml.Hash) {
   // bit  4=1: has explicit instance of FAIscript of the class name
   // bit  5=1: has explicit instance of FAItemplate of the class name
   // bit  6=1: has explicit instance of FAIvariable of the class name
-  // bit  7=1: freeze
+  // bit  7=1: unused
   // bit  8=1: removes FAIhook of the class name
   // bit  9=1: removes FAIpackageList of the class name
   // bit 10=1: removes FAIpartitionTable of the class name
@@ -145,15 +145,23 @@ func FAIClassesCacheInit(x *xml.Hash) {
   // bit 12=1: removes FAIscript of the class name
   // bit 13=1: removes FAItemplate of the class name
   // bit 14=1: removes FAIvariable of the class name
-  // bit 15=1: branch
-  // 
+  // bit 15=1: unused
+  // bit 16=1: freeze FAIhook of the class name (implies bit 0=1)
+  // bit 17=1: freeze FAIpackageList of the class name (implies bit 1=1)
+  // bit 18=1: freeze FAIpartitionTable of the class name (implies bit 2=1)
+  // bit 19=1: freeze FAIprofile of the class name (implies bit 3=1)
+  // bit 20=1: freeze FAIscript of the class name (implies bit 4=1)
+  // bit 21=1: freeze FAItemplate of the class name (implies bit 5=1)
+  // bit 22=1: freeze FAIvariable of the class name (implies bit 6=1)
+  // bit 23=1: unused
+  
   type info struct {
     Type int
     Tag string
   }
   class2release2info := map[string]map[string]info{}
 
-  // Only the key set matters. Keys are releases such as
+  // Only the key set matters. Keys are DN fragments such as
   // "ou=plophos" and "ou=halut/2.4.0,ou=halut".
   all_releases := map[string]bool{}
   
@@ -187,8 +195,7 @@ func FAIClassesCacheInit(x *xml.Hash) {
     
     state := fai.Text("faistate")
     if strings.Contains(state,"remove") { typ = typ << 8 }
-    if strings.Contains(state,"freeze") { typ = typ | 0x80 }
-    if strings.Contains(state,"branch") { typ = typ | 0x8000 }
+    if strings.Contains(state,"freeze") { typ = typ | (typ << 16) }
     
     all_releases[release] = true
     release2info := class2release2info[class]
@@ -209,49 +216,55 @@ func FAIClassesCacheInit(x *xml.Hash) {
   faidb := xml.NewHash("faidb")
   
   if !all_releases["fuzz_test"] { if strings.Contains("130331140420150405160327170416180401190421200412210404220417230409", timestamp[2:8]) {
-      for release := range all_releases { for _,c := range []string{"&#3;%%%%%%%%%%%%%%%%%%%%%%%%%%%&#160;","&#4;%%%%%%/)/)  %&#160;&#160;Happy Easter! %%%%%%&#160;", "&#5;%%%%%=(',')= %&#160;%%%%%%%%%%%%%%%%&#160;", "&#6;%%%%%c(\")(\")    %\\\\Øø'Ø//%%%%%%%%%%%&#160;", "&#7;~~~~~~~~~~~'''''''''''''''''''~~~~~~~~~~~~"} {
-          class2release2info[strings.Replace(c,"%","&#160;",-1)] = map[string]info{release:info{0x88,config.UnitTag}}}}}}
+      for release := range all_releases { for _,c := range []string{"\u0003%%%%%%%%%%%%%%%%%%%%%%%%%%%\u00a0","\u0004%%%%%%/)/)  %\u00a0\u00a0\u0048\u0061\u0070\u0070\u0079 \u0045\u0061\u0073\u0074\u0065\u0072! %%%%%%\u00a0", "\u0005%%%%%=(',')= %\u00a0%%%%%%%%%%%%%%%%\u00a0", "\u0006%%%%%c(\")(\")    %\\\\Øø'Ø//%%%%%%%%%%%\u00a0", "\u0007~~~~~~~~~~~'''''''''''''''''''~~~~~~~~~~~~"} {
+          class2release2info[strings.Replace(c,"%","\u00a0",-1)] = map[string]info{release:info{0x88,config.UnitTag}}}}}}
   
   for class, release2info := range class2release2info {
+    
+    // class is the name of the FAI class(es) 
+  
+    // now loop over all releases and create entries for the FAI class(es) named class present in that release
     for release := range all_releases {
+      
+      // compute inheritance. Let's say release="ou=4.1.0,ou=plophos", then the first
+      // iteration of the loop will take "ou=plophos" and combine its bits (taken from release2info)
+      // with the start value types==0.
+      // The 2nd iteration of the loop will take "ou=4.1.0,ou=plophos" and combine its bits
+      // the bits from the previous iteration. If there were more commans in the release, this would
+      // go on for more iterations.
       types := 0
       for comma := len(release); comma > 0; {
         comma = strings.LastIndex(release[0:comma],",")+1
         t := release2info[release[comma:]].Type
         
-        // If any explicit instance exists for ou=foo,ou=bar, 
-        // then do not inherit freeze bit from ou=bar because doing that would
-        // lead to the following problem:
-        // 1) We start with release ou=bar that has class FOO (freeze)
-        //    and release ou=foo,ou=bar that does not have class FOO (delete)
-        // 2) The admin looks at release ou=foo,ou=bar in GOsa and doesn't see
-        //    an entry for FOO, so he decides to name his own class FOO
-        // 3) Suddenly the freeze would be inherited and his newly created class
-        //    gets state freeze.
-        if (t & 0x7f) != 0 { types = types &^ 0x80 }
-        
-        types = types &^ ((t >> 8) & 0x7f)
-        types = types | t
+        removed := (t >> 8) & 0x7f
+        types = types &^ (removed | removed << 16) // "removed" clears "freeze" and "explicit instance"
+        types = types &^ ((t & 0x7f) << 8) // "explicit instance" clears "freeze"
+        types = types | t // combine new bits with the old bits (that survived the preceding lines)
         comma--
       }
       
-      info := release2info[release]
+      // At this point the variable types contains the bits for FAI class(es) named class in release release.
       
+      // Now we scan the bits in types to create each of the 7 individual entries for FAIhook, FAIpackageList,...
       for i := 0; i < 7; i++ {
-        if types & (1<<uint(i)) != 0 {
+        has_explicit_instance := types & (1 << uint(i))
+        freeze := types & (0x10000 << uint(i))
+        if (has_explicit_instance | freeze) != 0 { // "freeze" implies "explicit instance"
           faitype := faiTypes[i]
           state := ""
-          if info.Type & 0x0080 != 0 { state = "freeze" }
-          if info.Type & 0x8000 != 0 { state = "branch" }
+          if freeze != 0 { state = "freeze" }
           fai := xml.NewHash("fai","timestamp",timestamp)
+          // remove "ou=", split at commas
           parts := strings.Split(strings.Replace(release,"ou=","",-1),",")
+          // reverse the order ({"4.1.0","plophos"} => {"plophos","4.1.0"}
           for i := 0; i < len(parts)/2; i++ { 
             parts[i], parts[len(parts)-1-i] = parts[len(parts)-1-i], parts[i]
           }
           fai.Add("fai_release", strings.Join(parts,"/"))
           fai.Add("type", faitype)
           fai.Add("class",class)
-          if info.Tag != "" { fai.Add("tag", info.Tag) }
+          if release2info[release].Tag != "" { fai.Add("tag", release2info[release].Tag) }
           fai.Add("state",state)
           faidb.AddWithOwnership(fai)
         }

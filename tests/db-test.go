@@ -83,15 +83,12 @@ func faidb_test() {
   }
   
   for cls := range fai2 { 
-    cls1 := cls
-    if _, ok := fai1[cls1]; !ok {
-      cls1 = strings.Replace(cls,"<state></state>","<state>freeze</state>",1)
-    }
+    cls1 := strings.Replace(cls, "<state>branch</state>","<state></state>",-1)
     if _, ok := fai1[cls1]; ok { delete(fai2,cls) }
     delete(fai1,cls1)
   }
-  check(fai1,map[string]bool{})
-  check(fai2,map[string]bool{})
+  check(fai1,map[string]bool{}) //in the output from db.FAIClassesCacheInit() but not in "testdata/query_fai_release.log"
+  check(fai2,map[string]bool{}) //in "testdata/query_fai_release.log" but not in output from db.FAIClassesCacheInit()
   
 }
 
