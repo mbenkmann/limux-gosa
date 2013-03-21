@@ -4,16 +4,31 @@ test -z "$pidfile" && pidfile=/var/run/gosa-si-server.pid
 
 foreground="0"
 
+faus=0
+
 args=()
 while [ $# != 0 ]; do
-  if [ "$1" = "-f" ]; then
-    foreground="1"
-    shift
-    continue
-  fi
+  case "$1" in
+   -f)
+      foreground="1"
+      shift
+      continue
+      ;;
+   -v*)
+      faus=$(($faus + ${#1} - 1))
+      shift
+      continue
+      ;;
+  esac
   args=("${args[@]}" "$1")
   shift
 done
+
+case $faus in
+  0) ;;
+  1|2|3|4|5) args=("-v" "${args[@]}") ;;
+  *) args=("-vv" "${args[@]}") ;;
+esac
 
 rm -f "$pidfile"
 
