@@ -21,8 +21,10 @@ MA  02110-1301, USA.
 package db
 
 import (
+         "sync"
          "time"
          "os/exec"
+         "runtime"
          "encoding/base64"
          
          "../xml"
@@ -30,11 +32,29 @@ import (
          "../config"
        )
 
+// used to prevent the hooks from being started while they are still running,
+// e.g. because someone sends SIGUSR2 twice in quick succession.
+var hookMutex sync.Mutex
+
 // Run KernelListHook() and PackageListHook() to update the respective databases.
 // This happens in the background. This function does not wait for them to complete.
 func HooksExecute() {
-  go util.WithPanicHandler(KernelListHook)
-  go util.WithPanicHandler(PackageListHook)
+  go util.WithPanicHandler(runHooks)
+}
+
+func runHooks() {
+  hookMutex.Lock()
+  defer hookMutex.Unlock()
+  
+  // The hooks process large LDIFs and convert them to xml.Hashes.
+  // This drives memory usage up. Execute the hooks in sequence and
+  // call garbage collection in hopes of keeping memory usage in check.
+  
+  runtime.GC()
+  KernelListHook()
+  runtime.GC()
+  PackageListHook()
+  runtime.GC()
 }
 
 // Reads the output from the program config.KernelListHookPath (LDIF) and
