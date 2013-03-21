@@ -50,7 +50,7 @@ var serverDB *xml.DB
 // Not an init() because main() needs to set up some things first.
 func ServersInit() {
   db_storer := &LoggingFileStorer{xml.FileStorer{config.ServerDBPath}}
-  var delay time.Duration = 0
+  var delay time.Duration = config.DBPersistDelay
   serverDB = xml.NewDB("serverdb", db_storer, delay)
   if !config.FreshDatabase {
     xmldata, err := xml.FileToHash(config.ServerDBPath)

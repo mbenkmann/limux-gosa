@@ -160,6 +160,11 @@ var MaxPeerDowntime = 7 * 24 * time.Hour
 // to make sure its derived wait time is still enough.
 var GosaQueryJobdbMaxDelay = 4*time.Second
 
+// The maximum delay between a change to a database and the writing
+// of the new data to disk. Longer delays improve performance and reduce
+// memory usage.
+var DBPersistDelay = 1*time.Second
+
 // If true, existing data in /var/lib/go-susi will be discarded.
 var FreshDatabase = false
 

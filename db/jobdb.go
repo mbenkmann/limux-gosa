@@ -138,7 +138,7 @@ var nextID chan uint64
 func JobsInit() {
   if jobDB != nil { panic("JobsInit() called twice") }
   jobdb_storer := &LoggingFileStorer{xml.FileStorer{config.JobDBPath}}
-  var delay time.Duration = 0
+  var delay time.Duration = config.DBPersistDelay
   jobDB = xml.NewDB("jobdb", jobdb_storer, delay)
   if !config.FreshDatabase {
     xml, err := xml.FileToHash(config.JobDBPath)

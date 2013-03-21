@@ -63,7 +63,7 @@ var ClientsWeMayHave *xml.Hash = xml.NewHash("clientdb")
 // Not an init() because main() needs to set up some things first.
 func ClientsInit() {
   db_storer := &LoggingFileStorer{xml.FileStorer{config.ClientDBPath}}
-  var delay time.Duration = 0
+  var delay time.Duration = config.DBPersistDelay
   clientDB = xml.NewDB("clientdb", db_storer, delay)
   if !config.FreshDatabase {
     xmldata, err := xml.FileToHash(config.ClientDBPath)
