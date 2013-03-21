@@ -451,7 +451,7 @@ func testHash() {
   
   twin := broken.Add("twin")
   broken.AddWithOwnership(twin) // the sanity check can't catch this
-  check(broken.Verify(), "twin is its own /last-sibling") // but Verify() can
+  check(broken.Verify(), "twin is its own last-sibling") // but Verify() can
   
   func() {
     defer func() {

@@ -58,9 +58,14 @@ type Hash struct {
   // text content
   text string
   
-  // A first child has refs["/last-sibling"] if it has siblings.
-  // An element that has a following sibling has refs["/next"]
-  refs map[string]*Hash
+  // A first child has last_sibling != nil if it has siblings.
+  last_sibling *Hash
+  // An element that has a following sibling has next != nil
+  next *Hash
+  // the names of the refs in the same order as the pointers in refp
+  refn []string
+  // the pointers corresponding to the names
+  refp []*Hash
 }
 
 // Returns a new *Hash with outer-most element <name>.
@@ -68,7 +73,7 @@ type Hash struct {
 // as if hash.Add(contents[0]).Add(contents[1])...Add(contents[N-1]).SetText(contents[N]) is called (but the
 // element returned is always the outermost).
 func NewHash(name string, contents ...string) *Hash {
-  hash := &Hash{name:name, refs:map[string]*Hash{}}
+  hash := &Hash{name:name, refn:[]string{}, refp:[]*Hash{}}
   sub := hash
   for i:= 0; i < len(contents)-1; i++ {
     sub = sub.Add(contents[i])
@@ -91,30 +96,29 @@ func (self *Hash) Rename(name string) {
 // Returns a deep copy of this xml.Hash that is completely independent.
 // The clone will not have any siblings, even if the original had some.
 func (self *Hash) Clone() *Hash {
-  hash := &Hash{name:self.name, text:self.text, refs:map[string]*Hash{}}
-  for k, v := range self.refs {
-    if k != "/last-sibling" && k != "/next" {
-      hash.refs[k] = v.cloneWithSiblings()
-    }
+  hash := &Hash{name:self.name, text:self.text, refn:make([]string,len(self.refn)), refp:make([]*Hash,len(self.refp))}
+  copy(hash.refn, self.refn)
+  for k, v := range self.refp {
+    hash.refp[k] = v.cloneWithSiblings()
   }
   return hash
 }
 
-// Returns a deep copy of this Hash including (if it has "/next") a clone
-// of all of its siblings. "/last-sibling" will be set on the clone if it has
-// at least 1 sibling, even if the original Hash did not have "/last-sibling" set.
+// Returns a deep copy of this Hash including (if it has next!=nil) a clone
+// of all of its siblings. last_sibling will be set on the clone if it has
+// at least 1 sibling, even if the original Hash did not have last_sibling set.
 // This means that cloneWithSiblings() called on a 2nd child will nevertheless
 // return a correctly linked Hash.
 func (self *Hash) cloneWithSiblings() *Hash {
   clone := self.Clone()
   prev  := clone
-  for next := self.refs["/next"]; next != nil; next = next.refs["/next"] {
+  for next := self.next; next != nil; next = next.next {
     nextClone := next.Clone()
-    prev.refs["/next"] = nextClone
+    prev.next = nextClone
     prev = nextClone
   }
   if prev != clone {
-    clone.refs["/last-sibling"] = prev
+    clone.last_sibling = prev
   }
   return clone
 }
@@ -131,7 +135,7 @@ func (self *Hash) Verify() error {
 //              and descendants will be added to this map during the check. This
 //              detects cycles in the data structure.
 //  must_be_first_sibling - set to true if this Hash is a first (or only) child.
-//                          Used to check if "/last-sibling" is properly set.
+//                          Used to check if last_sibling is properly set.
 func (self *Hash) verify(have_seen map[*Hash]bool, must_be_first_sibling bool) error {
   if have_seen[self] {
     return fmt.Errorf("Loop/backreference at %v", self.name)
@@ -139,44 +143,44 @@ func (self *Hash) verify(have_seen map[*Hash]bool, must_be_first_sibling bool) e
   
   have_seen[self] = true
   
-  if self.refs["/last-sibling"] != nil {
-    if self.refs["/next"] == nil {
-      return fmt.Errorf("%v has /last-sibling but no /next", self.name)
+  if self.last_sibling != nil {
+    if self.next == nil {
+      return fmt.Errorf("%v has last_sibling but no next", self.name)
     }
-    if self.refs["/last-sibling"] == self {
-      return fmt.Errorf("%v is its own /last-sibling", self.name)
+    if self.last_sibling == self {
+      return fmt.Errorf("%v is its own last_sibling", self.name)
     }
-    if self.refs["/next"] == self {
-      return fmt.Errorf("%v is its own /next sibling", self.name)
+    if self.next == self {
+      return fmt.Errorf("%v is its own next sibling", self.name)
     }
     
-    last := self.refs["/next"]
-    for next := last ; next != nil; next = next.refs["/next"] {
+    last := self.next
+    for next := last ; next != nil; next = next.next {
       if have_seen[next] {
         return fmt.Errorf("Loop/backreference at %v", next.name)
       }
-      if next.refs["/last-sibling"] != nil {
-        return fmt.Errorf("%v has a sibling %v that has /last-sibling set", self.name, next.name)
+      if next.last_sibling != nil {
+        return fmt.Errorf("%v has a sibling %v that has last_sibling set", self.name, next.name)
       }
       last = next
       have_seen[next] = true
     }
     
-    if last != self.refs["/last-sibling"] {
-      return fmt.Errorf("%v's /last-sibling is not actually its last sibling", self.name)
+    if last != self.last_sibling {
+      return fmt.Errorf("%v's last_sibling is not actually its last sibling", self.name)
     }
-  } else {  // if !self.refs["/last-sibling"]
-    if self.refs["/next"] != nil {
+  } else {  // if !self.last_sibling
+    if self.next != nil {
       if must_be_first_sibling {
-        return fmt.Errorf("%v is first child and has siblings but has no /last-sibling", self.name)
+        return fmt.Errorf("%v is first child and has siblings but has no last_sibling", self.name)
       }
       
-      for next := self.refs["/next"] ; next != nil; next = next.refs["/next"] {
+      for next := self.next ; next != nil; next = next.next {
         if have_seen[next] {
           return fmt.Errorf("Loop/backreference at %v", next.name)
         }
-        if next.refs["/last-sibling"] != nil {
-          return fmt.Errorf("%v has a sibling %v that has /last-sibling set", self.name, next.name)
+        if next.last_sibling != nil {
+          return fmt.Errorf("%v has a sibling %v that has last-sibling set", self.name, next.name)
         }
         have_seen[next] = true
       }
@@ -186,7 +190,7 @@ func (self *Hash) verify(have_seen map[*Hash]bool, must_be_first_sibling bool) e
   err := self.verifyChildren(have_seen)
   if err != nil { return err }
   
-  for next := self.refs["/next"] ; next != nil; next = next.refs["/next"] {
+  for next := self.next ; next != nil; next = next.next {
     if next.Name() != self.Name() {
       return fmt.Errorf("Element with name %v has sibling with name %v", self.Name(), next.Name())
     }
@@ -200,14 +204,14 @@ func (self *Hash) verify(have_seen map[*Hash]bool, must_be_first_sibling bool) e
 // Recursively verifies the correctness of the subtrees rooted at this Hash's
 // children. See Verify().
 func (self *Hash) verifyChildren(have_seen map[*Hash]bool) error {
-  for k, v := range self.refs {
-    if k != "/next" && k != "/last-sibling" {
+  for i := range self.refp {
+    k := self.refn[i]
+    v := self.refp[i]
       if v.Name() != k {
         return fmt.Errorf("Element with name %v in list of key %v", v.Name(), k)
       }
       err := v.verify(have_seen, true)
       if err != nil { return err }
-    }
   }
   
   return nil
@@ -236,26 +240,27 @@ func (self *Hash) Add(subtag string, text ...string) *Hash {
   
   new_hash := make([]*Hash, len(text))
   for i := range text {
-    new_hash[i] = &Hash{name:subtag, text:text[i], refs:map[string]*Hash{}}
+    new_hash[i] = &Hash{name:subtag, text:text[i], refn:[]string{}, refp:[]*Hash{}}
     if i > 0 {
-      new_hash[i-1].refs["/next"] = new_hash[i]
+      new_hash[i-1].next = new_hash[i]
     }
   }
   
   first := self.First(subtag)
   if first == nil {
     first = new_hash[0]
-    self.refs[subtag] = first
+    self.refn = append(self.refn,subtag)
+    self.refp = append(self.refp,first)
     if len(new_hash) > 1 {
-      first.refs["/last-sibling"] = new_hash[len(new_hash)-1]
+      first.last_sibling = new_hash[len(new_hash)-1]
     }
   } else {
-    last := first.refs["/last-sibling"]
-    first.refs["/last-sibling"] = new_hash[len(new_hash)-1]
+    last := first.last_sibling
+    first.last_sibling = new_hash[len(new_hash)-1]
     if last == nil {
-      first.refs["/next"] = new_hash[0]
+      first.next = new_hash[0]
     } else {
-      last.refs["/next"] = new_hash[0]
+      last.next = new_hash[0]
     }
   }
   
@@ -275,20 +280,21 @@ func (self *Hash) AddClone(xml *Hash) *Hash {
 // ATTENTION! xml must not be child of another Hash (which implies that it
 // must not have any siblings).
 func (self* Hash) AddWithOwnership(xml *Hash) {
-  if xml == nil || xml == self || xml.refs["/next"] != nil {
+  if xml == nil || xml == self || xml.next != nil {
     panic("AddWithOwnership: Sanity check failed!")
   }
   subtag := xml.Name()
   first  := self.First(subtag)
   if first == nil {
-    self.refs[subtag] = xml
+    self.refn = append(self.refn, subtag)
+    self.refp = append(self.refp, xml)
   } else {
-    last := first.refs["/last-sibling"]
-    first.refs["/last-sibling"] = xml
+    last := first.last_sibling
+    first.last_sibling = xml
     if last == nil {
-      first.refs["/next"] = xml
+      first.next = xml
     } else {
-      last.refs["/next"] = xml
+      last.next = xml
     }
   }
 }
@@ -299,20 +305,36 @@ func (self *Hash) RemoveFirst(subtag string) *Hash {
   first := self.First(subtag)
   if first == nil { return nil }
   
-  next := first.refs["/next"]
+  next := first.next
   if next == nil {
-    delete(self.refs, subtag)
+    for i := range self.refn {
+      if self.refn[i] == subtag {
+        copy(self.refn[i:], self.refn[i+1:])
+        self.refn[len(self.refn)-1] = "" // help GC
+        self.refn = self.refn[0:len(self.refn)-1]
+        copy(self.refp[i:], self.refp[i+1:])
+        self.refp[len(self.refp)-1] = nil // help GC
+        self.refp = self.refp[0:len(self.refp)-1]
+        break
+      }
+    }
     return first
   }
   
-  last := first.refs["/last-sibling"]
-  self.refs[subtag] = next
+  last := first.last_sibling
+  for i := range self.refn {
+    if self.refn[i] == subtag {
+      self.refp[i] = next
+      break
+    }
+  }
+ 
   if last != next {
-    next.refs["/last-sibling"] = last
+    next.last_sibling = last
   }
   
-  delete(first.refs, "/last-sibling")
-  delete(first.refs, "/next")
+  first.last_sibling = nil
+  first.next = nil
   return first
 }
 
@@ -320,14 +342,15 @@ func (self *Hash) RemoveFirst(subtag string) *Hash {
 // (which both must be members of)
 // and returns it (or nil if this Hash has no siblings).
 func (self *Hash) RemoveNext(parent *Hash) *Hash {
-  next := self.refs["/next"]
+  next := self.next
   if next == nil { return nil }
   
-  nextnext := next.refs["/next"]
-  delete(next.refs, "/next")
+  nextnext := next.next
+  next.next = nil
+  if next.last_sibling != nil { panic("Invariant broken. Only first child may have last_sibling!") }
   
   if nextnext != nil {
-    self.refs["/next"] = nextnext
+    self.next = nextnext
     return next
   }
   
@@ -335,19 +358,22 @@ func (self *Hash) RemoveNext(parent *Hash) *Hash {
   
   first := parent.First(self.Name())
   if first == self {
-    delete(self.refs, "/last-sibling")
+    self.last_sibling = nil
   } else {
-    first.refs["/last-sibling"] = self
+    first.last_sibling = self
   }
   
-  delete(self.refs, "/next")
+  self.next = nil
   return next
 }
 
 // Returns the first subtag with the given name or nil if none exists.
 // See also FirstOrAdd().
 func (self *Hash) First(subtag string) *Hash {
-  return self.refs[subtag]
+  for idx, name := range self.refn {
+    if name == subtag { return self.refp[idx] }
+  }
+  return nil
 }
 
 // Returns the first child named subtag if one exists; otherwise performs
@@ -366,19 +392,15 @@ func (self *Hash) FirstOrAdd(subtag string, text... string) *Hash {
 
 // Returns the next sibling with the same tag name or nil if none exists.
 func (self *Hash) Next() *Hash {
-  return self.refs["/next"]
+  return self.next
 }
 
 // Returns the names of all subtags of this Hash (unsorted!).
 // If the Hash has multiple subelements with the same tag, the tag is
 // only listed once. I.e. all strings in the result list are always different.
 func (self *Hash) Subtags() []string {
-  result := make([]string, 0, len(self.refs))
-  for k, _ := range self.refs {
-    if !strings.HasPrefix(k, "/") {
-      result = append(result, k)
-    }
-  }
+  result := make([]string, len(self.refn))
+  copy(result, self.refn)
   return result
 }
 
@@ -451,22 +473,14 @@ func (self *Hash) SortedString(sortorder ...string) string {
 func (self *Hash) InnerXML(sortorder ...string) string {
   var buffy bytes.Buffer
   encxml.Escape(&buffy, []byte(self.text))
-  keys := make([]string, len(self.refs))
-  i := 0
-  for key := range self.refs {
-    if key != "" && key[0] != '/' {
-      keys[i] = key
-      i++
-    }
-  }
-  keys = keys[0:i]
+  keys := self.Subtags()
   sort.Strings(keys)
   
   var name string
   for _, name = range sortorder {
     // WARNING! Do not use sort.SearchStrings, here. The binary search breaks
     // after replacing a key with "" as done below.
-    for i = 0; i < len(keys) ; i++ {
+    for i := 0; i < len(keys) ; i++ {
       if keys[i] == name {
         keys[i] = ""  // remove key from the remaining keys list
         for child := self.First(name); child != nil; child = child.Next() {
