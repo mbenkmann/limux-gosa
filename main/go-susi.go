@@ -50,10 +50,13 @@ const USAGE = `go-susi
 Starts the daemon.
 `
 
+// Set to true when a signal is received that triggers go-susi shutdown.
+var Shutdown = false
+
 func main() {
   // Intercept signals asap (in particular intercept SIGTTOU before the first output)
   signals         := make(chan os.Signal,    32)
-  signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGHUP, syscall.SIGTTOU }
+  signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTTOU, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT }
   signal.Notify(signals, signals_to_watch...)
   
   config.ReadArgs(os.Args[1:])
@@ -153,10 +156,31 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
                     if sig == syscall.SIGUSR2 { 
                       db.HooksExecute()
                     }
+                    if sig == syscall.SIGHUP || sig == syscall.SIGTERM || 
+                       sig == syscall.SIGQUIT || sig == syscall.SIGINT {
+                       Shutdown = true
+                       util.Log(0, "WARNING! Shutting down!")
+                       util.Log(1, "INFO! Shutting down listener")
+                       listener.Close()
+                       wait := make(chan bool,16)
+                       go func(){ db.JobsShutdown(); wait<-true }()
+                       go func(){ db.ServersShutdown(); wait<-true }()
+                       go func(){ db.ClientsShutdown(); wait<-true }()
+                       <-wait // for jobdb
+                       <-wait // for serverdb
+                       <-wait // for clientdb
+                       util.Log(1, "INFO! Databases have been saved => Exit program")
+                       os.Exit(0)
+                    }
                     
       case conn:= <-tcp_connections : // *net.TCPConn
-                    util.Log(1, "INFO! Incoming TCP request from %v", conn.RemoteAddr())
-                    go util.WithPanicHandler(func(){handle_request(conn)})
+                    if Shutdown { 
+                      util.Log(1, "INFO! Rejecting TCP request from %v because of go-susi shutdown", conn.RemoteAddr())
+                      conn.Close() 
+                    } else {
+                      util.Log(1, "INFO! Incoming TCP request from %v", conn.RemoteAddr())
+                      go util.WithPanicHandler(func(){handle_request(conn)})
+                    }
     }
   }
 }
@@ -166,6 +190,7 @@ func acceptConnections(listener *net.TCPListener, tcp_connections chan<- *net.TC
   for {
     tcpConn, err := listener.AcceptTCP()
     if err != nil { 
+      if Shutdown { return }
       util.Log(0, "ERROR! AcceptTCP: %v", err) 
     } else {
       tcp_connections <- tcpConn
@@ -236,6 +261,11 @@ func handle_request(conn *net.TCPConn) {
         
         if disconnect {
           util.Log(1, "INFO! Forcing disconnect because of error")
+          return
+        }
+        
+        if Shutdown {
+          util.Log(1, "INFO! Forcing disconnect because of go-susi shutdown")
           return
         }
       }

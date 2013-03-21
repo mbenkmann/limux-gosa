@@ -76,6 +76,14 @@ func ServersInit() {
   util.Log(1,"INFO! All known peer addresses with duplicates removed: %v", ServerAddresses())
 }  
 
+// Persists the serverDB and prevents all further changes to it.
+// This function does not return until the database has been persisted.
+func ServersShutdown() {
+  util.Log(1, "INFO! Shutting down servers database")
+  serverDB.Shutdown()
+  util.Log(1, "INFO! Servers database has been saved")
+}
+
 // Adds servers listed in config file to the serverDB.
 func addServersFromConfig() {
   util.Log(1, "INFO! Config file lists %v peer server(s): %v", len(config.PeerServers), strings.Join(config.PeerServers,", "))

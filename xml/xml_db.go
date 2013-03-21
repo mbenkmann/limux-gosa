@@ -126,6 +126,16 @@ func (db *DB) Init(data *Hash) {
   db.data = data
 }
 
+// Immediately persists the database and then blocks all further access.
+// This call does not return until the database has been persisted.
+// WARNING! After calling this function all function calls on the database
+// will block forever.
+func (db *DB) Shutdown() {
+  db.mutex.Lock()
+  db.persistWithLock()
+  // DO NOT db.mutex.Unlock()! The database has been shut down!
+}
+
 // Adds deep-copy clones of all items into the database.
 // Returns the database reference (for chaining).
 //
@@ -240,5 +250,11 @@ func (db *DB) Persist() (err error) {
   // allow persist jobs to be scheduled again
   db.blockPersistJobs = false
   
+  return db.persistWithLock()
+}
+
+// Actually persists the database using db.persist.Store().
+// REQUIRES HOLDING THE DB LOCK!
+func (db *DB) persistWithLock() (err error) {
   return db.persist.Store(db.data.String())
 }

@@ -253,7 +253,7 @@ func testDB() {
   check(db.Query(xml.FilterNone), "<fruits></fruits>")
   
   delay := time.Duration(2*time.Second)
-  cstore := &ChannelStorer{make(chan string)}
+  cstore := &ChannelStorer{make(chan string,1)}
   persistdb := xml.NewDB("pairs", cstore, delay)
   start := time.Now()
   letters := "abcdefghijklmnopqrstuvwxyz"
@@ -296,8 +296,31 @@ func testDB() {
   }
   check(s, "<pairs></pairs>")
   
-  persistdb.Init(all)
+  persistdb.Init(all) // Init does NOT create a persist job!
   check(persistdb.Query(xml.FilterAll), checkstr)
+  s = ""
+  select {
+    case <- cstore.StringChannel : s = "Spurious persist job detected"
+    case <-time.After(delay + 500 * time.Millisecond) : // timeout
+  }
+  check(s, "")
+  
+  start = time.Now()
+  persistdb.Shutdown()
+  s = "Shutdown failed to persist the database"
+  select {
+    case s = <- cstore.StringChannel : // s received
+    default: // persisting must already have happened when Shutdown() returns
+  }
+  check(s, checkstr)
+  
+  s = ""
+  go func(){
+    persistdb.Query(xml.FilterNone) // must block forever
+    s = "Shutdown did not lock the database"
+  }()
+  time.Sleep(1*time.Second)
+  check(s,"")
   
   
   x,_ := xml.StringToHash("<letters><let>a</let><let>b</let><let>c</let><let>d</let><let>c</let><let>e</let></letters>")

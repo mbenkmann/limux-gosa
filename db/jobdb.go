@@ -175,6 +175,14 @@ func JobsInit() {
   go handleJobDBRequests()
 }
 
+// Persists the jobDB and prevents all further changes to it.
+// This function does not return until the database has been persisted.
+func JobsShutdown() {
+  util.Log(1, "INFO! Shutting down job database")
+  jobDB.Shutdown()
+  util.Log(1, "INFO! Job database has been saved")
+}
+
 // This function runs in a single goroutine and is responsible for handling
 // all actions that affect the jobDB as well as starting local jobs whose time
 // has come.

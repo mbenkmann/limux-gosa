@@ -82,7 +82,13 @@ func ClientsInit() {
   }
 }  
 
-
+// Persists the clientDB and prevents all further changes to it.
+// This function does not return until the database has been persisted.
+func ClientsShutdown() {
+  util.Log(1, "INFO! Shutting down clients database")
+  clientDB.Shutdown()
+  util.Log(1, "INFO! Clients database has been saved")
+}
 
 // Returns the entry from the clientdb or nil if the client is unknown.
 // Entries are formatted as new_foreign_client messages:

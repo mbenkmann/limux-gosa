@@ -234,7 +234,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   // Check for the <sync>all</sync> message we should get after the connection
   // is re-established
-  time.Sleep(1*time.Second)
+  time.Sleep(2*time.Second)
   for _,msg = range get(t0) {
     if msg.XML.Text("sync") == "all" { break }
   }
