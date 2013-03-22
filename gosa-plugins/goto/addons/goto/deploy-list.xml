@@ -26,40 +26,40 @@
 
     <column>
       <label>Target</label>
-      <sortAttribute>MACADDRESS</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>MACADDRESS,Schedule</sortAttribute>
+      <sortType>string,date</sortType>
       <value>%{filter:hostName(MACADDRESS,PLAINNAME)}</value>
       <export>true</export>
     </column>
 
     <column>
       <label>Task</label>
-      <sortAttribute>givenName</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>givenName,MACADDRESS</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{filter:filterTask(HEADERTAG)}</value>
       <export>true</export>
     </column>
 
     <column>
       <label>Period</label>
-      <sortAttribute>uid</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>uid,MACADDRESS,givenName</sortAttribute>
+      <sortType>string,string,string</sortType>
       <value>%{filter:filterPeriod(PERIODIC)}</value>
       <export>true</export>
     </column>
 
     <column>
       <label>Schedule</label>
-      <sortAttribute>Schedule</sortAttribute>
-      <sortType>date</sortType>
+      <sortAttribute>Schedule,MACADDRESS,givenName</sortAttribute>
+      <sortType>date,string,string</sortType>
       <value>%{filter:filterSchedule(TIMESTAMP)}</value>
       <export>true</export>
     </column>
 
     <column>
       <label>Status</label>
-      <sortAttribute>uid</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>uid,MACADDRESS,givenName</sortAttribute>
+      <sortType>string,string,string</sortType>
       <value>%{filter:filterStatus(STATUS,MACADDRESS,HEADERTAG,PROGRESS)}</value>
       <export>true</export>
     </column>

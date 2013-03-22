@@ -77,8 +77,8 @@
 
     <column>
       <label>Description</label>
-      <sortAttribute>description</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>description,cn</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{filter:depLabel(row,dn,"%s",description,pid,base)}</value>
       <export>true</export>
     </column>

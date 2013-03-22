@@ -34,8 +34,8 @@
 
     <column>
       <label>Sections</label>
-      <sortAttribute>Sections</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>Sections,Release</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{filter:filterSections(row,Sections)}</value>
       <export>true</export>
     </column>

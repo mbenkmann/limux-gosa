@@ -25,8 +25,8 @@
 
     <column>
       <label>!</label>
-      <sortAttribute>Status</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>Status,Message</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{filter:filterServiceStatus(row,dn,"%s",Status)}</value>
       <export>true</export>
     </column>
