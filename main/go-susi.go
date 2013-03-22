@@ -45,6 +45,9 @@ import (
           "../message"
        )
 
+import _ "net/http/pprof"
+import "net/http"
+
 const USAGE = `go-susi
 
 Starts the daemon.
@@ -145,6 +148,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   go message.CheckPossibleClients()
   go message.Broadcast_new_server()
   go message.DistributeForeignJobUpdates()
+  go func(){http.ListenAndServe("localhost:6060", nil)}()
 
   /********************  main event loop ***********************/  
   for{ 
