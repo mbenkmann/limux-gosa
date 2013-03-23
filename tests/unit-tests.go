@@ -60,6 +60,7 @@ func UnitTests() {
   }()
   
   Deque_test()
+  Bytes_test()
   Util_test()
   Xml_test()
   DB_test() // Must run before Message_test()

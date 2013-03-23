@@ -29,9 +29,10 @@ import (
          "io/ioutil"
          "fmt"
          "sort"
-         "bytes"
          "strings"
          "encoding/base64"
+         
+         "../bytes"
        )
 
 import encxml "encoding/xml"
