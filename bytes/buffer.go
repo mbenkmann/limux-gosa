@@ -112,6 +112,36 @@ func (b *Buffer) String() string {
   return C.GoStringN((*C.char)(b.ptr), C.int(b.sz))
 }
 
+// Split slices the buffer into all substrings separated by sep and returns
+// a slice of the substrings between those separators. The buffer itself is
+// unchanged and the strings are copies (of course).
+// If sep is empty, this function panics.
+func (b *Buffer) Split(sep string) []string {
+  if sep == "" { panic("UTF-8 splitting like strings.Split() has is not implemented") }
+  if b.sz == 0 { return []string{} }
+  
+  result := make([]string,0,2)
+  buf := ((*[maxInt]byte)(b.ptr))[0:b.sz]
+  last_idx := 0
+  idx := 0
+  ch := sep[0]
+  last_possible_idx := len(buf)-len(sep)
+  for idx <= last_possible_idx { 
+    if buf[idx] == ch {
+      for k := 1; k < len(sep); k++ {
+        if buf[idx+k] != sep[k] { goto notfound }
+      }
+      result = append(result, string(buf[last_idx:idx]))
+      last_idx = idx + len(sep)
+      idx = last_idx - 1
+    }
+  notfound:
+    idx++
+  }
+  result = append(result, string(buf[last_idx:]))
+  return result
+}
+
 // Frees the memory held by the Buffer. The Buffer remains valid and is ready
 // to take new data.
 func (b *Buffer) Reset() {

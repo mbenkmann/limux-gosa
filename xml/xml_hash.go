@@ -634,16 +634,16 @@ func ReaderToHash(r io.Reader) (xml *Hash, err error) {
 func LdifToHash(itemtag string, casefold bool, ldif interface{}) (xml *Hash, err error) {
   x := NewHash("xml")
   
-  var ldif_str string
+  var lines []string
   switch ld := ldif.(type) {
-    case []byte: ldif_str = string(ld)
-    case string: ldif_str = ldif.(string)
+    case []byte: lines = strings.Split(string(ld), "\n")
+    case string: lines = strings.Split(ldif.(string), "\n")
     case io.Reader:
       xmldata, err := ioutil.ReadAll(ld)
       if err != nil {
         return x, err
       }
-      ldif_str = string(xmldata)
+      lines = strings.Split(string(xmldata), "\n")
     case *exec.Cmd:
       var outbuf bytes.Buffer
       var errbuf bytes.Buffer
@@ -662,12 +662,11 @@ func LdifToHash(itemtag string, casefold bool, ldif interface{}) (xml *Hash, err
         return x, err
       }
       
-      ldif_str = outbuf.String()
+      lines = outbuf.Split("\n")
     default:
       return x, fmt.Errorf("ldif argument has unsupported type")
   }
   
-  lines := strings.Split(ldif_str, "\n")
   i := 0
   if len(lines) > 0 && strings.HasPrefix(lines[0], "version:") { i++ }
 

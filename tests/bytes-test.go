@@ -113,5 +113,12 @@ func testBuffer() {
   b.WriteString("ein ")
   b.Write([]byte("Test"))
   check(b.String(), "Hallo dies ist ein Test")
+  
+  check(b.Split(" "), []string{"Hallo","dies","ist","ein","Test"})
+  check(b.Split("X"), []string{"Hallo dies ist ein Test"})
+  check(b.Split("Hallo dies ist ein Test"), []string{"",""})
+  check(b.Split("H"), []string{"","allo dies ist ein Test"})
+  check(b.Split("Test"), []string{"Hallo dies ist ein ",""})
+  check(b.Split("es"), []string{"Hallo di"," ist ein T","t"})
 }
 
