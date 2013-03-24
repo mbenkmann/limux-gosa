@@ -27,6 +27,12 @@ import (
          "../config"
        )
 
+/*
+#include <malloc.h>
+*/
+import "C"
+
+
 var startTime = time.Now() 
 
 // Handles the message "sistats".
@@ -74,6 +80,15 @@ func sistats() string {
   answer.Add("NumGC").SetText("%v",m.NumGC)
   answer.Add("EnableGC").SetText("%v",m.EnableGC)
   answer.Add("DebugGC").SetText("%v",m.DebugGC)
+  
+  mallinfo := C.mallinfo()
+  answer.Add("mallinfo_arena").SetText("%v",mallinfo.arena)
+  answer.Add("mallinfo_ordblks").SetText("%v",mallinfo.ordblks)
+  answer.Add("mallinfo_hblks").SetText("%v",mallinfo.hblks)
+  answer.Add("mallinfo_hblkhd").SetText("%v",mallinfo.hblkhd)
+  answer.Add("mallinfo_uordblks").SetText("%v",mallinfo.uordblks)
+  answer.Add("mallinfo_fordblks").SetText("%v",mallinfo.fordblks)
+  answer.Add("mallinfo_keepcost").SetText("%v",mallinfo.keepcost)
   
   return stats.String()
 }
