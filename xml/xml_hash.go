@@ -427,6 +427,7 @@ func (self *Hash) Get(subtag ...string) []string {
 func (self *Hash) Text(subtag ...string) string {
   if len(subtag) == 0 {
     var buffy bytes.Buffer
+    defer buffy.Reset()
     encxml.Escape(&buffy, []byte(self.text))
     return buffy.String()
   }
@@ -451,6 +452,7 @@ func (self *Hash) String() string {
 //  the list will win. Subelements will not be duplicated in the output.
 func (self *Hash) SortedString(sortorder ...string) string {
   var buffy bytes.Buffer
+  defer buffy.Reset()
   buffy.WriteByte('<')
   buffy.WriteString(self.Name())
   buffy.WriteByte('>')
@@ -473,6 +475,7 @@ func (self *Hash) SortedString(sortorder ...string) string {
 //  the list will win. Subelements will not be duplicated in the output.
 func (self *Hash) InnerXML(sortorder ...string) string {
   var buffy bytes.Buffer
+  defer buffy.Reset()
   encxml.Escape(&buffy, []byte(self.text))
   keys := self.Subtags()
   sort.Strings(keys)
@@ -646,7 +649,9 @@ func LdifToHash(itemtag string, casefold bool, ldif interface{}) (xml *Hash, err
       lines = strings.Split(string(xmldata), "\n")
     case *exec.Cmd:
       var outbuf bytes.Buffer
+      defer outbuf.Reset()
       var errbuf bytes.Buffer
+      defer errbuf.Reset()
       oldout := ld.Stdout
       olderr := ld.Stderr
       ld.Stdout = &outbuf
