@@ -87,6 +87,7 @@ func SystemTest(daemon string, is_gosasi bool) {
   
   // this reads either the default config or the one we created above
   config.ReadConfig()
+  defer config.Shutdown()
   
   config.Timeout = reply_timeout
   

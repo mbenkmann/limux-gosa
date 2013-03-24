@@ -173,6 +173,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
                        <-wait // for jobdb
                        <-wait // for serverdb
                        <-wait // for clientdb
+                       config.Shutdown()
                        util.Log(1, "INFO! Databases have been saved => Exit program")
                        os.Exit(0)
                     }

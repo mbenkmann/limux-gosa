@@ -82,7 +82,7 @@ var PackageListHookPath = "/usr/lib/go-susi/generate_package_list"
 var FAILogPath = "/var/log/fai"
 
 // Temporary directory only accessible by the user running go-susi.
-// Used e.g. for storing password files. NOT deleted automatically!
+// Used e.g. for storing password files. Deleted in config.Shutdown().
 var TempDir = ""
 func init() {
   tempdir, err := ioutil.TempDir("", "go-susi-")
@@ -187,7 +187,8 @@ var LDAPAdmin = "cn=clientmanager,ou=incoming,c=de"
 // File containing the password of the admin user for writing to LDAP.
 var LDAPAdminPasswordFile string
 func init() {
-  // must be in init() function because TempDir is initialized in init()
+  // The assignment must be inside init() instead of (as would be nicer)
+  // as part of the var declaration, because TempDir is initialized in init().
   LDAPAdminPasswordFile = TempDir + "/" + "ldapadminpw"
   err := ioutil.WriteFile(LDAPAdminPasswordFile, []byte{}, 0600)
   if err != nil { panic(err) }
@@ -199,7 +200,8 @@ var LDAPUser = ""
 // File containing the password of the user for reading from LDAP.
 var LDAPUserPasswordFile string
 func init() {
-  // must be in init() function because TempDir is initialized in init()
+  // The assignment must be inside init() instead of (as would be nicer)
+  // as part of the var declaration, because TempDir is initialized in init().
   LDAPUserPasswordFile = TempDir + "/" + "ldapuserpw"
   err := ioutil.WriteFile(LDAPUserPasswordFile, []byte{}, 0600)
   if err != nil { panic(err) }
@@ -507,3 +509,10 @@ func ReadNetwork() {
   util.Log(1, "INFO! Hostname: %v  Domain: %v  MAC: %v  Server: %v", Hostname, Domain, MAC, ServerSourceAddress)
 }
 
+func Shutdown() {
+  util.Log(1, "INFO! Removing temporary directory %v", TempDir)
+  err := os.RemoveAll(TempDir)
+  if err != nil {
+    util.Log(0, "ERROR! Could not remove temporary directory: %v", err)
+  }
+}
