@@ -818,7 +818,6 @@ func run_detected_hardware_tests() {
     }
   }
   
-  
   /*
     TEST 4: Use detected_hardware to change cn
     Send detected_hardware with
@@ -848,7 +847,6 @@ func run_detected_hardware_tests() {
     check(sys, test3_result)
   }
   
-  
   /*
     TEST 5: Use detected_hardware to change dn
     Send detected_hardware with
@@ -872,7 +870,7 @@ func run_detected_hardware_tests() {
     test3_result.First("dn").SetText("cn=drjekyll,ou=systems,o=go-susi,c=de")
     check(sys, test3_result)
   }
-  
+
   /*
     TEST 6: Try to change dn to top-level (outside of base). Must fail!
     Send detected_hardware identical to the one from TEST 5, except for

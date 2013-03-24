@@ -23,6 +23,9 @@ test: all
 clean:
 	rm -f $(BINARIES) gosa-si-server go-susi_*.deb
 	hg revert --no-backup testdata/ldif
+	rm -f testdata/ldif/c=de/o=go-susi/ou=incoming/cn=*.ldif
+	rm -f testdata/ldif/c=de/o=go-susi/ou=systems/ou=workstations/cn=system-aa-00-bb-11-cc-99.ldif
+	rm -f testdata/ldif/c=de/o=go-susi/ou=systems/ou=workstations/cn=mrhyde.ldif
 
 deb: all
 	main/makedeb
