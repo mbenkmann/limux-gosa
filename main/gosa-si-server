@@ -43,6 +43,6 @@ else
   (
     trap "" SIGHUP
     echo "$BASHPID" >"$pidfile"
-    exec </dev/null setsid /usr/lib/go-susi/gosa-si-server "${args[@]}" 2>&1 | exec tail -n 10000 >>/var/log/gosa-si-server-crash.log
-  )&
+    exec </dev/null setsid /usr/lib/go-susi/gosa-si-server "${args[@]}" 2>&1 
+  ) | exec -a gosa-si-server-crash-monitor tail -n 10000 >>/var/log/gosa-si-server-crash.log &
 fi
