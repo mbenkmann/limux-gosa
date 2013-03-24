@@ -32,17 +32,17 @@ esac
 
 rm -f "$pidfile"
 
-# We must call /usr/lib/gosa-si-server because the binary has to be named gosa-si-server,
+# We must call /usr/lib/go-susi/gosa-si-server because the binary has to be named gosa-si-server,
 # because start-stop-daemon tests this name.
 # It is not enough to pass argv[0]=gosa-si-server via exec.
 
 if [ $foreground = 1 ]; then
   echo "$BASHPID" >"$pidfile"
-  exec /usr/lib/gosa-si-server "${args[@]}"
+  exec /usr/lib/go-susi/gosa-si-server "${args[@]}"
 else
   (
     trap "" SIGHUP
     echo "$BASHPID" >"$pidfile"
-    exec &>/dev/null </dev/null setsid /usr/lib/gosa-si-server "${args[@]}"
+    exec </dev/null setsid /usr/lib/go-susi/gosa-si-server "${args[@]}" 2>&1 | exec tail -n 10000 >>/var/log/gosa-si-server-crash.log
   )&
 fi
