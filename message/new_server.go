@@ -50,10 +50,13 @@ func Send_new_server(header string, target string) {
   msg.Add(header)
   msg.Add("source", config.ServerSourceAddress)
   msg.Add("macaddress", config.MAC)
-  msg.Add("loaded_modules", "gosaTriggered", "siTriggered", 
-                            "clMessages", "server_server_com", 
-                            "databases", "logHandling", 
-                            "goSusi")
+  msg.Add("loaded_modules", "gosaTriggered")
+  msg.Add("loaded_modules", "siTriggered")
+  msg.Add("loaded_modules", "logHandling")
+  msg.Add("loaded_modules", "databases")
+  msg.Add("loaded_modules", "server_server_com")
+  msg.Add("loaded_modules", "clMessages")
+  msg.Add("loaded_modules", "goSusi")
   msg.Add("key", keys[0])
   msg.Add("target", target)
   

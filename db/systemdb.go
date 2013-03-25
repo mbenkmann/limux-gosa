@@ -429,7 +429,7 @@ func SystemGetTemplatesFor(system *xml.Hash) *xml.Hash {
   for t := x.RemoveFirst("xml"); t != nil; t = x.RemoveFirst("xml") {
     specificity := templateMatch(system, t.Text("gocomment"))
     if specificity > 0 {
-      t.Add("TEMPLATE_MATCH_SPECIFICITY").SetText("%v",specificity)
+      t.Add("TEMPLATE_MATCH_SPECIFICITY", specificity)
       for i := 0; i < templates.Count(); i++ {
         tspec,_ := strconv.Atoi(templates.At(i).(*xml.Hash).Text("TEMPLATE_MATCH_SPECIFICITY"))
         if specificity >= tspec {

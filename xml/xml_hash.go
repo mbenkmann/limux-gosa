@@ -39,18 +39,17 @@ import encxml "encoding/xml"
 
 // An xml.Hash is a representation of simple XML data that follows certain
 // restrictions:
-//  * no attributes
+//  * no attributes (they can be parsed but will be converted to child elements)
 //  * all text children of an element are treated as a single text, even if
 //    they are interspersed with tags.
 //  * the order of siblings with the same tag name is preserved, but the order
-//    of siblings with different tag names is not. 
-//    E.g.  "<xml><foo>1</foo><bar>A</bar><foo>2</foo><bar>B</bar></xml>"
-//    will result in a Hash that preserves the order of "1" and "2" as well as
-//    the order of "A" and "B", but does not preserve the relative order of <foo>
-//    and <bar> elements.
+//    of siblings with different tag names is not guaranteed to be.
+//    E.g.  "<xml><foo>1</foo><bar>A</bar><foo>2</foo><bar>B</bar></xml>" and
+//          "<xml><bar>A</bar><foo>1</foo><foo>2</foo><bar>B</bar></xml>" 
+//          are not guaranteed to be distinguishable from each other.
 //
-// In simpler terms: a Hash is a hashmap of lists where each list stores
-// Hashes for a single type of tag. 
+// In simpler terms: a Hash maps each element name to an ordered list of all
+// child elements with that name.
 // 
 type Hash struct {
   // "foo" for a tag <foo>
@@ -218,54 +217,53 @@ func (self *Hash) verifyChildren(have_seen map[*Hash]bool) error {
   return nil
 }
 
-// Replaces the current text content of the receiver with the new text.
-// If no args are provided, the format string is used directly, otherwise
-// formatting will be done by Sprintf().
-// Returns the new text content.
-func (self *Hash) SetText(format string, args ...interface{}) string {
+// Replaces the current text content of the receiver.
+// If called without any args, the receiver's text content will be deleted.
+// If called with a single arg that is a string, []byte or [][]byte, the 
+// text will be replaced with the literal bytes from that argument.
+// If called with a single arg that is of a different type, the text
+// will be replaced with the result of fmt.Sprintf("%v",arg).
+// If called with 2 or more args, the first one must be a format string F
+// and the text will be replaced with the result from fmt.Sprintf(F,args[1:])
+func (self *Hash) SetText(args ...interface{}) {
   if len(args) == 0 {
-    self.text = format
+    self.text = ""
+  } else if len(args) == 1 {
+    switch arg := args[0].(type) {
+      case string: self.text = arg
+      case []byte: self.text = string(arg)
+      case [][]byte: t := []byte{}
+                     for i := range arg { t = append(t, arg[i]...) }
+                     self.text = string(t)
+      default: self.text = fmt.Sprintf("%v", arg)
+    }
   } else {
-    self.text = fmt.Sprintf(format, args...)
+    self.text = fmt.Sprintf(args[0].(string), args[1:]...)
   }
-  return self.text
 }
 
-// For each text, a <subtag>text</subtag> child is added (an empty 
-// <subtag></subtag> is added even if no text is provided) and 
-// returns the last subtag added.
-func (self *Hash) Add(subtag string, text ...string) *Hash {
-  if len(text) == 0 {
-    text = []string{""}
-  }
-  
-  new_hash := make([]*Hash, len(text))
-  for i := range text {
-    new_hash[i] = &Hash{name:subtag, text:text[i], refn:[]string{}, refp:[]*Hash{}}
-    if i > 0 {
-      new_hash[i-1].next = new_hash[i]
-    }
-  }
+// Adds a new child element X named subtag and (if any setText parameters are
+// supplied) executes X.SetText(setText...).
+// Returns the new child X.
+func (self *Hash) Add(subtag string, setText... interface{}) *Hash {
+  new_hash := &Hash{name:subtag, text:"", refn:[]string{}, refp:[]*Hash{}}
+  new_hash.SetText(setText...)
   
   first := self.First(subtag)
   if first == nil {
-    first = new_hash[0]
     self.refn = append(self.refn,subtag)
-    self.refp = append(self.refp,first)
-    if len(new_hash) > 1 {
-      first.last_sibling = new_hash[len(new_hash)-1]
-    }
+    self.refp = append(self.refp,new_hash)
   } else {
     last := first.last_sibling
-    first.last_sibling = new_hash[len(new_hash)-1]
+    first.last_sibling = new_hash
     if last == nil {
-      first.next = new_hash[0]
+      first.next = new_hash
     } else {
-      last.next = new_hash[0]
+      last.next = new_hash
     }
   }
   
-  return new_hash[len(new_hash)-1]
+  return new_hash
 }
 
 // Adds a clone of xml to this Hash as a child (at the end of the list
@@ -378,15 +376,11 @@ func (self *Hash) First(subtag string) *Hash {
 }
 
 // Returns the first child named subtag if one exists; otherwise performs
-// Add(subtag, text...) and then returns the first child added (This is different
-// from Add() which returns the last child!).
+// Add(subtag) and then returns the new child added.
 // See also First().
-func (self *Hash) FirstOrAdd(subtag string, text... string) *Hash {
+func (self *Hash) FirstOrAdd(subtag string) *Hash {
   ele := self.First(subtag)
-  if ele == nil {
-    self.Add(subtag, text...)
-    ele = self.First(subtag)
-  }
+  if ele == nil { ele = self.Add(subtag) }
   return ele
 }
 

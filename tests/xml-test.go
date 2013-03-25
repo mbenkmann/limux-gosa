@@ -40,6 +40,7 @@ func Xml_test() {
   
   fmt.Printf("\n=== xml.Hash ===\n\n")
   testHash()
+  testSetText()
   
   fmt.Printf("\n=== xml.DB ===\n\n")
   testDB()
@@ -381,10 +382,14 @@ func testHash() {
   bar.Add("server", "srv1")
   check(x, "<foo>Dies ist ein 2ter Test<bar><server>srv1</server></bar></foo>")
   
-  srv4 := bar.Add("server", "srv2", "srv3", "srv4")
+  srv4 := bar.Add("server", "srv2")
+  for _, s := range []string{"srv3", "srv4"} {
+    srv4 = bar.Add("server", s)
+  }
   check(x, "<foo>Dies ist ein 2ter Test<bar><server>srv1</server><server>srv2</server><server>srv3</server><server>srv4</server></bar></foo>")
   
-  srv4.Add("alias", "foxtrott", "alpha")
+  srv4.Add("alias", "foxtrott")
+  srv4.Add("alias", "alpha")
   check(x, "<foo>Dies ist ein 2ter Test<bar><server>srv1</server><server>srv2</server><server>srv3</server><server>srv4<alias>foxtrott</alias><alias>alpha</alias></server></bar></foo>")
   
   x_clone := x.Clone()
@@ -609,16 +614,54 @@ func testHash() {
   check(x.SortedString("foo","e","x","c","d","y"),"<xml><e><e></e><c></c><d></d><a></a><b></b></e><c><e></e><c></c><d></d><a></a><b></b></c><d><e></e><c></c><d></d><a></a><b></b></d><a><e></e><c></c><d></d><a></a><b></b></a><b><e></e><c></c><d></d><a></a><b></b></b></xml>")
   
   x = xml.NewHash("foo")
-  check(x.FirstOrAdd("id","1","2","3"),"<id>1</id>")
-  check(x,"<foo><id>1</id><id>2</id><id>3</id></foo>")
-  check(x.FirstOrAdd("id","4","5","6"),"<id>1</id>")
-  check(x,"<foo><id>1</id><id>2</id><id>3</id></foo>")
+  check(x.FirstOrAdd("id"),"<id></id>")
+  x.FirstOrAdd("id").SetText("1")
   check(x.FirstOrAdd("id"),"<id>1</id>")
   check(x.FirstOrAdd("bar"),"<bar></bar>")
   x.Rename("foobar")
-  check(x,"<foobar><bar></bar><id>1</id><id>2</id><id>3</id></foobar>")
+  check(x,"<foobar><bar></bar><id>1</id></foobar>")
   
   testLDIF()
+}
+
+func testSetText() {
+  x := xml.NewHash("foo")
+  
+  x.SetText("%v%%")
+  check(x, "<foo>%v%%</foo>")
+  
+  x.SetText()
+  check(x, "<foo></foo>")
+  
+  x.SetText([]byte{'H','<','l','l','o','&'})
+  check(x, "<foo>H&lt;llo&amp;</foo>")
+  
+  x.SetText([]byte{})
+  check(x, "<foo></foo>")
+  
+  x.SetText([][]byte{[]byte{},[]byte("Hi"),[]byte(" there!")})
+  check(x, "<foo>Hi there!</foo>")
+  
+  x.SetText([][]byte{})
+  check(x, "<foo></foo>")
+  
+  x.SetText(10)
+  check(x, "<foo>10</foo>")
+  
+  x.SetText([]bool{true,false})
+  check(x, "<foo>[true false]</foo>")
+  
+  x.SetText("This is a number: %d", 999)
+  check(x, "<foo>This is a number: 999</foo>")
+  
+  x.SetText("%v", []bool{true,false})
+  check(x, "<foo>[true false]</foo>")
+  
+  x.SetText("%v%%","")
+  check(x, "<foo>%</foo>")
+  
+  x.SetText("%v%v%v%s%s","","","","","")
+  check(x, "<foo></foo>")
 }
 
 type brokenreader bool
