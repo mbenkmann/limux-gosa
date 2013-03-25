@@ -340,7 +340,7 @@ func (self *Hash) RemoveFirst(subtag string) *Hash {
 // Removes the next sibling of this Hash from parent's child list
 // (which both must be members of)
 // and returns it (or nil if this Hash has no siblings).
-func (self *Hash) RemoveNext(parent *Hash) *Hash {
+func (self *Hash) removeNext(parent *Hash) *Hash {
   next := self.next
   if next == nil { return nil }
   
@@ -525,7 +525,7 @@ func (self *Hash) Remove(filter HashFilter) *Hash {
     }
     for item := self.First(subtag) ; item != nil ; item = item.Next() {
       for ; filter.Accepts(item.Next()) ; {
-        result.AddWithOwnership(item.RemoveNext(self))
+        result.AddWithOwnership(item.removeNext(self))
       }
     }
   }

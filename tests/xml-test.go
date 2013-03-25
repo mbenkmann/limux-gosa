@@ -352,7 +352,13 @@ func testDB() {
   db.Init(x)
 }
 
-
+type filterafter struct { prev *xml.Hash }
+func (f *filterafter) Accepts(item *xml.Hash) bool {
+  if item == nil { return false }
+  if item == f.prev { f.prev = nil; return false }
+  if f.prev == nil { f.prev = item; return true }
+  return false
+}
 
 func testHash() { 
   f := xml.NewHash("fruit", "banana")
@@ -538,17 +544,19 @@ func testHash() {
   check(donald.Next() == daisy, true)
   check(daisy.Next() == darkwing, true)
   check(darkwing.Next() == nil, true)
-  check(darkwing.RemoveNext(ducks) == nil, true)
-  check(donald.RemoveNext(ducks) == daisy, true)
+  
+  
+  check(ducks.Remove(&filterafter{darkwing}), "<ducks></ducks>")
+  check(ducks.Remove(&filterafter{donald}).First("duck") == daisy, true)
   check(daisy.Verify(), nil)
   check(daisy.Next(), nil)
   check(ducks, "<ducks><duck>donald</duck><duck>darkwing</duck></ducks>")
   ducks.AddWithOwnership(daisy)
-  check(darkwing.RemoveNext(ducks) == daisy, true)
+  check(ducks.Remove(&filterafter{darkwing}).First("duck") == daisy, true)
   check(daisy.Verify(), nil)
   check(daisy.Next(), nil)
   check(ducks.Verify(), nil)
-  check(donald.RemoveNext(ducks) == darkwing, true)
+  check(ducks.Remove(&filterafter{donald}).First("duck") == darkwing, true)
   check(darkwing.Verify(), nil)
   check(darkwing.Next(), nil)
   check(ducks.Verify(), nil)
@@ -567,7 +575,7 @@ func testHash() {
        test_kids = kids.Clone()
        test_kid = test_kids.First("kid")
        for j := 0; j < i; j++ { test_kid = test_kid.Next() }
-       test_kid = test_kid.RemoveNext(test_kids)
+       test_kid = test_kids.Remove(&filterafter{test_kid}).First("kid")
        check(test_kids.Verify(),nil)
        if i+1 == num_kids { 
          check(test_kid, nil) 
