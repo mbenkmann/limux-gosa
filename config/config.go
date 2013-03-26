@@ -123,6 +123,10 @@ var BestInterface = -1
 // This is just the value read from the config file.
 var LogLevel int
 
+// Maximum number of active connections allowed. If this limit is reached,
+// no further connections will be accepted on the socket.
+var MaxConnections int32 = 512
+
 // Maximum time permitted for a read or write transmission. If this time
 // is exceeded, the transmission is aborted.
 var Timeout = 5 * time.Minute

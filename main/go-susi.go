@@ -34,9 +34,11 @@ import (
           "net"
           "log"
           "path"
+          "time"
           "bytes"
           "strings"
           "syscall"
+          "sync/atomic"
           
           "../db"
           "../util"
@@ -55,6 +57,9 @@ Starts the daemon.
 
 // Set to true when a signal is received that triggers go-susi shutdown.
 var Shutdown = false
+
+// counts the number of active connections. Limited by config.MaxConnections
+var ActiveConnections int32 = 0
 
 func main() {
   // Intercept signals asap (in particular intercept SIGTTOU before the first output)
@@ -193,6 +198,16 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // Accepts TCP connections on listener and sends them on the channel tcp_connections.
 func acceptConnections(listener *net.TCPListener, tcp_connections chan<- *net.TCPConn) {
   for {
+    message := true
+    for { // if we've reached the maximum number of connections, wait
+      if atomic.AddInt32(&ActiveConnections, 1) <= config.MaxConnections { break }
+      atomic.AddInt32(&ActiveConnections, -1)
+      if message {
+        util.Log(0, "WARNING! Maximum number of %v active connections reached => Throttling", config.MaxConnections)
+        message = false
+      }
+      time.Sleep(100*time.Millisecond)
+    }
     tcpConn, err := listener.AcceptTCP()
     if err != nil { 
       if Shutdown { return }
@@ -207,6 +222,7 @@ func acceptConnections(listener *net.TCPListener, tcp_connections chan<- *net.TC
 // line terminated by \n. The message may be encrypted as by message.GosaEncrypt().
 func handle_request(conn *net.TCPConn) {
   defer conn.Close()
+  defer atomic.AddInt32(&ActiveConnections, -1)
   defer util.Log(1, "INFO! Connection to %v closed", conn.RemoteAddr())
   
   var err error
