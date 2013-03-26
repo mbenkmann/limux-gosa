@@ -92,7 +92,7 @@ func confirm_new_server(xmlmsg *xml.Hash) {
 
 // Takes a confirm_new_server or new_server message and evaluates the <client>
 // elements, converts them into new_foreign_client messages and passes these
-// (in parallel goroutines) to the new_foreign_client() handler.
+// to the new_foreign_client() handler.
 func handleClients(xmlmsg *xml.Hash) {
   server := xmlmsg.Text("source")
   for client := xmlmsg.First("client"); client != nil; client = client.Next() {
@@ -107,9 +107,7 @@ func handleClients(xmlmsg *xml.Hash) {
     cxml.Add("client", cli[0])
     cxml.Add("macaddress", cli[1])
     cxml.Add("new_foreign_client")
-    go util.WithPanicHandler(func(){ 
-      new_foreign_client(cxml) 
-    })
+    new_foreign_client(cxml) 
   }
 }
 

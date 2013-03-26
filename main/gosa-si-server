@@ -1,6 +1,24 @@
 #!/bin/bash
+
+# limit stack size because it limits the number of possible threads
+ulimit -s 512
+
+# lift process limit if it is set
+ulimit -u unlimited
+
+# lift limit on open files (each socket connection requires one)
+ulimit -n 9999
+
+# see operator's manual section "TCP Keep-Alive"
+echo 30 >/proc/sys/net/ipv4/tcp_keepalive_time
+echo 10 >/proc/sys/net/ipv4/tcp_keepalive_intvl
+echo 5 >/proc/sys/net/ipv4/tcp_keepalive_probes
+
+
 pidfile="$(sed -n 's/^pid-file *= *\([^ ]*\)/\1/p' /etc/gosa-si/server.conf)"
 test -z "$pidfile" && pidfile=/var/run/gosa-si-server.pid
+
+crashlog="/var/log/gosa-si-server-crash.log"
 
 foreground="0"
 
@@ -41,8 +59,12 @@ if [ $foreground = 1 ]; then
   exec /usr/lib/go-susi/gosa-si-server "${args[@]}"
 else
   (
+    echo >>"$crashlog"
+    echo "================================================================" >>"$crashlog"
+    echo >>"$crashlog"
+    
     trap "" SIGHUP
     echo "$BASHPID" >"$pidfile"
     exec </dev/null setsid /usr/lib/go-susi/gosa-si-server "${args[@]}" 2>&1 
-  ) | exec -a gosa-si-server-crash-monitor tail -n 10000 >>/var/log/gosa-si-server-crash.log &
+  ) | exec -a gosa-si-server-crash-monitor tail -n 10000 >>"$crashlog" &
 fi
