@@ -38,10 +38,8 @@ func detected_hardware(xmlmsg *xml.Hash) {
   // at the same time unions together all <detected_hardware> elements.
   detected := xml.NewHash("xml")
   for dh := xmlmsg.First("detected_hardware"); dh != nil; dh = dh.Next() {
-    for _, tag := range dh.Subtags() {
-      for ele := dh.First(tag); ele != nil; ele = ele.Next() {
-        detected.Add(strings.ToLower(tag), ele.Text())
-      }
+    for child := dh.FirstChild(); child != nil; child = child.Next() {
+      detected.Add(strings.ToLower(child.Element().Name()), child.Element().Text())
     }
   }
   

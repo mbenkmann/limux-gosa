@@ -33,22 +33,19 @@ import (
 // Returns:
 //  unencrypted reply
 func gosa_query_fai_server(xmlmsg *xml.Hash) string {
-  servers := db.FAIServers()
+  serversdb := db.FAIServers()
+  servers := xml.NewHash("xml","header", "query_fai_server")
   
   var count uint64 = 1
-  for _, tag := range servers.Subtags() {
-    answer := servers.RemoveFirst(tag)
-    for ; answer != nil; answer = servers.RemoveFirst(tag) {
-      answer.Rename("answer"+strconv.FormatUint(count, 10))
-      servers.AddWithOwnership(answer)
-      count++
-    }
+  for child := serversdb.FirstChild(); child != nil; child = child.Next() {
+    answer := child.Remove()
+    answer.Rename("answer"+strconv.FormatUint(count, 10))
+    servers.AddWithOwnership(answer)
+    count++
   }
   
-  servers.Add("header", "query_fai_server")
   servers.Add("source", config.ServerSourceAddress)
   servers.Add("target", xmlmsg.Text("source"))
   servers.Add("session_id", "1")
-  servers.Rename("xml")
   return servers.String()
 }

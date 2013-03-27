@@ -33,12 +33,11 @@ import (
 // Sends garbage to all clients listed in db.ClientsWeMayHave to
 // prompt them to send new here_i_am messages.
 func CheckPossibleClients() {
-  for _, tag := range db.ClientsWeMayHave.Subtags() {
-    for client := db.ClientsWeMayHave.First(tag); client != nil; client = client.Next() {
-      addr := client.Text("client")
-      util.Log(1, "INFO! Sending 'Müll' to %v", addr)
-      go util.SendLnTo(addr, "Müll", config.Timeout)
-    }
+  for child := db.ClientsWeMayHave.FirstChild(); child != nil; child = child.Next() {
+    client := child.Element()
+    addr := client.Text("client")
+    util.Log(1, "INFO! Sending 'Müll' to %v", addr)
+    go util.SendLnTo(addr, "Müll", config.Timeout)
   }
 }
 

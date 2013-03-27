@@ -168,10 +168,8 @@ func (db *DB) ColumnValues(column string) []string {
   db.mutex.RLock()
   defer db.mutex.RUnlock()
   result := make([]string, 0, 4)
-  for _, subtag := range db.data.Subtags() {
-    for item := db.data.First(subtag); item != nil; item = item.Next() {
-      result = append(result, item.Get(column)...)
-    }
+  for child := db.data.FirstChild(); child != nil; child = child.Next() {
+    result = append(result, child.Element().Get(column)...)
   }
   return result
 }
@@ -204,7 +202,7 @@ func (db *DB) Replace(filter HashFilter, must_match bool, items... *Hash) *Hash 
   
   result := db.data.Remove(filter)
 
-  if must_match == false || len(result.Subtags()) > 0 {
+  if must_match == false || result.FirstChild() != nil {
     for _, item := range items {
       db.data.AddClone(item)
     }

@@ -59,11 +59,12 @@ func foreign_job_updates(xmlmsg *xml.Hash) {
   // SyncIfNotGoSusi().
   syncIfNotGoSusi := make(map[string]bool)
   
-  for _, tag := range xmlmsg.Subtags() {
+  for child := xmlmsg.FirstChild(); child != nil; child = child.Next() {
   
-    if !strings.HasPrefix(tag, "answer") { continue }
+    if !strings.HasPrefix(child.Element().Name(), "answer") { continue }
   
-    for answer := xmlmsg.First(tag); answer != nil; answer = answer.Next() {
+    answer := child.Element() 
+    {
       job := answer.Clone()
       job.Rename("job")
       

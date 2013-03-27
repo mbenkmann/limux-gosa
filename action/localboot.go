@@ -31,11 +31,11 @@ func Localboot(job *xml.Hash) {
     
     // Wait a little and see if the jobs are gone
     time.Sleep(3*time.Second)
-    if len(db.JobsQuery(filter).Subtags()) == 0 { 
+    if db.JobsQuery(filter).FirstChild() == nil { // if all jobs are gone
       // set state again just in case the job removal raced with something that set faistate
       db.SystemSetState(job.Text("macaddress"), "faiState", "localboot")
-      return 
-    }
+      return // we're done
+    } // else if some jobs remained
     
     util.Log(2, "DEBUG! Force localboot: Some install/softupdate jobs remain => Retrying")
   }

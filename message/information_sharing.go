@@ -29,7 +29,8 @@ import (
 //  xmlmsg: the decrypted and parsed message
 func information_sharing(xmlmsg *xml.Hash) {
   maintag := ""
-  for _, tag := range xmlmsg.Subtags() {
+  for child := xmlmsg.FirstChild(); child != nil; child = child.Next() {
+    tag := child.Element().Name()
     if tag == "header" || tag == "source" || tag == "target" || tag == "information_sharing" {
       // The usual suspects
       

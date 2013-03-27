@@ -36,7 +36,7 @@ var gotoLdapServerRegexp = regexp.MustCompile("^([0-9]+):([^:]+):([^:/]+:/{0,2}[
 func Send_new_ldap_config(client_addr string, system *xml.Hash) {
   message_start := "<xml><source>"+config.ServerSourceAddress+"</source><target>"+client_addr+"</target>"
   
-  if system != nil && len(system.Subtags()) > 0 { // if LDAP data for system is available
+  if system != nil && system.FirstChild() != nil { // if LDAP data for system is available
 
     // send new_ntp_config if gotoNtpServer available
     ntps := system.Get("gotontpserver")

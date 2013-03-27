@@ -295,9 +295,8 @@ func JobsForwardModifyRequest(filter xml.HashFilter, update *xml.Hash) {
     util.Log(2, "DEBUG! JobsForwardModifyRequest applying %v to %v", request.Job, jobdb_xml)
     count := make(map[string]uint64)
     fju   := make(map[string]*xml.Hash)
-    for _, tag := range jobdb_xml.Subtags() {
-      // Use RemoveFirst() so that we can use Rename() and AddWithOwnership()
-      for job := jobdb_xml.RemoveFirst(tag); job != nil; job = jobdb_xml.RemoveFirst(tag) {
+    for child := jobdb_xml.FirstChild(); child != nil; child = child.Next() {
+        job := child.Remove()
         siserver := job.Text("siserver")
         if count[siserver] == 0 { 
           count[siserver] = 1 
@@ -315,7 +314,6 @@ func JobsForwardModifyRequest(filter xml.HashFilter, update *xml.Hash) {
         JobUpdateXMLMessage(job)
         count[siserver]++
         fju[siserver].AddWithOwnership(job)
-      }
     }
     
     for siserver := range fju {
@@ -412,9 +410,8 @@ func JobsRemoveLocal(filter xml.HashFilter, stop_periodic bool) {
     util.Log(2, "DEBUG! JobsRemoveLocal(stop_periodic=%v) removing job(s): %v", stop_periodic, jobdb_xml)
     fju := xml.NewHash("xml","header","foreign_job_updates")
     var count uint64 = 1
-    for _, tag := range jobdb_xml.Subtags() {
-      // Use RemoveFirst() so that we can use Rename() and AddWithOwnership()
-      for job := jobdb_xml.RemoveFirst(tag); job != nil; job = jobdb_xml.RemoveFirst(tag) {
+    for child := jobdb_xml.FirstChild(); child != nil; child = child.Next() {
+        job := child.Remove()
         job.FirstOrAdd("status").SetText("done")
         if stop_periodic {
           job.FirstOrAdd("periodic").SetText("none")
@@ -425,7 +422,6 @@ func JobsRemoveLocal(filter xml.HashFilter, stop_periodic bool) {
         job.Rename("answer"+strconv.FormatUint(count, 10))
         count++
         fju.AddWithOwnership(job)
-      }
     }
     
     if count > 1 {
@@ -471,9 +467,8 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
     util.Log(2, "DEBUG! JobsModifyLocal applying %v to %v", request.Job, jobdb_xml)
     fju := xml.NewHash("xml","header","foreign_job_updates")
     var count uint64 = 1
-    for _, tag := range jobdb_xml.Subtags() {
-      // Use RemoveFirst() so that we can use Rename() and AddWithOwnership()
-      for job := jobdb_xml.RemoveFirst(tag); job != nil; job = jobdb_xml.RemoveFirst(tag) {
+    for child := jobdb_xml.FirstChild(); child != nil; child = child.Next() {
+        job := child.Remove()
         for _, field := range updatableFields {
           x := request.Job.First(field)
           if x != nil {
@@ -496,7 +491,6 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
         job.Rename("answer"+strconv.FormatUint(count, 10))
         count++
         fju.AddWithOwnership(job)
-      }
     }
     
     if count > 1 {
@@ -639,10 +633,9 @@ func JobsSyncAll(target string, old *xml.Hash) {
     myjobs := jobDB.Query(xml.FilterSimple("siserver",config.ServerSourceAddress))
     
     // Remove all old jobs from fju that have a counterpart in the current list
-    for _, tag := range myjobs.Subtags() {
-      for job := myjobs.First(tag); job != nil; job = job.Next() {
-        fju.Remove(xml.FilterSimple("headertag",job.Text("headertag"),"macaddress", job.Text("macaddress")))
-      }
+    for child := myjobs.FirstChild(); child != nil; child = child.Next() {
+      job := child.Element()
+      fju.Remove(xml.FilterSimple("headertag",job.Text("headertag"),"macaddress", job.Text("macaddress")))
     }
     
     // Next set all remaining old jobs in fju to "done" non-periodic and renumber them.
@@ -653,9 +646,9 @@ func JobsSyncAll(target string, old *xml.Hash) {
     // So when we finally reach the unrenumbered "answerX" in the subtags list,
     // RemoveFirst() will reliably remove only the unrenumbered job.
     var count uint64 = 1
-    for _, tag := range fju.Subtags() {
-      if !strings.HasPrefix(tag,"answer") { continue }
-      job := fju.RemoveFirst(tag)
+    for child := fju.FirstChild(); child != nil; child = child.Next() {
+      if !strings.HasPrefix(child.Element().Name(),"answer") { continue }
+      job := child.Remove()
       job.FirstOrAdd("status").SetText("done")
       job.FirstOrAdd("periodic").SetText("none")
         // If the target is an as-yet unidentified go-susi, it would
@@ -669,14 +662,12 @@ func JobsSyncAll(target string, old *xml.Hash) {
     }
     
     // Now add the jobs from myjobs to fju.
-    for _, tag := range myjobs.Subtags() {
-      // Use RemoveFirst() so that we can use Rename() and AddWithOwnership()
-      for job := myjobs.RemoveFirst(tag); job != nil; job = myjobs.RemoveFirst(tag) {
-        job.RemoveFirst("original_id")
-        job.Rename("answer"+strconv.FormatUint(count, 10))
-        count++
-        fju.AddWithOwnership(job)
-      }
+    for child := myjobs.FirstChild(); child != nil; child = child.Next() {
+      job := child.Remove()
+      job.RemoveFirst("original_id")
+      job.Rename("answer"+strconv.FormatUint(count, 10))
+      count++
+      fju.AddWithOwnership(job)
     }
     
     if count > 1 {

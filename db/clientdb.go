@@ -164,13 +164,11 @@ func ClientUpdate(client *xml.Hash) {
   // client, which will cause it to send us a here_i_am if it still feels attached
   // to us. That here_i_am will then undo the incorrect assignment.
   if client.Text("source") != config.ServerSourceAddress {
-    for _, tag := range old.Subtags() {
-      for oldclient := old.First(tag); oldclient != nil; oldclient = oldclient.Next() {
-        if oldclient.Text("source") == config.ServerSourceAddress {
-          addr := oldclient.Text("client")
-          util.Log(1, "INFO! Client taken away from us. Verifying by sending 'Müll' to %v", addr)
-          go util.SendLnTo(addr, "Müll", config.Timeout)
-        }
+    for oldclient := old.FirstChild(); oldclient != nil; oldclient = oldclient.Next() {
+      if oldclient.Element().Text("source") == config.ServerSourceAddress {
+        addr := oldclient.Element().Text("client")
+        util.Log(1, "INFO! Client taken away from us. Verifying by sending 'Müll' to %v", addr)
+        go util.SendLnTo(addr, "Müll", config.Timeout)
       }
     }
   }

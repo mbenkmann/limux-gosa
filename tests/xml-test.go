@@ -41,6 +41,7 @@ func Xml_test() {
   fmt.Printf("\n=== xml.Hash ===\n\n")
   testHash()
   testSetText()
+  testIterator()
   
   fmt.Printf("\n=== xml.DB ===\n\n")
   testDB()
@@ -670,6 +671,40 @@ func testSetText() {
   
   x.SetText("%v%v%v%s%s","","","","","")
   check(x, "<foo></foo>")
+}
+
+func testIterator() {
+  check(xml.NewHash("foo").FirstChild() == nil, true)
+  check(xml.NewHash("foo","bar").FirstChild() == nil, true)
+
+  x := hash("x(a(e(bla))a(gurker)b(f(bla))c(bla))")
+  iter := x.FirstChild()
+  check(iter.Element(), hash("a(e(bla))"))
+  next := iter.Next()
+  check(iter.Element(), hash("a(e(bla))"))
+  check(next.Element(), iter.Element().Next())
+  check(next.Element(), hash("a(gurker)"))
+  next = next.Next()
+  check(next.Element(), hash("b(f(bla))"))
+  next = next.Next()
+  check(next.Element(), hash("c(bla)"))
+  check(next.Next() == nil, true)
+  
+  iter = x.FirstChild()
+  check(iter.Remove(), hash("a(e(bla))"))
+  check(iter.Element() == nil, true)
+  next = iter.Next()
+  check(next.Remove(), hash("a(gurker)"))
+  check(next.Element()==nil, true)
+  next = next.Next()
+  check(next.Remove(), hash("b(f(bla))"))
+  check(next.Remove()==nil, true)
+  check(next.Element()==nil, true)
+  next = next.Next()
+  check(next.Remove(), hash("c(bla)"))
+  check(next.Element()==nil, true)
+  check(next.Next() == nil, true)
+  
 }
 
 type brokenreader bool

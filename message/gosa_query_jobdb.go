@@ -65,12 +65,10 @@ func gosa_query_jobdb(xmlmsg *xml.Hash) string {
     return 0
   }*/
   answers := deque.New()
-  for _, tag := range jobdb_xml.Subtags() {
-    answer := jobdb_xml.RemoveFirst(tag)
-    for ; answer != nil; answer = jobdb_xml.RemoveFirst(tag) {
-      //answers.InsertSorted(answer, cmp)
-      answers.Insert(answer)
-    }
+  for child := jobdb_xml.FirstChild(); child != nil; child = child.Next() {
+    answer := child.Remove()
+    //answers.InsertSorted(answer, cmp)
+    answers.Insert(answer)
   }
 
   // maps IP:PORT to a string representation of that peer's downtime

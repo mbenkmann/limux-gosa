@@ -41,22 +41,19 @@ func gosa_query_packages_list(xmlmsg *xml.Hash) string {
     filter = xml.FilterNone
   }
   
-  packages := db.FAIPackages(filter)
+  packagesdb := db.FAIPackages(filter)
+  packages := xml.NewHash("xml","header","query_packages_list")
   
   var count uint64 = 1
-  for _, tag := range packages.Subtags() {
-    answer := packages.RemoveFirst(tag)
-    for ; answer != nil; answer = packages.RemoveFirst(tag) {
-      answer.Rename("answer"+strconv.FormatUint(count, 10))
-      packages.AddWithOwnership(answer)
-      count++
-    }
+  for child := packagesdb.FirstChild(); child != nil; child = child.Next() {
+    answer := child.Remove()
+    answer.Rename("answer"+strconv.FormatUint(count, 10))
+    packages.AddWithOwnership(answer)
+    count++
   }
   
-  packages.Add("header", "query_packages_list")
   packages.Add("source", config.ServerSourceAddress)
   packages.Add("target", xmlmsg.Text("source"))
   packages.Add("session_id", "1")
-  packages.Rename("xml")
   return packages.String()
 }

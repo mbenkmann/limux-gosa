@@ -42,22 +42,19 @@ func gosa_query_fai_release(xmlmsg *xml.Hash) string {
     filter = xml.FilterNone
   }
   
-  faiclasses := db.FAIClasses(filter)
+  faiclassesdb := db.FAIClasses(filter)
+  faiclasses := xml.NewHash("xml","header","query_fai_release")
   
   var count uint64 = 1
-  for _, tag := range faiclasses.Subtags() {
-    answer := faiclasses.RemoveFirst(tag)
-    for ; answer != nil; answer = faiclasses.RemoveFirst(tag) {
-      answer.Rename("answer"+strconv.FormatUint(count, 10))
-      faiclasses.AddWithOwnership(answer)
-      count++
-    }
+  for child := faiclassesdb.FirstChild(); child != nil; child = child.Next() {
+    answer := child.Remove()
+    answer.Rename("answer"+strconv.FormatUint(count, 10))
+    faiclasses.AddWithOwnership(answer)
+    count++
   }
   
-  faiclasses.Add("header", "query_fai_release")
   faiclasses.Add("source", config.ServerSourceAddress)
   faiclasses.Add("target", xmlmsg.Text("source"))
   faiclasses.Add("session_id", "1")
-  faiclasses.Rename("xml")
   return faiclasses.String()
 }

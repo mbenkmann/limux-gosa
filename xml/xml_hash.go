@@ -390,6 +390,106 @@ func (self *Hash) Next() *Hash {
   return self.next
 }
 
+// Effectively a special kind of *Hash that allows more flexibility.
+// In particular you can call Remove() on an Iterator and its Next() element
+// is still available. Furthermore Iterators offer selections and
+// orderings of elements other than the one defined by each *Hash's Next().
+//
+//   NOTE:
+//   This Iterator's usage differs from that of typical iterators. The Next()
+//   function does not advance the Iterator itself. Instead it returns a new
+//   Iterator to the next element in the iteration.
+//   This has been done for consistency with *Hash as demonstrated by the following
+//   examples:
+//
+//             // *Hash
+//   for child := x.First("foo"); child != nil; child = child.Next() { ... }
+//
+//            // Iterator
+//   for child := x.FirstChild(); child != nil; child = child.Next() { ... }
+type Iterator interface {
+  // Returns the current element in the iteration, or nil if 
+  // the element has been Remove()d.
+  //
+  // NOTE: A non-nil Iterator's Element is always non-nil unless it has been Remove()d.
+  Element() *Hash
+  
+  // Returns an Iterator to the next element in the iteration or nil if the iteration
+  // has reached the end.
+  Next() Iterator
+  
+  // Removes Element() from its parent Hash, so that it is independent and
+  // has neither parent nor siblings. Returns the removed element or nil if
+  // Element() was already nil.
+  Remove() *Hash
+}
+
+type iterateAllChildren struct {
+  Parent *Hash
+  Child *Hash
+  Nextname string
+  ChildIsNext bool
+}
+
+func (iter *iterateAllChildren) Element() *Hash {
+  if iter.ChildIsNext { return nil } // current Element has been removed
+  return iter.Child
+}
+
+func  (iter *iterateAllChildren) Remove() *Hash {
+  if iter.ChildIsNext || iter.Child == nil { return nil }
+
+  toremove := iter.Child
+  iter.advance()
+  iter.ChildIsNext = true
+
+  child := iter.Parent.First(toremove.Name())
+  if child == toremove {
+    return iter.Parent.RemoveFirst(toremove.Name())
+  }
+
+  for child != nil {
+    next := child.Next()
+    if next == toremove {
+      return child.removeNext(iter.Parent)
+    }
+    child = next
+  }
+  
+  return nil
+}
+
+func (iter *iterateAllChildren) Next() Iterator {
+  n := &iterateAllChildren{Parent:iter.Parent, Child:iter.Child, ChildIsNext:false, Nextname:iter.Nextname}
+  if !iter.ChildIsNext { n.advance() }
+  if n.Child == nil { return nil }
+  return n
+}
+
+func (iter *iterateAllChildren) advance() {
+  iter.Child = iter.Child.Next()
+  if iter.Child == nil {
+    nextname := iter.Nextname
+    iter.Nextname = ""
+    for i,n := range iter.Parent.refn {
+      if n == nextname {
+        iter.Child = iter.Parent.refp[i]
+        if i+1 < len(iter.Parent.refn) { iter.Nextname = iter.Parent.refn[i+1] }
+      }
+    }
+  }
+}
+
+// Returns nil if this Hash has no child elements; otherwise returns an Iterator
+// to the first child element within an iteration over all immediate child elements
+// (i.e. not including grandchildren) in some unspecified order.
+func (self *Hash) FirstChild() Iterator {
+  if len(self.refp) == 0 { return nil }
+  nextname := ""
+  if len(self.refn) > 1 { nextname = self.refn[1] }
+  return &iterateAllChildren{Parent:self, Child:self.refp[0], ChildIsNext:false, Nextname:nextname }
+}
+
 // Returns the names of all subtags of this Hash (unsorted!).
 // If the Hash has multiple subelements with the same tag, the tag is
 // only listed once. I.e. all strings in the result list are always different.
@@ -504,11 +604,9 @@ func (self *Hash) InnerXML(sortorder ...string) string {
 // whose child elements are deep copies of the children selected by filter.
 func (self *Hash) Query(filter HashFilter) *Hash {
   result := NewHash(self.Name())
-  for _, subtag := range self.Subtags() {
-    for item := self.First(subtag) ; item != nil; item = item.Next() {
-      if filter.Accepts(item) {
-        result.AddClone(item)
-      }
+  for item := self.FirstChild() ; item != nil; item = item.Next() {
+    if filter.Accepts(item.Element()) {
+      result.AddClone(item.Element())
     }
   }
   return result
@@ -519,17 +617,11 @@ func (self *Hash) Query(filter HashFilter) *Hash {
 // whose child elements are the removed items.
 func (self *Hash) Remove(filter HashFilter) *Hash {
   result := NewHash(self.Name())
-  for _, subtag := range self.Subtags() {
-    for ; filter.Accepts(self.First(subtag)) ; {
-      result.AddWithOwnership(self.RemoveFirst(subtag))
-    }
-    for item := self.First(subtag) ; item != nil ; item = item.Next() {
-      for ; filter.Accepts(item.Next()) ; {
-        result.AddWithOwnership(item.removeNext(self))
-      }
+  for child := self.FirstChild(); child != nil; child = child.Next() {
+    if filter.Accepts(child.Element()) {
+      result.AddWithOwnership(child.Remove())
     }
   }
-  
   return result
 }
 
