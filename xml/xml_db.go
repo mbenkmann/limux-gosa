@@ -242,9 +242,6 @@ func (db *DB) Persist() (err error) {
   db.mutex.Lock()
   defer db.mutex.Unlock()
 
-  // TODO: Remove this after a testing period (let's say 2014).
-  if db.data.Verify() != nil { panic("Corrupt DB detected. This is a bug.") }
-  
   // allow persist jobs to be scheduled again
   db.blockPersistJobs = false
   
