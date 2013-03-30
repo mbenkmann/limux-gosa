@@ -11,7 +11,7 @@ test -z "$oldrev" && oldrev=0
 LC_ALL=C hg log -r $oldrev:tip -v -I main/go-susi.go -I "message/*.go" -I "action/*.go" -I "util/*.go" -I "config/*.go" -I "db/*.go" -I "xml/*.go" | sed '/^changeset:/d;/^user:/d;/^date:/d;/^files:/d;/^description:/d' >testdata/citest.log
 make clean
 make test &>>testdata/citest.log || exit $?
-make frankensusi &>>testdata/citest.log
+make deb &>>testdata/citest.log
 rm -f deploy/gosa-si-server  # remove so that we can cleanly replace it even if running
 cp -a go-susi deploy/gosa-si-server
 cp config/version.go deploy/
