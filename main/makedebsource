@@ -1,0 +1,106 @@
+#!/bin/bash
+
+version=$(sed -n 's/.*Version.*=.*"\([^"]*\)".*/\1/p' config/version.go)
+revision=$(sed -n 's/.*Revision.*=.*"\([^"]*\)".*/\1/p' config/version.go)
+test -z "$version" && exit 1
+test -z "$revision" && exit 1
+section=main
+priority=optional
+timestamp="$(LC_ALL=C date -R)"
+debversion=${version}-1
+
+test -d deb/ && { echo "deb/ already exists!" ; exit 1 ; }
+mkdir deb || exit 1
+hg archive -t tgz -p go-susi-$version deb/go-susi_$version.orig.tar.gz
+cd deb || exit 1
+tar xzf go-susi_$version.orig.tar.gz
+cd go-susi-$version || exit 1
+mkdir debian
+
+echo >debian/changelog "go-susi ($debversion) stable; urgency=low
+
+  * Version $version
+
+ -- Matthias S. Benkmann <matthias@winterdrache.de>  $timestamp
+"
+
+echo >debian/control "Source: go-susi
+Section: $section
+Priority: $priority
+Maintainer: Matthias S. Benkmann <matthias@winterdrache.de>
+Build-Depends: libc6-dev, golang | golang-stable
+Standards-Version: 3.8.2
+
+Package: go-susi
+Architecture: any
+Depends: ldap-utils, libc6
+Conflicts: gosa-si-server
+Replaces: gosa-si-server
+Suggests: gosa
+Description: go-susi
+ go-susi
+"
+
+
+echo >config/version.go "package config
+
+const Version = \"$version\"
+const Revision = \"$revision\"
+
+"
+
+cp /etc/gosa-si/server.conf .
+cp /etc/logrotate.d/gosa-si-server logrotate-gosa-si-server
+
+echo >debian/postinst '#!/bin/sh -e
+
+# We exit unless the package is being configured
+case "$1" in
+        abort*upgrade)         exit 0;;
+        abort*remove)          exit 0;;
+        abort*deconfigure)     exit 0;;
+        configure) ;;
+        *)                     exit 0;
+esac
+
+# Fix permission
+[ -f /etc/gosa-si/server.conf ] && chmod go-rwx /etc/gosa-si/server.conf
+
+# Restart daemon
+invoke-rc.d gosa-si restart
+
+exit 0
+'
+chmod a+rx debian/postinst
+
+echo >debian/rules "#!/usr/bin/make -f
+clean:
+	make clean
+	rm -f debian/files
+	rm -rf dist/
+
+build:
+	go build main/go-susi.go
+	go build main/sibridge.go
+	chmod a+rx main/gosa-si-server main/generate_*
+	mkdir -p dist/etc/gosa-si dist/etc/gosa-si/logrotate.d dist/usr/lib/go-susi/ dist/usr/sbin
+	cp main/generate_* dist/usr/lib/go-susi/
+	cp go-susi dist/usr/lib/go-susi/gosa-si-server
+	cp main/gosa-si-server dist/usr/sbin
+	ln -snf /usr/lib/go-susi/gosa-si-server dist/usr/sbin/go-susi
+	cp sibridge dist/usr/sbin/
+	cp server.conf dist/etc/gosa-si
+	-cp logrotate-gosa-si-server dist/etc/logrotate.d/gosa-si-server
+	echo >debian/files go-susi_${debversion}_\$(DEB_BUILD_ARCH).deb $section $priority
+
+binary:
+	mkdir dist/DEBIAN
+	cp debian/postinst dist/DEBIAN/postinst
+	chmod a+rx dist/DEBIAN/postinst
+	sed '/^\$\$/d;/^Build-Depends/d;s/Standards-Version:.*/Version: ${debversion}/' debian/control >dist/DEBIAN/control
+	chown -R root: dist/
+	chmod -R a+rX dist/
+	dpkg-deb -b dist/ ../go-susi_${debversion}_\$(DEB_BUILD_ARCH).deb
+
+"
+chmod a+rx debian/rules
