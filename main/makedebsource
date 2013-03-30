@@ -97,7 +97,7 @@ binary:
 	mkdir dist/DEBIAN
 	cp debian/postinst dist/DEBIAN/postinst
 	chmod a+rx dist/DEBIAN/postinst
-	sed '/^\$\$/d;/^Build-Depends/d;s/Standards-Version:.*/Version: ${debversion}/' debian/control >dist/DEBIAN/control
+	sed '/^\$\$/d;/^Build-Depends/d;s/^\\(Architecture:\\) .*/\\1 \$(DEB_BUILD_ARCH)/;s/Standards-Version:.*/Version: ${debversion}/' debian/control >dist/DEBIAN/control
 	chown -R root: dist/
 	chmod -R a+rX dist/
 	dpkg-deb -b dist/ ../go-susi_${debversion}_\$(DEB_BUILD_ARCH).deb
