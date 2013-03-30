@@ -1,7 +1,7 @@
 #!/bin/bash
 
 umask 022
-export GOROOT="/opt/go"
+#export GOROOT="/opt/go"
 export GOPATH="/home/limux/devel/go"
 export PATH="$GOROOT/bin:$PATH:/sbin:/usr/sbin:/bin:/usr/bin"
 
