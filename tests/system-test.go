@@ -555,7 +555,7 @@ func run_fai_query_tests() {
   /////////////////////////////////// xavier //////////////////////////////////////
   x = gosa("query_fai_release", hash("xml(where(clause(phrase(fai_release(xavier)))))"))
   if check(x.Text("header"), "query_fai_release") {
-    answers := extract_sorted_answers(x,"class")
+    answers := extract_sorted_answers(x)
     a := answers.First("answer")
     
     if check(checkTags(a,"timestamp,fai_release,tag,type,class,state"),"") {
@@ -584,7 +584,7 @@ func run_fai_query_tests() {
   /////////////////////////////////// xavier/charles //////////////////////////////////////
   x = gosa("query_fai_release", hash("xml(where(clause(phrase(fai_release(xavier/charles)))))"))
   if check(x.Text("header"), "query_fai_release") {
-    answers := extract_sorted_answers(x,"class")
+    answers := extract_sorted_answers(x)
     a := answers.First("answer")
     
     if check(checkTags(a,"timestamp,fai_release,tag,type,class,state"),"") {
@@ -603,7 +603,7 @@ func run_fai_query_tests() {
   /////////////////////////////////// xavier/charles/prof //////////////////////////////////////
   x = gosa("query_fai_release", hash("xml(where(clause(phrase(fai_release(xavier/charles/prof)))))"))
   if check(x.Text("header"), "query_fai_release") {
-    answers := extract_sorted_answers(x,"class")
+    answers := extract_sorted_answers(x)
     a := answers.First("answer")
     
     if check(checkTags(a,"timestamp,fai_release,tag,type,class,state"),"") {
@@ -632,7 +632,7 @@ func run_fai_query_tests() {
   /////////////////////////////////// xavier/charles/prof/x-men //////////////////////////////////////
   x = gosa("query_fai_release", hash("xml(where(clause(phrase(fai_release(xavier/charles/prof/x-men)))))"))
   if check(x.Text("header"), "query_fai_release") {
-    answers := extract_sorted_answers(x,"class")
+    answers := extract_sorted_answers(x)
     a := answers.First("answer")
     
     if checkFail(checkTags(a,"timestamp,fai_release,tag,type,class,state"),"") {

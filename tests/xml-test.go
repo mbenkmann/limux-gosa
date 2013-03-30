@@ -35,13 +35,13 @@ import (
 
 // Unit tests for the package susi/xml.
 func Xml_test() {
-  fmt.Printf("\n=== xml.HashFilter ===\n\n")
-  testFilter()
-  
   fmt.Printf("\n=== xml.Hash ===\n\n")
   testHash()
   testSetText()
   testIterator()
+  
+  fmt.Printf("\n=== xml.HashFilter ===\n\n")
+  testFilter()
   
   fmt.Printf("\n=== xml.DB ===\n\n")
   testDB()
@@ -363,22 +363,43 @@ func (f *filterafter) Accepts(item *xml.Hash) bool {
 
 func testHash() { 
   f := xml.NewHash("fruit", "banana")
+  check(f.Verify(),nil)
   check(f, "<fruit>banana</fruit>")
   
   f = xml.NewHash("fruit", "banana","")
+  check(f.Verify(),nil)
   check(f, "<fruit><banana></banana></fruit>")
   
   f = xml.NewHash("fruit", "yellow","banana")
+  check(f.Verify(),nil)
   check(f, "<fruit><yellow>banana</yellow></fruit>")
   
   f = xml.NewHash("fruit", "yellow","long","banana")
+  check(f.Verify(),nil)
   check(f, "<fruit><yellow><long>banana</long></yellow></fruit>")
   
+  f = xml.NewHash("fruit", "yellow","long","banana")
+  yellow := f.First("yellow")
+  f.First("yellow").Rename("green")
+  check(f.Verify(),nil)
+  check(f, "<fruit><green><long>banana</long></green></fruit>")
+  check(yellow.Name(),"green")
+  
   x := xml.NewHash("foo")
+  check(f.Verify(),nil)
   check(x, "<foo></foo>")
   
-  x.SetText("Dıes ist ein >>>Test<<<")
-  check(x, "<foo>Dıes ist ein &gt;&gt;&gt;Test&lt;&lt;&lt;</foo>")
+  x.SetText(">Dıes ist ein >>>Test<<<<")
+  check(x.String(), "<foo>&gt;Dıes ist ein &gt;&gt;&gt;Test&lt;&lt;&lt;&lt;</foo>")
+  check(x.Text(), ">Dıes ist ein >>>Test<<<<")
+  foo_haver := xml.NewHash("foo_haver")
+  foo_haver.AddClone(x)
+  check(foo_haver.Verify(),nil)
+  check(x.Verify(),nil)
+  check(foo_haver.Get("foo"),[]string{">Dıes ist ein >>>Test<<<<"})
+  check(foo_haver.Text("foo"),">Dıes ist ein >>>Test<<<<")
+  check(foo_haver.Text(),"")
+  check(foo_haver.String(), "<foo_haver><foo>&gt;Dıes ist ein &gt;&gt;&gt;Test&lt;&lt;&lt;&lt;</foo></foo_haver>")
   
   x.SetText("Dies ist %v %vter Test","ein",2)
   check(x, "<foo>Dies ist ein 2ter Test</foo>")
@@ -407,6 +428,8 @@ func testHash() {
   
   srv4.Add("alias", "delta")
   check(x, "<foo>Dies ist ein 2ter Test<bar><server>srv1</server><server>srv2</server><server>srv3</server><server>srv4<alias>foxtrott</alias><alias>alpha</alias><alias>bravo</alias><alias>delta</alias></server></bar></foo>")
+  
+  check(hash("a(b(c(d(x)))b(y)z)"),"<a>z<b><c><d>x</d></c></b><b>y</b></a>")
   
   lst := x.Get("foo") // x is a <foo> but contains no <foo> !!
   check(lst, []string{})
@@ -476,6 +499,7 @@ func testHash() {
   }()
   check(panic_err, "AddWithOwnership: Sanity check failed!")
   
+  panic_err = nil
   func() {
     defer func() {
       panic_err = recover()
@@ -484,10 +508,17 @@ func testHash() {
   }()
   check(panic_err, "AddWithOwnership: Sanity check failed!")
   
+  panic_err = nil
   twin := broken.Add("twin")
-  broken.AddWithOwnership(twin) // the sanity check can't catch this
-  check(broken.Verify(), "twin is its own last_sibling") // but Verify() can
+  func() {
+    defer func() {
+      panic_err = recover()
+    }()
+    broken.AddWithOwnership(twin)
+  }()
+  check(panic_err, "AddWithOwnership: Sanity check failed!")
   
+  panic_err = nil
   func() {
     defer func() {
       panic_err = recover()
@@ -548,8 +579,9 @@ func testHash() {
   
   
   check(ducks.Remove(&filterafter{darkwing}), "<ducks></ducks>")
-  check(ducks.Remove(&filterafter{donald}).First("duck") == daisy, true)
+  check(ducks.Remove(&filterafter{donald}).RemoveFirst("duck") == daisy, true)
   check(daisy.Verify(), nil)
+  check(ducks.Verify(), nil)
   check(daisy.Next(), nil)
   check(ducks, "<ducks><duck>donald</duck><duck>darkwing</duck></ducks>")
   ducks.AddWithOwnership(daisy)
@@ -616,11 +648,7 @@ func testHash() {
     }
   }
   check(x.Verify(), nil)
-  check(x.SortedString(),"<xml><a><a></a><b></b><c></c><d></d><e></e></a><b><a></a><b></b><c></c><d></d><e></e></b><c><a></a><b></b><c></c><d></d><e></e></c><d><a></a><b></b><c></c><d></d><e></e></d><e><a></a><b></b><c></c><d></d><e></e></e></xml>")
-  check(x.SortedString("a"),"<xml><a><a></a><b></b><c></c><d></d><e></e></a><b><a></a><b></b><c></c><d></d><e></e></b><c><a></a><b></b><c></c><d></d><e></e></c><d><a></a><b></b><c></c><d></d><e></e></d><e><a></a><b></b><c></c><d></d><e></e></e></xml>")
-  check(x.SortedString("a","b"),"<xml><a><a></a><b></b><c></c><d></d><e></e></a><b><a></a><b></b><c></c><d></d><e></e></b><c><a></a><b></b><c></c><d></d><e></e></c><d><a></a><b></b><c></c><d></d><e></e></d><e><a></a><b></b><c></c><d></d><e></e></e></xml>")
-  check(x.SortedString("a","a"),"<xml><a><a></a><b></b><c></c><d></d><e></e></a><b><a></a><b></b><c></c><d></d><e></e></b><c><a></a><b></b><c></c><d></d><e></e></c><d><a></a><b></b><c></c><d></d><e></e></d><e><a></a><b></b><c></c><d></d><e></e></e></xml>")
-  check(x.SortedString("foo","e","x","c","d","y"),"<xml><e><e></e><c></c><d></d><a></a><b></b></e><c><e></e><c></c><d></d><a></a><b></b></c><d><e></e><c></c><d></d><a></a><b></b></d><a><e></e><c></c><d></d><a></a><b></b></a><b><e></e><c></c><d></d><a></a><b></b></b></xml>")
+  check(x.String(),"<xml><a><a></a><b></b><c></c><d></d><e></e></a><b><a></a><b></b><c></c><d></d><e></e></b><c><a></a><b></b><c></c><d></d><e></e></c><d><a></a><b></b><c></c><d></d><e></e></d><e><a></a><b></b><c></c><d></d><e></e></e></xml>")
   
   x = xml.NewHash("foo")
   check(x.FirstOrAdd("id"),"<id></id>")
@@ -629,6 +657,35 @@ func testHash() {
   check(x.FirstOrAdd("bar"),"<bar></bar>")
   x.Rename("foobar")
   check(x,"<foobar><bar></bar><id>1</id></foobar>")
+  
+  godzilla := xml.NewHash("monster","godzilla")
+  godzilla.Add("home","japan")
+  godzilla.AppendString(" junior")
+  monsters := xml.NewHash("monsters")
+  monsters.AddWithOwnership(godzilla)
+  monsters.Add("monster","gamera")
+  godclone := godzilla.Clone()
+  check(godclone.Verify(), nil)
+  check(godzilla.Next(),"<monster>gamera</monster>")
+  check(godclone.Next(),nil)
+  check(godclone,"<monster>godzilla junior<home>japan</home></monster>")
+  monsters.SetText("are cool")
+  check(monsters,"<monsters>are cool<monster>godzilla junior<home>japan</home></monster><monster>gamera</monster></monsters>")
+  monsters.First("monster").SetText("mecha-%v",monsters.Get("monster")[0])
+  check(monsters,"<monsters>are cool<monster>mecha-godzilla junior<home>japan</home></monster><monster>gamera</monster></monsters>")
+  check(monsters.Verify(), nil)
+  check(monsters.RemoveFirst("godzilla"), nil)
+  check(monsters.Verify(), nil)
+  check(monsters,"<monsters>are cool<monster>mecha-godzilla junior<home>japan</home></monster><monster>gamera</monster></monsters>")
+  monsters.FirstOrAdd("creature").SetText("gollum")
+  check(monsters.First("creature"), "<creature>gollum</creature>")
+  check(godzilla.Next().Next(), nil)
+  check(monsters.FirstChild().Element() == godzilla, true)
+  check(monsters.FirstChild().Next().Element() == godzilla.Next(), true)
+  st := monsters.Subtags()
+  sort.Strings(st)
+  check(st, []string{"creature","monster"})
+  check(len(st),2)
   
   testLDIF()
 }
@@ -651,7 +708,13 @@ func testSetText() {
   x.SetText([][]byte{[]byte{},[]byte("Hi"),[]byte(" there!")})
   check(x, "<foo>Hi there!</foo>")
   
+  x.SetText([]string{"","Hi"," there!"})
+  check(x, "<foo>Hi there!</foo>")
+  
   x.SetText([][]byte{})
+  check(x, "<foo></foo>")
+  
+  x.SetText([]string{})
   check(x, "<foo></foo>")
   
   x.SetText(10)

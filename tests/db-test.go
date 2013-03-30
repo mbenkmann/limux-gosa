@@ -66,7 +66,7 @@ func faidb_test() {
   for fai := db.FAIClasses(xml.FilterAll).First("fai"); fai != nil; fai = fai.Next() {
     fai.RemoveFirst("tag")
     fai.RemoveFirst("timestamp")
-    fai1[fai.InnerXML("class","type","fai_release","state")] = true
+    fai1[fai.Text("class","type","fai_release","state")] = true
   }  
   
   x, err = xml.FileToHash("testdata/query_fai_release.log")
@@ -79,7 +79,8 @@ func faidb_test() {
   for _, tag := range x.Subtags() {
     fai := x.First(tag)
     fai.RemoveFirst("timestamp")
-    fai2[fai.InnerXML("class","type","fai_release","state")] = true
+    fai.First("state").SetText(strings.Replace(fai.Text("state"),"branch","",-1))
+    fai2[fai.Text("class","type","fai_release","state")] = true
   }
   
   for cls := range fai2 { 

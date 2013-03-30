@@ -19,7 +19,7 @@
  * SOFTWARE. 
  */
 
-// A simple map-based XML storage.
+// XML fragments and primitive database based on them.
 package xml
 
 import ( 
@@ -30,6 +30,7 @@ import (
          "fmt"
          "sort"
          "strings"
+         "unsafe"
          "encoding/base64"
          
          "../bytes"
@@ -52,28 +53,68 @@ import encxml "encoding/xml"
 // child elements with that name.
 // 
 type Hash struct {
-  // "foo" for a tag <foo>
-  name string
-  
-  // text content
-  text string
-  
-  // A first child has last_sibling != nil if it has siblings.
-  last_sibling *Hash
-  // An element that has a following sibling has next != nil
-  next *Hash
-  // the names of the refs in the same order as the pointers in refp
-  refn []string
-  // the pointers corresponding to the names
-  refp []*Hash
+  // Each Hash object can be of 3 types: start tag, end tag and text.
+  // For a start tag, data is the tag name without "<" and ">".
+  // For an end tag, data is the empty string (and unused).
+  // For a text element, data is the text in unescaped form (i.e. "<" instead of "&lt;").
+  data string
+  // An XML fragment is represented as a doubly linked list of Hash objects.
+  // The succ_ pointer points to the successor in the list. Only an end tag may have
+  // a nil successor. In that case the matching start tag will have a nil predecessor.
+  // This rule implies that each XML fragment has an outermost tag surrounding
+  // everything, with no stray text outside.
+  succ_ *Hash
+  // pred_ has 2 independent functions. Bits 0 and 1 determine the type of Hash:
+  // 01 end tag  (returned as -1 by nest())
+  // 10 text     (returned as 0 by nest())
+  // 11 start tag (returned as 1 by nest())
+  // The other bits are the binary negation of the predecessor *Hash pointer which is
+  // the counterpart of succ_ in the linked list structure.
+  // The reason for this convoluted encoding is to make the pred_ pointer not be
+  // apparent as a pointer to the GC, so that as far as the GC is concerned the
+  // structure looks like a singly-linked list. Hopefully this will make memory leaks
+  // by the GC less likely.
+  pred_ uintptr
+  // For a start tag this is the binary negation of a *Hash pointer to the corresponding
+  // end tag. For an end tag it is the binary negation of a *Hash pointer to the
+  // corresponding start tag. For a text element this is 0 and unused.
+  // The reason for this convoluted encoding is the same as for pred_.
+  link_ uintptr
 }
+
+// For a start tag this returns the corresponding end tag. For an end tag this
+// returns the corresponding start tag. This function must not be called for a
+// text element.
+func (self *Hash) link() *Hash { return (*Hash)(unsafe.Pointer(^self.link_)) }
+// See Hash.succ_.
+func (self *Hash) succ() *Hash { return self.succ_ }
+// See Hash.pred_. This functions returns the extracted and decoded pointer.
+func (self *Hash) pred() *Hash { return (*Hash)(unsafe.Pointer(^self.pred_ &^ 3)) }
+// Returns the relative nesting change by the element. +1 => start tag, 0 => text,
+// -1 => end tag.
+func (self *Hash) nest() int { return int(self.pred_ & 3)-2 }
+// Sets the relative nesting. Only for initializing a new Hash. Never changes over
+// the lifetime of a Hash.
+func (self *Hash) setNest(n int) { self.pred_ = (self.pred_ &^ 3) | uintptr((n+2)&3) }
+// Sets the pred() pointer.
+func (self *Hash) setPred(p *Hash) { self.pred_ = (self.pred_ & 3) | (^uintptr(unsafe.Pointer(p)) &^ 3) }
+// Sets the succ() pointer.
+func (self *Hash) setSucc(s *Hash) { self.succ_ = s }
+// Sets the link() pointer. Only for initializing a new Hash. Never changes over
+// the lifetime of a Hash.
+func (self *Hash) setLink(l *Hash) { self.link_ = ^uintptr(unsafe.Pointer(l)) }
 
 // Returns a new *Hash with outer-most element <name>.
 // If N contents strings are passed, the effect will be
-// as if hash.Add(contents[0]).Add(contents[1])...Add(contents[N-1]).SetText(contents[N]) is called (but the
-// element returned is always the outermost).
+// as if 
+// hash.Add(contents[0]).Add(contents[1])...Add(contents[N-1]).SetText(contents[N])
+// is called (but the element returned is always the outermost).
 func NewHash(name string, contents ...string) *Hash {
-  hash := &Hash{name:name, refn:[]string{}, refp:[]*Hash{}}
+  hash := &Hash{data:name, succ_:&Hash{pred_:1}, pred_:3}
+  hash.setPred(nil)
+  hash.setLink(hash.succ())
+  hash.succ().setPred(hash)
+  hash.succ().setLink(hash)
   sub := hash
   for i:= 0; i < len(contents)-1; i++ {
     sub = sub.Add(contents[i])
@@ -84,161 +125,83 @@ func NewHash(name string, contents ...string) *Hash {
   return hash
 }
 
-// Returns the name of the outer tag of the Hash.
-func (self *Hash) Name() string { return self.name }
+// Returns the name of the Hash's start and end tags.
+func (self *Hash) Name() string { return self.data }
 
-// Changes the name of the outer tag of the Hash (which MUST NOT be
-// the child of another Hash!).
+// Changes the name of the Hash's start and end tags.
 func (self *Hash) Rename(name string) {
-  self.name = name
+  self.data = name
 }
 
 // Returns a deep copy of this xml.Hash that is completely independent.
 // The clone will not have any siblings, even if the original had some.
 func (self *Hash) Clone() *Hash {
-  hash := &Hash{name:self.name, text:self.text, refn:make([]string,len(self.refn)), refp:make([]*Hash,len(self.refp))}
-  copy(hash.refn, self.refn)
-  for k, v := range self.refp {
-    hash.refp[k] = v.cloneWithSiblings()
+  hash := NewHash(self.data)
+  end := self.link()
+  for h := self.succ(); h != end; {
+    switch h.nest() {
+      case 0: hash.AppendString(h.data)
+              h = h.succ()
+        // this is always case 1 (i.e. start tag)
+        // we can never see an end tag here because we skip them
+        // in the line below  h = h.link().succ()
+      default: hash.AddClone(h)
+               h = h.link().succ()
+    }
   }
   return hash
 }
 
-// Returns a deep copy of this Hash including (if it has next!=nil) a clone
-// of all of its siblings. last_sibling will be set on the clone if it has
-// at least 1 sibling, even if the original Hash did not have last_sibling set.
-// This means that cloneWithSiblings() called on a 2nd child will nevertheless
-// return a correctly linked Hash.
-func (self *Hash) cloneWithSiblings() *Hash {
-  clone := self.Clone()
-  prev  := clone
-  for next := self.next; next != nil; next = next.next {
-    nextClone := next.Clone()
-    prev.next = nextClone
-    prev = nextClone
-  }
-  if prev != clone {
-    clone.last_sibling = prev
-  }
-  return clone
-}
-
-// Verifies that the Hash's structure is intact and returns an error if not.
-func (self *Hash) Verify() error {
-  have_seen := map[*Hash]bool{}
-  return self.verify(have_seen, false)
-}
-
-// Verifies that this Hash's structure is intact and returns an error if not.
-//  have_seen - if either this Hash or any of its descendants or siblings is
-//              in this map, an error will be reported. All the Hash's siblings
-//              and descendants will be added to this map during the check. This
-//              detects cycles in the data structure.
-//  must_be_first_sibling - set to true if this Hash is a first (or only) child.
-//                          Used to check if last_sibling is properly set.
-func (self *Hash) verify(have_seen map[*Hash]bool, must_be_first_sibling bool) error {
-  if have_seen[self] {
-    return fmt.Errorf("Loop/backreference at %v", self.name)
-  }
-  
-  have_seen[self] = true
-  
-  if self.last_sibling != nil {
-    if self.next == nil {
-      return fmt.Errorf("%v has last_sibling but no next", self.name)
-    }
-    if self.last_sibling == self {
-      return fmt.Errorf("%v is its own last_sibling", self.name)
-    }
-    if self.next == self {
-      return fmt.Errorf("%v is its own next sibling", self.name)
-    }
-    
-    last := self.next
-    for next := last ; next != nil; next = next.next {
-      if have_seen[next] {
-        return fmt.Errorf("Loop/backreference at %v", next.name)
-      }
-      if next.last_sibling != nil {
-        return fmt.Errorf("%v has a sibling %v that has last_sibling set", self.name, next.name)
-      }
-      last = next
-      have_seen[next] = true
-    }
-    
-    if last != self.last_sibling {
-      return fmt.Errorf("%v's last_sibling is not actually its last sibling", self.name)
-    }
-  } else {  // if !self.last_sibling
-    if self.next != nil {
-      if must_be_first_sibling {
-        return fmt.Errorf("%v is first child and has siblings but has no last_sibling", self.name)
-      }
-      
-      for next := self.next ; next != nil; next = next.next {
-        if have_seen[next] {
-          return fmt.Errorf("Loop/backreference at %v", next.name)
-        }
-        if next.last_sibling != nil {
-          return fmt.Errorf("%v has a sibling %v that has last-sibling set", self.name, next.name)
-        }
-        have_seen[next] = true
-      }
-    }
-  }
-  
-  err := self.verifyChildren(have_seen)
-  if err != nil { return err }
-  
-  for next := self.next ; next != nil; next = next.next {
-    if next.Name() != self.Name() {
-      return fmt.Errorf("Element with name %v has sibling with name %v", self.Name(), next.Name())
-    }
-    err = next.verifyChildren(have_seen)
-    if err != nil { return err }
-  }
-  
-  return nil
-}
-
-// Recursively verifies the correctness of the subtrees rooted at this Hash's
-// children. See Verify().
-func (self *Hash) verifyChildren(have_seen map[*Hash]bool) error {
-  for i := range self.refp {
-    k := self.refn[i]
-    v := self.refp[i]
-      if v.Name() != k {
-        return fmt.Errorf("Element with name %v in list of key %v", v.Name(), k)
-      }
-      err := v.verify(have_seen, true)
-      if err != nil { return err }
-  }
-  
-  return nil
+// Appends s to this Hash's text content.
+func (self *Hash) AppendString(s string) {
+  end := self.link()
+  hash := &Hash{data:s, pred_:2, succ_:end}
+  hash.setPred(end.pred())
+  end.setPred(hash)
+  hash.pred().setSucc(hash)
 }
 
 // Replaces the current text content of the receiver.
 // If called without any args, the receiver's text content will be deleted.
-// If called with a single arg that is a string, []byte or [][]byte, the 
+// If called with a single arg that is a string, []string, []byte or [][]byte, the 
 // text will be replaced with the literal bytes from that argument.
 // If called with a single arg that is of a different type, the text
 // will be replaced with the result of fmt.Sprintf("%v",arg).
 // If called with 2 or more args, the first one must be a format string F
 // and the text will be replaced with the result from fmt.Sprintf(F,args[1:])
 func (self *Hash) SetText(args ...interface{}) {
+  // delete all old text children
+  end := self.link()
+  for h := self.succ(); h != end; {
+    switch h.nest() {
+      case 0: pred := h.pred()
+              succ := h.succ()
+              h.succ_ = nil
+              h.pred_ = 0
+              h.data = ""
+              pred.setSucc(succ)
+              succ.setPred(pred)
+              h = succ
+        // this is always case 1 (i.e. start tag)
+        // we can never see an end tag here because we skip them
+        // in the line below  h = h.link().succ()
+      default: h = h.link().succ()
+    }
+  }
+  
+  // now add the new text (if any)
   if len(args) == 0 {
-    self.text = ""
+    return
   } else if len(args) == 1 {
     switch arg := args[0].(type) {
-      case string: self.text = arg
-      case []byte: self.text = string(arg)
-      case [][]byte: t := []byte{}
-                     for i := range arg { t = append(t, arg[i]...) }
-                     self.text = string(t)
-      default: self.text = fmt.Sprintf("%v", arg)
+      case string: self.AppendString(arg)
+      case []string: for _,st := range arg { self.AppendString(st) }
+      case []byte: self.AppendString(string(arg))
+      case [][]byte: for _,by := range arg { self.AppendString(string(by)) }
+      default: self.AppendString(fmt.Sprintf("%v", arg))
     }
   } else {
-    self.text = fmt.Sprintf(args[0].(string), args[1:]...)
+    self.AppendString(fmt.Sprintf(args[0].(string), args[1:]...))
   }
 }
 
@@ -246,23 +209,9 @@ func (self *Hash) SetText(args ...interface{}) {
 // supplied) executes X.SetText(setText...).
 // Returns the new child X.
 func (self *Hash) Add(subtag string, setText... interface{}) *Hash {
-  new_hash := &Hash{name:subtag, text:"", refn:[]string{}, refp:[]*Hash{}}
+  new_hash := NewHash(subtag)
   new_hash.SetText(setText...)
-  
-  first := self.First(subtag)
-  if first == nil {
-    self.refn = append(self.refn,subtag)
-    self.refp = append(self.refp,new_hash)
-  } else {
-    last := first.last_sibling
-    first.last_sibling = new_hash
-    if last == nil {
-      first.next = new_hash
-    } else {
-      last.next = new_hash
-    }
-  }
-  
+  self.AddWithOwnership(new_hash)
   return new_hash
 }
 
@@ -279,98 +228,53 @@ func (self *Hash) AddClone(xml *Hash) *Hash {
 // ATTENTION! xml must not be child of another Hash (which implies that it
 // must not have any siblings).
 func (self* Hash) AddWithOwnership(xml *Hash) {
-  if xml == nil || xml == self || xml.next != nil {
+  if xml == nil || xml == self || xml.pred() != nil || xml.link().succ() != nil {
     panic("AddWithOwnership: Sanity check failed!")
   }
-  subtag := xml.Name()
-  first  := self.First(subtag)
-  if first == nil {
-    self.refn = append(self.refn, subtag)
-    self.refp = append(self.refp, xml)
-  } else {
-    last := first.last_sibling
-    first.last_sibling = xml
-    if last == nil {
-      first.next = xml
-    } else {
-      last.next = xml
-    }
-  }
+  xmlend := xml.link()
+  end := self.link()
+  xml.setPred(end.pred())
+  xmlend.setSucc(end)
+  end.setPred(xmlend)
+  xml.pred().setSucc(xml)
 }
 
 // Removes the first subtag child from this Hash and returns it (or nil if this
 // Hash has no subtag child)
 func (self *Hash) RemoveFirst(subtag string) *Hash {
   first := self.First(subtag)
-  if first == nil { return nil }
-  
-  next := first.next
-  if next == nil {
-    for i := range self.refn {
-      if self.refn[i] == subtag {
-        copy(self.refn[i:], self.refn[i+1:])
-        self.refn[len(self.refn)-1] = "" // help GC
-        self.refn = self.refn[0:len(self.refn)-1]
-        copy(self.refp[i:], self.refp[i+1:])
-        self.refp[len(self.refp)-1] = nil // help GC
-        self.refp = self.refp[0:len(self.refp)-1]
-        break
-      }
-    }
-    return first
-  }
-  
-  last := first.last_sibling
-  for i := range self.refn {
-    if self.refn[i] == subtag {
-      self.refp[i] = next
-      break
-    }
-  }
- 
-  if last != next {
-    next.last_sibling = last
-  }
-  
-  first.last_sibling = nil
-  first.next = nil
+  if first != nil { first.remove() }
   return first
 }
 
-// Removes the next sibling of this Hash from parent's child list
-// (which both must be members of)
-// and returns it (or nil if this Hash has no siblings).
-func (self *Hash) removeNext(parent *Hash) *Hash {
-  next := self.next
-  if next == nil { return nil }
+// Removes this Hash (including all its children) from its parent.
+// After this operation the Hash is an independent top-level Hash.
+// ATTENTION! Must not be called on a Hash that has no parent.
+func (self *Hash) remove() {
+  pred := self.pred()
+  end := self.link()
+  succ := end.succ()
   
-  nextnext := next.next
-  next.next = nil
-  if next.last_sibling != nil { panic("Invariant broken. Only first child may have last_sibling!") }
+  pred.setSucc(succ)
+  succ.setPred(pred)
   
-  if nextnext != nil {
-    self.next = nextnext
-    return next
-  }
-  
-  // self is now the last child in the list
-  
-  first := parent.First(self.Name())
-  if first == self {
-    self.last_sibling = nil
-  } else {
-    first.last_sibling = self
-  }
-  
-  self.next = nil
-  return next
+  self.setPred(nil)
+  end.setSucc(nil)
 }
 
-// Returns the first subtag with the given name or nil if none exists.
+// Returns the first child element with the tag name subtag or nil if none exists.
 // See also FirstOrAdd().
 func (self *Hash) First(subtag string) *Hash {
-  for idx, name := range self.refn {
-    if name == subtag { return self.refp[idx] }
+  end := self.link()
+  for h := self.succ(); h != end; {
+    switch h.nest() {
+      case 0: h = h.succ()
+        // this is always case 1 (i.e. start tag)
+        // we can never see an end tag here because we skip them
+        // in the line below  h = h.link().succ()
+      default: if h.Name() == subtag { return h }
+               h = h.link().succ()
+    }
   }
   return nil
 }
@@ -387,7 +291,17 @@ func (self *Hash) FirstOrAdd(subtag string) *Hash {
 
 // Returns the next sibling with the same tag name or nil if none exists.
 func (self *Hash) Next() *Hash {
-  return self.next
+  name := self.Name()
+  for h := self.link().succ(); h != nil; {
+    switch h.nest() {
+      case 0: h = h.succ()
+      case 1: if h.Name() == name { return h }
+              h = h.link().succ()
+      case -1: return nil
+    }
+  }
+  
+  return nil
 }
 
 // Effectively a special kind of *Hash that allows more flexibility.
@@ -425,88 +339,83 @@ type Iterator interface {
 }
 
 type iterateAllChildren struct {
-  Parent *Hash
-  Child *Hash
-  Nextname string
-  ChildIsNext bool
+  // see Iterator.Element(). After Remove() this is nil and nxt is set.
+  cur *Hash
+  // Only set after a call to Remove() to store a pointer to the Next() element.
+  nxt *Hash
 }
 
 func (iter *iterateAllChildren) Element() *Hash {
-  if iter.ChildIsNext { return nil } // current Element has been removed
-  return iter.Child
+  return iter.cur
 }
 
 func  (iter *iterateAllChildren) Remove() *Hash {
-  if iter.ChildIsNext || iter.Child == nil { return nil }
-
-  toremove := iter.Child
-  iter.advance()
-  iter.ChildIsNext = true
-
-  child := iter.Parent.First(toremove.Name())
-  if child == toremove {
-    return iter.Parent.RemoveFirst(toremove.Name())
-  }
-
-  for child != nil {
-    next := child.Next()
-    if next == toremove {
-      return child.removeNext(iter.Parent)
-    }
-    child = next
-  }
-  
-  return nil
+  if iter.cur == nil { return nil }
+  nxt := iter.Next()
+  if nxt != nil { iter.nxt = nxt.Element() }
+  item := iter.cur
+  item.remove()
+  iter.cur = nil
+  return item
 }
 
 func (iter *iterateAllChildren) Next() Iterator {
-  n := &iterateAllChildren{Parent:iter.Parent, Child:iter.Child, ChildIsNext:false, Nextname:iter.Nextname}
-  if !iter.ChildIsNext { n.advance() }
-  if n.Child == nil { return nil }
-  return n
+  if iter.cur == nil {
+    if iter.nxt == nil { return nil }
+    return &iterateAllChildren{cur:iter.nxt, nxt:nil}
+  }
+  
+  nxt := iter.cur.link().succ()
+  // skip over text elements
+  for nxt.nest() == 0 { nxt = nxt.succ() }
+  
+  // if we encounter an end element => end of iteration
+  if nxt.nest() < 0 { return nil }
+  
+  return &iterateAllChildren{cur:nxt, nxt:nil}
 }
 
-func (iter *iterateAllChildren) advance() {
-  iter.Child = iter.Child.Next()
-  if iter.Child == nil {
-    nextname := iter.Nextname
-    iter.Nextname = ""
-    for i,n := range iter.Parent.refn {
-      if n == nextname {
-        iter.Child = iter.Parent.refp[i]
-        if i+1 < len(iter.Parent.refn) { iter.Nextname = iter.Parent.refn[i+1] }
-      }
-    }
-  }
-}
 
 // Returns nil if this Hash has no child elements; otherwise returns an Iterator
 // to the first child element within an iteration over all immediate child elements
 // (i.e. not including grandchildren) in some unspecified order.
 func (self *Hash) FirstChild() Iterator {
-  if len(self.refp) == 0 { return nil }
-  nextname := ""
-  if len(self.refn) > 1 { nextname = self.refn[1] }
-  return &iterateAllChildren{Parent:self, Child:self.refp[0], ChildIsNext:false, Nextname:nextname }
+  nxt := self.succ()
+  // skip over text elements
+  for nxt.nest() == 0 { nxt = nxt.succ() }
+  
+  // if we encounter an end element (self's end element that is) => no children
+  if nxt.nest() < 0 { return nil }
+  
+  return &iterateAllChildren{cur:nxt, nxt:nil}
 }
 
 // Returns the names of all subtags of this Hash (unsorted!).
 // If the Hash has multiple subelements with the same tag, the tag is
 // only listed once. I.e. all strings in the result list are always different.
 func (self *Hash) Subtags() []string {
-  result := make([]string, len(self.refn))
-  copy(result, self.refn)
+  names := map[string]bool{}
+  for child := self.FirstChild(); child != nil; child = child.Next() {
+    names[child.Element().Name()] = true
+  }
+  result := make([]string, len(names))
+  i := 0
+  for name := range names {
+    result[i] = name
+    i++
+  }
   return result
 }
 
 // Returns the Text() contents of all <subtag>...</subtag> children for
 // all of the provided subtag names.
-// The slice will be empty if there are no subtags of that name.
+// The slice will be empty if there are no subtags of that name or if the
+// subtag... list is empty.
 // The order in the slice follows the order in the argument list, i.e. first
 // all values for the first subtag name, then all values for the 2nd subtag 
 // name,...
 func (self *Hash) Get(subtag ...string) []string {
-  result := []string{}
+  result := make([]string,0,1)
   for _,sub := range subtag {
     for child := self.First(sub); child != nil; child = child.Next() {
       result = append(result, child.Text())
@@ -515,90 +424,57 @@ func (self *Hash) Get(subtag ...string) []string {
   return result
 }
 
+// Returns the text contained in this element (just text, not child elements)
+// split up in some optimized manner to avoid creating a large string block that
+// might leak because of the GC.
+func (self *Hash) TextFragments() []string {
+  result := make([]string, 0, 1)
+  end := self.link()
+  for h := self.succ(); h != end; {
+    switch h.nest() {
+      case 0: result = append(result, h.data)
+              h = h.succ()
+        // this is always case 1 (i.e. start tag)
+        // we can never see an end tag here because we skip them
+        // in the line below  h = h.link().succ()
+      default: h = h.link().succ()
+    }
+  }
+  return result
+}
+
 // With no arguments Text() returns the single text child of the receiver element;
 // with arguments Text(s1, s2,...) returns the concatenation of Get(s1, s2,...)
 // separated by '␞' (\u241e, i.e. symbol for record separator).
+//
+// NOTE: The returned string does not use entity-encoding, i.e. "<" is NOT "&lt;"
 func (self *Hash) Text(subtag ...string) string {
   if len(subtag) == 0 {
-    var buffy bytes.Buffer
-    defer buffy.Reset()
-    encxml.Escape(&buffy, []byte(self.text))
-    return buffy.String()
+    return strings.Join(self.TextFragments(), "")
   }
   return strings.Join(self.Get(subtag...), "\u241e")
 }
 
-// Returns a textual representation of the XML-tree rooted at the receiver.
+// Returns a textual representation of the XML-tree rooted at the receiver 
+// (with proper entity-encoding such as "&lt;" instead of "<").
 // Subtags are listed in alphabetical order preceded by the element's text (if any).
-// Use SortedString() if you want more control over the tag order.
 func (self *Hash) String() string {
-  return self.SortedString()
-}
-
-// Like String() but you can pass a list of tags that should be sorted before 
-// their siblings. These subelements will be listed in the order they appear
-// in the sortorder arguments list.
-// All other subelements will appear after the listed ones in alphabetical order.
-// An element's text always precedes subelements.
-//
-// NOTE:
-//  If sortorder contains the same name more than once, the earliest position in
-//  the list will win. Subelements will not be duplicated in the output.
-func (self *Hash) SortedString(sortorder ...string) string {
-  var buffy bytes.Buffer
-  defer buffy.Reset()
-  buffy.WriteByte('<')
-  buffy.WriteString(self.Name())
-  buffy.WriteByte('>')
-  buffy.WriteString(self.InnerXML(sortorder...))
-  buffy.WriteString("</")
-  buffy.WriteString(self.Name())
-  buffy.WriteByte('>')
-  return buffy.String()
-}
-
-// Like SortedString() without the surrounding tags for the receiver's element itself.
-// You can pass a list of tags that should be sorted before their siblings. These
-// subelements will be listed in the order they appear in the sortorder arguments 
-// list.
-// All other subelements will appear after the listed ones in alphabetical order.
-// An element's text always precedes subelements.
-//
-// NOTE:
-//  If sortorder contains the same name more than once, the earliest position in
-//  the list will win. Subelements will not be duplicated in the output.
-func (self *Hash) InnerXML(sortorder ...string) string {
-  var buffy bytes.Buffer
-  defer buffy.Reset()
-  encxml.Escape(&buffy, []byte(self.text))
-  keys := self.Subtags()
-  sort.Strings(keys)
-  
-  var name string
-  for _, name = range sortorder {
-    // WARNING! Do not use sort.SearchStrings, here. The binary search breaks
-    // after replacing a key with "" as done below.
-    for i := 0; i < len(keys) ; i++ {
-      if keys[i] == name {
-        keys[i] = ""  // remove key from the remaining keys list
-        for child := self.First(name); child != nil; child = child.Next() {
-          childstr := child.SortedString(sortorder...)
-          buffy.WriteString(childstr)
-        }
-      }
+  var paths []sortPath = self.innerXML()
+  sort.Sort(xmlOrder(paths))
+  parts := make([]string,0,6+len(paths)*3) // *3 to have enough room for "<" and ">"
+  parts = append(parts, "<", self.Name(), ">")
+  for _,path := range paths {
+    ele := path[len(path)-1]
+    switch ele.n & 3 {
+      case 1: parts = append(parts, "</", ele.s, ">")
+      case 2: parts = append(parts, "<", ele.s, ">")
+      default: parts = append(parts, ele.s)
     }
   }
-  
-  for _, name = range keys {
-    if name != "" {
-      for child := self.First(name); child != nil; child = child.Next() {
-        childstr := child.SortedString(sortorder...)
-        buffy.WriteString(childstr)
-      }
-    }
-  }
-  return buffy.String()
+  parts = append(parts, "</", self.Name(), ">")
+  return strings.Join(parts,"")
 }
+
 
 // Returns a *Hash whose outer tag has the same name as that of self and
 // whose child elements are deep copies of the children selected by filter.
@@ -814,4 +690,167 @@ func LdifToHash(itemtag string, casefold bool, ldif interface{}) (xml *Hash, err
   }
   
   return x,nil
+}
+
+// Returns a sequence of strings that, when joined, yield the original string
+// with entity references instead of characters that need replacing in XML
+// text and attributes.
+func escape(s string) []string {
+  sl := []string{s}
+  replace := ""
+  for i := len(s)-1; i >= 0; i-- {
+    switch s[i] {
+      case '"':  replace = "&quot;" 
+      case '\'': replace = "&apos;" 
+      case '&':  replace = "&amp;"
+      case '<':  replace = "&lt;"
+      case '>':  replace = "&gt;"
+      default: continue
+    }
+    sl[len(sl)-1] = s[i+1:]
+    s = s[0:i]
+    sl = append(sl, replace, s)
+  }
+  for i:=0; i < len(sl)-1-i; i++ { sl[i], sl[len(sl)-1-i] = sl[len(sl)-1-i], sl[i] }
+  return sl
+}
+
+type sortElement struct {
+  s string
+  n int
+}
+type sortPath []sortElement
+type xmlOrder []sortPath
+func (sp xmlOrder) Len() int { return len(sp) }
+func (sp xmlOrder) Less(i, j int) bool {
+  var path1 sortPath = sp[i]
+  var path2 sortPath = sp[j]
+  i = 0
+  for ; i < len(path1)-1 && i < len(path2)-1; i++ {
+    if path1[i].s < path2[i].s { return true }
+    if path1[i].s > path2[i].s { return false }
+    if path1[i].n < path2[i].n { return true }
+    if path1[i].n > path2[i].n { return false }
+  }
+  // i = min(len(path1)-1, len(path2)-1)
+  
+  // text nodes are sorted before non-text nodes
+  if len(path1) < len(path2) && (path1[i].n & 3 == 0) { return true }
+  if len(path1) > len(path2) && (path2[i].n & 3 == 0) { return false }  
+  
+  return path1[i].n < path2[i].n
+}
+func (sp xmlOrder) Swap(i, j int) { sp[i], sp[j] = sp[j], sp[i]  }
+
+func (self *Hash) innerXML() []sortPath {
+  result := []sortPath{}
+  path := sortPath{sortElement{"",0}}
+  end := self.link()
+  for h := self.succ(); h != end; h = h.succ() {
+  
+    switch h.nest() {
+      case 0: 
+              sl := escape(h.data)
+              for i := range sl {
+                path[len(path)-1].n += 4
+                path[len(path)-1].s = sl[i]
+                sp := make([]sortElement, len(path))
+                copy(sp, path)
+                result = append(result, sp)
+              }
+              
+      case 1: 
+              path[len(path)-1].n += 6
+              path[len(path)-1].s = h.data
+              path = append(path, sortElement{path[len(path)-1].s, path[len(path)-1].n})
+              sp := make([]sortElement, len(path))
+              copy(sp, path)
+              result = append(result, sp)
+              path[len(path)-1].n -= 2
+      
+      case -1: 
+              path[len(path)-1].n += 5
+              path[len(path)-1].s = h.link().data
+              sp := make([]sortElement, len(path))
+              copy(sp, path)
+              result = append(result, sp)
+              path = path[0:len(path)-1]
+              path[len(path)-1].n -= 2
+    }
+  }
+  
+  return result
+}
+
+// Verifies that the Hash's structure is intact and returns an error if not.
+func (self *Hash) Verify() (err error) {
+  defer func() {
+    if x := recover(); x != nil {
+      err = fmt.Errorf("%v",x)
+    }
+  }()
+  
+  h := self
+  for h.pred() != nil { h = h.pred() }
+  if err = verifyStartTag(h); err != nil { return }
+  end := h.link()
+  if err = verifyEndTag(end); err != nil { return }
+  if end.succ() != nil { return fmt.Errorf("%v has a brother %v but no parent", h.data, end.succ().data) }
+  
+  path := []*Hash{}
+  h = h.succ()
+  
+  for h != end {
+    switch h.nest() {
+      case 0: if err = verifyText(h); err != nil { return }
+      case 1: if err = verifyStartTag(h); err != nil { return }
+              path = append(path, h)
+      case -1:
+              if h.link() != path[len(path)-1] { return fmt.Errorf("Incorrect end tag for %v", path[len(path)-1].data) }
+              if err = verifyEndTag(h); err != nil { return }
+              path = path[0:len(path)-1]
+      
+      default: { return fmt.Errorf("Illegal nest() value %v encountered", h.nest()) }
+    }
+    h = h.succ()
+  }
+  
+  if len(path) > 0 { return fmt.Errorf("Start tag %v has no matching end tag", path[0].data) }
+  
+  return
+}
+
+func verifyStartTag(h *Hash) error {
+  if h == nil { return fmt.Errorf("Unexpected nil pointer where start tag expected") }
+  if h.nest() != 1 { return fmt.Errorf("Start tag %v has nest()==%v", h.data, h.nest()) }
+  if h.link() == nil { return fmt.Errorf("Start tag %v has nil link", h.data) }
+  if h.link().link() != h { return fmt.Errorf("Start tag %v has link() that doesn't point back to it", h.data) }
+  if h.succ() == nil { return fmt.Errorf("Start tag %v has succ()==nil", h.data) }
+  if h.pred() != nil && h.pred().succ() != h { return fmt.Errorf("Start tag %v has pred() that doesn't point back to it", h.data) }
+  if h.succ() != nil && h.succ().pred() != h { return fmt.Errorf("Start tag %v has succ() that doesn't point back to it", h.data) }
+  if h.data == "" { return fmt.Errorf("Start tag without name encountered") }
+  return nil
+}
+
+func verifyEndTag(h *Hash) error {
+  if h == nil { return fmt.Errorf("Unexpected nil pointer where end tag expected") }
+  if h.data != "" { return fmt.Errorf("End tag has non-empty data %v", h.data) }
+  if h.link() == nil { return fmt.Errorf("End tag has nil link") }
+  if h.link().link() != h { return fmt.Errorf("End tag has link() that doesn't point back to it") }
+  if h.pred() == nil { return fmt.Errorf("End tag has pred()==nil") }
+  if h.nest() != -1 { return fmt.Errorf("End tag %v has nest()==%v", h.link().data, h.nest()) }
+  if h.pred() != nil && h.pred().succ() != h { return fmt.Errorf("End tag %v has pred() that doesn't point back to it", h.link().data) }
+  if h.succ() != nil && h.succ().pred() != h { return fmt.Errorf("End tag %v has succ() that doesn't point back to it", h.link().data) }
+  return nil
+}
+
+func verifyText(h *Hash) error {
+  if h == nil { return fmt.Errorf("Unexpected nil pointer where text expected") }
+  if h.link_ != 0 { return fmt.Errorf("Text %v has non-0 link_", h.data) }
+  if h.nest() != 0 { return fmt.Errorf("Text %v has nest()==%v", h.data, h.nest()) }
+  if h.pred() == nil { return fmt.Errorf("Text %v has pred()==nil", h.data) }
+  if h.succ() == nil { return fmt.Errorf("Text %v has succ()==nil", h.data) }
+  if h.pred().succ() != h { return fmt.Errorf("Text %v has pred() that doesn't point back to it", h.data) }
+  if h.succ().pred() != h { return fmt.Errorf("Text %v has succ() that doesn't point back to it", h.data) }
+  return nil
 }

@@ -398,8 +398,8 @@ func hash(format string, args... interface{}) *xml.Hash {
 // </xml>
 //
 // where each <answer> element corresponds to an <answerX> element from
-// the input x. The <answer> elements are sorted by their SortedString(subtags) values.
-func extract_sorted_answers(x *xml.Hash, subtags... string) *xml.Hash {
+// the input x. The answers are sorted by the String() values.
+func extract_sorted_answers(x *xml.Hash) *xml.Hash {
   result := xml.NewHash("xml")
 
   answers := []*xml.Hash{}
@@ -416,7 +416,7 @@ func extract_sorted_answers(x *xml.Hash, subtags... string) *xml.Hash {
   // sort
   for i := range answers {
     for k := i+1; k < len(answers); k++ {
-      if answers[k].SortedString(subtags...) < answers[i].SortedString(subtags...) {
+      if answers[k].String() < answers[i].String() {
         answers[i],answers[k] = answers[k],answers[i]
       }
     }
