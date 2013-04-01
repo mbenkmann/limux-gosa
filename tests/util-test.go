@@ -32,6 +32,7 @@ import (
          "strings"
          "math/rand"
          "io/ioutil"
+         "encoding/base64"
          
          "../util"
        )
@@ -403,4 +404,130 @@ func Util_test() {
   }()
   time.Sleep(100*time.Millisecond)
   check(mess,"")
+  
+  testBase64()
+}
+
+func testBase64() {
+  check(util.Base64DecodeString("", nil), []byte{})
+  check(util.Base64DecodeInPlace([]byte{}), []byte{})
+  check(util.Base64DecodeString("=", nil), []byte{})
+  check(util.Base64DecodeInPlace([]byte("=")), []byte{})
+  check(util.Base64DecodeString("  =  ", nil), []byte{})
+  check(util.Base64DecodeInPlace([]byte("  =  ")), []byte{})
+  check(util.Base64DecodeString("/+/+", nil), []byte{0xff,0xef,0xfe})
+  check(util.Base64DecodeInPlace([]byte("/+/+")), []byte{0xff,0xef,0xfe})
+  check(util.Base64DecodeString("_-_-", nil), []byte{0xff,0xef,0xfe})
+  check(util.Base64DecodeInPlace([]byte("_-_-")), []byte{0xff,0xef,0xfe})
+  var devnull int
+  check(string(util.Base64DecodeString("SGFsbG8=", nil)), "Hallo")
+  check(string(util.Base64DecodeInPlace([]byte("SGFsbG8="))), "Hallo")
+  check(string(util.Base64DecodeString("SGFsbA==", nil)), "Hall")
+  check(string(util.Base64DecodeInPlace([]byte("SGFsbA=="))), "Hall")
+  check(string(util.Base64DecodeString("SGFsbG8", nil)), "Hallo")
+  check(string(util.Base64DecodeInPlace([]byte("SGFsbG8"))), "Hallo")
+  check(string(util.Base64DecodeString("SGFsbA=", nil)), "Hall")
+  check(string(util.Base64DecodeInPlace([]byte("SGFsbA="))), "Hall")
+  check(string(util.Base64DecodeString("SGFsbG8===", nil)), "Hallo")
+  check(string(util.Base64DecodeInPlace([]byte("SGFsbG8==="))), "Hallo")
+  check(string(util.Base64DecodeString("SGFsbA", nil)), "Hall")
+  check(string(util.Base64DecodeInPlace([]byte("SGFsbA"))), "Hall")
+  check(string(util.Base64DecodeString("SGFsbG8=", &devnull)), "Hallo")
+  check(devnull, 0)
+  check(string(util.Base64DecodeString("SGFsbA==", &devnull)), "Hall")
+  check(devnull, 0)
+  check(string(util.Base64DecodeString("SGFsbA=", &devnull)), "Hall")
+  check(devnull, 0)
+  check(string(util.Base64DecodeString("SGFsbG8===", &devnull)), "Hallo")
+  check(devnull, 0)
+  check(string(util.Base64DecodeString("AA", nil)), "\000")
+  check(string(util.Base64DecodeInPlace([]byte("AA"))), "\000")
+  check(string(util.Base64DecodeString("AAA", nil)), "\000\000")
+  check(string(util.Base64DecodeInPlace([]byte("AAA"))), "\000\000")
+  var zerocarry int
+  check(string(util.Base64DecodeString("AA", &zerocarry)), "")
+  check(zerocarry != 0, true)
+  check(string(util.Base64DecodeString("=", &zerocarry)), "\000")
+  check(zerocarry, 0)
+  check(string(util.Base64DecodeString("AAA", &zerocarry)), "")
+  check(zerocarry != 0, true)
+  check(string(util.Base64DecodeString("=", &zerocarry)), "\000\000")
+  check(zerocarry, 0)
+  
+  testbuf := make([]byte, 1024)
+  for i := range testbuf { testbuf[i] = byte(i) }
+  
+  
+  error_list := ""
+  for length := 0; length <= 12; length++ {
+    for eq := 0; eq <= 4; eq++ {
+      for err := 0; err <= 12; err++ {
+        b64_1 := base64.StdEncoding.EncodeToString(testbuf[0:512-length])
+        
+        testslice := b64_1[0:]
+        errors := []int{0}
+        for e := 0 ; e < err; e++ {
+          errors = append(errors, errors[e]+rand.Intn(len(testslice)-errors[e]))
+        }
+        errors = append(errors, len(testslice))
+        teststr := ""
+        for i := 0; i < len(errors)-1; i++ {
+          if i != 0 { teststr = teststr + "\000\n" }
+          teststr = teststr + testslice[errors[i]:errors[i+1]]
+        }
+        
+        for i := 0; i < eq; i++ {
+          teststr += "="
+        }
+        // because we're concatenating we need at least 1 "=" if the
+        // first string ends in an incomplete block
+        if eq == 0 && (length & 3) != 0 { teststr += "=" } 
+        
+        b64_2 := base64.URLEncoding.EncodeToString(testbuf[512-length:])
+
+        testslice = b64_2[0:]
+        errors = []int{0}
+        for e := 0 ; e < err; e++ {
+          errors = append(errors, errors[e]+rand.Intn(len(testslice)-errors[e]))
+        }
+        errors = append(errors, len(testslice))
+        for i := 0; i < len(errors)-1; i++ {
+          if i != 0 { teststr = teststr + " " }
+          teststr = teststr + testslice[errors[i]:errors[i+1]]
+        }
+        
+        for i := 0; i < eq; i++ {
+          teststr += "="
+        }
+        
+        for parts := 0; parts < 5; parts++ {
+          stops := []int{0}
+          for e := 0 ; e < parts; e++ {
+            stops = append(stops, stops[e]+rand.Intn(len(teststr)-stops[e]))
+          }
+          stops = append(stops, len(teststr))
+          
+          decoded := ""
+          carry := 0
+          for i := 0; i < len(stops)-1; i++ {
+            decoded += string(util.Base64DecodeString(teststr[stops[i]:stops[i+1]], &carry))
+          }
+          
+          if decoded != string(testbuf) {
+            error_list += fmt.Sprintf("(util.Base64DecodeString() failed for length=%v eq=%v err=%v parts=%v)\n",length,eq,err,parts)
+          }
+          
+          buffy := []byte(string(teststr))
+          decbuffy := util.Base64DecodeInPlace(buffy)
+          if &(decbuffy[0]) != &(buffy[0]) || // verify the in-place property
+            string(decbuffy) != string(testbuf) {
+            error_list += fmt.Sprintf("(util.Base64DecodeInPlace() failed for length=%v eq=%v err=%v parts=%v)\n",length,eq,err,parts)
+          }
+        }  
+      }
+    }
+  }
+  
+  check(error_list, "")
+  
 }
