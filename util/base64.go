@@ -22,6 +22,7 @@
 package util
 
 const translate = "|||||||||||||||||||||||||||||||||||||||||||>|>|?456789:;<=|||~|||\x00\x01\x02\x03\x04\x05\x06\a\b\t\n\v\f\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19||||?|\x1a\x1b\x1c\x1d\x1e\x1f !\"#$%&'()*+,-./0123|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
 // Decodes the base64-encoded string b64 and returns the result.
 // If the input is incomplete, *carry will be used to store partial data of
@@ -209,4 +210,75 @@ end_carry3:
 end_carry1:
 end_carry0:
   return decoded[0:o]
+}
+
+// Returns the base64 encoding (standard alphabet) of data. 
+// The result is always padded with "=" to a multiple of 4 characters.
+func Base64EncodeString(data string) (encoded []byte) {
+  idx := ((len(data)+2)/3)<<2
+  encoded = make([]byte, idx)
+  idx -= len(data)
+  copy(encoded[idx:], data)
+  return Base64EncodeInPlace(encoded, idx)
+}
+
+// In-place base64 encoder. Encodes data[idx:] and writes the encoded base64 data
+// (standard alphabet) to data[0:]. The value of idx must be at least 
+// (((len(data[idx:])+2)/3)<<2)-len(data[idx:]) or the result will be corrupted.
+// 
+// The function returns a subslice data[0:n] that contains the encoded data. 
+//
+// If idx is exactly the minimum value, then the returned subslice will be identical
+// to data. If idx is larger than necessary, the returned subslice will be shorter.
+//
+// The result is always padded with "=" to a multiple of 4 characters length.
+func Base64EncodeInPlace(data []byte, idx int) ([]byte) {
+  var shift int
+  var n int
+  
+  for idx < len(data)-2 {
+    shift = int(data[idx])
+    idx++
+    shift <<= 8
+    shift |= int(data[idx])
+    idx++
+    shift <<= 8
+    shift |= int(data[idx])
+    idx++
+  
+    n += 4
+    data[n-1] = alphabet[shift & 0x3f]
+    shift >>= 6
+    data[n-2] = alphabet[shift & 0x3f]
+    shift >>= 6
+    data[n-3] = alphabet[shift & 0x3f]
+    shift >>= 6
+    data[n-4] = alphabet[shift & 0x3f]
+  }
+  
+  switch len(data)-idx {
+    case 2: shift = int(data[idx])
+            shift <<= 8
+            shift |= int(data[idx+1])
+            shift <<= 2
+            n += 4
+            data[n-1] = '='
+            data[n-2] = alphabet[shift & 0x3f]
+            shift >>= 6
+            data[n-3] = alphabet[shift & 0x3f]
+            shift >>= 6
+            data[n-4] = alphabet[shift & 0x3f]
+            
+    case 1: shift = int(data[idx])
+            shift <<= 4
+            n += 4
+            data[n-1] = '='
+            data[n-2] = '='
+            data[n-3] = alphabet[shift & 0x3f]
+            shift >>= 6
+            data[n-4] = alphabet[shift & 0x3f]
+  }
+  
+  
+  return data[0:n]
 }

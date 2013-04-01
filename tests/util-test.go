@@ -530,4 +530,24 @@ func testBase64() {
   
   check(error_list, "")
   
+  buffy := make([]byte, 1024)
+  st := "Nehmt, esst. Dies ist mein Leib - sprach der Schokohase"
+  copy(buffy[32:], st)
+  result := util.Base64EncodeInPlace(buffy[:32+len(st)],32)
+  check(&(buffy[0]) == &(result[0]), true)
+  check(cap(result), cap(buffy))
+  check(string(result), "TmVobXQsIGVzc3QuIERpZXMgaXN0IG1laW4gTGVpYiAtIHNwcmFjaCBkZXIgU2Nob2tvaGFzZQ==")
+  
+  st = "Nehmt, esst. Dies ist mein Leib - sprach der Schokohase\n"
+  copy(buffy[256:], st)
+  result = util.Base64EncodeInPlace(buffy[:256+len(st)],256)
+  check(&(buffy[0]) == &(result[0]), true)
+  check(cap(result), cap(buffy))
+  check(string(result), "TmVobXQsIGVzc3QuIERpZXMgaXN0IG1laW4gTGVpYiAtIHNwcmFjaCBkZXIgU2Nob2tvaGFzZQo=")
+  
+  for n := 0; n <= 12; n++ {
+    buffy = make([]byte, n)
+    for i := range buffy { buffy[i] = byte(i) }
+    check(string(util.Base64EncodeString(string(buffy))), base64.StdEncoding.EncodeToString(buffy))
+  }
 }
