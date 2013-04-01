@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2012 Matthias S. Benkmann
+Copyright (c) 2013 Matthias S. Benkmann
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -350,8 +350,10 @@ func Util_test() {
   
   test_time := time.Date(2013, time.January, 20, 14, 7, 21, 0, time.Local)
   check(util.MakeTimestamp(test_time),"20130120140721")
-  check(util.MakeTimestamp(test_time.UTC()),"20130120140721")
-  check(util.MakeTimestamp(test_time.In(time.FixedZone("Fooistan", 45678))),"20130120140721")
+  test_time  = time.Date(2013, time.January, 20, 14, 7, 21, 0, time.UTC)
+  check(util.MakeTimestamp(test_time),"20130120140721")
+  test_time  = time.Date(2013, time.January, 20, 14, 7, 21, 0, time.FixedZone("Fooistan", 45678))  
+  check(util.MakeTimestamp(test_time),"20130120140721")
   illegal := time.Unix(0,0)
   buffy.Reset()
   check(util.ParseTimestamp(""), illegal)
@@ -360,6 +362,19 @@ func Util_test() {
   check(util.ParseTimestamp("20139910101010"), illegal)
   check(strings.Contains(buffy.String(), "ERROR"), true)
   check(util.ParseTimestamp("20131110121314"), time.Date(2013, time.November, 10, 12, 13, 14, 0, time.Local))
+  check(util.MakeTimestamp(util.ParseTimestamp(util.MakeTimestamp(test_time))), util.MakeTimestamp(test_time))
+  test_time = test_time.Add(2400*time.Hour)
+  check(util.MakeTimestamp(util.ParseTimestamp(util.MakeTimestamp(test_time))), util.MakeTimestamp(test_time))
+  test_time = test_time.Add(2400*time.Hour)
+  check(util.MakeTimestamp(util.ParseTimestamp(util.MakeTimestamp(test_time))), util.MakeTimestamp(test_time))
+  test_time = test_time.Add(2400*time.Hour)
+  check(util.MakeTimestamp(util.ParseTimestamp(util.MakeTimestamp(test_time))), util.MakeTimestamp(test_time))
+  test_time = test_time.Add(2400*time.Hour)
+  check(util.MakeTimestamp(util.ParseTimestamp(util.MakeTimestamp(test_time))), util.MakeTimestamp(test_time))
+  
+  diff := time.Since(util.ParseTimestamp(util.MakeTimestamp(time.Now())))
+  if diff < time.Second { diff = 0 }
+  check(diff, time.Duration(0))
   
   t0 = time.Now()
   util.WaitUntil(t0.Add(-10*time.Second))
@@ -389,4 +404,3 @@ func Util_test() {
   time.Sleep(100*time.Millisecond)
   check(mess,"")
 }
-
