@@ -25,7 +25,6 @@ import (
          "time"
          "os/exec"
          "runtime"
-         "encoding/base64"
          
          "../xml"
          "../util"
@@ -173,17 +172,30 @@ func PackageListHook() {
       section = "main"
     }
     
-    description := pkg.Text("description")
-    if description == "" { description = pkgname[0] }
-    
     p := xml.NewHash("pkg","distribution",release[0])
     p.Add("package", pkgname[0])
     p.Add("timestamp",timestamp)
     p.Add("version",version)
     p.Add("section",section)
-    p.Add("description",base64.StdEncoding.EncodeToString([]byte(description)))
+    description := pkg.First("description")
+    if description != nil {
+      description = description.Clone()
+      description.EncodeBase64()
+      p.AddWithOwnership(description)
+    } else {
+      p.Add("description", pkgname[0])
+    }
       // accept "template" and "templates" (with and without "s")
-    p.Add("template",base64.StdEncoding.EncodeToString([]byte(pkg.Text("template")+pkg.Text("templates"))))
+    template := pkg.First("template")
+    if template == nil { pkg.First("templates") }
+    if template != nil {
+      template = template.Clone()
+      template.Rename("template")
+      template.EncodeBase64()
+      p.AddWithOwnership(template)
+    } else {
+      p.Add("template")
+    }
 
     pkgdata.AddWithOwnership(p)
     accepted++
