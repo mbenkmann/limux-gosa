@@ -31,6 +31,7 @@ import (
          "os/exec"
          
          "../xml"
+         "../util"
        )
 
 // Unit tests for the package susi/xml.
@@ -686,6 +687,78 @@ func testHash() {
   sort.Strings(st)
   check(st, []string{"creature","monster"})
   check(len(st),2)
+  
+  x = xml.NewHash("foo")
+  whole := []byte{}
+  for n := 0; n <= 12; n++ {
+    buf := make([]byte, n)
+    for i := range buf { buf[i] = byte(i) }
+    x.AppendString(string(buf))
+    whole = append(whole, buf...)
+  }
+  x.EncodeBase64()
+  encoded := string(util.Base64EncodeString(string(whole)))
+  check(x.Text(), encoded)
+  x.DecodeBase64()
+  check([]byte(x.Text()),whole)
+  x.SetText()
+  for i := range encoded {
+    x.AppendString(string([]byte{encoded[i]}))
+  }
+  x.DecodeBase64()
+  check([]byte(x.Text()),whole)
+  
+  x.SetText("H")
+  x.EncodeBase64()
+  check(x.Text(),"SA==")
+  x.DecodeBase64()
+  x.AppendString("a")
+  x.EncodeBase64()
+  check(x.Text(),"SGE=")
+  x.DecodeBase64()
+  x.AppendString("l")
+  x.EncodeBase64()
+  check(x.Text(),"SGFs")
+  
+  x.SetText("H")
+  x.AppendString("a")
+  x.EncodeBase64()
+  check(x.Text(),"SGE=")
+  
+  x.SetText("H")
+  x.AppendString("a")
+  x.AppendString("l")
+  x.EncodeBase64()
+  check(x.Text(),"SGFs")
+  
+  x.SetText("H")
+  x.AppendString("a")
+  x.AppendString("l")
+  x.AppendString("l")
+  x.EncodeBase64()
+  check(x.Text(),"SGFsbA==")
+  
+  x.SetText("H")
+  x.AppendString("a")
+  x.AppendString("l")
+  x.AppendString("l")
+  x.AppendString("o")
+  x.EncodeBase64()
+  check(x.Text(),"SGFsbG8=")
+  
+  x.SetText("Ha")
+  x.AppendString("ll")
+  x.AppendString("o")
+  x.EncodeBase64()
+  check(x.Text(),"SGFsbG8=")
+  
+  x.SetText("S")
+  x.AppendString("G")
+  x.AppendString("Fs")
+  x.AppendString("b")
+  x.AppendString("G8")
+  x.DecodeBase64()
+  check(x.Text(),"Hallo")
   
   testLDIF()
 }

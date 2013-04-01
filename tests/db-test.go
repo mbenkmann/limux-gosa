@@ -248,7 +248,7 @@ func systemdb_test() {
   check(db.SystemIPAddressForName("sdfjnsdjfbsdfjb32"), "none")
   check(strings.Index(buffy.String(),"ERROR")>0,true)
   check(db.SystemIPAddressForName(config.Hostname), config.IP)
-  check(db.SystemIPAddressForName("www.mit.edu"), "18.9.22.169")
+  check(db.SystemIPAddressForName("www.example.com"), "192.0.43.10")
   
   check(db.SystemNameForIPAddress("18.9.22.169"), "www.mit.edu")
   

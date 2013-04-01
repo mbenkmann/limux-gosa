@@ -112,6 +112,18 @@ func (b *Buffer) String() string {
   return C.GoStringN((*C.char)(b.ptr), C.int(b.sz))
 }
 
+// Returns a byte slice that directly accesses the buffer's data.
+// WARNING! Appending anything to the buffer invalidates any
+// slices obtained via this function. They may end up pointing at
+// invalid memory locations.
+//
+// NOTE: The return value is always a valid slice, even if the
+// buffer is empty. The function never returns nil.
+func (b *Buffer) Bytes() []byte {
+  if b.ptr == nil { return []byte{} }
+  return ((*[maxInt]byte)(b.ptr))[0:b.sz]
+}
+
 // Split slices the buffer into all substrings separated by sep and returns
 // a slice of the substrings between those separators. The buffer itself is
 // unchanged and the strings are copies (of course).

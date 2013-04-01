@@ -31,12 +31,18 @@ import (
          "sort"
          "strings"
          "unsafe"
-         "encoding/base64"
          
          "../bytes"
+         "../util"
        )
 
 import encxml "encoding/xml"
+
+// To prevent memory leaks caused by the garbage collector, the Hash will
+// attempt to split up text content of elements into fragments no longer than
+// this many bytes. Except where otherwise noted this is transparent to the
+// user of the xml.Hash's API.
+var MaxFragmentLength = 256
 
 // An xml.Hash is a representation of simple XML data that follows certain
 // restrictions:
@@ -154,6 +160,7 @@ func (self *Hash) Clone() *Hash {
 
 // Appends s to this Hash's text content.
 func (self *Hash) AppendString(s string) {
+  if len(s) == 0 { return }
   end := self.link()
   hash := &Hash{data:s, pred_:2, succ_:end}
   hash.setPred(end.pred())
@@ -475,6 +482,48 @@ func (self *Hash) String() string {
   return strings.Join(parts,"")
 }
 
+// Runs this Hash's text child through a base64 decoder and replaces it with
+// the result. Garbage characters (such as whitespace) are ignored during the
+// decoding.
+func (self *Hash) DecodeBase64() {
+  text := self.TextFragments()
+  self.SetText()
+  var carry int
+  for i := range text {
+    self.AppendString(string(util.Base64DecodeString(text[i], &carry)))
+  }
+  flush := string(util.Base64DecodeString("=", &carry))
+  self.AppendString(flush)
+}
+
+// Runs this Hash's text child through a base64 encoder and replaces it with
+// the result. 
+func (self *Hash) EncodeBase64() {
+  text := self.TextFragments()
+  self.SetText()
+  carry := make([]byte,0,2)
+  for i := range text {
+    l := len(text[i]) + len(carry)
+    var rem int
+    var buf []byte
+    if i < len(text)-1 { // if we have a next string that we can carry over into
+      rem = l % 3        // round down l to multiple of 3 and carry over the remainder
+      l -= rem
+      if l == 0 { // nothing remaining? carry over everything
+        carry = append(carry, text[i]...)
+        continue
+      }
+      buf = make([]byte, (l / 3) <<2)
+    } else { // last string, can't carry over
+      buf = make([]byte, ((l+2) / 3) <<2)
+    }
+    idx := len(buf) - l
+    copy(buf[idx:], carry)
+    copy(buf[idx+len(carry):], text[i])
+    carry = append(carry[0:0], text[i][len(text[i])-rem:]...)
+    self.AppendString(string(util.Base64EncodeInPlace(buf, idx)))
+  }
+}
 
 // Returns a *Hash whose outer tag has the same name as that of self and
 // whose child elements are deep copies of the children selected by filter.
@@ -584,6 +633,15 @@ func ReaderToHash(r io.Reader) (xml *Hash, err error) {
   return StringToHash(string(xmldata))
 }
 
+// returns true if string(b[ofs:ofs+len(pre)]) == pre.
+func match(b []byte, ofs int, pre string) bool {
+  i := 0
+  for ; i < len(b) && i < len(pre); i++ {
+    if b[ofs+i] != pre[i] { return false }
+  }
+  return i == len(pre)
+}
+
 // Converts LDIF data into a Hash. The outermost tag will always be "xml".
 // If an error occurs the returned Hash may contain partial data but it
 // is never nil.
@@ -599,16 +657,15 @@ func ReaderToHash(r io.Reader) (xml *Hash, err error) {
 func LdifToHash(itemtag string, casefold bool, ldif interface{}) (xml *Hash, err error) {
   x := NewHash("xml")
   
-  var lines []string
+  var xmldata []byte
   switch ld := ldif.(type) {
-    case []byte: lines = strings.Split(string(ld), "\n")
-    case string: lines = strings.Split(ldif.(string), "\n")
+    case []byte: xmldata = ld
+    case string: xmldata = []byte(ld)
     case io.Reader:
-      xmldata, err := ioutil.ReadAll(ld)
+      xmldata, err = ioutil.ReadAll(ld)
       if err != nil {
         return x, err
       }
-      lines = strings.Split(string(xmldata), "\n")
     case *exec.Cmd:
       var outbuf bytes.Buffer
       defer outbuf.Reset()
@@ -629,65 +686,143 @@ func LdifToHash(itemtag string, casefold bool, ldif interface{}) (xml *Hash, err
         return x, err
       }
       
-      lines = outbuf.Split("\n")
+      xmldata = outbuf.Bytes()
     default:
       return x, fmt.Errorf("ldif argument has unsupported type")
   }
   
-  i := 0
-  if len(lines) > 0 && strings.HasPrefix(lines[0], "version:") { i++ }
-
   item := x
+  var attr *Hash
   new_item := true
+  end := len(xmldata)
+  b64 := false
   
-  for ; i < len(lines) ; {
-    skip := 1
-    line := lines[i]
+  i := 0
+  start := 0
+  if !match(xmldata, i, "version:") { goto wait_for_item }
+
+///////////////////////////////////////////////////////////////////////  
+skip_line:
+///////////////////////////////////////////////////////////////////////
+  for {  
+    if i == end { goto end_of_input }
+    if xmldata[i] == '\n' { break }
+    i++
+  }
+  // Even comments can have line continuations in LDIF, so we need to
+  // continue skipping if there is a continuation.
+  i++
+  if i < end && (xmldata[i] == ' ' || xmldata[i] == '\t') { goto skip_line }
+
+///////////////////////////////////////////////////////////////////////
+wait_for_item:
+///////////////////////////////////////////////////////////////////////
+  new_item = true
+  for { 
+    if i == end { goto end_of_input }
+    if ch := xmldata[i]; ch > ' ' {
+      if match(xmldata, i, "# search result") { goto end_of_input }
+      if ch < 'A' { goto skip_line } // skip garbage (typically comments)
+      break
+    }
+    i++
+  }
+
+///////////////////////////////////////////////////////////////////////
+scan_attribute_name:  
+///////////////////////////////////////////////////////////////////////    
+  start = i
+  b64 = false
+  for {  
+    if i == end { goto end_of_input }
     
-    if line == "# search result" { break }
+    if xmldata[i] == '#' { goto skip_broken_attribute }
     
-    if line == "" {
-      new_item = true
-    } else 
-    {
-      for ; i+skip < len(lines) ; {
-        l := lines[i+skip]
-        if len(l) == 0 || (l[0] != ' ' && l[0] != '\t') { break }
-        line = line + l[1:]
-        skip++
+    if xmldata[i] == ':' {
+      colon := i
+      if colon == start { goto skip_broken_attribute } // line that starts with ":" => Skip
+      i++
+      if i < end && xmldata[i] == ':' { b64 = true; i++ }
+      
+      // if separate items are requested, create <itemtag></itemtag> element as new item
+      // otherwise item == x stays as it is
+      if new_item && itemtag != "" { 
+        item = x.Add(itemtag) 
+        new_item = false
       }
       
-      if line[0] != '#' {
-        colon := strings.Index(line, ":")
-        if colon > 0 {
-          attr := line[:colon]
-          b64 := false
-          if colon+1 < len(line) && line[colon+1] == ':' { b64 = true ; colon++ }
-          
-          if colon < len(line) { colon++ } // skip colon
-          if colon < len(line) && line[colon] == ' ' { colon++ } // skip space after colon
-          
-          val := line[colon:]
-          if casefold { attr = strings.ToLower(attr) }
-          if b64 { 
-            valb, err := base64.StdEncoding.DecodeString(val)
-            val = string(valb)
-            if err != nil {
-              return x, err
-            }
-          }
-          
-          if itemtag != "" && new_item { 
-            item = x.Add(itemtag) 
-            new_item = false
-          }
-          
-          item.Add(attr, val)
-        }
-      }
-    }  
-    i += skip
+      // add the new attribute element
+      attrname := string(xmldata[start:colon])
+      if casefold { attrname = strings.ToLower(attrname) }
+      attr = item.Add(attrname)
+      
+      if i == end { goto end_of_input }
+      
+       // skip 1 space or tab after colon
+      if xmldata[i] == ' ' || xmldata[i] == '\t' { i++ } 
+      
+      break
+    }
+    i++
   }
+
+///////////////////////////////////////////////////////////////////////
+//scan_value_fragment:
+///////////////////////////////////////////////////////////////////////
+  start = i
+  for {
+    if i - start > MaxFragmentLength {
+      attr.AppendString(string(xmldata[start:i]))
+      start = i
+    }
+    
+    if i == end || xmldata[i] == '\n' {
+      attr.AppendString(string(xmldata[start:i]))
+      i++
+        // 1 tab or space is a line continuation, everything else ends the value
+      if i >= end || (xmldata[i] != ' ' && xmldata[i] != '\t') { 
+        break 
+      }
+      
+      start = i+1 // start next fragment after line continuation marker
+    }
+    i++
+  }
+
+///////////////////////////////////////////////////////////////////////
+//attribute_value_scanned:
+///////////////////////////////////////////////////////////////////////
+  if b64 { attr.DecodeBase64() }
+  if i >= end { goto end_of_input }
+  if xmldata[i] == '\n' { goto wait_for_item } // empty line => next item
+  goto scan_attribute_name
+
+
+///////////////////////////////////////////////////////////////////////  
+skip_broken_attribute:
+///////////////////////////////////////////////////////////////////////
+  for {  
+    if i == end { goto end_of_input }
+    if xmldata[i] == '\n' { break }
+    i++
+  }
+  i++
+  if i >= end { goto end_of_input }
+  if xmldata[i] == '\n' { goto wait_for_item } // empty line => next item
+  
+  // Even comments can have line continuations in LDIF, so we need to
+  // continue skipping if there is a continuation.
+  if xmldata[i] == ' ' || xmldata[i] == '\t' { goto skip_broken_attribute }
+  
+  goto scan_attribute_name
+
+
+///////////////////////////////////////////////////////////////////////
+end_of_input:
+///////////////////////////////////////////////////////////////////////
+    // NOTE: 
+    //   Don't assume anything about i here.
+    //   i > len(xmldata) is possible, as well as i < len(xmldata)
   
   return x,nil
 }
