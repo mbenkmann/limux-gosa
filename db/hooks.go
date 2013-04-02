@@ -59,6 +59,7 @@ func runHooks() {
 // Reads the output from the program config.KernelListHookPath (LDIF) and
 // uses it to replace kerneldb.
 func KernelListHook() {
+  start := time.Now()
   util.Log(1, "INFO! Running kernel-list-hook %v", config.KernelListHookPath)
   klist, err := xml.LdifToHash("kernel", true, exec.Command(config.KernelListHookPath))
   if err != nil {
@@ -69,7 +70,7 @@ func KernelListHook() {
     util.Log(0, "ERROR! kernel-list-hook %v returned no data", config.KernelListHookPath)
     return
   }
-  util.Log(1, "INFO! Finished kernel-list-hook %v ", config.KernelListHookPath)
+  util.Log(1, "INFO! Finished kernel-list-hook. Running time: %v", time.Since(start))
   
   kerneldata := xml.NewHash("kerneldb")
   
