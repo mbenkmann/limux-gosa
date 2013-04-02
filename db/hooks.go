@@ -180,14 +180,15 @@ func PackageListHook() {
     description := pkg.First("description")
     if description != nil {
       description = description.Clone()
-      description.EncodeBase64()
-      p.AddWithOwnership(description)
     } else {
-      p.Add("description", pkgname[0])
+      description = xml.NewHash("description", pkgname[0])
     }
+    description.EncodeBase64()
+    p.AddWithOwnership(description)
+    
       // accept "template" and "templates" (with and without "s")
     template := pkg.First("template")
-    if template == nil { pkg.First("templates") }
+    if template == nil { template = pkg.First("templates") }
     if template != nil {
       template = template.Clone()
       template.Rename("template")

@@ -1597,6 +1597,7 @@ func run_foreign_job_updates_tests() {
   // check that we receive NO fju
   msg = wait(t0, "foreign_job_updates")
   check(msg.XML.Text("header"), "")
+  time.Sleep(1*time.Second)
   // Check the jobdb to verify that it is now empty.
   x = gosa("query_jobdb", hash("xml(where())"))
   check(checkTags(x, "header,source,target,session_id?"),"")
