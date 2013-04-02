@@ -80,7 +80,7 @@ if test "$oldpid" != "$newpid" -a -n "$newpid" -a $result == 0 ; then
     cat "$susi_dir/testdata/citest.log" | mail -s "$sub" $mail
   done
   for release in plophos plophos/4.1.0 tramp ; do
-    ( umask 022 ; cd /srv/www/daily && reprepro --keepunreferencedfiles -C lhm include $release "$susi_dir"/deb/*.changes )
+    ( umask 022 ; cd /srv/www/daily && reprepro --ignore=wrongdistribution --keepunreferencedfiles -C lhm include $release "$susi_dir"/deb/*.changes )
   done
 else
   for mail in $(echo "$developer" | tr ';' ' ') ; do
