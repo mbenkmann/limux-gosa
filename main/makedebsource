@@ -77,7 +77,7 @@ chmod a+rx debian/postinst
 
 echo >debian/rules "#!/usr/bin/make -f
 clean:
-	make clean
+	make almostclean
 	rm -f debian/files
 	rm -rf dist/
 

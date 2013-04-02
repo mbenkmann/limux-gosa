@@ -20,9 +20,8 @@ debug:
 test: all
 	./run-tests --unit --system=./go-susi
 
-clean:
+almostclean:
 	rm -f $(BINARIES) gosa-si-server go-susi_*.deb
-	hg revert --no-backup testdata/ldif
 	rm -f testdata/ldif/c=de/o=go-susi/ou=incoming/cn=*.ldif
 	rm -f testdata/ldif/c=de/o=go-susi/ou=systems/ou=workstations/cn=system-aa-00-bb-11-cc-99.ldif
 	rm -f testdata/ldif/c=de/o=go-susi/ou=systems/ou=workstations/cn=mrhyde.ldif
@@ -31,6 +30,9 @@ clean:
 	rm -rf deb/go-susi-?*.?*.?*/*
 	test -d deb/go-susi-?*.?*.?*/ && rmdir deb/go-susi-?*.?*.?*/ || true
 	test -d deb && rmdir deb || true
+
+clean:  almostclean
+	hg revert --no-backup testdata/ldif
 
 deb:
 	main/makedebsource
