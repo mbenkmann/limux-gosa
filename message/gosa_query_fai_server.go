@@ -32,7 +32,7 @@ import (
 //  xmlmsg: the decrypted and parsed message
 // Returns:
 //  unencrypted reply
-func gosa_query_fai_server(xmlmsg *xml.Hash) string {
+func gosa_query_fai_server(xmlmsg *xml.Hash) *xml.Hash {
   serversdb := db.FAIServers()
   servers := xml.NewHash("xml","header", "query_fai_server")
   
@@ -47,5 +47,5 @@ func gosa_query_fai_server(xmlmsg *xml.Hash) string {
   servers.Add("source", config.ServerSourceAddress)
   servers.Add("target", xmlmsg.Text("source"))
   servers.Add("session_id", "1")
-  return servers.String()
+  return servers
 }

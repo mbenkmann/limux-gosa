@@ -22,36 +22,48 @@ MA  02110-1301, USA.
 package message
 
 import ( 
-         "fmt"
          "net"
-         "bytes"
          "strings"
          "crypto/cipher"
          "crypto/aes"
-         "encoding/base64"
          
          "../db"
          "../xml"
          "../util"
+         "../bytes"
          "../config"
        )
 
 // Returns an XML string to return to GOsa if there was an error processing
 // a message from GOsa. msg is an error message (will be formatted by Sprintf())
-func ErrorReply(msg interface{}) string {
+func ErrorReplyXML(msg interface{}) *xml.Hash {
   // Use an XML hash so that msg will be properly escaped if it contains e.g. "<"
-  x := xml.NewHash("foo")
-  x.SetText("%v", msg)
-  return fmt.Sprintf("<xml><header>answer</header><source>%v</source><target>GOSA</target><answer1>1</answer1><error_string>%v</error_string></xml>", config.ServerSourceAddress, x.Text())
+  x := xml.NewHash("xml","header","answer")
+  x.Add("error_string",msg)
+  x.Add("source", config.ServerSourceAddress)
+  x.Add("target", "GOSA")
+  x.Add("answer1","1")
+  return x
 }
 
-// Takes a possibly encrypted message and processes it, returning a reply
-// or the empty string if none is necessary/possible.
+// Returns ErrorReplyXML(msg).String()
+func ErrorReply(msg interface{}) string {
+  return ErrorReplyXML(msg).String()
+}
+
+// Returns ErrorReply(msg) within a bytes.Buffer THAT NEEDS TO BE FREED BY THE CALLER!!
+func ErrorReplyBuffer(msg interface{}) *bytes.Buffer {
+  var b bytes.Buffer
+  ErrorReplyXML(msg).WriteTo(&b)
+  return &b
+}
+
+// Takes a possibly encrypted message and processes it, returning a reply.
 // tcpAddr is the address of the message's sender.
 // Returns: 
-//  reply to return
+//  buffer containing the reply to return (MUST BE FREED BY CALLER VIA Reset()!)
 //  disconnect == true if connection should be terminated due to error
-func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string, disconnect bool) {
+func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply *bytes.Buffer, disconnect bool) {
   util.Log(2, "DEBUG! Processing message: %v", msg)
   
   for attempt := 0 ; attempt < 4; attempt++ {
@@ -81,7 +93,7 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string, di
         xml, err := xml.StringToHash(decrypted)
         if err != nil {
           util.Log(0,"ERROR! %v", err)
-          return ErrorReply(err), true
+          return ErrorReplyBuffer(err), true
         } 
         
         // At this point we have successfully decrypted and parsed the message
@@ -107,7 +119,7 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string, di
     }
   }
   
-  return ErrorReply("Could not decrypt message"), true
+  return ErrorReplyBuffer("Could not decrypt message"), true
 }
 
 // Arguments
@@ -116,28 +128,28 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply string, di
 //   tcpAddr: the sender
 //   key: the key that successfully decrypted the message
 // Returns:
-//   reply: reply to return
+//   reply: buffer containing the reply to return
 //   disconnect: true if connection should be terminated due to error
-func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply string, disconnect bool) {
+func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply *bytes.Buffer, disconnect bool) {
   if key == "dummy-key" && xml.Text("header") != "gosa_ping" {
     util.Log(0, "ERROR! Rejecting non-ping message encrypted with dummy-key or not at all")
-    return ErrorReply("ERROR! Rejecting non-ping message encrypted with dummy-key or not at all"),true
+    return ErrorReplyBuffer("ERROR! Rejecting non-ping message encrypted with dummy-key or not at all"),true
   }
   
-  reply = ""
+  reply = &bytes.Buffer{}
   disconnect = false
   switch xml.Text("header") {
-    case "gosa_query_jobdb":         reply = gosa_query_jobdb(xml)
-    case "gosa_query_fai_server":    reply = gosa_query_fai_server(xml)
-    case "gosa_query_fai_release":   reply = gosa_query_fai_release(xml)
-    case "gosa_query_packages_list": reply = gosa_query_packages_list(xml)
-    case "gosa_show_log_by_mac":     reply = gosa_show_log_by_mac(xml)
+    case "gosa_query_jobdb":         gosa_query_jobdb(xml).WriteTo(reply)
+    case "gosa_query_fai_server":    gosa_query_fai_server(xml).WriteTo(reply)
+    case "gosa_query_fai_release":   gosa_query_fai_release(xml).WriteTo(reply)
+    case "gosa_query_packages_list": gosa_query_packages_list(xml).WriteTo(reply)
+    case "gosa_show_log_by_mac":     gosa_show_log_by_mac(xml).WriteTo(reply)
     case "gosa_show_log_files_by_date_and_mac": 
-                                     reply = gosa_show_log_files_by_date_and_mac(xml)
+                                     gosa_show_log_files_by_date_and_mac(xml).WriteTo(reply)
     case "gosa_get_log_file_by_date_and_mac":   
-                                     reply = gosa_get_log_file_by_date_and_mac(xml)
+                                     gosa_get_log_file_by_date_and_mac(xml).WriteTo(reply)
     case "gosa_get_available_kernel":   
-                                     reply = gosa_get_available_kernel(xml)
+                                     gosa_get_available_kernel(xml).WriteTo(reply)
                                    
     case "new_server":          new_server(xml)
     case "confirm_new_server":  confirm_new_server(xml)
@@ -165,7 +177,7 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
          "gosa_trigger_action_update",    // "Aktualisieren"
          "gosa_trigger_action_reinstall", // "Neuinstallation"
          "gosa_trigger_action_wake":      // "Aufwecken"
-                                reply = gosa_trigger_action(xml)
+                                gosa_trigger_action(xml).WriteTo(reply)
     case "job_trigger_action_lock",      // "Sperre"
          "job_trigger_action_halt",      // "Anhalten"
          "job_trigger_action_localboot", // "Erzwinge lokalen Start"
@@ -174,23 +186,23 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
          "job_trigger_action_update",    // "Aktualisieren"
          "job_trigger_action_reinstall", // "Neuinstallation"
          "job_trigger_action_wake":      // "Aufwecken"
-                                reply = job_trigger_action(xml)
+                                job_trigger_action(xml).WriteTo(reply)
     case "trigger_wake":
                                 trigger_wake(xml)
     
     case "gosa_delete_jobdb_entry":
-                                reply = gosa_delete_jobdb_entry(xml)
+                                gosa_delete_jobdb_entry(xml).WriteTo(reply)
     case "gosa_update_status_jobdb_entry":
-                                reply = gosa_update_status_jobdb_entry(xml)
-    case "sistats":             reply = sistats()
+                                gosa_update_status_jobdb_entry(xml).WriteTo(reply)
+    case "sistats":             sistats().WriteTo(reply)
     case "panic":               go func(){panic("Panic by user request")}()
   default:
         util.Log(0, "ERROR! ProcessXMLMessage: Unknown message type '%v'", xml.Text("header"))
-        reply = ErrorReply("Unknown message type")
+        ErrorReplyXML("Unknown message type").WriteTo(reply)
   }
   
-  disconnect = strings.Contains(reply, "<error_string>")
-  reply = GosaEncrypt(reply, key)
+  disconnect = reply.Contains("<error_string>")
+  GosaEncryptBuffer(reply, key)
   return
 }
 
@@ -214,7 +226,28 @@ func GosaEncrypt(msg string, key string) string {
   crypter := cipher.NewCBCEncrypter(aes, config.InitializationVector)
   cyphertext := paddedMessage(msg)
   crypter.CryptBlocks(cyphertext, cyphertext)
-  return base64.StdEncoding.EncodeToString(cyphertext)
+  return string(util.Base64EncodeString(string(cyphertext)))
+}
+
+// Replaces the contents of buf with the base64 representation of the data
+// after encryption with the given key. 
+// The key is a word as used in gosa-si.conf whose md5sum will be used as 
+// the actual AES key. buf is empty, it won't be changed.
+func GosaEncryptBuffer(buf *bytes.Buffer, key string) {
+  datalen := buf.Len()
+  if datalen == 0 { return }
+  ciph,_ := aes.NewCipher([]byte(util.Md5sum(key)))
+  crypter := cipher.NewCBCEncrypter(ciph, config.InitializationVector)
+  cryptpad := (aes.BlockSize - datalen % aes.BlockSize) &^ aes.BlockSize
+  cryptlen := cryptpad + datalen
+  b64len := ((cryptlen+2)/3)<<2
+  for i := datalen; i < b64len; i++ { buf.WriteByte(0) }
+  data := buf.Bytes()
+  copy(data[b64len-datalen:], data) // move data back
+  idx := b64len - cryptlen
+  copy(data[idx:], make([]byte, cryptpad)) // insert 0s in front
+  crypter.CryptBlocks(data[idx:], data[idx:])
+  util.Base64EncodeInPlace(data, idx)
 }
 
 // Tries to decrypt msg with the given key and returns the decrypted message or
@@ -249,8 +282,7 @@ func GosaDecrypt(msg string, key string) string {
   semicolon_period := strings.IndexAny(trimmed, ";.")
   if semicolon_period >= 0 { trimmed = trimmed[:semicolon_period] }
   
-  cyphertext, err := base64.StdEncoding.DecodeString(trimmed)
-  if err != nil { return "" }
+  cyphertext := util.Base64DecodeString(trimmed, nil)
   
   if len(cyphertext) % aes.BlockSize != 0 { return "" }
     
@@ -258,7 +290,12 @@ func GosaDecrypt(msg string, key string) string {
   crypter := cipher.NewCBCDecrypter(aes, config.InitializationVector)
   crypter.CryptBlocks(cyphertext, cyphertext)
   
-  cyphertext = bytes.Trim(cyphertext, "\u0000")
+  for len(cyphertext) > 0 && cyphertext[0] == 0 { 
+    cyphertext = cyphertext[1:]
+  }
+  for len(cyphertext) > 0 && cyphertext[len(cyphertext)-1] == 0 { 
+    cyphertext = cyphertext[:len(cyphertext)-2]
+  }
   trimmed = strings.TrimSpace(string(cyphertext))
   if strings.HasPrefix(trimmed, "<xml>") { 
     return trimmed 

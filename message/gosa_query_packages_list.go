@@ -32,7 +32,7 @@ import (
 //  xmlmsg: the decrypted and parsed message
 // Returns:
 //  unencrypted reply
-func gosa_query_packages_list(xmlmsg *xml.Hash) string {
+func gosa_query_packages_list(xmlmsg *xml.Hash) *xml.Hash {
   where := xmlmsg.First("where")
   if where == nil { where = xml.NewHash("where") }
   filter, err := xml.WhereFilter(where)
@@ -55,5 +55,5 @@ func gosa_query_packages_list(xmlmsg *xml.Hash) string {
   packages.Add("source", config.ServerSourceAddress)
   packages.Add("target", xmlmsg.Text("source"))
   packages.Add("session_id", "1")
-  return packages.String()
+  return packages
 }

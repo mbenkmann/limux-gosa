@@ -278,9 +278,19 @@ func handle_request(conn *net.TCPConn) {
       if encrypted_message != "" { // ignore empty lines
         reply, disconnect := message.ProcessEncryptedMessage(encrypted_message, conn.RemoteAddr().(*net.TCPAddr))
         
-        if reply != "" {
-          util.Log(2, "DEBUG! Sending reply to %v: %v", conn.RemoteAddr(), reply)
-          util.SendLn(conn, reply, config.Timeout)
+        if reply.Len() > 0 {
+          util.Log(2, "DEBUG! Sending %v bytes reply to %v", reply.Len(), conn.RemoteAddr())
+          
+          var deadline time.Time // zero value means "no deadline"
+          if config.Timeout >= 0 { deadline = time.Now().Add(config.Timeout) }
+          conn.SetWriteDeadline(deadline)
+  
+          _, err := util.WriteAll(conn, reply.Bytes())
+          if err != nil {
+            util.Log(0, "ERROR! WriteAll: %v", err)
+          }
+          reply.Reset()
+          util.WriteAll(conn, []byte{'\r','\n'})
         }
         
         if disconnect {

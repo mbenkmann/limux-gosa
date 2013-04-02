@@ -38,7 +38,7 @@ var startTime = time.Now()
 // Handles the message "sistats".
 // Returns:
 //  unencrypted reply
-func sistats() string {
+func sistats() *xml.Hash {
   stats := xml.NewHash("xml","header","answer")
   stats.Add("source", config.ServerSourceAddress)
   stats.Add("target", "GOSA")
@@ -90,5 +90,5 @@ func sistats() string {
   answer.Add("mallinfo_fordblks",mallinfo.fordblks)
   answer.Add("mallinfo_keepcost",mallinfo.keepcost)
   
-  return stats.String()
+  return stats
 }

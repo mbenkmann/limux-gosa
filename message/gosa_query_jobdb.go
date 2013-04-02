@@ -36,7 +36,7 @@ import (
 //  xmlmsg: the decrypted and parsed message
 // Returns:
 //  unencrypted reply
-func gosa_query_jobdb(xmlmsg *xml.Hash) string {
+func gosa_query_jobdb(xmlmsg *xml.Hash) *xml.Hash {
   where := xmlmsg.First("where")
   if where == nil { where = xml.NewHash("where") }
   filter, err := xml.WhereFilter(where)
@@ -129,7 +129,7 @@ func gosa_query_jobdb(xmlmsg *xml.Hash) string {
   jobdb_xml.Add("target", xmlmsg.Text("source"))
   jobdb_xml.Add("session_id", "1")
   jobdb_xml.Rename("xml")
-  return jobdb_xml.String()
+  return jobdb_xml
 }
 
 var unit_name = []string{"second","minute","hour","day","week","month","year","decade","century","millenium"}

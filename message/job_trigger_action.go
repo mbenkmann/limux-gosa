@@ -37,7 +37,7 @@ var macAddressRegexp = regexp.MustCompile("^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$"
 //  xmlmsg: the decrypted and parsed message
 // Returns:
 //  unencrypted reply
-func job_trigger_action(xmlmsg *xml.Hash) string {
+func job_trigger_action(xmlmsg *xml.Hash) *xml.Hash {
   util.Log(2, "DEBUG! job_trigger_action(%v)", xmlmsg)
   job := xml.NewHash("job")
   job.Add("progress", "none")
@@ -48,7 +48,7 @@ func job_trigger_action(xmlmsg *xml.Hash) string {
   macaddress := xmlmsg.Text("macaddress")
   if macaddress == "" { macaddress = xmlmsg.Text("target") }
   if !macAddressRegexp.MatchString(macaddress) {
-    return ErrorReply("job_trigger_action* with invalid or missing MAC address")
+    return ErrorReplyXML("job_trigger_action* with invalid or missing MAC address")
   }
   job.Add("macaddress", macaddress)
   job.Add("plainname", "none") // updated automatically
@@ -71,7 +71,7 @@ func job_trigger_action(xmlmsg *xml.Hash) string {
   answer.Add("target", xmlmsg.Text("source"))
   answer.Add("answer1", "0")
   answer.Add("session_id", "1")
-  return answer.String()
+  return answer
 }
 
 

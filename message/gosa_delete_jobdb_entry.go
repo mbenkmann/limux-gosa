@@ -31,13 +31,13 @@ import (
 //  xmlmsg: the decrypted and parsed message
 // Returns:
 //  unencrypted reply
-func gosa_delete_jobdb_entry(xmlmsg *xml.Hash) string {
+func gosa_delete_jobdb_entry(xmlmsg *xml.Hash) *xml.Hash {
   where := xmlmsg.First("where")
   if where == nil { where = xml.NewHash("where") }
   filter, err := xml.WhereFilter(where)
   if err != nil {
     util.Log(0, "ERROR! gosa_delete_jobdb_entry: Error parsing <where>: %v", err)
-    return ErrorReply(err)
+    return ErrorReplyXML(err)
   }
   
   db.JobsRemove(filter)
@@ -47,7 +47,7 @@ func gosa_delete_jobdb_entry(xmlmsg *xml.Hash) string {
   answer.Add("target", xmlmsg.Text("source"))
   answer.Add("answer1", "0")
   answer.Add("session_id", "1")
-  return answer.String()
+  return answer
 }
 
 

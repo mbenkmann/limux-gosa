@@ -468,6 +468,19 @@ func (self *Hash) TextFragments() []string {
   return result
 }
 
+// Writes the XML-representation of String() to w until there's no more 
+// data to write or when an error occurs. The return value n is the number
+// of bytes written. Any error encountered during the write is also returned.
+func (self *Hash) WriteTo(w io.Writer) (n int64, err error) {
+  var npart int
+  for _, part := range self.xmlParts() {
+    npart, err = util.WriteAll(w, []byte(part))
+    n += int64(npart)
+    if err != nil { break }
+  }
+  return
+}
+
 // With no arguments Text() returns the single text child of the receiver element;
 // with arguments Text(s1, s2,...) returns the concatenation of Get(s1, s2,...)
 // separated by '␞' (\u241e, i.e. symbol for record separator).
@@ -484,6 +497,11 @@ func (self *Hash) Text(subtag ...string) string {
 // (with proper entity-encoding such as "&lt;" instead of "<").
 // Subtags are listed in alphabetical order preceded by the element's text (if any).
 func (self *Hash) String() string {
+  parts := self.xmlParts()
+  return strings.Join(parts,"")
+}
+
+func (self *Hash) xmlParts() []string {
   var paths []sortPath = self.innerXML()
   sort.Sort(xmlOrder(paths))
   parts := make([]string,0,6+len(paths)*3) // *3 to have enough room for "<" and ">"
@@ -497,7 +515,7 @@ func (self *Hash) String() string {
     }
   }
   parts = append(parts, "</", self.Name(), ">")
-  return strings.Join(parts,"")
+  return parts
 }
 
 // Runs this Hash's text child through a base64 decoder and replaces it with

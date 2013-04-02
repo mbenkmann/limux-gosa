@@ -47,6 +47,7 @@ func testBuffer() {
   check(b.String(),"") // String() after Reset()
   b.Reset()            // Reset() after Reset()
   check(b.String(),"")
+  check(b.Len(), 0)
   
   // same tests as above with pointer
   b2 := &bytes.Buffer{}
@@ -55,9 +56,11 @@ func testBuffer() {
   check(b2.String(),"") 
   b2.Reset()           
   check(b2.String(),"")
+  check(b2.Len(), 0)
   
   b2.WriteString("Dies ist ein Test!")
   check(b2.String(), "Dies ist ein Test!")
+  check(b2.Len(), 18)
   
   n, err := b.Write(nil)
   check(n,0)
@@ -70,6 +73,7 @@ func testBuffer() {
   check(b.String(),"")
   check(b.Pointer(),nil)
   check(b.Capacity(),0)
+  check(b.Len(),0)
   
   func() {
     defer func(){
@@ -83,6 +87,7 @@ func testBuffer() {
   check(err,nil)
   check(b.String(),"a")
   check(b.Capacity()>=1, true)
+  check(b.Len(), 1)
   check(b.Pointer()!=nil, true)
   
   check(b.Grow(11), 1)
@@ -92,6 +97,9 @@ func testBuffer() {
   check(b.Grow(11), 1) // should not cause actual growth
   check(b.Pointer(), p)
   check(b.Capacity(), c)
+  check(b.Len(), 1)
+  ((*[2]byte)(b.Pointer()))[1] = 'z'
+  check(b.Contains("z"),false)
   
   n, err = b.WriteString("Hallo")
   check(n,5)
@@ -99,11 +107,14 @@ func testBuffer() {
   check(b.String(),"aHallo")
   check(b.Pointer(), p)
   check(b.Capacity(), c)
+  check(b.Len(), 6)
   
   b.Reset()
   check(b.String(),"")
   check(b.Pointer(), nil)
   check(b.Capacity(),0)
+  check(b.Contains(""), true)
+  check(b.Contains("a"), false)
   
   b.WriteString("Hallo")
   b.WriteByte(' ')
@@ -113,6 +124,11 @@ func testBuffer() {
   b.WriteString("ein ")
   b.Write([]byte("Test"))
   check(b.String(), "Hallo dies ist ein Test")
+  check(b.Contains("Hallo dies ist ein Test"), true)
+  check(b.Contains("Test"), true)
+  check(b.Contains("Hallo"), true)
+  check(b.Contains("allo"), true)
+  check(b.Contains(""), true)
   
   check(b.Split(" "), []string{"Hallo","dies","ist","ein","Test"})
   check(b.Split("X"), []string{"Hallo dies ist ein Test"})

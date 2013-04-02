@@ -30,7 +30,7 @@ import (
 //  xmlmsg: the decrypted and parsed message
 // Returns:
 //  unencrypted reply
-func gosa_trigger_action(xmlmsg *xml.Hash) string {
+func gosa_trigger_action(xmlmsg *xml.Hash) *xml.Hash {
   util.Log(2, "DEBUG! gosa_trigger_action(%v)", xmlmsg)
   // translate gosa_trigger_* to job_trigger_*
   header := "job_" + strings.SplitN(xmlmsg.Text("header"),"_",2)[1]

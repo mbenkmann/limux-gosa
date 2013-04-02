@@ -21,8 +21,6 @@ MA  02110-1301, USA.
 package message
 
 import (
-         "fmt"
-         
          "../xml"
          "../config"
        )
@@ -31,7 +29,12 @@ import (
 //  xmlmsg: the decrypted and parsed message
 // Returns:
 //  unencrypted reply
-func gosa_show_log_by_mac(xmlmsg *xml.Hash) string {
+func gosa_show_log_by_mac(xmlmsg *xml.Hash) *xml.Hash {
   header := "show_log_by_mac"
-  return fmt.Sprintf("<xml><header>%v</header><%v></%v><source>%v</source><target>GOSA</target><session_id>1</session_id></xml>",header,header,header,config.ServerSourceAddress)
+  x := xml.NewHash("xml","header",header)
+  x.Add(header)
+  x.Add("source", config.ServerSourceAddress)
+  x.Add("target", "GOSA")
+  x.Add("session_id","1")
+  return x
 }

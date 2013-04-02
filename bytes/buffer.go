@@ -52,6 +52,9 @@ func (b *Buffer) Pointer() unsafe.Pointer {
 // Returns the total buffer space (used + unused).
 func (b *Buffer) Capacity() int { return b.capa }
 
+// Returns the number of meaningful bytes in the buffer (as opposed to Capacity()).
+func (b *Buffer) Len() int { return b.sz }
+
 // grow grows the buffer to guarantee space for n more bytes.
 // It returns the index where bytes should be written.
 // If the buffer can't grow it will panic with ErrTooLarge.
@@ -122,6 +125,23 @@ func (b *Buffer) String() string {
 func (b *Buffer) Bytes() []byte {
   if b.ptr == nil { return []byte{} }
   return ((*[maxInt]byte)(b.ptr))[0:b.sz]
+}
+
+// Return true if the buffer contains the string s. Returns true if s == "".
+func (b *Buffer) Contains(s string) bool {
+  if s == "" { return true }
+  if b.sz == 0 { return false }
+  data := ((*[maxInt]byte)(b.ptr))[0:b.sz]
+  for i := 0; i <= b.sz - len(s); i++ {
+    if data[i] == s[0] {
+      k := 0
+      for ; k < len(s); k++ {
+        if s[k] != data[i+k] { break }
+      }
+      if k == len(s) { return true }
+    }
+  }
+  return false
 }
 
 // Split slices the buffer into all substrings separated by sep and returns

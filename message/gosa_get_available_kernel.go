@@ -32,7 +32,7 @@ import (
 //  xmlmsg: the decrypted and parsed message
 // Returns:
 //  unencrypted reply
-func gosa_get_available_kernel(xmlmsg *xml.Hash) string {
+func gosa_get_available_kernel(xmlmsg *xml.Hash) *xml.Hash {
   reply := xml.NewHash("xml","header","get_available_kernel")
   reply.Add("source", config.ServerSourceAddress)
   reply.Add("target", xmlmsg.Text("source"))
@@ -48,5 +48,5 @@ func gosa_get_available_kernel(xmlmsg *xml.Hash) string {
     count++
   }
   
-  return reply.String()
+  return reply
 }

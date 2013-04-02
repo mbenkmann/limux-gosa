@@ -33,7 +33,7 @@ import (
 //  xmlmsg: the decrypted and parsed message
 // Returns:
 //  unencrypted reply
-func gosa_query_fai_release(xmlmsg *xml.Hash) string {
+func gosa_query_fai_release(xmlmsg *xml.Hash) *xml.Hash {
   where := xmlmsg.First("where")
   if where == nil { where = xml.NewHash("where") }
   filter, err := xml.WhereFilter(where)
@@ -56,5 +56,5 @@ func gosa_query_fai_release(xmlmsg *xml.Hash) string {
   faiclasses.Add("source", config.ServerSourceAddress)
   faiclasses.Add("target", xmlmsg.Text("source"))
   faiclasses.Add("session_id", "1")
-  return faiclasses.String()
+  return faiclasses
 }
