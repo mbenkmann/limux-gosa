@@ -142,7 +142,9 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
     case "gosa_query_jobdb":         gosa_query_jobdb(xml).WriteTo(reply)
     case "gosa_query_fai_server":    gosa_query_fai_server(xml).WriteTo(reply)
     case "gosa_query_fai_release":   gosa_query_fai_release(xml).WriteTo(reply)
-    case "gosa_query_packages_list": gosa_query_packages_list(xml).WriteTo(reply)
+    case "gosa_query_packages_list": pkg := gosa_query_packages_list(xml)
+                                     pkg.WriteTo(reply)
+                                     pkg.Destroy()
     case "gosa_show_log_by_mac":     gosa_show_log_by_mac(xml).WriteTo(reply)
     case "gosa_show_log_files_by_date_and_mac": 
                                      gosa_show_log_files_by_date_and_mac(xml).WriteTo(reply)
