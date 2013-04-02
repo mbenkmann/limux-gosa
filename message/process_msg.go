@@ -294,7 +294,7 @@ func GosaDecrypt(msg string, key string) string {
     cyphertext = cyphertext[1:]
   }
   for len(cyphertext) > 0 && cyphertext[len(cyphertext)-1] == 0 { 
-    cyphertext = cyphertext[:len(cyphertext)-2]
+    cyphertext = cyphertext[:len(cyphertext)-1]
   }
   trimmed = strings.TrimSpace(string(cyphertext))
   if strings.HasPrefix(trimmed, "<xml>") { 
