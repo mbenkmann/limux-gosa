@@ -28,8 +28,8 @@ echo >debian/control "Source: go-susi
 Section: $section
 Priority: $priority
 Maintainer: Matthias S. Benkmann <matthias@winterdrache.de>
-Build-Depends: libc6-dev, golang | golang-stable
-Standards-Version: 3.8.2
+Build-Depends: golang | golang-stable
+Standards-Version: 3.9.4
 
 Package: go-susi
 Architecture: any
@@ -37,8 +37,9 @@ Depends: ldap-utils, libc6
 Conflicts: gosa-si-server
 Replaces: gosa-si-server
 Suggests: gosa
-Description: go-susi
- go-susi
+Description: Support infrastructure daemon for GOsa
+ A stable and fast replacement for gosa-si-server, the
+ support infrastructure daemon required by GOsa 2.7.
 "
 
 
@@ -53,6 +54,37 @@ const Revision = \"$revision\"
 # the template server.conf.in
 
 cp /etc/logrotate.d/gosa-si-server logrotate-gosa-si-server
+
+echo /etc/logrotate.d/gosa-si-server >debian/conffiles
+
+echo >debian/copyright 'This package was debianized by Matthias S.Benkmann <mux2005@gmail.com> on
+Tue, 02 Apr 2013 19:04:30 +0200.
+
+It was downloaded from http://go-susi.googlecode.com/
+
+Copyright: 
+
+    Copyright (C) 2012-2013 Matthias S. Benkmann <mux2005@gmail.com>
+
+License:
+
+    This package is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+ 
+    This package is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+ 
+    You should have received a copy of the GNU General Public License
+    along with this package; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+
+On Debian systems, the complete text of the GNU General
+Public License can be found in /usr/share/common-licenses/GPL.
+'
 
 echo >debian/postinst '#!/bin/sh -e
 
@@ -82,25 +114,45 @@ clean:
 	rm -rf dist/
 
 build:
+	umask 022
 	go build main/go-susi.go
 	go build main/sibridge.go
+	strip go-susi sibridge
 	chmod a+rx main/gosa-si-server main/generate_*
 	mkdir -p dist/etc/gosa-si dist/etc/logrotate.d dist/usr/lib/go-susi/ dist/usr/sbin
+	mkdir -p dist/usr/share/doc/go-susi
+	cp debian/copyright dist/usr/share/doc/go-susi
+	cp debian/changelog dist/usr/share/doc/go-susi/changelog.Debian
+	gzip -9 dist/usr/share/doc/go-susi/changelog.Debian
 	cp main/generate_* dist/usr/lib/go-susi/
 	cp go-susi dist/usr/lib/go-susi/gosa-si-server
 	cp main/gosa-si-server dist/usr/sbin
-	ln -snf /usr/lib/go-susi/gosa-si-server dist/usr/sbin/go-susi
+	ln -snf ../lib/go-susi/gosa-si-server dist/usr/sbin/go-susi
 	cp sibridge dist/usr/sbin/
 	-cp logrotate-gosa-si-server dist/etc/logrotate.d/gosa-si-server
 	echo >debian/files go-susi_${debversion}_\$(DEB_BUILD_ARCH).deb $section $priority
 
+binary-arch:
+        echo ====== binary-arch =========
+
+binary-indep:
+        echo ====== binary-indep =========
+
+build-arch:
+        echo ====== build-arch =========
+
+build-indep:
+        echo ====== build-indep =========
+
 binary:
+	umask 022
 	mkdir dist/DEBIAN
 	cp debian/postinst dist/DEBIAN/postinst
+	cp debian/conffiles dist/DEBIAN/conffiles
 	chmod a+rx dist/DEBIAN/postinst
 	sed '/^\$\$/d;/^Build-Depends/d;s/^\\(Architecture:\\) .*/\\1 \$(DEB_BUILD_ARCH)/;s/Standards-Version:.*/Version: ${debversion}/' debian/control >dist/DEBIAN/control
 	chown -R root: dist/
-	chmod -R a+rX dist/
+	chmod -R g-w,a+rX dist/
 	dpkg-deb -b dist/ ../go-susi_${debversion}_\$(DEB_BUILD_ARCH).deb
 
 "
