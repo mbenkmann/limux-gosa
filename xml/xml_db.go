@@ -123,6 +123,7 @@ func (f *FileStorer) Store(data string) (err error) {
 func (db *DB) Init(data *Hash) {
   db.mutex.Lock()
   defer db.mutex.Unlock()
+  db.data.Destroy()
   db.data = data
 }
 

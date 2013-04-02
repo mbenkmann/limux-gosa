@@ -42,7 +42,7 @@ import encxml "encoding/xml"
 // attempt to split up text content of elements into fragments no longer than
 // this many bytes. Except where otherwise noted this is transparent to the
 // user of the xml.Hash's API.
-var MaxFragmentLength = 256
+var MaxFragmentLength = 16384
 
 // An xml.Hash is a representation of simple XML data that follows certain
 // restrictions:
@@ -267,6 +267,24 @@ func (self *Hash) remove() {
   
   self.setPred(nil)
   end.setSucc(nil)
+}
+
+// Destroys the internal structure of this Hash, nulling out all pointers, to
+// help the garbage collector. After calling this function, the Hash and all
+// parts of it (children, iterators,...) become invalid and must not be accessed
+// anymore.
+func (self* Hash) Destroy() {
+  h := self
+  for {
+    nxt := h.succ()
+    h.data = ""
+    h.link_ = 0
+    h.succ_ = nil
+    h.pred_ = 0
+    if nxt == nil { break }
+    h = nxt
+  }
+  return
 }
 
 // Returns the first child element with the tag name subtag or nil if none exists.

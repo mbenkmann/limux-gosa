@@ -134,80 +134,77 @@ func PackageListHook() {
   
   start = time.Now()
   
-  pkgdata := xml.NewHash("packagedb")
+  plist.Rename("packagedb")
   
   accepted := 0
   total := 0
   
-  for pkg := plist.First("pkg"); pkg != nil; pkg = pkg.Next() {
+  for pkg := plist.FirstChild(); pkg != nil; pkg = pkg.Next() {
     total++
-    pkgname := pkg.Get("package")
+    p := pkg.Element()
+    pkgname := p.Get("package")
     if len(pkgname) == 0 {
-      util.Log(0, "ERROR! kernel-list-hook %v returned entry without \"Package\": %v", config.PackageListHookPath, pkg)
+      util.Log(0, "ERROR! kernel-list-hook %v returned entry without \"Package\": %v", config.PackageListHookPath, p)
+      pkg.Remove()
       continue
     }
     if len(pkgname) > 1 {
-      util.Log(0, "ERROR! kernel-list-hook %v returned entry with multiple \"Package\" values: %v", config.PackageListHookPath, pkg)
+      util.Log(0, "ERROR! kernel-list-hook %v returned entry with multiple \"Package\" values: %v", config.PackageListHookPath, p)
+      pkg.Remove()
       continue
     }
     
-    release := pkg.Get("release")
-    if len(release) == 0 {
-      util.Log(0, "ERROR! package-list-hook %v returned entry without \"Release\": %v", config.PackageListHookPath, pkg)
+    release := p.First("release")
+    if release == nil {
+      util.Log(0, "ERROR! package-list-hook %v returned entry without \"Release\": %v", config.PackageListHookPath, p)
+      pkg.Remove()
       continue
     }
-    if len(release) > 1 {
-      util.Log(0, "ERROR! package-list-hook %v returned entry with multiple \"Release\" values: %v", config.PackageListHookPath, pkg)
+    if release.Next() != nil {
+      util.Log(0, "ERROR! package-list-hook %v returned entry with multiple \"Release\" values: %v", config.PackageListHookPath, p)
+      pkg.Remove()
       continue
     }
-    
-    version := pkg.Text("version")
-    if version == "" {
+    release.Rename("distribution")
+
+    version := p.First("version")
+    if version == nil {
       util.Log(0, "WARNING! package-list-hook %v returned entry for \"%v\" without \"Version\". Assuming \"1.0\"", config.PackageListHookPath, pkgname[0])
-      version = "1.0"
+      p.Add("version", "1.0")
     }
     
-    section := pkg.Text("section")
-    if section == "" {
+    section := p.First("section")
+    if section == nil {
       util.Log(0, "WARNING! package-list-hook %v returned entry for \"%v\" without \"Section\". Assuming \"main\"", config.PackageListHookPath, pkgname[0])
-      section = "main"
+      p.Add("section", "main")
     }
     
-    p := xml.NewHash("pkg","distribution",release[0])
-    p.Add("package", pkgname[0])
-    p.Add("timestamp",timestamp)
-    p.Add("version",version)
-    p.Add("section",section)
-    description := pkg.First("description")
-    if description != nil {
-      description = description.Clone()
-    } else {
-      description = xml.NewHash("description", pkgname[0])
+    p.FirstOrAdd("timestamp").SetText(timestamp)
+    
+    description := p.First("description")
+    if description == nil {
+      description = p.Add("description", pkgname[0])
     }
     description.EncodeBase64()
-    p.AddWithOwnership(description)
     
       // accept "template" and "templates" (with and without "s")
-    template := pkg.First("template")
-    if template == nil { template = pkg.First("templates") }
+    template := p.First("template")
+    if template == nil { template = p.First("templates") }
     if template != nil {
-      template = template.Clone()
       template.Rename("template")
       template.EncodeBase64()
-      p.AddWithOwnership(template)
     } else {
       p.Add("template")
     }
 
-    pkgdata.AddWithOwnership(p)
     accepted++
   }
   
-  if pkgdata.First("pkg") == nil {
+  if accepted == 0 {
     util.Log(0, "ERROR! package-list-hook %v returned no valid entries", config.PackageListHookPath)
   } else {
     util.Log(1, "INFO! package-list-hook: %v/%v entries accepted into database. Processing time: %v", accepted,total, time.Since(start))
-    packagedb.Init(pkgdata)
+    packagedb.Init(plist)
   }
 }
 
