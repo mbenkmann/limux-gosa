@@ -244,6 +244,9 @@ var PrintVersion = false
 // true if "--help" is passed on command line
 var PrintHelp = false
 
+// true if "--stats" is passed on the command line
+var PrintStats = false
+
 // Parses args and sets config variables accordingly.
 func ReadArgs(args []string) {
   LogLevel = 0
@@ -284,6 +287,9 @@ func ReadArgs(args []string) {
       
       PrintVersion = true
       
+    } else if arg == "--stats" {      
+      
+      PrintStats = true
     } else {
       util.Log(0, "ERROR! ReadArgs: Unknown command line switch: %v", arg)
     }

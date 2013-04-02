@@ -41,6 +41,7 @@ import (
           "sync/atomic"
           
           "../db"
+          "../xml"
           "../util"
           "../config"
           "../action"
@@ -102,6 +103,8 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   if config.PrintVersion || config.PrintHelp { os.Exit(0) }
   
   config.ReadConfig()
+  
+  if config.PrintStats { os.Exit(printStats()) }
   
   logfile, err := os.OpenFile(config.LogFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
   if err != nil {
@@ -308,4 +311,28 @@ func setConfigUnitTag() {
     config.AdminBase, config.Department = db.LDAPAdminBase()
     util.Log(1, "INFO! gosaUnitTag: %v  Admin base: %v  Department: %v", config.UnitTag, config.AdminBase, config.Department)
   }
+}
+
+func printStats() int {
+  msg := "<xml><header>sistats</header></xml>"
+  encrypted := message.GosaEncrypt(msg, config.ModuleKey["[GOsaPackages]"])
+  conn, err := net.Dial("tcp", config.ServerSourceAddress)
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "Error connecting with %v: %v\n", config.ServerSourceAddress, err)
+    return 1
+  }
+  defer conn.Close()
+  err = util.SendLn(conn, encrypted, config.Timeout)
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "Error sending to %v: %v\n", config.ServerSourceAddress, err)
+    return 1
+  }
+  reply := util.ReadLn(conn, 10*time.Second)
+  decrypted := message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
+  x,_ := xml.StringToHash(decrypted)
+  x = x.First("answer1")
+  for c := x.FirstChild(); c != nil; c = c.Next() {
+    fmt.Println(c.Element().Name()+": "+c.Element().Text())
+  }
+  return 0
 }
