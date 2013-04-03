@@ -4,7 +4,7 @@ version=$(sed -n 's/.*Version.*=.*"\([^"]*\)".*/\1/p' config/version.go)
 revision=$(sed -n 's/.*Revision.*=.*"\([^"]*\)".*/\1/p' config/version.go)
 test -z "$version" && exit 1
 test -z "$revision" && exit 1
-section=lhm
+section=lhm/utils
 priority=optional
 timestamp="$(LC_ALL=C date -R)"
 debversion=${version}-1
