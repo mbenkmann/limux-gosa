@@ -1,0 +1,28 @@
+#!/bin/bash
+
+keyid="GOsaPackages"
+key="$(sed -n "/\\[$keyid\\]/,\$s/key *= *\(.*\)/\1/p" /etc/gosa-si/server.conf | head -n 1)"
+test -z "$key" && {
+  echo 2>&1 "Could not read key from section [$keyid] from /etc/gosa-si/server.conf"
+  exit 1
+}
+
+trap "exit 1" HUP INT
+
+logblob="log_file:blob:$(yes blob | head -c 5000000 | base64)"
+
+msg="
+<xml>
+<header>CLMSG_save_fai_log</header>
+<source>172.16.2.146:20083</source>
+<target>172.16.2.85:20081</target>
+<macaddress>00:0c:29:50:a3:52</macaddress>
+<fai_action>install</fai_action>
+<CLMSG_save_fai_log>${logblob}</CLMSG_save_fai_log>
+</xml>
+"
+
+msg="$(echo "$msg" | go run main/encrypt.go $key)"
+test -z "$msg" && exit 1
+
+for i in $(seq 1 100) ; do echo -n "$i => " ; echo "$msg" | nc -q 1 localhost 20081 | wc -c  ; done
