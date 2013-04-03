@@ -468,15 +468,47 @@ func (self *Hash) TextFragments() []string {
   return result
 }
 
-// Writes the XML-representation of String() to w until there's no more 
-// data to write or when an error occurs. The return value n is the number
+func write_via_buffer(w io.Writer, buf []byte, s string, n *int64, err *error) bool {
+  i := 0
+  for i < len(s) {
+    cnt := copy(buf,s[i:])
+    i += cnt
+    nn,ee := util.WriteAll(w, buf[0:cnt])
+    *n += int64(nn)
+    if ee != nil { *err = ee; return false }
+  }
+  return true
+}
+
+// Writes an XML-representation of this Hash to w until there's no more 
+// data to write or an error occurs. The return value n is the number
 // of bytes written. Any error encountered during the write is also returned.
+//
+// NOTE: The representation written is not the same as String(). It's an
+// unsorted representation. This function is the most memory-efficient way to
+// serialize a Hash.
 func (self *Hash) WriteTo(w io.Writer) (n int64, err error) {
-  var npart int
-  for _, part := range self.xmlParts() {
-    npart, err = util.WriteAll(w, []byte(part))
-    n += int64(npart)
-    if err != nil { break }
+  writebuf := make([]byte, 1024)
+  
+  h := self
+  end := self.link()
+  for {
+    switch h.nest() {
+      case 0: sl := escape(h.data)
+              for _, s := range sl { 
+                if !write_via_buffer(w, writebuf, s, &n, &err) { return }
+              }
+              
+      case 1: if !write_via_buffer(w, writebuf, "<" , &n, &err) { return }
+              if !write_via_buffer(w, writebuf, h.data , &n, &err) { return }
+              if !write_via_buffer(w, writebuf, ">" , &n, &err) { return }
+              
+      case -1: if !write_via_buffer(w, writebuf, "</" , &n, &err) { return }
+              if !write_via_buffer(w, writebuf, h.link().data , &n, &err) { return }
+              if !write_via_buffer(w, writebuf, ">" , &n, &err) { return }
+    }
+    if h == end { break }
+    h = h.succ()
   }
   return
 }
