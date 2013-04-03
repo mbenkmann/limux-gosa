@@ -7,6 +7,8 @@ test -z "$key" && {
   exit 1
 }
 
+trap "exit 1" HUP INT
+
 msg='
 <xml>
 <header>gosa_query_packages_list</header>
