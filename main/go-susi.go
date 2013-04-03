@@ -83,6 +83,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 --help       print this text and exit
 --version    print version and exit
+--stats      print sistats info from running go-susi process
 
 -v           print operator debug messages (INFO)
 -vv          print developer debug messages (DEBUG)
