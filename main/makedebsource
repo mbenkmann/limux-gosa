@@ -4,7 +4,7 @@ version=$(sed -n 's/.*Version.*=.*"\([^"]*\)".*/\1/p' config/version.go)
 revision=$(sed -n 's/.*Revision.*=.*"\([^"]*\)".*/\1/p' config/version.go)
 test -z "$version" && exit 1
 test -z "$revision" && exit 1
-section=main
+section=lhm
 priority=optional
 timestamp="$(LC_ALL=C date -R)"
 debversion=${version}-1
@@ -17,7 +17,7 @@ tar xzf go-susi_$version.orig.tar.gz
 cd go-susi-$version || exit 1
 mkdir debian
 
-echo >debian/changelog "go-susi ($debversion) stable; urgency=low
+echo >debian/changelog "go-susi ($debversion) tramp; urgency=low
 
   * Version $version
 
