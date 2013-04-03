@@ -64,7 +64,11 @@ func ErrorReplyBuffer(msg interface{}) *bytes.Buffer {
 //  buffer containing the reply to return (MUST BE FREED BY CALLER VIA Reset()!)
 //  disconnect == true if connection should be terminated due to error
 func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply *bytes.Buffer, disconnect bool) {
-  util.Log(2, "DEBUG! Processing message: %v", msg)
+  if len(msg) > 4096 {
+    util.Log(2, "DEBUG! Processing LONG message: (truncated)%v\n.\n.\n.\n%v", msg[0:2048], msg[len(msg)-2048:])
+  } else {
+    util.Log(2, "DEBUG! Processing message: %v", msg)
+  }
   
   for attempt := 0 ; attempt < 4; attempt++ {
     var keys_to_try []string
@@ -89,7 +93,11 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply *bytes.Buf
     
     for _, key := range keys_to_try {
       if decrypted := GosaDecrypt(msg, key); decrypted != "" {
-        util.Log(2, "DEBUG! Decrypted message from %v with key %v: %v", tcpAddr, key, decrypted)
+        if len(decrypted) > 4096 {
+          util.Log(2, "DEBUG! Decrypted LONG message from %v with key %v: (truncated)%v\n.\n.\n.\n%v", tcpAddr, key, decrypted[0:2048], decrypted[len(decrypted)-2048:])
+        } else {
+          util.Log(2, "DEBUG! Decrypted message from %v with key %v: %v", tcpAddr, key, decrypted)
+        }
         xml, err := xml.StringToHash(decrypted)
         if err != nil {
           util.Log(0,"ERROR! %v", err)
