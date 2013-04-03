@@ -58,16 +58,18 @@ func ErrorReplyBuffer(msg interface{}) *bytes.Buffer {
   return &b
 }
 
-// Takes a possibly encrypted message and processes it, returning a reply.
+// Takes a possibly encrypted message in buf and processes it, returning a reply.
 // tcpAddr is the address of the message's sender.
 // Returns: 
 //  buffer containing the reply to return (MUST BE FREED BY CALLER VIA Reset()!)
 //  disconnect == true if connection should be terminated due to error
-func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply *bytes.Buffer, disconnect bool) {
-  if len(msg) > 4096 {
-    util.Log(2, "DEBUG! Processing LONG message: (truncated)%v\n.\n.\n.\n%v", msg[0:2048], msg[len(msg)-2048:])
+//
+// NOTE: buf IS NOT FREED BY THIS FUNCTION BUT ITS CONTENTS ARE CHANGED!
+func ProcessEncryptedMessage(buf *bytes.Buffer, tcpAddr *net.TCPAddr) (reply *bytes.Buffer, disconnect bool) {
+  if buf.Len() > 4096 {
+    util.Log(2, "DEBUG! Processing LONG message: (truncated)%v\n.\n.\n.\n%v", string(buf.Bytes()[0:2048]), string(buf.Bytes()[buf.Len()-2048:]))
   } else {
-    util.Log(2, "DEBUG! Processing message: %v", msg)
+    util.Log(2, "DEBUG! Processing message: %v", buf.String())
   }
   
   for attempt := 0 ; attempt < 4; attempt++ {
@@ -92,26 +94,34 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply *bytes.Buf
     }
     
     for _, key := range keys_to_try {
-      if decrypted := GosaDecrypt(msg, key); decrypted != "" {
-        if len(decrypted) > 4096 {
-          util.Log(2, "DEBUG! Decrypted LONG message from %v with key %v: (truncated)%v\n.\n.\n.\n%v", tcpAddr, key, decrypted[0:2048], decrypted[len(decrypted)-2048:])
+      if GosaDecryptBuffer(buf, key) {
+        if buf.Len() > 4096 {
+          util.Log(2, "DEBUG! Decrypted LONG message from %v with key %v: (truncated)%v\n.\n.\n.\n%v", tcpAddr, key, string(buf.Bytes()[0:2048]), string(buf.Bytes()[buf.Len()-2048:]))
         } else {
-          util.Log(2, "DEBUG! Decrypted message from %v with key %v: %v", tcpAddr, key, decrypted)
+          util.Log(2, "DEBUG! Decrypted message from %v with key %v: %v", tcpAddr, key, buf.String())
         }
-        xml, err := xml.StringToHash(decrypted)
+        
+        // special case for CLMSG_save_fai_log because this kind of message
+        // is so large and parsing it to XML doesn't really gain us anything.
+        if buf.Contains("<CLMSG_save_fai_log>") {
+          clmsg_save_fai_log(buf)
+          return &bytes.Buffer{}, false
+        }
+        
+        xml, err := xml.StringToHash(buf.String())
         if err != nil {
           util.Log(0,"ERROR! %v", err)
           return ErrorReplyBuffer(err), true
         } 
         
         // At this point we have successfully decrypted and parsed the message
-        return ProcessXMLMessage(msg, xml, tcpAddr, key)
+        return ProcessXMLMessage(xml, tcpAddr, key)
       }
     }
   }
   
   // This part is only reached if none of the keys opened the message
-  util.Log(0, "ERROR! Could not decrypt message from %v: %v", tcpAddr, msg)
+  util.Log(0, "ERROR! Could not decrypt message from %v", tcpAddr)
   
   // If the sender is one of our clients, maybe we got out of sync with its
   // encryption key (e.g. by missing a new_key message). In that case, spam
@@ -131,14 +141,13 @@ func ProcessEncryptedMessage(msg string, tcpAddr *net.TCPAddr) (reply *bytes.Buf
 }
 
 // Arguments
-//   encrypted: the original encrypted message
 //   xml: the message
 //   tcpAddr: the sender
 //   key: the key that successfully decrypted the message
 // Returns:
 //   reply: buffer containing the reply to return
 //   disconnect: true if connection should be terminated due to error
-func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply *bytes.Buffer, disconnect bool) {
+func ProcessXMLMessage(xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply *bytes.Buffer, disconnect bool) {
   if key == "dummy-key" && xml.Text("header") != "gosa_ping" {
     util.Log(0, "ERROR! Rejecting non-ping message encrypted with dummy-key or not at all")
     return ErrorReplyBuffer("ERROR! Rejecting non-ping message encrypted with dummy-key or not at all"),true
@@ -174,7 +183,6 @@ func ProcessXMLMessage(encrypted string, xml *xml.Hash, tcpAddr *net.TCPAddr, ke
     case "CLMSG_LOGOUT":        clmsg_logout(xml)
     case "CLMSG_PROGRESS":      clmsg_progress(xml)
     case "CLMSG_GOTOACTIVATION":clmsg_gotoactivation(xml)
-    case "CLMSG_save_fai_log":  clmsg_save_fai_log(xml)
     case "gosa_set_activated_for_installation": 
                                 // same as gosa_trigger_action_activate
                                 // without the reply
@@ -313,5 +321,64 @@ func GosaDecrypt(msg string, key string) string {
   
   return ""
 }
+
+// Like GosaDecrypt() but operates in-place on buf.
+// Returns true if decryption successful and false if not.
+// If false is returned, the buffer contents may be destroyed, but only
+// if further decryption attempts with other keys would be pointless anyway,
+// because of some fatal condition (such as the data not being a multiple of
+// the cipher's block size).
+func GosaDecryptBuffer(buf *bytes.Buffer, key string) bool {
+  buf.TrimSpace()
+  
+  if buf.Len() < 11 { return false } // minimum length of unencrypted <xml></xml>
+  
+  data := buf.Bytes()
+  if string(data[0:5]) == "<xml>" { return true }
+  
+  // Fixes the following:
+  // * gosa-si bug in the following line:
+  //     if( $client_answer =~ s/session_id=(\d+)$// ) {
+  //   This leaves the "." before "session_id" which breaks base64
+  // * new gosa-si protocol has ";IP:PORT" appended to message 
+  //   which also breaks base64
+  for semicolon_period := 0; semicolon_period < len(data); semicolon_period++ {
+    if data[semicolon_period] == ';' || data[semicolon_period] == '.' { 
+      buf.Trim(0, semicolon_period)
+      data = buf.Bytes()
+      break
+    }
+  }
+  
+  aescipher,_ := aes.NewCipher([]byte(util.Md5sum(key)))
+  crypter := cipher.NewCBCDecrypter(aescipher, config.InitializationVector)
+  
+  cryptotest := make([]byte, (((3*aes.BlockSize)+2)/3)<<2)
+  n := copy(cryptotest, data)
+  cryptotest = cryptotest[0:n]
+  cryptotest = util.Base64DecodeInPlace(cryptotest)
+  n = (len(cryptotest)/aes.BlockSize) * aes.BlockSize
+  cryptotest = cryptotest[0:n]
+  crypter.CryptBlocks(cryptotest, cryptotest)
+  if !strings.Contains(string(cryptotest),"<xml>") { return false }
+  
+  data = util.Base64DecodeInPlace(data)
+  buf.Trim(0, len(data))
+  data = buf.Bytes()
+  
+  if buf.Len() % aes.BlockSize != 0 { 
+    // this condition is fatal => further decryption attempts are pointless
+    buf.Reset()
+    return false
+  }
+  
+  crypter = cipher.NewCBCDecrypter(aescipher, config.InitializationVector)  
+  crypter.CryptBlocks(data, data)
+  
+  buf.TrimSpace() // removes 0 padding, too
+  
+  return true
+}
+
 
 

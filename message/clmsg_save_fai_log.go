@@ -26,22 +26,54 @@ import (
          "time"
          "regexp"
          "strings"
-         "encoding/base64"
          
          "../db"
-         "../xml"
          "../util"
+         "../bytes"
          "../config"
        )
 
 var actionRegexp = regexp.MustCompile("^[_a-zA-Z-]+$")
 
+func match(data []byte, i int, s string) bool {
+  for k := range s {
+    if i+k == len(data) { return false }
+    if data[i+k] != s[k] { return false }
+  }
+  return true
+}
+
 // Handles the message "CLMSG_save_fai_log".
-//  xmlmsg: the decrypted and parsed message
-func clmsg_save_fai_log(xmlmsg *xml.Hash) {
-  data := xmlmsg.Text("CLMSG_save_fai_log")
-  macaddress := xmlmsg.Text("macaddress")
-  action := xmlmsg.Text("fai_action")
+//  buf: the decrypted message
+func clmsg_save_fai_log(buf *bytes.Buffer) {
+  macaddress := ""
+  action := ""
+  start := 0
+  end := 0
+  data := buf.Bytes()
+  for i := 0; i < len(data)-19; i++ {
+    if data[i] == '<' {
+      if i+12+17 <= len(data) && match(data, i, "<macaddress>") {
+        macaddress = string(data[i+12:i+12+17])
+      } else 
+      if match(data, i, "<fai_action>") {
+        for k := i + 12; k < len(data); k++ {
+          if data[k] == '<' {
+            action = string(data[i+12:k])
+            i = k
+            break
+          }
+        }
+      } else
+      if match(data, i, "<CLMSG_save_fai_log>") {
+        start = i+20
+      } else
+      if match(data, i, "</CLMSG_save_fai_log>") {
+        end = i
+      }
+    }
+  }
+
   if !macAddressRegexp.MatchString(macaddress) {
     util.Log(0, "ERROR! CLMSG_save_fai_log with illegal <macaddress> \"%v\"",macaddress)
     return
@@ -75,22 +107,29 @@ func clmsg_save_fai_log(xmlmsg *xml.Hash) {
     }
   })
 
-  // Remove all whitespace from data. This works around the issue that gosa-si-client
-  // inserts spurious whitespace into base64 data which breaks Go's base64 decoder.
-  data = strings.Join(strings.Fields(data),"")
-  
-  for _, logfile := range strings.Split(data, "log_file:") {
-    colon := strings.Index(logfile,":")
-    if colon < 1 { continue }
-    
-    fname := logfile[0:colon]
-    util.Log(1, "INFO! Processing \"%v\" (%vkB)", fname, len(logfile)/1000)
-    
-    logdata, err := base64.StdEncoding.DecodeString(logfile[colon+1:])
-    if err != nil {
-      util.Log(0, "ERROR! base64 decoding failed for \"%v\": %v", fname, err)
-      continue
+  files := []int{}
+  for i := start; i < end; i++ {
+    if data[i] == ':' && match(data, i-8, "log_file") {
+      k := i
+      i++
+      for i < end { 
+        if data[i] == ':' { 
+          if k+1 < i { files = append(files, k+1, i) }
+          break 
+        }
+        i++
+      }
     }
+  }
+  
+  files = append(files, end+8)
+  
+  for i := 0; i < len(files)-1; i+=2 {
+    fname := string(data[files[i]:files[i+1]])
+    logdata := data[files[i+1]+1:files[i+2]-8]
+    util.Log(1, "INFO! Processing \"%v\" (%vkB)", fname, len(logdata)/1000)
+    
+    logdata = util.Base64DecodeInPlace(logdata)
     
     // As a precaution, make sure fname contains no slashes.
     fname = strings.Replace(fname,"/","_",-1)

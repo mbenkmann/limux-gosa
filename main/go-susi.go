@@ -35,14 +35,13 @@ import (
           "log"
           "path"
           "time"
-          "bytes"
-          "strings"
           "syscall"
           "sync/atomic"
           
           "../db"
           "../xml"
           "../util"
+          "../bytes"
           "../config"
           "../action"
           "../message"
@@ -235,48 +234,47 @@ func handle_request(conn *net.TCPConn) {
     util.Log(0, "ERROR! SetKeepAlive: %v", err)
   }
   
-  var buf = make([]byte, 65536)
-  i := 0
+  var buf bytes.Buffer
+  defer buf.Reset()
+  readbuf := make([]byte, 4096)
   n := 1
   for n != 0 {
     util.Log(2, "DEBUG! Receiving from %v", conn.RemoteAddr())
-    n, err = conn.Read(buf[i:])
-    i += n
+    n, err = conn.Read(readbuf)
     
     if err != nil && err != io.EOF {
       util.Log(0, "ERROR! Read: %v", err)
     }
     if err == io.EOF {
       util.Log(2, "DEBUG! Connection closed by %v", conn.RemoteAddr())
-      
     }
     if n == 0 && err == nil {
       util.Log(0, "ERROR! Read 0 bytes but no error reported")
     }
     
-    if i == len(buf) {
-      buf_new := make([]byte, len(buf)+65536)
-      copy(buf_new, buf)
-      buf = buf_new
-    }
-
     // Find complete lines terminated by '\n' and process them.
     for start := 0;; {
-      eol := bytes.IndexByte(buf[start:i], '\n')
+      eol := start
+      for ; eol < n; eol++ {
+        if readbuf[eol] == '\n' { break }
+      }
       
-      // no \n found, go back to reading from the connection
-      // after purging the bytes processed so far
-      if eol < 0 {
-        copy(buf[0:], buf[start:i]) 
-        i -= start
+      // no \n found, append to buf and continue reading
+      if eol == n {
+        buf.Write(readbuf[start:n])
         break
       }
       
+      // append to rest of line to buffered contents
+      buf.Write(readbuf[start:eol])
+      start = eol+1
+      
+      buf.TrimSpace()
+      
       // process the message and get a reply (if applicable)
-      encrypted_message := strings.TrimSpace(string(buf[start:start+eol]))
-      start += eol+1
-      if encrypted_message != "" { // ignore empty lines
-        reply, disconnect := message.ProcessEncryptedMessage(encrypted_message, conn.RemoteAddr().(*net.TCPAddr))
+      if buf.Len() > 0 { // ignore empty lines
+        reply, disconnect := message.ProcessEncryptedMessage(&buf, conn.RemoteAddr().(*net.TCPAddr))
+        buf.Reset()
         
         if reply.Len() > 0 {
           util.Log(2, "DEBUG! Sending %v bytes reply to %v", reply.Len(), conn.RemoteAddr())
@@ -306,8 +304,8 @@ func handle_request(conn *net.TCPConn) {
     }
   }
   
-  if  i != 0 {
-    util.Log(0, "ERROR! Incomplete message (i.e. not terminated by \"\\n\") of %v bytes: %v", i, buf[0:i])
+  if  buf.Len() != 0 {
+    util.Log(0, "ERROR! Incomplete message (i.e. not terminated by \"\\n\") of %v bytes: %v", buf.Len(), buf.String())
   }
 }
 
