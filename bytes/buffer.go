@@ -144,6 +144,50 @@ func (b *Buffer) Contains(s string) bool {
   return false
 }
 
+// removes all characters <= ' ' from both ends of the buffer.
+func (b *Buffer) TrimSpace() {
+  if b.ptr == nil { return }
+  data := ((*[maxInt]byte)(b.ptr))[0:b.sz]
+  i := 0
+  for ; i < len(data); i++ { if data[i] > ' ' { break } }
+  switch i {
+    case 0: 
+      // nothing to do
+    case len(data): 
+      b.Reset()
+      return
+    default:
+      b.sz = copy(data,data[i:])
+  }
+  
+  // no need to test for b.sz == 0 because we know there's at least
+  // 1 non-whitespace character in the buffer or we would have run into
+  // the case len(data) in the switch above.
+  for data[b.sz-1] <= ' ' { b.sz-- }
+}
+
+// Replaces the contents of the buffer b with b.Bytes()[start:end].
+// Unlike a sublicing operation this function permits start and end to
+// be out of bounds. If start >= end, the buffer will be Reset().
+//
+// NOTE: The operation does NOT free any memory. The buffer's Capacity() will
+// remain unchanged.
+func (b *Buffer) Trim(start, end int) {
+  if start < 0 { start = 0 }
+  if end > b.sz { end = b.sz }
+  if start >= end {
+    b.Reset()
+    return
+  }
+  
+  b.sz = end
+  
+  if start > 0 {
+    data := ((*[maxInt]byte)(b.ptr))[0:b.sz]
+    b.sz = copy(data, data[start:])
+  }
+}
+
 // Split slices the buffer into all substrings separated by sep and returns
 // a slice of the substrings between those separators. The buffer itself is
 // unchanged and the strings are copies (of course).
