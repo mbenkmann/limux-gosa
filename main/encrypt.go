@@ -25,14 +25,17 @@ package main
 import ( 
          "fmt"
          "os"
+         "io/ioutil"
          
+         "../bytes"
          "../message"
        )
 
 const USAGE = 
-`encrypt <key> <message>
+`encrypt <key> [ <message> ]
 
 Encrypts <message> using AES and prints the result base64-encoded to stdout.
+If <message> is not provided on the command line, it will be read from stdin.
 <key> is a string that will be used as the basis for the encryption key.
       It is NOT the encryption key itself. The keys found in gosa-si.conf
       for the individual modules can be used to decrypt those modules'
@@ -40,11 +43,23 @@ Encrypts <message> using AES and prints the result base64-encoded to stdout.
 `
 
 func main() {
-  if len(os.Args) != 3 {
+  if len(os.Args) != 3 && len(os.Args) != 2 {
     fmt.Fprintf(os.Stderr, "USAGE: %v",USAGE);
     os.Exit(0);
   }
   
-  msg := message.GosaEncrypt(os.Args[2], os.Args[1])
-  fmt.Fprintln(os.Stdout, msg)
+  var input bytes.Buffer
+  defer input.Reset()
+  if len(os.Args) == 3 {
+    input.WriteString(os.Args[2])
+  } else {
+    buf, err := ioutil.ReadAll(os.Stdin)
+    if err != nil {
+      fmt.Fprintf(os.Stderr, "%v", err);
+      os.Exit(1);
+    }
+    input.Write(buf)
+  }
+  message.GosaEncryptBuffer(&input, os.Args[1])
+  fmt.Fprintln(os.Stdout, input.String())
 }
