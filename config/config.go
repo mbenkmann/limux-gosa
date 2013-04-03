@@ -348,6 +348,9 @@ func ReadConfig() {
     if logfile, ok := general["log-file"]; ok {
       LogFilePath = logfile
     }
+    if failogdir, ok := general["fai-log-dir"]; ok {
+      FAILogPath = failogdir
+    }
     if kernel_list_hook, ok := general["kernel-list-hook"]; ok {
       KernelListHookPath = kernel_list_hook
     }
