@@ -53,7 +53,16 @@ const Revision = \"$revision\"
 # do not create server.conf. It is created by dhclient-exit-hook from
 # the template server.conf.in
 
-cp /etc/logrotate.d/gosa-si-server logrotate-gosa-si-server
+echo >logrotate-gosa-si-server '/var/log/gosa-si-server.log {
+    daily
+    rotate 4
+    compress
+    missingok
+    postrotate
+        pkill -SIGUSR1 gosa-si-server > /dev/null || true
+    endscript
+}
+'
 
 echo /etc/logrotate.d/gosa-si-server >debian/conffiles
 
@@ -117,7 +126,8 @@ build:
 	umask 022
 	go build main/go-susi.go
 	go build main/sibridge.go
-	strip go-susi sibridge
+	go build main/encrypt.go
+	strip go-susi sibridge encrypt
 	chmod a+rx main/gosa-si-server main/generate_*
 	mkdir -p dist/etc/gosa-si dist/etc/logrotate.d dist/usr/lib/go-susi/ dist/usr/sbin
 	mkdir -p dist/usr/share/doc/go-susi
@@ -126,6 +136,7 @@ build:
 	gzip -9 dist/usr/share/doc/go-susi/changelog.Debian
 	cp main/generate_* dist/usr/lib/go-susi/
 	cp go-susi dist/usr/lib/go-susi/gosa-si-server
+	cp encrypt dist/usr/lib/go-susi/encrypt
 	cp main/gosa-si-server dist/usr/sbin
 	ln -snf ../lib/go-susi/gosa-si-server dist/usr/sbin/go-susi
 	cp sibridge dist/usr/sbin/
