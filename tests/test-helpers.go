@@ -311,6 +311,11 @@ Section: tree
 Templates: foo
 "
 `), 0755)
+
+  send_user_msg := tempdir+"/send_user_msg"
+  ioutil.WriteFile(send_user_msg, []byte(`#!/bin/bash
+set >"$0.env"
+`), 0755)
   
   fpath := tempdir + "/server.conf"
   ioutil.WriteFile(fpath, []byte(`
@@ -319,6 +324,7 @@ log-file = `+tempdir+`/go-susi.log
 pid-file = `+tempdir+`/go-susi.pid
 kernel-list-hook = `+tempdir+`/generate_kernel_list
 package-list-hook = `+tempdir+`/generate_package_list
+user-msg-hook = `+tempdir+`/send_user_msg
 
 [bus]
 enabled = false

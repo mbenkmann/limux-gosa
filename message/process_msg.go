@@ -205,6 +205,7 @@ func ProcessXMLMessage(xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply *
          "job_trigger_action_reinstall", // "Neuinstallation"
          "job_trigger_action_wake":      // "Aufwecken"
                                 job_trigger_action(xml).WriteTo(reply)
+    case "job_send_user_msg":   job_send_user_msg(xml).WriteTo(reply)
     case "trigger_wake":
                                 trigger_wake(xml)
     
@@ -215,7 +216,7 @@ func ProcessXMLMessage(xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply *
     case "sistats":             sistats().WriteTo(reply)
     case "panic":               go func(){panic("Panic by user request")}()
   default:
-        util.Log(0, "ERROR! ProcessXMLMessage: Unknown message type '%v'", xml.Text("header"))
+        util.Log(0, "ERROR! ProcessXMLMessage: Unknown message type '%v'\n=======start message=======\n%v\n=======end message=======", xml.Text("header"), xml.String())
         ErrorReplyXML("Unknown message type").WriteTo(reply)
   }
   

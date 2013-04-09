@@ -516,6 +516,14 @@ Template: hundkatzemaus
     check(answers.Get("answer"),[]string{})
   }
   
+  
+  x = gosa("job_send_user_msg", hash("xml(timestamp(%v)macaddress(GOSA)foo(bar))", util.MakeTimestamp(time.Now())))
+  if check(x.Text("header"), "answer") {
+    time.Sleep(1*time.Second) // wait for hook script to have run.
+    data, err := ioutil.ReadFile(confdir+"/send_user_msg.env")
+    check(err, nil)
+    check(hasWords(string(data), "xml='<xml><foo>bar</foo><headertag>send_user_msg</headertag>", "foo=bar"), "")
+  }
 }
 
 func run_fai_query_tests() {

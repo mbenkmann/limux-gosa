@@ -55,21 +55,24 @@ func Init() { // not init() because we need to call it from go-susi.go
             
             macaddress := job.Text("macaddress")
             headertag  := job.Text("headertag")
-            client := db.ClientWithMAC(macaddress)
-            if client == nil {
-              util.Log(0, "ERROR! Client with MAC %v unknown. Cannot send %v", macaddress, headertag)
-              // Don't abort. Some jobs work even if we can't reach the client.
-            } else { 
-              client_addr := client.Text("client")
-              util.Log(1, "INFO! Sending %v to %v", headertag, client_addr)
-              trigger_action := "<xml><header>"+headertag+"</header><"+headertag+"></"+headertag+"><source>"+config.ServerSourceAddress+"</source><target>"+client_addr+"</target></xml>"
-              message.Client(client_addr).Tell(trigger_action, config.LocalClientMessageTTL)
+            if headertag != "send_user_msg" { // send_user_msg does not target a machine
+              client := db.ClientWithMAC(macaddress)
+              if client == nil {
+                util.Log(0, "ERROR! Client with MAC %v unknown. Cannot send %v", macaddress, headertag)
+                // Don't abort. Some jobs work even if we can't reach the client.
+              } else { 
+                client_addr := client.Text("client")
+                util.Log(1, "INFO! Sending %v to %v", headertag, client_addr)
+                trigger_action := "<xml><header>"+headertag+"</header><"+headertag+"></"+headertag+"><source>"+config.ServerSourceAddress+"</source><target>"+client_addr+"</target></xml>"
+                message.Client(client_addr).Tell(trigger_action, config.LocalClientMessageTTL)
+              }
             }
             
             // Now that the client is rightfully excited, give it our best shot.
             
             done := true
             switch headertag {
+              case "send_user_msg":            SendUserMsg(job)
               case "trigger_action_wake":      Wake(job)      // "Aufwecken"
               case "trigger_action_lock":      Lock(job)      // "Sperre"
               case "trigger_action_localboot": Localboot(job) // "Erzwinge lokalen Start"
@@ -95,6 +98,7 @@ func Init() { // not init() because we need to call it from go-susi.go
         go util.WithPanicHandler(func(){
         
           switch job.Text("headertag") {
+            case "send_user_msg":
             case "trigger_action_lock":      // "Sperre"
             case "trigger_action_halt":      // "Anhalten"
             case "trigger_action_localboot": // "Erzwinge lokalen Start"
@@ -151,7 +155,8 @@ func Init() { // not init() because we need to call it from go-susi.go
 
 // If job belongs to an unknown client or a client registered here or if
 // job has <progress>forward-failed</progress> or if the job's <headertag>
-// is trigger_action_wake,_lock or _localboot, this function returns false.
+// is trigger_action_wake,_lock or _localboot or send_user_msg, 
+// this function returns false.
 // Otherwise this function removes the job from the jobdb and then tries to 
 // forward the job to the siserver where the client is registered.
 // If forwarding fails, the job is re-added to the jobdb but marked with 
@@ -163,6 +168,7 @@ func Init() { // not init() because we need to call it from go-susi.go
 func Forward(job *xml.Hash) bool {
   if job.Text("progress") == "forward-failed" { return false }
   switch job.Text("headertag") { 
+    case "send_user_msg": return false
     case "trigger_action_wake", "trigger_action_lock", "trigger_action_localboot": 
       return false
   }

@@ -75,6 +75,9 @@ var KernelListHookPath = "/usr/lib/go-susi/generate_kernel_list"
 // Called by db.HooksExecute() to generate the packages db.
 var PackageListHookPath = "/usr/lib/go-susi/generate_package_list"
 
+// Called when a job_send_user_msg job is executed.
+var UserMessageHookPath = "/usr/lib/go-susi/send_user_msg"
+
 // Path where log files from CLMSG_save_fai_log are stored.
 // Within this directory go-susi creates sub-directories named
 // after the clients' MAC addresses and symlinks named after the
@@ -356,6 +359,9 @@ func ReadConfig() {
     }
     if package_list_hook, ok := general["package-list-hook"]; ok {
       PackageListHookPath = package_list_hook
+    }
+    if user_msg_hook, ok := general["user-msg-hook"]; ok {
+      UserMessageHookPath = user_msg_hook
     }
   }
   

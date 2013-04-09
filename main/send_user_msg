@@ -1,0 +1,82 @@
+#!/bin/bash
+
+############################## recursion case ##############################
+test -z "$send_user_msg_do_not_recurse" && {
+keyid="GOsaPackages"
+key="$(sed -n "/\\[$keyid\\]/,\$s/key *= *\(.*\)/\1/p" /etc/gosa-si/server.conf | head -n 1)"
+test -z "$key" && {
+  echo 2>&1 "Could not read key from section [$keyid] from /etc/gosa-si/server.conf"
+  exit 1
+}
+
+users_xml=""
+for usr in $user ; do
+  users_xml="${users_xml}<user>$usr</user>"
+done
+for g in $group ; do
+  users_xml="${users_xml}<group>$g</group>"
+done
+  
+msg="<xml>
+<header>job_send_user_msg</header>
+<source>GOSA</source>
+<target>GOSA</target>
+<from>$from</from>
+<subject>$subject</subject>
+<message>$message</message>
+<timestamp>$timestamp</timestamp>
+<delivery_time>$delivery_time</delivery_time>
+<periodic>$periodic</periodic>
+<macaddress>GOSA</macaddress>
+${users_xml}
+<send_user_msg_do_not_recurse>1</send_user_msg_do_not_recurse>
+</xml>
+"
+
+for server in $(sed 's/<xml>/\n/g' /var/lib/go-susi/clientdb.xml | sed -n 's/.*<source>\(.*\)<.source>.*/\1/p'|sort -u); do
+#  echo $server
+  (echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc "${server%:*}" "${server#*:}" >/dev/null) &
+done
+  
+exit 0
+}
+
+
+############################## non-recursion case ####################
+
+users="$user"
+
+for g in $group ; do
+  users="$users $(ldapsearch -x -LLL "(&(cn=$g)(objectClass=posixGroup))" memberUid | sed -n 's/memberUid: //p')"
+done
+
+
+sed 's/<xml>/\n/g' /var/lib/go-susi/clientdb.xml | 
+while read -r line ; do
+  client="${line##*<client>}"
+  client="${client%%</client>*}"
+  server="${line##*<source>}"
+  server="${server%%</source>*}"
+  key="${line%%</key>*}"
+  key="${key##*<key>}"
+  src="127.0.0.1:20081"
+
+  test "$key" = "$line" && continue
+
+  for user in $users ; do
+    msg="<xml>
+<header>usr_msg</header>
+<source>$src</source>
+<target>$client</target>
+<subject>$subject</subject>
+<message>$message</message>
+<usr>$user</usr>
+<usr_msg></usr_msg>
+</xml>
+"
+  
+    (#echo "Sending to $user at $client"
+    echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc "${client%:*}" "${client#*:}") &
+  done
+ 
+done
