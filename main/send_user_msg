@@ -1,11 +1,19 @@
 #!/bin/bash
 
-############################## recursion case ##############################
-test -z "$send_user_msg_do_not_recurse" && {
+exec 2>/var/log/send_user_msg.log
+
+test -n "$send_user_msg_do_not_recurse" && {
+  echo 1>&2 "Recursive call => aborting"
+  exit 1
+}
+
+################### forward to all servers in serverdb ########################
+(
+
 keyid="GOsaPackages"
 key="$(sed -n "/\\[$keyid\\]/,\$s/key *= *\(.*\)/\1/p" /etc/gosa-si/server.conf | head -n 1)"
 test -z "$key" && {
-  echo 2>&1 "Could not read key from section [$keyid] from /etc/gosa-si/server.conf"
+  echo 1>&2 "Could not read key from section [$keyid] from /etc/gosa-si/server.conf"
   exit 1
 }
 
@@ -33,16 +41,33 @@ ${users_xml}
 </xml>
 "
 
-for server in $(sed 's/<xml>/\n/g' /var/lib/go-susi/clientdb.xml | sed -n 's/.*<source>\(.*\)<.source>.*/\1/p'|sort -u); do
-#  echo $server
-  (echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc "${server%:*}" "${server#*:}" >/dev/null) &
+susionly=false
+cat /var/lib/go-susi/serverdb.xml | tr -d '[ \t\r\n\v]' | sed 's/<xml>/\n/g' | 
+while read -r line ; do
+  server="${line##*<source>}"
+  server="${server%%</source>*}"  
+  test "$server" = "$line" && continue
+  if [ "${line#*goSusi}" = "$line" ]; then
+    if [ "$susionly" = "true" ]; then
+      continue
+    fi
+    result="$(echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc -q 1 "${server%:*}" "${server#*:}")"
+    if test -n "$result" ; then
+      echo 1>&2 "Message successfully passed to non-go-susi server $server"
+      susionly=true
+    else
+      echo 1>&2 "Message could not be passed to non-go-susi server $server"
+    fi
+  else
+    echo 1>&2 "Passing message to go-susi server $server"
+    echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc "${server%:*}" "${server#*:}" >/dev/null
+  fi
 done
   
-exit 0
-}
+) &
 
 
-############################## non-recursion case ####################
+############################## send to all clients on our server ####################
 
 users="$user"
 
@@ -55,6 +80,7 @@ sed 's/<xml>/\n/g' /var/lib/go-susi/clientdb.xml |
 while read -r line ; do
   client="${line##*<client>}"
   client="${client%%</client>*}"
+  test "$client" = "$line" && continue
   server="${line##*<source>}"
   server="${server%%</source>*}"
   key="${line%%</key>*}"
@@ -75,7 +101,8 @@ while read -r line ; do
 </xml>
 "
   
-    (#echo "Sending to $user at $client"
+    (
+    echo 1>&2 "Sending message to $user at $client"
     echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc "${client%:*}" "${client#*:}") &
   done
  

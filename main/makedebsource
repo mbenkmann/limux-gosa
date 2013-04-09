@@ -128,13 +128,13 @@ build:
 	go build main/sibridge.go
 	go build main/encrypt.go
 	strip go-susi sibridge encrypt
-	chmod a+rx main/gosa-si-server main/generate_*
+	chmod a+rx main/gosa-si-server main/generate_* main/send_*
 	mkdir -p dist/etc/gosa-si dist/etc/logrotate.d dist/usr/lib/go-susi/ dist/usr/sbin
 	mkdir -p dist/usr/share/doc/go-susi
 	cp debian/copyright dist/usr/share/doc/go-susi
 	cp debian/changelog dist/usr/share/doc/go-susi/changelog.Debian
 	gzip -9 dist/usr/share/doc/go-susi/changelog.Debian
-	cp main/generate_* dist/usr/lib/go-susi/
+	cp main/generate_* main/send_user_msg dist/usr/lib/go-susi/
 	cp go-susi dist/usr/lib/go-susi/gosa-si-server
 	cp encrypt dist/usr/lib/go-susi/encrypt
 	cp main/gosa-si-server dist/usr/sbin

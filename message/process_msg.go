@@ -216,6 +216,7 @@ func ProcessXMLMessage(xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply *
     case "sistats":             sistats().WriteTo(reply)
     case "panic":               go func(){panic("Panic by user request")}()
   default:
+        xml.SetText() // clean up excess top-level whitespace before logging
         util.Log(0, "ERROR! ProcessXMLMessage: Unknown message type '%v'\n=======start message=======\n%v\n=======end message=======", xml.Text("header"), xml.String())
         ErrorReplyXML("Unknown message type").WriteTo(reply)
   }
