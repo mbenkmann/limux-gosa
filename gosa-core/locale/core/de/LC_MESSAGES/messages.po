@@ -5012,7 +5012,7 @@ msgstr "Die Größenbeschränkung von %d Einträgen ist überschritten!"
 #: include/functions.inc:1298
 #, php-format
 msgid "Set the size limit to %s"
-msgstr "Setze Grössenlimitieren auf %s"
+msgstr "Zeige bis zu %s Einträge an"
 
 #: include/functions.inc:1315
 msgid "list is incomplete"
