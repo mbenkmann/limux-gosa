@@ -4168,6 +4168,10 @@ msgstr "Bitte wählen Sie den LDAP-Benutzer, der von GOsa verwendet werden soll"
 msgid "Search"
 msgstr "Suchen"
 
+#: include/class_filter.inc:243
+msgid "Delete filter"
+msgstr "Filter entfernen"
+
 #: setup/setup_ldap.tpl:28 setup/setup_ldap.tpl:29
 msgid "LDAP connection"
 msgstr "LDAP-Verbindung"
