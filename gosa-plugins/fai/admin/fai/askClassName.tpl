@@ -54,7 +54,7 @@
      </td>
      <td>{t}Class name{/t}&nbsp;
       
-      <select name="SelectedClass" title="{t}Choose class name{/t}" style="width:120px;" {$ClassNamesAvailable}size=1>
+      <select name="SelectedClass" title="{t}Choose class name{/t}" style="width:120px;" {$ClassNamesAvailable}size=1 onclick="$('classSelector2').writeAttribute('checked', 'checked');">
        {html_options options=$ClassNames}
       </select>
      </td>
