@@ -176,10 +176,12 @@
 </tr>
 <tr>
  <td colspan=2>
+ <div style="display:none;">
   {render acl=$gotoProfileFlagLACL checkbox=$multiple_support checked=$use_gotoProfileFlagL}
-  <input type="checkbox" name="gotoProfileFlagL" id="gotoProfileFlagL" value="L" {$gotoProfileFlagLCHK} class="center">
+  <input type="checkbox" name="gotoProfileFlagL" id="gotoProfileFlagL" value="L" class="center">
   {/render}
   <label for="gotoProfileFlagL">{t}Resolution changeable during session{/t}</label>
+ </div>
  </td>
 </tr>
 </table> 
