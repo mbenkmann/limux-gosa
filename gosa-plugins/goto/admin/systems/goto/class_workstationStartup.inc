@@ -609,9 +609,9 @@ class workstartup extends plugin
                     $desc = ""; 
 
                     $objects = array(
-                            "Pl"  => array("IMG"=> "plugins/fai/images/fai_partitionTable.png",
+                            "Pt"  => array("IMG"=> "plugins/fai/images/fai_partitionTable.png",
                                         "TITLE" => _('Partition table')),
-                            "Pt"     => array("IMG"=> "plugins/fai/images/fai_packages.png",
+                            "Pl"     => array("IMG"=> "plugins/fai/images/fai_packages.png",
                                         "TITLE" => _('Packages')),
                             "S"          => array("IMG"=> "plugins/fai/images/fai_script.png",
                                         "TITLE" => _('Scripts')
