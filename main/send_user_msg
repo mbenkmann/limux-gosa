@@ -42,7 +42,7 @@ ${users_xml}
 "
 
 susionly=false
-cat /var/lib/go-susi/serverdb.xml | tr -d '[ \t\r\n\v]' | sed 's/<xml>/\n/g' | 
+cat /var/lib/go-susi/serverdb.xml | tr -d '[ \t\r\n\v]' | sed 's/xml>/\n/g' | 
 while read -r line ; do
   server="${line##*<source>}"
   server="${server%%</source>*}"  
@@ -76,7 +76,7 @@ for g in $group ; do
 done
 
 
-sed 's/<xml>/\n/g' /var/lib/go-susi/clientdb.xml | 
+sed 's/xml>/\n/g' /var/lib/go-susi/clientdb.xml | 
 while read -r line ; do
   client="${line##*<client>}"
   client="${client%%</client>*}"
