@@ -1,0 +1,231 @@
+#!/bin/bash
+
+logfile=/tmp/send_user_msg.log
+susilog=/tmp/gosa-si-server.log
+msgdir=/var/lib/go-susi/user_messages
+cleanup_port=20085
+
+
+exec &>>"$logfile"
+date -R 1>&2
+
+mkdir -p "$msgdir"
+
+######################## cleanup daemon  ###########################
+# receives file names on $cleanup_port and removes $msgdir/$filename
+# When the logwatcher (see below) sees a confirm_usr_msg message in
+# go-susi's log, it sends corresponding messages to cleanup daemons
+####################################################################
+[[ "$1" == "--cleanup" ]] && {
+  nc -v -d -k -l $cleanup_port | while true; do
+    read -r md5
+    md5=$(echo "$md5" | tr -d ./) # basic security
+    test -n "$md5" && echo rm -f "$msgdir/$md5"
+  done
+
+  exit 1 # never reached
+}
+# start daemon if not running, yet
+pgrep -f go-susi-user-messages-cleanup >/dev/null || (exec -a go-susi-user-messages-cleanup /bin/bash "$0" --cleanup)&
+
+
+
+##################### logwatcher daemon #########################
+# Watches for confirm_usr_msg messages in go-susi's log
+#################################################################
+[[ "$1" == "--logwatcher" ]] && {
+  
+  sleep 3 # make sure the cleanup daemon has started before launching logwatcher
+  
+  tail -n 1000 -f "$susilog" |
+  sed -r -n -u '/=start message=/,/=end message=/H;/=end message=/{s/.*//;x;s/\n//g;p;}' | 
+  while true; do
+    read -r mess
+    mess="$(echo "$mess" | tr -d ' \t')" # remove spurious whitespace
+    header="${mess#*<header>}"
+    header="${header%%</header>*}"
+    test "$header" = "confirm_usr_msg" || continue
+    
+    message="${mess#*<message>}"
+    message="${message%%</message>*}"
+    test "$message" = "$mess" && continue
+    
+    rest="$mess"
+    while true; do
+      usr="${rest#*<usr>}"
+      usr="${usr%%</usr>*}"
+      test "$usr" = "$rest" && break
+      rest="${rest#*</usr>}"
+      
+      md5="$(echo "$usr:$message" | md5sum)"
+      md5="${md5%% *}"
+      
+      # send to local cleanup daemon
+      echo "$md5" | nc localhost $cleanup_port
+      
+      # send to peer cleanup daemons
+      cat /var/lib/go-susi/serverdb.xml | tr -d '[ \t\r\n\v]' | sed 's/xml>/\n/g' | 
+      while read -r line ; do
+        server="${line##*<source>}"
+        server="${server%%</source>*}"  
+        test "$server" = "$line" && continue
+        echo "$md5 => ${server%:*}:$cleanup_port"
+        echo "$md5" | nc "${server%:*}" $cleanup_port
+      done
+    done
+  done
+
+  exit 1 # never reached
+}
+# start daemon if not running, yet
+pgrep -f go-susi-user-messages-logwatcher >/dev/null || (exec -a go-susi-user-messages-logwatcher /bin/bash "$0" --logwatcher)&
+
+
+################ add new message if we're called by go-susi ###################
+test -n "$job" -a -n "$message" -a -n "$user" && {
+  users="$user"
+
+  test -n "$group" && {
+    for g in $group ; do
+      users="$users $(ldapsearch -x -LLL "(&(cn=$g)(objectClass=posixGroup))" memberUid | sed -n 's/memberUid: //p')"
+    done
+  }
+  
+  keyid="GOsaPackages"
+  key="$(sed -n "/\\[$keyid\\]/,\$s/key *= *\(.*\)/\1/p" /etc/gosa-si/server.conf | head -n 1)"
+  test -z "$key" && echo 1>&2 "Could not read key from section [$keyid] from /etc/gosa-si/server.conf"
+
+  users_xml=""
+  
+  for usr in $users; do
+    md5="$(echo "$usr:$message" | md5sum)"
+    md5="${md5%% *}"
+    
+    # if we have the message already => skip
+    test -f "$msgdir/$md5" && continue
+    
+    # store message in the local store
+    declare -p usr subject message >"$msgdir/$md5"
+    
+    # build XML for forwarding to peers
+    users_xml="${users_xml}<user>$usr</user>"
+  done
+  
+  # forward to peer servers (in a combined message with all user ids)
+  #
+  # ATTENTION! It is tempting to run this code in the background,
+  # because if there are (as in the LHM's test lab) lots of peer servers
+  # listed in DNS that are offline a lot of the time, the forwarding will
+  # take a long time and delay the message delivery.
+  # However we must make sure that all peers have the message before we
+  # try to send it to our clients or we risk sending the successful delivery
+  # message to a peer's cleanup daemon before the peer even has the message.
+  # This would cause the message to be delivered multiple times.
+  test -n "$key" -a -n "$users_xml" && {
+msg="<xml>
+<header>job_send_user_msg</header>
+<source>GOSA</source>
+<target>GOSA</target>
+<from>$from</from>
+<subject>$subject</subject>
+<message>$message</message>
+<timestamp>$timestamp</timestamp>
+<delivery_time>$delivery_time</delivery_time>
+<macaddress>GOSA</macaddress>
+${users_xml}
+</xml>
+"
+
+  # We must forward the message to ALL go-susi servers, but not more than one
+  # gosa-si-server because otherwise the message would be sent multiple times
+  # (once for each gosa-si-server). The susionly flag handles this. When we
+  # have forwarded to the first gosa-si-server, it is set to true and from
+  # that point on only go-susi peers will be considered.
+    susionly=false
+    cat /var/lib/go-susi/serverdb.xml | tr -d '[ \t\r\n\v]' | sed 's/xml>/\n/g' | 
+    while read -r line ; do
+      server="${line##*<source>}"
+      server="${server%%</source>*}"  
+      test "$server" = "$line" && continue
+      
+      # if the local file has disappeared, one of the contacted peers has already
+      # delivered the message, so we terminate this loop
+      test -f "$msgdir/$md5" || break
+      
+      if [ "${line#*goSusi}" = "$line" ]; then # if "goSusi" is NOT found in the entry
+        test "$susionly" = "true" && continue
+        result="$(echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc -q 1 "${server%:*}" "${server#*:}")"
+        if test -n "$result" ; then
+          echo "Message successfully passed to non-go-susi server $server"
+          susionly=true
+        else
+          echo "Message could not be passed to non-go-susi server $server"
+        fi
+      else
+        echo "Passing message to go-susi server $server"
+        echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc "${server%:*}" "${server#*:}" >/dev/null
+      fi
+    done
+  }
+}
+
+##################### delete expired messages ################################
+find "$msgdir" -type f -mmin +$((3*24*60)) -exec echo rm {} \;
+
+
+################# send queued messages to all clients on our server #################
+for f in "$msgdir"/*; do
+  . "$f"
+  test -n "$usr" || continue
+
+  sed 's/xml>/\n/g' /var/lib/go-susi/clientdb.xml | 
+  while read -r line ; do
+    client="${line##*<client>}"
+    client="${client%%</client>*}"
+    test "$client" = "$line" && continue
+    server="${line##*<source>}"
+    server="${server%%</source>*}"
+    key="${line%%</key>*}"
+    key="${key##*<key>}"
+    src="127.0.0.1:20081"
+
+    test "$key" = "$line" && continue
+
+    msg="<xml>
+<header>usr_msg</header>
+<source>$src</source>
+<target>$client</target>
+<subject>$subject</subject>
+<message>$message</message>
+<usr>$usr</usr>
+<usr_msg></usr_msg>
+</xml>
+"
+  
+    (
+      echo "Sending message to $user at $client"
+      echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc "${client%:*}" "${client#*:}"
+    ) &
+  done
+done
+
+sleep 600  # wait 10 minutes
+# If there is at least 1 file, i.e. one message not yet shown to the user
+# and if there are NO files more recent than 9 minutes, call ourselves again to retry
+# sending the remaining messages.
+# If there is a file more recent than 9 minutes that means that another
+# send_user_msg script has been started in the meantime and we let this newer
+# instance handle the messages.
+old="$(find "$msgdir" -type f -print)"
+new="$(find "$msgdir" -type f -mmin -9 -print)"
+unset job message user # make sure we don't re-add a message
+test -n "$old" -a -z "$new" && exec "$0"
+
+
+#trap "pkill -f go-susi-user-messages-logwatcher; pkill -f go-susi-user-messages-cleanup; echo | nc localhost $cleanup_port" SIGHUP SIGINT SIGTERM
+#sleep 10000
+
+
+#exit 1
+
+
