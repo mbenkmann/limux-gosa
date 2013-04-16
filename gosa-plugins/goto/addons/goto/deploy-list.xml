@@ -26,15 +26,15 @@
 
     <column>
       <label>Target</label>
-      <sortAttribute>MACADDRESS,Schedule</sortAttribute>
-      <sortType>string,date</sortType>
+      <sortAttribute>PLAINNAME,TIMESTAMP</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{filter:hostName(MACADDRESS,PLAINNAME)}</value>
       <export>true</export>
     </column>
 
     <column>
       <label>Task</label>
-      <sortAttribute>givenName,MACADDRESS</sortAttribute>
+      <sortAttribute>HEADERTAG,PLAINNAME</sortAttribute>
       <sortType>string,string</sortType>
       <value>%{filter:filterTask(HEADERTAG)}</value>
       <export>true</export>
@@ -42,7 +42,7 @@
 
     <column>
       <label>Period</label>
-      <sortAttribute>uid,MACADDRESS,givenName</sortAttribute>
+      <sortAttribute>PERIODIC,PLAINNAME,TIMESTAMP</sortAttribute>
       <sortType>string,string,string</sortType>
       <value>%{filter:filterPeriod(PERIODIC)}</value>
       <export>true</export>
@@ -50,15 +50,15 @@
 
     <column>
       <label>Schedule</label>
-      <sortAttribute>Schedule,MACADDRESS,givenName</sortAttribute>
-      <sortType>date,string,string</sortType>
+      <sortAttribute>TIMESTAMP,PLAINNAME,HEADERTAG</sortAttribute>
+      <sortType>string,string,string</sortType>
       <value>%{filter:filterSchedule(TIMESTAMP)}</value>
       <export>true</export>
     </column>
 
     <column>
       <label>Status</label>
-      <sortAttribute>uid,MACADDRESS,givenName</sortAttribute>
+      <sortAttribute>STATUS,PLAINNAME,HEADERTAG</sortAttribute>
       <sortType>string,string,string</sortType>
       <value>%{filter:filterStatus(STATUS,MACADDRESS,HEADERTAG,PROGRESS)}</value>
       <export>true</export>

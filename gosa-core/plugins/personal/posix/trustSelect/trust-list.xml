@@ -44,15 +44,15 @@
     </column>
     <column>
       <label>Name</label>
-      <sortattribute>cn</sortattribute>
-      <sorttype>string</sorttype>
+      <sortAttribute>cn</sortAttribute>
+      <sortType>string</sortType>
       <value>%{cn}</value>
       <export>true</export>
     </column>
     <column>
       <label>Description</label>
-      <sortattribute>description</sortattribute>
-      <sorttype>string</sorttype>
+      <sortAttribute>description,cn</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{description}</value>
       <export>true</export>
     </column>

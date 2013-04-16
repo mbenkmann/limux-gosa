@@ -38,16 +38,16 @@
 
     <column>
       <label>Surname</label>
-      <sortAttribute>sn</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>sn,givenName,uid</sortAttribute>
+      <sortType>string,string,string</sortType>
       <value>%{sn}</value>
       <export>true</export>
     </column>
 
     <column>
       <label>Given name</label>
-      <sortAttribute>givenName</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>givenName,sn,uid</sortAttribute>
+      <sortType>string,string,string</sortType>
       <value>%{givenName}</value>
       <export>true</export>
     </column>
