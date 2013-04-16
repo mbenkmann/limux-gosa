@@ -639,16 +639,10 @@ func JobsSyncAll(target string, old *xml.Hash) {
     }
     
     // Next set all remaining old jobs in fju to "done" non-periodic and renumber them.
-    // Note that the following loop is a bit tricky, because the renumbered
-    // <answerX> may be the same as an existing and yet unprocessed <answerX>.
-    // The reason why this works is because AddWithOwnership()'s contract says that it
-    // will always make the renumbered job the LAST child with name <answerX>.
-    // So when we finally reach the unrenumbered "answerX" in the subtags list,
-    // RemoveFirst() will reliably remove only the unrenumbered job.
     var count uint64 = 1
     for child := fju.FirstChild(); child != nil; child = child.Next() {
       if !strings.HasPrefix(child.Element().Name(),"answer") { continue }
-      job := child.Remove()
+      job := child.Element()
       job.FirstOrAdd("status").SetText("done")
       job.FirstOrAdd("periodic").SetText("none")
         // If the target is an as-yet unidentified go-susi, it would
@@ -658,7 +652,6 @@ func JobsSyncAll(target string, old *xml.Hash) {
       job.FirstOrAdd("id").SetText("%d", <-nextID)
       job.Rename("answer"+strconv.FormatUint(count, 10))
       count++
-      fju.AddWithOwnership(job)
     }
     
     // Now add the jobs from myjobs to fju.
