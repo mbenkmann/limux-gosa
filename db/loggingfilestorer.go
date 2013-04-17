@@ -29,7 +29,7 @@ type LoggingFileStorer struct {
   xml.FileStorer
 }
 
-func (f *LoggingFileStorer) Store(data string) (err error) {
+func (f *LoggingFileStorer) Store(data *xml.Hash) (err error) {
   util.WithPanicHandler(func (){
     err = f.FileStorer.Store(data)
     if err != nil {

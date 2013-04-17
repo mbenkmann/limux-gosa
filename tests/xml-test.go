@@ -225,8 +225,8 @@ type ChannelStorer struct {
   StringChannel
 }
 
-func (self *ChannelStorer) Store(data string) error {
-  self.StringChannel <- data
+func (self *ChannelStorer) Store(db *xml.Hash) error {
+  self.StringChannel <- db.String()
   return nil
 }
 
@@ -242,10 +242,10 @@ func testDB() {
   tempfile.Close()
   fstor := xml.FileStorer{tempname}
   teststring := "This is a test!\nLine 2"
-  check(fstor.Store(teststring), nil)
+  check(fstor.Store(xml.NewHash("foo",teststring)), nil)
   checkdata, err := ioutil.ReadFile(tempname)
   check(err, nil)
-  check(string(checkdata), teststring)
+  check(string(checkdata), "<foo>"+teststring+"</foo>")
   os.Remove(tempname)
   
   db := xml.NewDB("fruits", nil, 0)

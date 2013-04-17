@@ -24,19 +24,18 @@ package xml
 
 import (
          "os"
-         "fmt"
          "sync"
          "path"
          "time"
          "io/ioutil"
        )
 
-// Stores a string (representation of a database) somewhere. E.g. FileStorer
-// stores the data in a file.
+// Stores a database somewhere. E.g. FileStorer stores the data in a file.
 type Storer interface{
-  // Stores the given string and returns an error if something went wrong.
+  // Stores the given Hash and returns an error if something went wrong.
   // ATTENTION! Must be goroutine-safe!
-  Store(string) error
+  // db must not be modified, because it is the actual db, not a copy.
+  Store(db *Hash) error
 }
 
 // a database based on an xml.Hash, with optional backing store.
@@ -82,7 +81,7 @@ func NewDB(name string, persist Storer, persistDelay time.Duration) (*DB) {
   return db
 }
 
-// Stores a string (representation of a database) in a file. Every Store()
+// Stores a database in a file. Every Store()
 // will replace the file via a write to a temporary file followed by an
 // atomic rename to make sure the data is not completely lost if something 
 // goes wrong updating the file.
@@ -91,7 +90,7 @@ type FileStorer struct {
 }
 
 // Stores data in the file specified by the FileStorer's Path.
-func (f *FileStorer) Store(data string) (err error) {
+func (f *FileStorer) Store(db *Hash) (err error) {
   dir := path.Dir(f.Path)
   prefix := path.Base(f.Path)
   var temp *os.File
@@ -102,7 +101,7 @@ func (f *FileStorer) Store(data string) (err error) {
   // the file after writing
   
   // Write out the data to the temp file
-  _, err = fmt.Fprint(temp, data)
+  _, err = db.WriteTo(temp)
   temp.Close()
   if err == nil {
     // atomically replace the old with the new file
@@ -252,5 +251,5 @@ func (db *DB) Persist() (err error) {
 // Actually persists the database using db.persist.Store().
 // REQUIRES HOLDING THE DB LOCK!
 func (db *DB) persistWithLock() (err error) {
-  return db.persist.Store(db.data.String())
+  return db.persist.Store(db.data)
 }
