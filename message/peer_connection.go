@@ -289,6 +289,7 @@ var peerDownError = fmt.Errorf("Peer is down")
 // jobdb and removing the PeerConnection itself from the connections list.
 func (conn *PeerConnection) handleConnection() {
   var err error
+  var pingerRunning int32
 
   for {
     // gosa-si puts incoming messages into incomingdb and then
@@ -371,30 +372,40 @@ func (conn *PeerConnection) handleConnection() {
         // start downtime if it's not already running
         if atomic.LoadInt64(&(conn.whendown)) == 0 { conn.startDowntime() } 
         
-        down := conn.Downtime()
-        var delay time.Duration
-        // For the first 10 minutes we try every 10s to re-establish the connection
-        if down < config.MaxPeerDowntime && down < 10*time.Minute { delay = 10*time.Second } else
-        // For the first day we try every 10 minutes
-        if down < config.MaxPeerDowntime && down < 24*time.Hour { delay = 10*time.Minute } else
-        // Then we go to 30 minute intervals
-        if down < config.MaxPeerDowntime { delay = 30*time.Minute } else
-        // Finally we give up
-        {
-          util.Log(2, "DEBUG! handleConnection() giving up. Removing jobs and PeerConnection for %v", conn.addr)
-          db.JobsRemoveForeign(xml.FilterSimple("siserver",conn.addr))
-          db.ServerRemove(conn.addr)
-          connections_mutex.Lock()
-          delete(connections,conn.addr)
-          connections_mutex.Unlock()
-          return
+        // if we don't already have a pinger running, start one to ping us
+        // after some time to make us try connecting again.
+        if atomic.LoadInt32(&pingerRunning) == 0 {
+          atomic.AddInt32(&pingerRunning, 1)
+          
+          down := conn.Downtime()
+          maxdelay := config.MaxPeerDowntime - down
+          var delay time.Duration
+          // For the first 10 minutes we try every 10s to re-establish the connection
+          if maxdelay > 0 && down < 10*time.Minute { delay = 10*time.Second } else
+          // For the first day we try every 10 minutes
+          if maxdelay > 0 && down < 24*time.Hour { delay = 10*time.Minute } else
+          // Then we go to 30 minute intervals
+          if maxdelay > 0 { delay = 30*time.Minute } else
+          // Finally we give up
+          {
+            util.Log(2, "DEBUG! handleConnection() giving up. Removing jobs and PeerConnection for %v", conn.addr)
+            db.JobsRemoveForeign(xml.FilterSimple("siserver",conn.addr))
+            db.ServerRemove(conn.addr)
+            connections_mutex.Lock()
+            delete(connections,conn.addr)
+            connections_mutex.Unlock()
+            return
+          }
+          
+          if delay > maxdelay { delay = maxdelay }
+          
+          // Wait and ping in the background, so that we don't miss other messages
+          go func() {
+            time.Sleep(delay)
+            atomic.AddInt32(&pingerRunning, -1)
+            conn.queue.Push("")
+          }()
         }
-        
-        // Wait and ping in the background, so that we don't miss other messages
-        go func() {
-          time.Sleep(delay)
-          conn.queue.Push("")
-        }()
       }
     }
   }

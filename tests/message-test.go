@@ -115,11 +115,12 @@ func Message_test() {
     check(message.Peer(listen_address).Downtime(), 0)
   }
   
-  // stop listener
-  listen_stop()
   // set maximum downtime before removal
   defer func(mpd time.Duration){ config.MaxPeerDowntime = mpd }(config.MaxPeerDowntime)
   config.MaxPeerDowntime = 4*time.Second
+  time.Sleep(6*time.Second) // we need to wait for the old 10s pinger to expire
+  // stop listener
+  listen_stop()
   // ping to make handleConnection() aware that we're down
   message.Peer(listen_address).Tell("<xml><header>Ping</header></xml>", keys[0])
   time.Sleep(1*time.Second)
