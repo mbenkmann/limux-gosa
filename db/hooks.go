@@ -113,6 +113,15 @@ func KernelListHook() {
   }
 }
 
+var packageListFormat = []*xml.ElementInfo{
+  &xml.ElementInfo{"package","package",false},
+  &xml.ElementInfo{"release","release",false},
+  &xml.ElementInfo{"version","version",false},
+  &xml.ElementInfo{"section","section",false},
+  &xml.ElementInfo{"description","description",true},
+  &xml.ElementInfo{"template","template",true},
+  &xml.ElementInfo{"templates","template",true},
+}
 
 // Reads the output from the program config.PackageListHookPath (LDIF) and
 // uses it to replace packagedb.
@@ -121,7 +130,7 @@ func PackageListHook() {
   timestamp := util.MakeTimestamp(start)
 
   util.Log(1, "INFO! Running package-list-hook %v", config.PackageListHookPath)
-  plist, err := xml.LdifToHash("pkg", true, exec.Command(config.PackageListHookPath))
+  plist, err := xml.LdifToHash("pkg", true, exec.Command(config.PackageListHookPath), packageListFormat...)
   if err != nil {
     util.Log(0, "ERROR! package-list-hook %v: %v", config.PackageListHookPath, err)
     return
@@ -184,18 +193,11 @@ func PackageListHook() {
     description := p.First("description")
     if description == nil {
       description = p.Add("description", pkgname[0])
+      description.EncodeBase64()
     }
-    description.EncodeBase64()
     
-      // accept "template" and "templates" (with and without "s")
-    template := p.First("template")
-    if template == nil { template = p.First("templates") }
-    if template != nil {
-      template.Rename("template")
-      template.EncodeBase64()
-    } else {
-      p.Add("template")
-    }
+    // add empty <template></template> if there is no <template> element.
+    if p.First("template") == nil { p.Add("template") }
 
     accepted++
   }

@@ -898,4 +898,29 @@ func testLDIF() {
   check(x.First("dev").Text("broken4"),"")
   check(x.First("dev").Text("broken2"),"B0rken2")
   check(x.First("dev").Text("broken3"),"b0rken")
+  
+  einfo1 := []*xml.ElementInfo{&xml.ElementInfo{"BIG","small", true},
+                               &xml.ElementInfo{"big","bigger", false},
+                               &xml.ElementInfo{"big","biggest", false},
+                               &xml.ElementInfo{"Boom","small", true},
+                               }
+  x, err = xml.LdifToHash("", true, exec.Command("cat", "testdata/eleminfo.ldif"), einfo1...)
+  check(err,nil)
+  check(checkTags(x,"bigger+"),"")
+  check(x.Text(),"")
+  check(x.Get("bigger"), []string{"Buck Bunny", "Bad Wolf"})
+  
+  x, err = xml.LdifToHash("", false, exec.Command("cat", "testdata/eleminfo.ldif"), einfo1...)
+  check(err,nil)
+  check(checkTags(x,"small+"),"")
+  check(x.Text(),"")
+  check(x.Get("small"), []string{"QnVjayBCdW5ueQ==","QmFzdGlj"})
+  
+  x, err = xml.LdifToHash("item", false, exec.Command("cat", "testdata/eleminfo.ldif"), &xml.ElementInfo{"giga","gugu",true})
+  check(err,nil)
+  check(x,"<xml></xml>")
+  
+  x, err = xml.LdifToHash("item", false, exec.Command("cat", "testdata/eleminfo.ldif"), &xml.ElementInfo{"Boom","Boom",false})
+  check(err,nil)
+  check(x,"<xml><item><Boom>Bastic</Boom></item></xml>")
 }

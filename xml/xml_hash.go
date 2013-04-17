@@ -710,6 +710,39 @@ func match(b []byte, ofs int, pre string) bool {
   return i == len(pre)
 }
 
+// If casefold == false, returns true iff string(b) == s;
+// if casefold == true, returns true iff tolower(string(b)) == s
+func equals(casefold bool, b []byte, s string) bool {
+  if len(b) != len(s) { return false }
+  if casefold {
+    for i := range b {
+      b1 := b[i]
+      if 'A' <= b1 && b1 <= 'Z' { b1 += 'a'-'A' }
+      b2 := s[i]
+      if b1 != b2 { return false }
+    }
+  } else {
+    for i := range b {
+      b1 := b[i]
+      b2 := s[i]
+      if b1 != b2 { return false }
+    }
+  }
+  
+  return true
+}
+
+// Specifies how to convert an LDIF attribute to a Hash element.
+type ElementInfo struct{
+  // Name of the LDIF attribute this applies to.
+  LDIFAttributeName string
+  // Name the corresponding Hash element should have.
+  ElementName string
+  // If true, the Hash element's text content should be base64-encoded.
+  // If the LDIF attribute's value is not already encoded, it will be encoded.
+  Base64 bool
+}
+
 // Converts LDIF data into a Hash. The outermost tag will always be "xml".
 // If an error occurs the returned Hash may contain partial data but it
 // is never nil.
@@ -722,7 +755,13 @@ func match(b []byte, ofs int, pre string) bool {
 //            If false, they are left exactly as found in the LDIF.
 //  ldif: A []byte, string, io.Reader or *exec.Cmd that provides the LDIF data.
 //        Understands all ldapsearch formats with an arbitrary number of "-L" switches.
-func LdifToHash(itemtag string, casefold bool, ldif interface{}) (xml *Hash, err error) {
+//  elementInfo: If one or more ElementInfo structs are passed, only attributes
+//        matching one of them will be accepted and the first match in the
+//        elementInfo list determines how the attribute in the LDIF will be
+//        converted to an element in the result Hash.
+//        If casefold==true, matching is done case-insensitive. This requires that
+//        the LDIFAttributeName fields are all lowercase.
+func LdifToHash(itemtag string, casefold bool, ldif interface{}, elementInfo... *ElementInfo) (xml *Hash, err error) {
   x := NewHash("xml")
   
   var xmldata []byte
@@ -764,6 +803,8 @@ func LdifToHash(itemtag string, casefold bool, ldif interface{}) (xml *Hash, err
   new_item := true
   end := len(xmldata)
   b64 := false
+  var info *ElementInfo = nil
+  skip := false
   
   i := 0
   start := 0
@@ -801,6 +842,8 @@ scan_attribute_name:
 ///////////////////////////////////////////////////////////////////////    
   start = i
   b64 = false
+  info = nil
+  skip = false
   for {  
     if i == end { goto end_of_input }
     
@@ -811,18 +854,34 @@ scan_attribute_name:
       if colon == start { goto skip_broken_attribute } // line that starts with ":" => Skip
       i++
       if i < end && xmldata[i] == ':' { b64 = true; i++ }
+
+      // See if we have an ElementInfo.
+      if len(elementInfo) > 0 {
+        for _, inf := range elementInfo {
+          if equals(casefold, xmldata[start:colon], inf.LDIFAttributeName) {
+            info = inf
+            break
+          }
+        }
+        skip = (info == nil)
+      }
       
       // if separate items are requested, create <itemtag></itemtag> element as new item
       // otherwise item == x stays as it is
-      if new_item && itemtag != "" { 
+      if new_item && itemtag != "" && !skip { 
         item = x.Add(itemtag) 
         new_item = false
       }
       
-      // add the new attribute element
-      attrname := string(xmldata[start:colon])
-      if casefold { attrname = strings.ToLower(attrname) }
-      attr = item.Add(attrname)
+      // If no elementInfo arguments have been provided, we create a new element
+      // directly from the LDIF attribute's name.
+      if len(elementInfo) == 0 {
+        attrname := string(xmldata[start:colon])
+        if casefold { attrname = strings.ToLower(attrname) }
+        attr = item.Add(attrname)
+      } else { // We create the new element from the ElementInfo
+        if !skip { attr = item.Add(info.ElementName) }
+      }
       
       if i == end { goto end_of_input }
       
@@ -840,12 +899,12 @@ scan_attribute_name:
   start = i
   for {
     if i - start > MaxFragmentLength {
-      attr.AppendString(string(xmldata[start:i]))
+      if !skip { attr.AppendString(string(xmldata[start:i])) }
       start = i
     }
     
     if i == end || xmldata[i] == '\n' {
-      attr.AppendString(string(xmldata[start:i]))
+      if !skip { attr.AppendString(string(xmldata[start:i])) }
       i++
         // 1 tab or space is a line continuation, everything else ends the value
       if i >= end || (xmldata[i] != ' ' && xmldata[i] != '\t') { 
@@ -860,7 +919,17 @@ scan_attribute_name:
 ///////////////////////////////////////////////////////////////////////
 //attribute_value_scanned:
 ///////////////////////////////////////////////////////////////////////
-  if b64 { attr.DecodeBase64() }
+  if !skip {
+    if info != nil {
+      if b64 {
+        if !info.Base64 { attr.DecodeBase64() }
+      } else {
+        if info.Base64 { attr.EncodeBase64() }
+      }
+    } else {
+      if b64 { attr.DecodeBase64() }
+    }
+  }
   if i >= end { goto end_of_input }
   if xmldata[i] == '\n' { goto wait_for_item } // empty line => next item
   goto scan_attribute_name
