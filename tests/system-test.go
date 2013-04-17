@@ -647,6 +647,7 @@ func run_fai_query_tests() {
     // but currently db/faidb.go:FAIClassesCacheInit() does not see releases like this because
     // it looks only for FAI classes and determines the releases from those.
     // Should not be an issue in practice.
+    // The fix for these cases is issue 92 (https://code.google.com/p/go-susi/issues/detail?id=92)
     if checkFail(checkTags(a,"timestamp,fai_release,tag,type,class,state"),"") {
       check(a.Text("fai_release"),"xavier/charles/prof/x-men")
       check(a.Text("class"),"TURTLE")
