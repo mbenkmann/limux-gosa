@@ -619,7 +619,7 @@ func templateMatch(system *xml.Hash, gocomment string) int {
 func SystemGetGroupsWithMember(dn string) *xml.Hash {
   x, err := xml.LdifToHash("xml", true, ldapSearch(fmt.Sprintf("(&(objectClass=gosaGroupOfNames)(member=%v)%v)",dn, config.UnitTagFilter)))
   if err != nil { 
-    util.Log(0, "ERROR! %v", err)
+    util.Log(0, "ERROR! %v searching for (&(objectClass=gosaGroupOfNames)(member=%v)%v)", err, dn, config.UnitTagFilter)
     return xml.NewHash("systemdb")
    }
   x.Rename("systemdb")
