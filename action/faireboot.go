@@ -14,7 +14,7 @@ func FAIReboot(job *xml.Hash) {
   util.Log(0, "INFO! Aborting all running install and softupdate jobs for %v", macaddress)
   
   delete_system := false
-  faistate := "error:pxe:-1:crit:Job aborted. System in undefined state."
+  faistate := "error:pxe:-1:crit:Job aborted. System in unknown state."
   sys, err := db.SystemGetAllDataForMAC(macaddress, false)
   if err != nil {
     util.Log(0, "ERROR! FAIReboot(): %v", err)
