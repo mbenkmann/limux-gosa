@@ -202,6 +202,13 @@ func Forward(job *xml.Hash) bool {
   util.Log(1, "INFO! Forwarding %v for client %v to server %v", headertag, macaddress, siserver)
     
   job_trigger_action := xml.NewHash("xml","header","job_"+headertag)
+  if headertag == "trigger_action_faireboot" {
+    // gosa-si-server does not seem to process faireboot jobs when sent as job_...
+    // NOTE: The reason why we don't always use gosa_ is because gosa-si-server
+    // does not return replys for these jobs and does not accept them to be
+    // periodic.
+    job_trigger_action.First("header").SetText("gosa_trigger_action_faireboot")
+  }
   job_trigger_action.Add("source","GOSA")
   job_trigger_action.Add("macaddress",macaddress)
   job_trigger_action.Add("target",macaddress)
