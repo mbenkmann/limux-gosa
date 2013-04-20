@@ -78,6 +78,7 @@ func Init() { // not init() because we need to call it from go-susi.go
               case "trigger_action_localboot": Localboot(job) // "Erzwinge lokalen Start"
               case "trigger_action_halt":      Halt(job)      // "Anhalten"
               case "trigger_action_reboot":    Reboot(job)    // "Neustarten"
+              case "trigger_action_faireboot": FAIReboot(job) // "Job abbrechen"
               case "trigger_action_activate":  Activate(job)  // "Sperre aufheben"
               case "trigger_action_update":    Update(job)    // "Aktualisieren"
                                                done = false    
@@ -103,6 +104,7 @@ func Init() { // not init() because we need to call it from go-susi.go
             case "trigger_action_halt":      // "Anhalten"
             case "trigger_action_localboot": // "Erzwinge lokalen Start"
             case "trigger_action_reboot":    // "Neustarten"
+            case "trigger_action_faireboot": // "Job abbrechen"
             case "trigger_action_activate":  // "Sperre aufheben"
             case "trigger_action_wake":      // "Aufwecken"
             case "trigger_action_update":    // "Aktualisieren"
