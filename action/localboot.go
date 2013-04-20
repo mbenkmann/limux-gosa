@@ -13,6 +13,8 @@ func Localboot(job *xml.Hash) {
 }
 
 func ForceFAIState(macaddress, faistate string) {
+  util.Log(1, "INFO! Forcing faiState for %v to %v", macaddress, faistate)
+  
   // retry for 30s
   endtime := time.Now().Add(30*time.Second)
   

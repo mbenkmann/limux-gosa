@@ -11,6 +11,8 @@ import (
 func FAIReboot(job *xml.Hash) {
   macaddress := job.Text("macaddress")
   
+  util.Log(0, "INFO! Aborting all running install and softupdate jobs for %v", macaddress)
+  
   delete_system := false
   faistate := "error:pxe:-1:crit:Job aborted. System in undefined state."
   sys, err := db.SystemGetAllDataForMAC(macaddress, false)
@@ -26,5 +28,8 @@ func FAIReboot(job *xml.Hash) {
   
   ForceFAIState(macaddress, faistate)
   
-  if delete_system { db.SystemReplace(sys, nil) }
+  if delete_system { 
+    util.Log(0, "INFO! System %v is in ou=incoming => Deleting LDAP entry", macaddress)
+    db.SystemReplace(sys, nil) 
+  }
 }
