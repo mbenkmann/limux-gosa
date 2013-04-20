@@ -81,7 +81,7 @@ func SystemPlainnameForMAC(macaddress string) string {
 // ATTENTION! This function accesses LDAP and may perform multiple DNS lookups.
 // It may therefore take a while. If possible you should use it asynchronously.
 func SystemFullyQualifiedNameForMAC(macaddress string) string {
-  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter),"cn","ipHostNumber"))
+  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",LDAPFilterEscape(macaddress), config.UnitTagFilter),"cn","ipHostNumber"))
   name := system.Text("cn")
   if name == "" {
     util.Log(0, "ERROR! Error getting cn for MAC %v: %v", macaddress, err)
@@ -154,7 +154,7 @@ func SystemFullyQualifiedNameForMAC(macaddress string) string {
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
 func SystemCommonNameForMAC(macaddress string) string {
-  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter),"cn"))
+  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",LDAPFilterEscape(macaddress), config.UnitTagFilter),"cn"))
   name := system.Text("cn")
   if name == "" {
     util.Log(0, "ERROR! Error getting cn for MAC %v: %v", macaddress, err)
@@ -183,7 +183,7 @@ func SystemIPAddressForName(host string) string {
     // ipHostNumber if it is accurate.
     util.Log(1, "INFO! Could not resolve short name %v (error: %v). Trying LDAP.", host, err)
     var system *xml.Hash
-    system, err = xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(|(cn=%v)(cn=%v.*))%v)",host, host,config.UnitTagFilter),"ipHostNumber"))
+    system, err = xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(|(cn=%v)(cn=%v.*))%v)",LDAPFilterEscape(host), LDAPFilterEscape(host),config.UnitTagFilter),"ipHostNumber"))
     // the search may give multiple results. Use reverse lookup of ipHostNumber to
     // find the correct one (if there is one)
     for ihn := system.First("iphostnumber"); ihn != nil; ihn = ihn.Next() {
@@ -240,15 +240,15 @@ func SystemNameForIPAddress(ip string) string {
 
 // Returns the MAC address for the given host name or "none" if it can't be determined.
 func SystemMACForName(host string) string {
-  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(cn=%v)%v)",host, config.UnitTagFilter),"macaddress"))
+  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(cn=%v)%v)",LDAPFilterEscape(host), config.UnitTagFilter),"macaddress"))
   mac := system.Text("macaddress")
   if mac == "" {
     parts := strings.SplitN(host,".",2)
     if len(parts) == 2 {
-      system, err = xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(cn=%v)%v)",parts[0], config.UnitTagFilter),"macaddress"))
+      system, err = xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(cn=%v)%v)",LDAPFilterEscape(parts[0]), config.UnitTagFilter),"macaddress"))
       mac = system.Text("macaddress")
     } else {
-      system, err = xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(cn=%v.*)%v)",parts[0], config.UnitTagFilter),"macaddress"))
+      system, err = xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(cn=%v.*)%v)",LDAPFilterEscape(parts[0]), config.UnitTagFilter),"macaddress"))
       mac = system.Text("macaddress")
     }
     if mac == "" {  
@@ -262,7 +262,7 @@ func SystemMACForName(host string) string {
 // Returns true if the system identified by macaddress is known to be
 // a workstation (rather than a server).
 func SystemIsWorkstation(macaddress string) bool {
-  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=gotoWorkstation)(macaddress=%v)%v)",macaddress, config.UnitTagFilter),"macaddress"))
+  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=gotoWorkstation)(macaddress=%v)%v)",LDAPFilterEscape(macaddress), config.UnitTagFilter),"macaddress"))
   return (err == nil && system.First("macaddress") != nil)
 }
 
@@ -299,7 +299,7 @@ func SystemSetState(macaddress string, attrname, attrvalue string) {
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
 func SystemSetStateMulti(macaddress string, attrname string, attrvalues []string) error {
-  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter),"dn"))
+  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",LDAPFilterEscape(macaddress), config.UnitTagFilter),"dn"))
   dn := system.Text("dn")
   if dn == "" {
     return fmt.Errorf("Could not get dn for MAC %v: %v", macaddress, err)
@@ -320,7 +320,7 @@ func SystemSetStateMulti(macaddress string, attrname string, attrvalues []string
 // If possible you should use it asynchronously.
 func SystemGetState(macaddress string, attrname string) string {
   attrname = strings.ToLower(attrname)
-  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter),attrname))
+  system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",LDAPFilterEscape(macaddress), config.UnitTagFilter),attrname))
   if err == nil && system.Text("dn") == "" {
     err = fmt.Errorf("Object not found")
   }
@@ -331,7 +331,7 @@ func SystemGetState(macaddress string, attrname string) string {
   
   if system.First(attrname) == nil && !DoNotCopyAttribute[attrname] {
     dn := system.Text("dn")
-    groups, err := xml.LdifToHash("xml", true, ldapSearch(fmt.Sprintf("(&(objectClass=gosaGroupOfNames)(member=%v)%v)",dn, config.UnitTagFilter), attrname))  
+    groups, err := xml.LdifToHash("xml", true, ldapSearch(fmt.Sprintf("(&(objectClass=gosaGroupOfNames)(member=%v)%v)",LDAPFilterEscape(dn), config.UnitTagFilter), attrname))  
     if err != nil {
       util.Log(0, "ERROR! Could not get groups with member %v: %v", dn, err)
       return ""
@@ -370,7 +370,7 @@ func SystemGetState(macaddress string, attrname string) string {
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
 func SystemGetAllDataForMAC(macaddress string, use_groups bool) (*xml.Hash, error) {
-  x, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",macaddress, config.UnitTagFilter)))
+  x, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",LDAPFilterEscape(macaddress), config.UnitTagFilter)))
   if err != nil { return nil, err }
   if x.First("dn") == nil { return nil, fmt.Errorf("Could not find system with MAC %v", macaddress) }
   if use_groups {
@@ -617,7 +617,7 @@ func templateMatch(system *xml.Hash, gocomment string) int {
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
 func SystemGetGroupsWithMember(dn string) *xml.Hash {
-  x, err := xml.LdifToHash("xml", true, ldapSearch(fmt.Sprintf("(&(objectClass=gosaGroupOfNames)(member=%v)%v)",dn, config.UnitTagFilter)))
+  x, err := xml.LdifToHash("xml", true, ldapSearch(fmt.Sprintf("(&(objectClass=gosaGroupOfNames)(member=%v)%v)",LDAPFilterEscape(dn), config.UnitTagFilter)))
   if err != nil { 
     util.Log(0, "ERROR! %v searching for (&(objectClass=gosaGroupOfNames)(member=%v)%v)", err, dn, config.UnitTagFilter)
     return xml.NewHash("systemdb")

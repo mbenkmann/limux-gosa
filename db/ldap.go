@@ -24,6 +24,7 @@ import (
          "fmt"
          "bytes"
          "os/exec"
+         "strings"
          "encoding/base64"
          
          "../xml"
@@ -56,6 +57,27 @@ func LDAPFAIBase() string {
     return ""
   }
   return fai.First("fai").Text("dn")
+}
+
+const hex = "0123456789ABCDEF"
+
+// Takes a string and escapes special characters so that the result can safely be
+// used in LDAP filters.
+func LDAPFilterEscape(s string) string {
+  res := make([]string,0,1)
+  esc := []byte{'\\',0,0}
+  i0 := 0
+  for i := range s {
+    if s[i] < 32 || s[i] == '\\' || s[i] == '*' || s[i] == '(' || s[i] == ')' {
+      if i != i0 { res = append(res, s[i0:i]) }
+      i0 = i+1
+      esc[2] = hex[s[i] & 0xF]
+      esc[1] = hex[s[i] >> 4]
+      res = append(res, string(esc))
+    }
+  }
+  if i0 != len(s)  { res = append(res, s[i0:]) }
+  return strings.Join(res,"")
 }
 
 func ldapSearch(query string, attr... string) *exec.Cmd {

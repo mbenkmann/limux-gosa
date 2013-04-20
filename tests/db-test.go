@@ -45,6 +45,13 @@ func DB_test() {
   systemdb_test()
   jobdb_test()
   faidb_test()
+  
+  check(db.LDAPFilterEscape(""), "")
+  check(db.LDAPFilterEscape(" "), " ")
+  check(db.LDAPFilterEscape("Nichts zu escapen"), "Nichts zu escapen")
+  check(db.LDAPFilterEscape("\\"), "\\5C")
+  check(db.LDAPFilterEscape("\\\\"), "\\5C\\5C")
+  check(db.LDAPFilterEscape("S$ondär(z)e.i,chen*tes\\t"), "S$ondär\\28z\\29e.i,chen\\2Ates\\5Ct")
 }
 
 func faidb_test() {
