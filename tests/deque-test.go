@@ -339,6 +339,49 @@ func Deque_test() {
   check(deque.New(uint64(3),[]interface{}{1,2,3}).Capacity(), 3)
   check(deque.New(3,[]interface{}{1,2,3,4}).Capacity(), 4)
   check(deque.New(3,[]interface{}{1,2},[]interface{}{3,4}).Capacity(), 4)
+  
+  deck.Init(3,[]interface{}{1,2},[]interface{}{3,4})
+  deck.Clear()
+  check(deck.Capacity(), deque.CapacityDefault)
+  check(deck.Count(), 0)
+  
+  deck.Init([]interface{}{0,1,2,3,4,5})
+  deck.Raw(3) // 3,4,5,[b][a]0,1,2
+  check(deck.RemoveAt(-1), nil)
+  check(deck.RemoveAt(deck.Count()), nil)
+  check(deck.RemoveAt(3), 3) // 2,4,5,[b]_,[a]0,1
+  check(Deque(deck,0,1,2,4,5),"")
+  check(deck.RemoveAt(2), 2) // 1,4,5,[b]_,_,[a]0
+  check(Deque(deck,0,1,4,5),"")
+  check(deck.RemoveAt(2), 4) // [a]0,1,5,[b]_,_,_
+  check(Deque(deck,0,1,5),"")
+  
+  deck.Init([]interface{}{0,1,2,3,4,5})
+  deck.Raw(3) // 3,4,5,[b][a]0,1,2
+  check(deck.RemoveAt(0), "0") // 3,4,5,[b]_,[a]1,2
+  check(Deque(deck,1,2,3,4,5),"")
+  
+  deck.Init([]interface{}{0,1,2,3,4,5})
+  deck.Raw(3) // 3,4,5,[b][a]0,1,2
+  check(deck.RemoveAt(4), "4") // 3,5,[b]_,[a]0,1,2
+  check(Deque(deck,0,1,2,3,5),"")
+  
+  deck.Init([]interface{}{0,1,2,3,4,5,6,7})
+  deck.Raw(2) // 6,7,[b][a]0,1,2,3,4,5
+  check(deck.RemoveAt(7), "7") // 6,[b]_,[a]0,1,2,3,4,5
+  check(Deque(deck,0,1,2,3,4,5,6),"")
+  check(deck.RemoveAt(4), "4") // [b]_,_,[a]0,1,2,3,5,6
+  check(Deque(deck,0,1,2,3,5,6),"")
+  check(deck.RemoveAt(5), "6") // _,_,[a]0,1,2,3,5,[b]_
+  check(Deque(deck,0,1,2,3,5),"")
+  
+  deck.Init([]interface{}{0,1,2,3,4,5,6,7})
+  deck.Overcapacity(4) // [a]0,1,2,3,4,5,6,7,[b]_,_,_,_
+  deck.Raw(2) // _,_,[a]0,1,2,3,4,5,6,7,[b]_,_
+  check(deck.RemoveAt(6), "6") // _,_,[a]0,1,2,3,4,5,7,[b]_,_,_
+  check(Deque(deck,0,1,2,3,4,5,7),"")
+  check(deck.RemoveAt(2), "2") // _,_,_,[a]0,1,3,4,5,7,[b]_,_,_
+  check(Deque(deck,0,1,3,4,5,7),"")
 }
 
 func Overcapacity(i int) string {

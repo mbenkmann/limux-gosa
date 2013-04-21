@@ -433,7 +433,7 @@ func (self *Deque) Init(args... interface{}) *Deque {
   return self.init(args...)
 }
 
-// Calls Init() with not arguments. Exists for situations where the name Clear()
+// Calls Init() with no arguments. Exists for situations where the name Clear()
 // is better at conveying the intention than Init().
 func (self *Deque) Clear() *Deque {
   return self.Init()
