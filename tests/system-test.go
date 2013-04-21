@@ -346,6 +346,135 @@ func SystemTest(daemon string, is_gosasi bool) {
   } else {
     run_save_fai_log_tests()
   }
+  
+  if gosasi {
+    fmt.Print("gosa-si handles job_trigger_activate_new different from go-susi => ")
+    siFail(true,false)
+  } else {
+    run_trigger_activate_new_tests()
+  }
+}
+
+func run_trigger_activate_new_tests() {
+  // 1) send jtan for non-existing system (with timestamp in the future)
+  //    with ogroup="Desktops" and no base
+  //    * has install job been created with correct properties (timestamp, MAC)
+  //    * has LDAP object been created in ou=workstations,ou=systems,o=go-susi,c=de
+  //      - with the correct attributes (matching those from desktop-template)
+  //    * ipHostNumber filled in properly?
+  //    * clear jobs and delete LDAP object
+  //
+  // 2) send jtan for non-existing system (with timestamp in the future)
+  //    with ogroup="www.mit.edu" and no <base> and no <ip>
+  //    * has install job been created with correct properties (timestamp, MAC)
+  //    * has LDAP object been created in ou=servers,ou=systems,o=go-susi,c=de
+  //      - with the correct attributes (matching those from www.mit.edu)
+  //    * ipHostNumber empty or non-existing?
+  //    * clear jobs and delete LDAP object
+  //
+  // 3) create LDAP entry "schlumpf" in incoming as copy of "www.mit.edu" with
+  //    different MAC. Set gotoMode to "locked".
+  //    send jtan for non-existing system (with timestamp in the future)
+  //    with ogroup="schlumpf" and no <base> and no <ip>
+  //    * has install job been created with correct properties (timestamp, MAC)
+  //    * has LDAP object been created in ou=incoming,o=go-susi,c=de
+  //      - with the correct attributes (matching those from schlumpf)
+  //    * ipHostNumber empty or non-existing
+  //    * gotoMode of the new object is active
+  //    * clear jobs and delete the auto-created LDAP-object but keep schlumpf
+  //
+  // 4) send jtan for schlumpf with base="o=go-susi,c=de"
+  //    * check that schlumpf has been moved to ou=servers,ou=systems,o=go-susi,c=de
+  //    * delete schlumpf
+  //    * clear jobs and delete LDAP object
+  //
+  // 5) send jtan without ogroup and without base
+  //    * check that LDAP object has been created in ou=incoming,o=go-susi,c=de
+  //    * gotoMode active
+  //    * clear jobs and delete LDAP object
+
+  // clear jobdb  
+  gosa("delete_jobdb_entry", hash("xml(where())"))
+  time.Sleep(reply_timeout)
+
+  mac := "fa:1e:c9:76:00:aa"
+  ts := "2020010203040506"
+  
+  // make sure there's no old entry from a (crashed) previous run
+  sys,_ := db.SystemGetAllDataForMAC(mac, false)
+  db.SystemReplace(sys, nil)
+  
+  gosa("job_trigger_activate_new", hash("xml(timestamp(%v)mac(%v)ogroup(Desktops)ip(1.2.3.44))",ts,mac))
+  jtan(mac, ts, "ou=workstations,ou=systems,o=go-susi,c=de", "desktop-template", "1.2.3.44")
+  
+  gosa("job_trigger_activate_new", hash("xml(timestamp(%v)mac(%v)ogroup(www.mit.edu))",ts,mac))
+  jtan(mac, ts, "ou=servers,ou=systems,o=go-susi,c=de", "www.mit.edu", "")
+  
+  schlumpf,_ := db.SystemGetAllDataForMAC(db.SystemMACForName("www.mit.edu"),false)
+  schlumpf.First("cn").SetText("schlumpf")
+  schlumpf.First("dn").SetText("cn=schlumpf,ou=incoming,o=go-susi,c=de")
+  schlumpf.FirstOrAdd("gotomode").SetText("locked")
+  schlumpf.First("macaddress").SetText("1e:22:ff:00:00:99")
+  db.SystemReplace(nil, schlumpf)
+  gosa("job_trigger_activate_new", hash("xml(timestamp(%v)mac(%v)ogroup(schlumpf))",ts,mac))
+  jtan(mac, ts, "ou=incoming,o=go-susi,c=de", "schlumpf", "")
+  
+  gosa("job_trigger_activate_new", hash("xml(timestamp(%v)mac(%v)base(o=go-susi,c=de))",ts,schlumpf.Text("macaddress")))
+  jtan(schlumpf.Text("macaddress"), ts, "ou=servers,ou=systems,o=go-susi,c=de", "www.mit.edu", "")
+  db.SystemReplace(schlumpf, nil)
+  
+  gosa("job_trigger_activate_new", hash("xml(timestamp(%v)mac(%v))",ts,mac))
+  jtan(mac, ts, "ou=incoming,o=go-susi,c=de", "", "")
+}
+
+// Checks that a job_trigger_activate_new has been properly executed, then deletes
+// the LDAP entry with macAdress=mac and the jobdb.
+// template_sys_name is the cn of a system object to compare the generated object with.
+func jtan(mac, timestamp, ou, template_sys_name, ip string) {
+  _, file, line, _ := runtime.Caller(1)
+  file = file[strings.LastIndex(file, "/")+1:]
+  fmt.Printf("== job_trigger_activate_new sub-tests (%v:%v) ==\n", file, line)
+  
+  // wait for server to process job_trigger_activate_new message
+  time.Sleep(reply_timeout)
+  
+  job := gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v)))clause(phrase(timestamp(%v)))clause(phrase(headertag(trigger_action_reinstall)))))",mac,timestamp))
+  check(checkTags(job, "header,source,target,session_id?,answer1"),"")
+  sys, err := db.SystemGetAllDataForMAC(mac, false)
+  if check(err, nil) {
+    check(checkTags(sys,"dn,cn,macaddress,objectclass+,gotoxmousetype,gotontpserver,gotoldapserver,gotosysstatus?,gotoxdriver,gotomodules+,ghmemsize,gotomode,iphostnumber,gotolastuser?"),"")
+    check(strings.SplitN(sys.Text("dn"),",",2)[1],ou)
+    check(sys.Text("macaddress"),mac)
+    check(sys.Text("iphostnumber"),ip)
+    check(sys.Text("gotomode"), "active")
+    check(hasWords(sys.Text("objectclass","GOhard")),"")
+    if template_sys_name != "" {
+      template,_ := db.SystemGetAllDataForMAC(db.SystemMACForName(template_sys_name), false)
+      oc1 := sys.Get("objectclass")
+      sort.Strings(oc1)
+      oc2 := template.Get("objectclass")
+      sort.Strings(oc2)
+      check(oc1, oc2)  
+      check(sys.Text("gosaunittag"), template.Text("gosaunittag"))
+      check(sys.Text("gotoxdriver"), template.Text("gotoxdriver"))
+      check(sys.Text("gotoxresolution"), template.Text("gotoxresolution"))
+      check(sys.Text("faidebianmirror"), template.Text("faidebianmirror"))
+      check(sys.Text("gotontpserver"), template.Text("gotontpserver"))
+      check(sys.Text("gotobootkernel"), template.Text("gotobootkernel"))
+      check(sys.Text("gotoldapserver"), template.Text("gotoldapserver"))
+      check(sys.Text("faiclass"), template.Text("faiclass"))
+      check(sys.Text("fairepository"), template.Text("fairepository"))
+      
+      grp1 := db.SystemGetGroupsWithMember(sys.Text("dn"))
+      grp2 := db.SystemGetGroupsWithMember(template.Text("dn"))
+      check(grp1, grp2)
+    }
+  }
+  
+  // remove system
+  db.SystemReplace(sys, nil)
+  // clear jobdb
+  gosa("delete_jobdb_entry", hash("xml(where())"))
 }
 
 func run_save_fai_log_tests() {
