@@ -207,7 +207,11 @@ func ProcessXMLMessage(xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply *
          "job_trigger_action_reinstall", // "Neuinstallation"
          "job_trigger_action_wake":      // "Aufwecken"
                                 job_trigger_action(xml).WriteTo(reply)
-    case "job_send_user_msg":   job_send_user_msg(xml).WriteTo(reply)
+    case "gosa_trigger_activate_new",
+         "job_trigger_activate_new":
+                                job_trigger_activate_new(xml).WriteTo(reply)
+    case "gosa_send_user_msg",
+         "job_send_user_msg":   job_send_user_msg(xml).WriteTo(reply)
     case "trigger_wake":
                                 trigger_wake(xml)
     

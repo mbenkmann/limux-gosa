@@ -626,6 +626,21 @@ func SystemGetGroupsWithMember(dn string) *xml.Hash {
   return x
 }
 
+// Returns all gosaGroupOfNames objects with the given cn.
+// The format is the same as for SystemGetTemplatesFor().
+//
+// ATTENTION! This function accesses LDAP and may therefore take a while.
+// If possible you should use it asynchronously.
+func SystemGetGroupsWithName(cn string) *xml.Hash {
+  x, err := xml.LdifToHash("xml", true, ldapSearch(fmt.Sprintf("(&(objectClass=gosaGroupOfNames)(cn=%v)%v)",LDAPFilterEscape(cn), config.UnitTagFilter)))
+  if err != nil { 
+    util.Log(0, "ERROR! %v searching for (&(objectClass=gosaGroupOfNames)(cn=%v)%v)", err, cn, config.UnitTagFilter)
+    return xml.NewHash("systemdb")
+   }
+  x.Rename("systemdb")
+  return x
+}
+
 // Takes 2 hashes in the format returned by SystemGetAllDataForMAC() and adds
 // attributes from defaults to system where appropriate. This function understands
 // system objects and will not add inappropriate attributes. For instance if

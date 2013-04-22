@@ -398,7 +398,7 @@ func run_trigger_activate_new_tests() {
   time.Sleep(reply_timeout)
 
   mac := "fa:1e:c9:76:00:aa"
-  ts := "2020010203040506"
+  ts := "20200102030405"
   
   // make sure there's no old entry from a (crashed) previous run
   sys,_ := db.SystemGetAllDataForMAC(mac, false)
@@ -420,7 +420,7 @@ func run_trigger_activate_new_tests() {
   jtan(mac, ts, "ou=incoming,o=go-susi,c=de", "schlumpf", "")
   
   gosa("job_trigger_activate_new", hash("xml(timestamp(%v)mac(%v)base(o=go-susi,c=de))",ts,schlumpf.Text("macaddress")))
-  jtan(schlumpf.Text("macaddress"), ts, "ou=servers,ou=systems,o=go-susi,c=de", "www.mit.edu", "")
+  jtan(schlumpf.Text("macaddress"), ts, "ou=servers,ou=systems,o=go-susi,c=de", "www.mit.edu", "18.9.22.169")
   db.SystemReplace(schlumpf, nil)
   
   gosa("job_trigger_activate_new", hash("xml(timestamp(%v)mac(%v))",ts,mac))
@@ -442,7 +442,7 @@ func jtan(mac, timestamp, ou, template_sys_name, ip string) {
   check(checkTags(job, "header,source,target,session_id?,answer1"),"")
   sys, err := db.SystemGetAllDataForMAC(mac, false)
   if check(err, nil) {
-    check(checkTags(sys,"dn,cn,macaddress,objectclass+,gotoxmousetype,gotontpserver,gotoldapserver,gotosysstatus?,gotoxdriver,gotomodules+,ghmemsize,gotomode,iphostnumber,gotolastuser?"),"")
+    check(checkTags(sys,"dn,cn,macaddress,objectclass+,gotoxmousetype?,gotontpserver?,gotoldapserver?,gotosysstatus?,gotoxdriver?,gotoxhsync?,gotoxvsync?,gotoxresolution?,gotoxkbmodel?,gotomodules*,ghmemsize?,gotoxmonitor?,fairepository*,ghusbsupport?,gotomode,iphostnumber?,gotolastuser?,gotohardwarechecksum?,gosaunittag?,faiclass?,ghsoundadapter?,ghgfxadapter?,gotoxkbvariant?,l?,gotoxcolordepth?,ghnetnic?,gotoxmouseport?,gotobootkernel?,ghcputype?,faidebianmirror?,ghscsidev?,gofonhardware?,gotosndmodule?,ghidedev?,description?,faistate?,gotoxkblayout?"),"")
     check(strings.SplitN(sys.Text("dn"),",",2)[1],ou)
     check(sys.Text("macaddress"),mac)
     check(sys.Text("iphostnumber"),ip)
