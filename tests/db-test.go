@@ -340,6 +340,7 @@ func systemdb_test() {
   check(groups.Name(), "systemdb")
   check(groups.Subtags(), []string{"xml"})
   check(groupsOf(ogmember1_dn), []string{"Objektgruppe"})
+  check(db.SystemGetGroupsWithName("Objektgruppe"), groups)
   
   notebooks := db.SystemGetGroupsWithMember("cn=notebook-template,ou=workstations,ou=systems,o=go-susi,c=de")
   db.SystemAddToGroups(ogmember1_dn, notebooks)
@@ -350,6 +351,20 @@ func systemdb_test() {
   check(groups.First("xml").Next().Text("cn"), "Desktops")
   db.SystemAddToGroups(ogmember1_dn, groups)
   check(groupsOf(ogmember1_dn), []string{"Desktops","Notebooks","Objektgruppe"})
+  
+  ogmember1_moved := ogmember1.Clone()
+  ogmember1_moved.First("cn").SetText("ogmember1_renamed")
+  ogmember1_moved.First("dn").SetText("cn=%v,ou=incoming,o=go-susi,c=de", ogmember1_moved.Text("cn"))
+  db.SystemReplace(ogmember1, ogmember1_moved)
+  check(groupsOf(ogmember1_moved.Text("dn")), []string{"Desktops","Notebooks","Objektgruppe"})
+  check(groupsOf(ogmember1_dn), []string{})
+  ogmember1_check,_ := db.SystemGetAllDataForMAC("fe:ce:5f:ec:e5:00", false) // without groups
+  check(ogmember1_check, ogmember1_moved)
+  db.SystemReplace(ogmember1_moved, ogmember1)
+  check(groupsOf(ogmember1_dn), []string{"Desktops","Notebooks","Objektgruppe"})
+  check(groupsOf(ogmember1_moved.Text("dn")), []string{})
+  ogmember1_check,_ = db.SystemGetAllDataForMAC("fe:ce:5f:ec:e5:00", false) // without groups
+  check(ogmember1_check, ogmember1)
   
   groups = desktops.Clone()
   groups.AddClone(notebooks.First("xml"))

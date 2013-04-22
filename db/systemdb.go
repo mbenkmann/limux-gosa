@@ -734,6 +734,8 @@ func SystemRemoveFromGroups(dn string, groups *xml.Hash) {
 // take care of the dn.
 // This doesn't work the other way, around, though. If you change the dn,
 // you must change the cn accordingly.
+// If the dn is changed, object groups that have the system as member will
+// be updated.
 //
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
@@ -841,8 +843,26 @@ newsuperior:: %v
 cn,
 base64.StdEncoding.EncodeToString([]byte(dn[i:])),
 ))
+  
+    groups := SystemGetGroupsWithMember(olddn)
+    for group := groups.First("xml"); group != nil; group = group.Next() {
+      bufstr.WriteString(fmt.Sprintf(`
+dn:: %v
+changetype: modify
+delete: member
+member:: %v
+-
+add: member
+member:: %v
+-
+`,
+base64.StdEncoding.EncodeToString([]byte(group.Text("dn"))),
+base64.StdEncoding.EncodeToString([]byte(olddn)),
+base64.StdEncoding.EncodeToString([]byte(dn)),
+))
+    }
   }
-   
+
   out, err := ldapModify(bufstr.String()).CombinedOutput()
   if err != nil {
     return fmt.Errorf("Error while attempting to change %v/%v: %v (%v)",olddn, dn, err, string(out))
