@@ -17,7 +17,10 @@ debug:
 	rm -f run-tests
 	go build -a -gcflags '-N -l' main/run-tests.go
 
-test: all
+test:
+	main/makeversion
+	go build main/run-tests.go
+	go build main/go-susi.go
 	./run-tests --unit --system=./go-susi
 
 almostclean:
