@@ -68,7 +68,7 @@ func job_trigger_activate_new(xmlmsg *xml.Hash) *xml.Hash {
   var err error
   var template *xml.Hash
   ogroup := xmlmsg.First("ogroup")
-  if ogroup != nil {
+  if ogroup != nil && ogroup.Text() != "" {
     template_mac := db.SystemMACForName(ogroup.Text())
     if template_mac == "none" { // ogroup is apparently not a system => try object group
       groups := db.SystemGetGroupsWithName(ogroup.Text())
