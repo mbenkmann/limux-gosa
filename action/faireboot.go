@@ -29,7 +29,10 @@ func FAIReboot(job *xml.Hash) {
   ForceFAIState(macaddress, faistate)
   
   if delete_system { 
-    util.Log(0, "INFO! System %v is in ou=incoming => Deleting LDAP entry", macaddress)
-    db.SystemReplace(sys, nil) 
+    util.Log(1, "INFO! System %v is in ou=incoming => Deleting LDAP entry", macaddress)
+    err = db.SystemReplace(sys, nil) 
+    if err != nil {
+      util.Log(0, "ERROR! LDAP error while deleting %v: %v", macaddress, err)
+    }
   }
 }
