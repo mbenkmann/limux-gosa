@@ -736,6 +736,8 @@ func SystemRemoveFromGroups(dn string, groups *xml.Hash) {
 // you must change the cn accordingly.
 // If the dn is changed, object groups that have the system as member will
 // be updated.
+// If the system is removed, it will be removed from object groups' member lists
+// as well.
 //
 // ATTENTION! This function accesses LDAP and may therefore take a while.
 // If possible you should use it asynchronously.
