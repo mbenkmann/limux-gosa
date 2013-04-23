@@ -362,6 +362,8 @@ func run_trigger_activate_new_tests() {
   //    * has LDAP object been created in ou=workstations,ou=systems,o=go-susi,c=de
   //      - with the correct attributes (matching those from desktop-template)
   //    * ipHostNumber filled in properly?
+  //    * send here_i_am with local IP
+  //    * check that system has been renamed and IP number has been updated
   //    * clear jobs and delete LDAP object
   //
   // 2) send jtan for non-existing system (with timestamp in the future)
@@ -406,9 +408,32 @@ func run_trigger_activate_new_tests() {
   
   gosa("job_trigger_activate_new", hash("xml(timestamp(%v)mac(%v)ogroup(Desktops)ip(1.2.3.44))",ts,mac))
   jtan(mac, ts, "ou=workstations,ou=systems,o=go-susi,c=de", "desktop-template", "1.2.3.44")
+  sysold,err := db.SystemGetAllDataForMAC(mac, false)
+  check(err,nil)
+  
+  hia := hash("xml(header(here_i_am)source(%v)target(%v)new_passwd(%v)mac_address(%v))", client_listen_address, config.ServerSourceAddress, keys[len(keys)-1], mac)
+  t0 := time.Now()
+  send("[ClientPackages]", hia)
+  waitlong(t0, "registered")
+  
+  sysnew,err := db.SystemGetAllDataForMAC(mac, false)
+  if check(err, nil) {
+    check(sysnew.Text("cn"), config.Hostname)
+    check(sysnew.Text("dn"), "cn="+config.Hostname+",ou=workstations,ou=systems,o=go-susi,c=de")
+    sysold.RemoveFirst("cn")
+    sysold.RemoveFirst("dn")
+    sysold.FirstOrAdd("iphostnumber").SetText(strings.SplitN(client_listen_address,":",2)[0])
+    sysnew.RemoveFirst("cn")
+    sysnew.RemoveFirst("dn")
+    check(sysold, sysnew)
+  }
+  sys,_ = db.SystemGetAllDataForMAC(mac, false)
+  db.SystemReplace(sys, nil)
   
   gosa("job_trigger_activate_new", hash("xml(timestamp(%v)mac(%v)ogroup(www.mit.edu))",ts,mac))
   jtan(mac, ts, "ou=servers,ou=systems,o=go-susi,c=de", "www.mit.edu", "")
+  sys,_ = db.SystemGetAllDataForMAC(mac, false)
+  db.SystemReplace(sys, nil)
   
   schlumpf,_ := db.SystemGetAllDataForMAC(db.SystemMACForName("www.mit.edu"),false)
   schlumpf.First("cn").SetText("schlumpf")
@@ -418,13 +443,18 @@ func run_trigger_activate_new_tests() {
   db.SystemReplace(nil, schlumpf)
   gosa("job_trigger_activate_new", hash("xml(timestamp(%v)mac(%v)ogroup(schlumpf))",ts,mac))
   jtan(mac, ts, "ou=incoming,o=go-susi,c=de", "schlumpf", "")
+  sys,_ = db.SystemGetAllDataForMAC(mac, false)
+  db.SystemReplace(sys, nil)
   
   gosa("job_trigger_activate_new", hash("xml(timestamp(%v)mac(%v)base(o=go-susi,c=de))",ts,schlumpf.Text("macaddress")))
   jtan(schlumpf.Text("macaddress"), ts, "ou=servers,ou=systems,o=go-susi,c=de", "www.mit.edu", "18.9.22.169")
+  schlumpf,_ = db.SystemGetAllDataForMAC(schlumpf.Text("macaddress"), false)
   db.SystemReplace(schlumpf, nil)
   
   gosa("job_trigger_activate_new", hash("xml(timestamp(%v)mac(%v))",ts,mac))
   jtan(mac, ts, "ou=incoming,o=go-susi,c=de", "", "")
+  sys,_ = db.SystemGetAllDataForMAC(mac, false)
+  db.SystemReplace(sys, nil)
 }
 
 // Checks that a job_trigger_activate_new has been properly executed, then deletes
@@ -471,8 +501,6 @@ func jtan(mac, timestamp, ou, template_sys_name, ip string) {
     }
   }
   
-  // remove system
-  db.SystemReplace(sys, nil)
   // clear jobdb
   gosa("delete_jobdb_entry", hash("xml(where())"))
 }
@@ -942,7 +970,7 @@ func run_detected_hardware_tests() {
   if check(err,nil) {
     test3_result = sys.Clone()
     check(checkTags(sys,"dn,cn,macaddress,objectclass+,gotosysstatus?,gotomode,iphostnumber,ghcputype,ghgfxadapter,ghmemsize,ghsoundadapter,ghusbsupport,gofonhardware,gosaunittag,gotolastuser,gotoxcolordepth,gotoxresolution,gotoxdriver,gotoxkblayout,gotoxkbmodel,gotoxkbvariant,gotoxmousetype,gotoxmouseport"),"")
-    check(sys.Text("cn"),"system-aa-00-bb-11-cc-99")
+    check(sys.Text("cn"),"_aa-00-bb-11-cc-99_")
     check(hasWords(sys.Text("dn"),"cn="+sys.Text("cn"),"ou=workstations,ou=systems,"+config.LDAPBase),"")
     check(sys.Text("macaddress"),mac)
     check(sys.Text("iphostnumber"),"10.255.255.255")

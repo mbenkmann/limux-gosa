@@ -181,7 +181,7 @@ func job_trigger_activate_new(xmlmsg *xml.Hash) *xml.Hash {
   if existing_sys == nil {
     system = xml.NewHash("xml")
     system.Add("macaddress", macaddress)
-    system.Add("cn", "_"+macaddress+"_")
+    system.Add("cn", config.CNAutoPrefix+strings.Replace(macaddress,":","-", -1)+config.CNAutoSuffix)
   } else {
     system = existing_sys.Clone()
   }
