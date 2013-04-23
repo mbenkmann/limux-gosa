@@ -97,8 +97,11 @@ func detected_hardware(xmlmsg *xml.Hash) {
     // If no cn is supplied in detected_hardware, generate one
     if system.Text("cn") == "" {
       name := db.SystemNameForIPAddress(ip) // this is a fully qualified name if it could be determined
+      if !config.FullQualifiedCN {
+        name = strings.SplitN(name,".",2)[0]
+      }
       if name == "none" {
-        name = "system-" + strings.Replace(macaddress,":","-", -1)
+        name = config.CNAutoPrefix + strings.Replace(macaddress,":","-", -1) + config.CNAutoSuffix
         util.Log(0, "WARNING! detected_hardware message from client %v with broken reverse DNS => Using generated name \"%v\"", ip, name)
       }
       system.Add("cn", name)

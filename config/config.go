@@ -172,6 +172,22 @@ var GosaQueryJobdbMaxDelay = 4*time.Second
 // memory usage.
 var DBPersistDelay = 1*time.Second
 
+// If true, then CNs created by go-susi based on DNS names will be full-qualified.
+var FullQualifiedCN = false
+
+// If the DN of a system has one of these strings as a suffix, go-susi will not
+// change its CN, even if it otherwise would have (e.g. here_i_am updates the CN if
+// it does not match the DNS name).
+// If the system's CN starts with CNAutoPrefix and ends with CNAutoSuffix,
+// the blacklist is not applied.
+var CNRenameBlacklist = []string{",o=go-susi,c=de"}
+
+// prefix for auto-generated CNs.
+var CNAutoPrefix = "_"
+
+// suffix for auto-generated CNs.
+var CNAutoSuffix = "_"
+
 // If true, existing data in /var/lib/go-susi will be discarded.
 var FreshDatabase = false
 
