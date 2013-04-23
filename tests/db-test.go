@@ -365,6 +365,17 @@ func systemdb_test() {
   check(groupsOf(ogmember1_moved.Text("dn")), []string{})
   ogmember1_check,_ = db.SystemGetAllDataForMAC("fe:ce:5f:ec:e5:00", false) // without groups
   check(ogmember1_check, ogmember1)
+  check(db.SystemReplace(ogmember1, nil),nil)
+  ogmember1_check,_ = db.SystemGetAllDataForMAC("fe:ce:5f:ec:e5:00", false)
+  check(ogmember1_check, nil)
+  check(groupsOf(ogmember1_dn), []string{})
+  check(db.SystemReplace(nil, ogmember1),nil)
+  check(groupsOf(ogmember1_dn), []string{})
+  db.SystemAddToGroups(ogmember1_dn, groups)
+  check(groupsOf(ogmember1_dn), []string{"Desktops","Objektgruppe"})
+  ogmember1_check,err = db.SystemGetAllDataForMAC("fe:ce:5f:ec:e5:00", false)
+  check(err, nil)
+  check(ogmember1_check, ogmember1)
   
   groups = desktops.Clone()
   groups.AddClone(notebooks.First("xml"))

@@ -743,8 +743,21 @@ func SystemReplace(old *xml.Hash, nu *xml.Hash) error {
   if nu == nil { // delete
     if old == nil { return nil } // nothing to do
     dn := old.Text("dn")
-    ldif := fmt.Sprintf("dn:: %v\nchangetype: delete\n",base64.StdEncoding.EncodeToString([]byte(dn)))
-    out, err := ldapModify(ldif).CombinedOutput()
+    bufstr := bytes.NewBufferString(fmt.Sprintf("dn:: %v\nchangetype: delete\n",base64.StdEncoding.EncodeToString([]byte(dn))))
+    groups := SystemGetGroupsWithMember(dn)
+    for group := groups.First("xml"); group != nil; group = group.Next() {
+      bufstr.WriteString(fmt.Sprintf(`
+dn:: %v
+changetype: modify
+delete: member
+member:: %v
+-
+`,
+base64.StdEncoding.EncodeToString([]byte(group.Text("dn"))),
+base64.StdEncoding.EncodeToString([]byte(dn)),
+))
+    }
+    out, err := ldapModify(bufstr.String()).CombinedOutput()
     if err != nil {
       return fmt.Errorf("Error while attempting to delete %v: %v (%v)",dn,err,string(out))
     }
