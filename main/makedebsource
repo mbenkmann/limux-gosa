@@ -11,8 +11,15 @@ debversion=${version}-1
 
 test -d deb/ && { echo "deb/ already exists!" ; exit 1 ; }
 mkdir deb || exit 1
-hg archive -t tgz -p go-susi-$version deb/go-susi_$version.orig.tar.gz
+hg archive -t tar -p go-susi-$version deb/go-susi_$version.orig.tar
 cd deb || exit 1
+mkdir -p go-susi-$version/doc
+wget "https://docs.google.com/document/d/17_j8s2-PBVJLaQzmjrdeh6CVWkzP_viA3Uo7AtFmt8c/export?format=pdf" -O go-susi-$version/doc/go-susi-$version-manual.pdf
+wget "https://docs.google.com/document/d/17_j8s2-PBVJLaQzmjrdeh6CVWkzP_viA3Uo7AtFmt8c/export?format=odt" -O go-susi-$version/doc/go-susi-$version-manual.odt
+tar rf go-susi_$version.orig.tar go-susi-$version/doc
+gzip -9 go-susi_$version.orig.tar
+
+
 tar xzf go-susi_$version.orig.tar.gz
 cd go-susi-$version || exit 1
 mkdir debian
@@ -133,6 +140,7 @@ build:
 	mkdir -p dist/usr/share/doc/go-susi
 	cp debian/copyright dist/usr/share/doc/go-susi
 	cp debian/changelog dist/usr/share/doc/go-susi/changelog.Debian
+	cp doc/* dist/usr/share/doc/go-susi/
 	gzip -9 dist/usr/share/doc/go-susi/changelog.Debian
 	cp main/generate_* main/send_user_msg dist/usr/lib/go-susi/
 	cp go-susi dist/usr/lib/go-susi/gosa-si-server

@@ -26,7 +26,7 @@ test:
 almostclean:
 	rm -f $(BINARIES) gosa-si-server go-susi_*.deb
 	rm -f testdata/ldif/c=de/o=go-susi/ou=incoming/cn=*.ldif
-	rm -f testdata/ldif/c=de/o=go-susi/ou=systems/ou=workstations/cn=system-aa-00-bb-11-cc-99.ldif
+	rm -f testdata/ldif/c=de/o=go-susi/ou=systems/ou=workstations/cn=_aa-00-bb-11-cc-99_.ldif
 	rm -f testdata/ldif/c=de/o=go-susi/ou=systems/ou=workstations/cn=mrhyde.ldif
 	rm -f deb/go-susi*.orig.tar.gz deb/go-susi*.deb deb/go-susi*.dsc
 	rm -f deb/go-susi*.changes deb/go-susi*.diff.gz deb/go-susi-?*.?*.?*/.hg*
