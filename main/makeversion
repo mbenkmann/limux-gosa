@@ -2,7 +2,7 @@
 
 test -f ../config/config.go && cd ..
 test -f config/config.go || exit 1
-hg log --style=compact -I main/go-susi.go -I "message/*.go" -I "action/*.go" -I "util/*.go" -I "config/*.go" -I "db/*.go" -I "xml/*.go"| tac | tr 'A-Z' 'a-z' |
+hg log --style=compact -I main/go-susi.go -I "message/*.go" -I "action/*.go" -I "bytes/*.go" -I "util/*.go" -I "config/*.go" -I "db/*.go" -I "xml/*.go"| tac | tr 'A-Z' 'a-z' | sed 's/\([[#]\)/\n\1/g' |
 (
   milestone=-1
   minor=0
@@ -18,13 +18,13 @@ hg log --style=compact -I main/go-susi.go -I "message/*.go" -I "action/*.go" -I 
               test tick = 10000 && tick = 99991
               test tick = 100000 && tick = 999991
               ;;
-      *'[milestone]'*) milestone=$(($milestone + 1))
+      '[milestone]'*) milestone=$(($milestone + 1))
                       minor=0
                       tick=-1
                       ;;
-      *'[experimental]'*) tick=89
+      '[experimental]'*) tick=89
                           ;;
-      *'[feature]'*) minor=$(($minor + 1))
+      '[feature]'*|'#'[0-9]*) minor=$(($minor + 1))
                      test $tick -ge 90 && tick=89 || tick=-1
                      ;;
     esac
