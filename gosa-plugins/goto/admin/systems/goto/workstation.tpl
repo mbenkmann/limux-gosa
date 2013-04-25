@@ -156,6 +156,9 @@
 
 {if $fai_activated}
   <h3>{t}Action{/t}</h3>
+  <table style="width:100%;">
+   <tr>
+    <td style="width:50%;">
   {render acl=$FAIstateACL}
      <select size="1" name="saction" title="{t}Select action to execute for this terminal{/t}">
       <option>&nbsp;</option>
@@ -171,10 +174,14 @@
        <button type='submit' name='action'>{t}Execute{/t}</button>
     {/render}
   {/if}
-{/if}
-
-{if $member_of_ogroup}
-   <button type='submit' name='inheritAll'>{t}Inherit all values from group{/t}</button>
+    </td>
+    <td style="width:50%;" class="left-border">
+  {if $member_of_ogroup}
+     <button type='submit' name='inheritAll'>{t}Inherit all values from group{/t}</button>
+  {/if}
+    </td>
+   </tr>
+  </table>
 {/if}
 
 <input type="hidden" name="workgeneric_posted" value="1">
