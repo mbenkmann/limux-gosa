@@ -131,6 +131,11 @@ func ClientsRegisteredAtThisServer() *xml.Hash {
   return clientDB.Query(xml.FilterSimple("source",config.ServerSourceAddress))
 }
 
+// Returns copies of all clientdb entries that match the given filter.
+func ClientsQuery(filter xml.HashFilter) *xml.Hash {
+  return clientDB.Query(filter)
+}
+
 // Updates the data for client. client has the same format as returned by
 // ClientWithMAC(), i.e. a new_foreign_client message.
 // NOTE: client is required to have <client> and <macaddress>. All existing entries

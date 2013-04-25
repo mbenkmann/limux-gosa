@@ -20,6 +20,7 @@ MA  02110-1301, USA.
 package message
 
 import (
+         "net"
          "sync/atomic"
          "time"
          "runtime"
@@ -39,6 +40,25 @@ var startTime = time.Now()
 
 // Sum of the nanoseconds the last 100 requests took.
 var RequestProcessingTime int64
+
+type ClientStats struct {
+  KnownClients int
+  MyClients int
+  MyClientsUp int32
+}
+
+func (s *ClientStats) Accepts(x *xml.Hash) bool {
+  if x == nil { return false }
+  s.KnownClients++
+  if x.Text("source") == config.ServerSourceAddress {
+    s.MyClients++
+    go func(a string, i *int32){
+      c, err := net.Dial("tcp", a)
+      if err == nil { c.Close(); atomic.AddInt32(i, 1) }
+    }(x.Text("client"), &s.MyClientsUp)
+  }
+  return false
+}
 
 // Handles the message "sistats".
 // Returns:
@@ -70,10 +90,18 @@ func sistats() *xml.Hash {
       if Peer(addr).IsGoSusi() { susipeersdown++ } else { nonsusipeersdown++ }
     }
   }
-  answer.Add("NumSusiPeersUp", susipeers)
-  answer.Add("NumSusiPeersDown", susipeersdown)
-  answer.Add("NumNonSusiPeersUp", nonsusipeers)
-  answer.Add("NumNonSusiPeersDown", nonsusipeersdown)
+  answer.Add("SusiPeersUp", susipeers)
+  answer.Add("SusiPeersDown", susipeersdown)
+  answer.Add("NonSusiPeersUp", nonsusipeers)
+  answer.Add("NonSusiPeersDown", nonsusipeersdown)
+  var clistats ClientStats
+  db.ClientsQuery(&clistats)
+  time.Sleep(2*time.Second) // give Up checks time to succeed
+  answer.Add("KnownClients", clistats.KnownClients)
+  up := atomic.LoadInt32(&clistats.MyClientsUp)
+  answer.Add("MyClientsUp", up)
+  answer.Add("MyClientsDown", clistats.MyClients-int(up))
+  
   var m runtime.MemStats
   runtime.ReadMemStats(&m)
   answer.Add("Alloc",m.Alloc)
