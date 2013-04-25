@@ -21,6 +21,7 @@ MA  02110-1301, USA.
 package action
 
 import ( 
+         "net"
          "time"
          "strings"
          "strconv"
@@ -197,6 +198,11 @@ func Forward(job *xml.Hash) bool {
   
   util.Log(1, "INFO! %v for client %v must be forwarded to server %v where client is registered", headertag, macaddress, siserver)
   
+  if message.Peer(siserver).Downtime() != 0 {
+    util.Log(0, "ERROR! Peer %v is down => Will try to execute %v for client %v myself.", siserver, headertag, macaddress)
+    return false
+  }
+  
   // remove job with stop_periodic=true
   db.JobsRemoveLocal(xml.FilterSimple("id", job.Text("id")), true)
   
@@ -210,37 +216,41 @@ func Forward(job *xml.Hash) bool {
   }
     
   util.Log(1, "INFO! Forwarding %v for client %v to server %v", headertag, macaddress, siserver)
-    
-  job_trigger_action := xml.NewHash("xml","header","job_"+headertag)
-  if headertag == "trigger_action_faireboot" {
-    // gosa-si-server does not seem to process faireboot jobs when sent as job_...
-    // NOTE: The reason why we don't always use gosa_ is because gosa-si-server
-    // does not return replys for these jobs and does not accept them to be
-    // periodic.
-    job_trigger_action.First("header").SetText("gosa_trigger_action_faireboot")
-  }
-  job_trigger_action.Add("source","GOSA")
-  job_trigger_action.Add("macaddress",macaddress)
-  job_trigger_action.Add("target",macaddress)
-  if job.First("timestamp") != nil { job_trigger_action.Add("timestamp", job.Text("timestamp")) }
-  if job.First("periodic") != nil  { job_trigger_action.Add("periodic",  job.Text("periodic")) }
+
+  // gosa-si-server does not seem to process some jobs when sent as job_...
+  // So we use gosa_.... However this means that <periodic> won't work properly with
+  // non-go-susi peers :-(
+  gosa_trigger_action := xml.NewHash("xml","header","gosa_"+headertag)
+  gosa_trigger_action.Add("source","GOSA")
+  gosa_trigger_action.Add("macaddress",macaddress)
+  gosa_trigger_action.Add("target",macaddress)
+  if job.First("timestamp") != nil { gosa_trigger_action.Add("timestamp", job.Text("timestamp")) }
+  if job.First("periodic") != nil  { gosa_trigger_action.Add("periodic",  job.Text("periodic")) }
   
-  reply := <-message.Peer(siserver).Ask(job_trigger_action.String(), config.ModuleKey["[GOsaPackages]"])
-  if strings.Contains(reply,"error_string") {
-    util.Log(0, "ERROR! Could not forward %v for client %v to server %v => Will try to execute job myself.", headertag, macaddress, siserver)
+  request := gosa_trigger_action.String()
+  
+  // clone job, because we want to use it in a new goroutine and don't want to risk
+  // having it changed concurrently.
+  job_clone := job.Clone()
+  
+  go util.WithPanicHandler(func(){
+    tcpconn, err := net.Dial("tcp", siserver)
+    if err == nil {
+      defer tcpconn.Close()
+      util.Log(2, "DEBUG! Forwarding to %v: %v", siserver, request)
+      err = util.SendLn(tcpconn, message.GosaEncrypt(request, config.ModuleKey["[GOsaPackages]"]), 10*time.Second)
+      if err == nil { return }
+    }
     
-    // Clone that job before modifying it. This is safety measure. I once had a very
-    // hard to find bug which turned out to be caused by a function modifying a job
-    // and the caller not expecting it.
-    job = job.Clone()
+    util.Log(0, "ERROR! %v: Could not forward %v for client %v to server %v => Will try to execute job myself.", err, headertag, macaddress, siserver)
     
-    job.FirstOrAdd("result").SetText("none")
-    job.FirstOrAdd("progress").SetText("forward-failed")
-    job.FirstOrAdd("status").SetText("waiting")
+    job_clone.FirstOrAdd("result").SetText("none")
+    job_clone.FirstOrAdd("progress").SetText("forward-failed")
+    job_clone.FirstOrAdd("status").SetText("waiting")
     
-    util.Log(1, "INFO! Re-Scheduling job tagged with \"forward-failed\": %v", job)
-    db.JobAddLocal(job)
-  }
+    util.Log(1, "INFO! Re-Scheduling job tagged with \"forward-failed\": %v", job_clone)
+    db.JobAddLocal(job_clone)
+  })
   
   return true
 }
