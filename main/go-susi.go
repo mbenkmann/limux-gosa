@@ -41,6 +41,7 @@ import (
           "../db"
           "../xml"
           "../util"
+          "../util/deque"
           "../bytes"
           "../config"
           "../action"
@@ -60,6 +61,15 @@ var Shutdown = false
 
 // counts the number of active connections. Limited by config.MaxConnections
 var ActiveConnections int32 = 0
+
+// Whenever a request has been handled, the time it took to process it
+// (a time.Duration) is Push()ed into this Deque at the top and the Next() element
+// is taken from the Deque at the bottom. The difference is then added atomically 
+// to message.RequestProcessingTime, so that message.RequestProcessingTime always
+// corresponds to the sum of the durations in RequestProcessingTimes.
+var RequestProcessingTimes deque.Deque
+func init() { for i := 0; i < 100; i++ { RequestProcessingTimes.Push(time.Duration(0)) } }
+
 
 func main() {
   // Intercept signals asap (in particular intercept SIGTTOU before the first output)
@@ -182,6 +192,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
                        <-wait // for serverdb
                        <-wait // for clientdb
                        config.Shutdown()
+                       util.Log(1, "INFO! Average request processing time: %v", time.Duration((atomic.LoadInt64(&message.RequestProcessingTime)+50)/100))
                        util.Log(1, "INFO! Databases have been saved => Exit program")
                        os.Exit(0)
                     }
@@ -274,8 +285,13 @@ func handle_request(conn *net.TCPConn) {
       
       // process the message and get a reply (if applicable)
       if buf.Len() > 0 { // ignore empty lines
+        request_start := time.Now()
         reply, disconnect := message.ProcessEncryptedMessage(&buf, conn.RemoteAddr().(*net.TCPAddr))
         buf.Reset()
+        request_time := time.Since(request_start)
+        RequestProcessingTimes.Push(request_time)
+        request_time -= RequestProcessingTimes.Next().(time.Duration)
+        atomic.AddInt64(&message.RequestProcessingTime, int64(request_time))
         
         if reply.Len() > 0 {
           util.Log(2, "DEBUG! Sending %v bytes reply to %v", reply.Len(), conn.RemoteAddr())

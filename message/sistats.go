@@ -20,9 +20,11 @@ MA  02110-1301, USA.
 package message
 
 import (
+         "sync/atomic"
          "time"
          "runtime"
          
+         "../db"
          "../xml"
          "../config"
        )
@@ -34,6 +36,9 @@ import "C"
 
 
 var startTime = time.Now() 
+
+// Sum of the nanoseconds the last 100 requests took.
+var RequestProcessingTime int64
 
 // Handles the message "sistats".
 // Returns:
@@ -53,6 +58,22 @@ func sistats() *xml.Hash {
   answer.Add("OS", runtime.GOOS)
   answer.Add("NumCPU", runtime.NumCPU())
   answer.Add("NumGoroutine", runtime.NumGoroutine())
+  answer.Add("AvgRequestTime", time.Duration((atomic.LoadInt64(&RequestProcessingTime)+50)/100))
+  susipeers := 0
+  susipeersdown := 0
+  nonsusipeers := 0
+  nonsusipeersdown := 0
+  for _, addr := range db.ServerAddresses() {
+    if Peer(addr).Downtime() == 0 {  
+      if Peer(addr).IsGoSusi() { susipeers++ } else { nonsusipeers++ }
+    } else {
+      if Peer(addr).IsGoSusi() { susipeersdown++ } else { nonsusipeersdown++ }
+    }
+  }
+  answer.Add("NumSusiPeersUp", susipeers)
+  answer.Add("NumSusiPeersDown", susipeersdown)
+  answer.Add("NumNonSusiPeersUp", nonsusipeers)
+  answer.Add("NumNonSusiPeersDown", nonsusipeersdown)
   var m runtime.MemStats
   runtime.ReadMemStats(&m)
   answer.Add("Alloc",m.Alloc)
