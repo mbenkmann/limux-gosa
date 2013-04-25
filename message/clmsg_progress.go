@@ -23,6 +23,7 @@ package message
 import (
          "net"
          "time"
+         "sync"
          "strconv"
          
          "../db"
@@ -63,12 +64,29 @@ func clmsg_progress(xmlmsg *xml.Hash) {
   }
 }
 
+var nextID = util.Counter(0)
+var mutex sync.Mutex
+var watchers = map[string]uint64{}
+
 func processing_finished_watcher(macaddress, client_addr string) {
-  conn, err := net.Dial("tcp", client_addr)
-  if err == nil {
-    conn.SetDeadline(time.Now().Add(5*time.Minute))
-    _, err = conn.Read(make([]byte,16))
+  id := <-nextID
+  mutex.Lock()
+  watchers[client_addr] = id
+  mutex.Unlock()
+  
+  var err error
+  var conn net.Conn
+  for i := 0; i < 30; i++ {
+    conn, err = net.Dial("tcp", client_addr)
+    if err == nil { conn.Close() }
+    mutex.Lock()
+    quit := (watchers[client_addr] != id)
+    mutex.Unlock()
+    if quit { return }
+    if err != nil { break }
+    time.Sleep(10*time.Second)
   }
+  
   processing := xml.FilterSimple("siserver",   config.ServerSourceAddress, 
                                  "status",    "processing",
                                  "macaddress", macaddress)
