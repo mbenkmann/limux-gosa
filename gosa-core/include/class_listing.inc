@@ -440,8 +440,8 @@ class listing {
         foreach ($entryIterator as $row => $entry){
 
             // Apply label to objecttype icon?
-            if (preg_match("/<objectType:([^:]+):(.*)\/>/i", $entry['_rendered'], $matches)){
-                if (preg_match("/<rowLabel:([a-z0-9_-]*)\/>/i", $entry['_rendered'], $m)) {
+            if (preg_match("/<objectType:([^:]+):(.*)\/>/iU", $entry['_rendered'], $matches)){
+                if (preg_match("/<rowLabel:([a-z0-9_-]*)\/>/iU", $entry['_rendered'], $m)) {
                     $objectType= image($matches[1]."[".$m[1]."]", null, LDAP::fix(base64_decode($matches[2])));
                 } else {
                     $objectType= image($matches[1], null, LDAP::fix(base64_decode($matches[2])));
