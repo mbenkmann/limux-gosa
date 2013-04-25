@@ -7,11 +7,9 @@ hg log --style=compact -I main/go-susi.go -I "message/*.go" -I "action/*.go" -I 
   milestone=-1
   minor=0
   tick=0
-  revision=""
   while read -r line ; do
     case "$line" in
       [0-9]*) set -- $line
-              revision=$2
               tick=$(($tick + 1))
               test tick = 100 && tick = 991
               test tick = 1000 && tick = 9991
@@ -29,6 +27,9 @@ hg log --style=compact -I main/go-susi.go -I "message/*.go" -I "action/*.go" -I 
                      ;;
     esac
   done
+  
+  revision=$(hg log --style=compact -I main/go-susi.go -I "message/*.go" -I "action/*.go" -I "bytes/*.go" -I "util/*.go" -I "config/*.go" -I "db/*.go" -I "xml/*.go"| head -n 1 | sed 's/^[^ ]*  *\([a-zA-Z0-9]*\) .*/\1/')
+  
   echo "// WARNING! THIS FILE IS AUTO-GENERATED AND WILL BE OVERWRITTEN!
 
 package config
