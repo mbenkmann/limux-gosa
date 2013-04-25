@@ -46,5 +46,7 @@ func clmsg_progress(xmlmsg *xml.Hash) {
   if progress == "100" {
     util.Log(1, "INFO! Progress 100%% => Setting status \"done\" for client %v with MAC %v",xmlmsg.Text("source"), macaddress)
     db.JobsModifyLocal(filter, xml.NewHash("job","status","done"))
+    util.Log(1, "INFO! Progress 100%% => Setting faiState \"localboot\" for client %v with MAC %v",xmlmsg.Text("source"), macaddress)
+    db.SystemSetState(macaddress, "faiState", "localboot")
   }
 }
