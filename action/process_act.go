@@ -107,8 +107,18 @@ func Init() { // not init() because we need to call it from go-susi.go
             case "trigger_action_faireboot": // "Job abbrechen"
             case "trigger_action_activate":  // "Sperre aufheben"
             case "trigger_action_wake":      // "Aufwecken"
-            case "trigger_action_update":    // "Aktualisieren"
-            case "trigger_action_reinstall": // "Neuinstallation"
+            
+            case "trigger_action_update",    // "Aktualisieren"
+                 "trigger_action_reinstall": // "Neuinstallation"
+                 macaddress := job.Text("macaddress")
+                 faistate := db.SystemGetState(macaddress, "faiState")
+                 if strings.HasPrefix(faistate, "softupdat") || strings.HasPrefix(faistate, "install") {
+                   util.Log(1, "INFO! Setting faiState \"localboot\" for client with MAC %v", macaddress)
+                   db.SystemSetState(macaddress, "faiState", "localboot")
+                 } else if faistate != "localboot" {
+                   util.Log(1, "INFO! Leaving faiState \"%v\" alone for client with MAC %v", faistate, macaddress)
+                 }
+            
             default:
                  util.Log(0, "ERROR! Unknown headertag \"%v\" in PendingActions",job.Text("headertag"))
           }

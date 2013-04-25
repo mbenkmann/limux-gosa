@@ -21,11 +21,17 @@ MA  02110-1301, USA.
 package message
 
 import (
+         "net"
+         "time"
+         "strconv"
+         
          "../db"
          "../xml"
          "../util"
          "../config"
        )
+
+const ALMOST_DONE_PROGRESS = "95"
 
 // Handles the message "CLMSG_PROGRESS".
 //  xmlmsg: the decrypted and parsed message
@@ -46,7 +52,30 @@ func clmsg_progress(xmlmsg *xml.Hash) {
   if progress == "100" {
     util.Log(1, "INFO! Progress 100%% => Setting status \"done\" for client %v with MAC %v",xmlmsg.Text("source"), macaddress)
     db.JobsModifyLocal(filter, xml.NewHash("job","status","done"))
-    util.Log(1, "INFO! Progress 100%% => Setting faiState \"localboot\" for client %v with MAC %v",xmlmsg.Text("source"), macaddress)
-    db.SystemSetState(macaddress, "faiState", "localboot")
+  } else {
+    p, err := strconv.Atoi(progress)
+    if err == nil {
+      ad,_ := strconv.Atoi(ALMOST_DONE_PROGRESS)
+      if p > ad { 
+        go processing_finished_watcher(macaddress, xmlmsg.Text("source"))
+      }
+    }
+  }
+}
+
+func processing_finished_watcher(macaddress, client_addr string) {
+  conn, err := net.Dial("tcp", client_addr)
+  if err == nil {
+    conn.SetDeadline(time.Now().Add(5*time.Minute))
+    _, err = conn.Read(make([]byte,16))
+  }
+  processing := xml.FilterSimple("siserver",   config.ServerSourceAddress, 
+                                 "status",    "processing",
+                                 "macaddress", macaddress)
+  progress := xml.FilterRel("progress", ALMOST_DONE_PROGRESS, 1, 1)
+  filter := xml.FilterAnd([]xml.HashFilter{processing, progress})
+  if db.JobsQuery(filter).FirstChild() != nil { // if we have stalled jobs
+    util.Log(0, "WARNING! Client %v did not report progress 100%% => Removing stalled jobs (Triggered by %v)", macaddress, err)
+    db.JobsModifyLocal(filter, xml.NewHash("job","status","done"))
   }
 }
