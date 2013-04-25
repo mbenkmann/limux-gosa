@@ -78,7 +78,7 @@
   </definition>
 
   <table>
-    <layout>|20px;c|220px||</layout>
+    <layout>|20px;c|220px|220px||</layout>
 
     <department>
       <value>%{filter:objectType(dn,objectClass)}</value>
@@ -98,6 +98,14 @@
       <sortAttribute>cn</sortAttribute>
       <sortType>string</sortType>
       <value>%{filter:depLabel(row,dn,pid,base,objectClass,cn)}</value>
+      <export>true</export>
+    </column>
+
+    <column>
+      <label>Login</label>
+      <sortAttribute>uid</sortAttribute>
+      <sortType>string</sortType>
+      <value>%{filter:link(row,dn,"%s",uid)}</value>
       <export>true</export>
     </column>
 
