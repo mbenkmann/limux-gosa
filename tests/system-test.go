@@ -513,6 +513,10 @@ func run_save_fai_log_tests() {
   x := gosa("show_log_by_mac", hash("xml(mac(%v))", mac))
   check(checkTags(x,"header,source,target,show_log_by_mac,session_id?"), "")
   
+  x = gosa("show_log_files_by_date_and_mac", hash("xml(mac(%v)date(install_20120102160304))", mac))
+  check(checkTags(x,"header,source,target,show_log_files_by_date_and_mac,session_id?"), "")
+  check(x.Get("show_log_files_by_date_and_mac"),[]string{""})
+  
   x = hash("xml(header(CLMSG_save_fai_log)source(%v)target(%v)macaddress(%v)fai_action(install))",client_listen_address, config.ServerSourceAddress, mac)
   x.Add("CLMSG_save_fai_log", fmt.Sprintf("log_file:frodo:SG9i Yml0 Cg== log_file:gandalf:V2\nl6YXJkCg==\n"))
   send("CLIENT", x)
@@ -543,6 +547,23 @@ func run_save_fai_log_tests() {
     dur := time.Since(t)
     if dur <= 2*time.Second { dur = 0 }
     check(dur, 0)
+    
+    x = gosa("show_log_files_by_date_and_mac", hash("xml(mac(%v)date(%v))", mac, dirname))
+    if check(checkTags(x,"header,source,target,show_log_files_by_date_and_mac+,session_id?"), "") {
+      check(x.Get("show_log_files_by_date_and_mac"),[]string{"","frodo","gandalf"})
+    }
+    
+    x = gosa("get_log_file_by_date_and_mac", hash("xml(mac(%v)date(%v)log_file(%v))", mac, dirname, "frodo"))
+    if check(checkTags(x,"header,source,target,session_id?,get_log_file_by_date_and_mac,frodo"), "") {
+      x.First("frodo").DecodeBase64()
+      check(x.Text("frodo"), "Hobbit\n")
+    }
+    
+    x = gosa("get_log_file_by_date_and_mac", hash("xml(mac(%v)date(%v)log_file(%v))", mac, dirname, "gandalf"))
+    if check(checkTags(x,"header,source,target,session_id?,get_log_file_by_date_and_mac,gandalf"), "") {
+      x.First("gandalf").DecodeBase64()
+      check(x.Text("gandalf"), "Wizard\n")
+    }
   }
 }
 

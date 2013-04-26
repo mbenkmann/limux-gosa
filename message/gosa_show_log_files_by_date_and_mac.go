@@ -21,7 +21,14 @@ MA  02110-1301, USA.
 package message
 
 import (
+         "os"
+         "fmt"
+         "path"
+         "sort"
+         "strings"
+         
          "../xml"
+         "../util"
          "../config"
        )
 
@@ -30,9 +37,56 @@ import (
 // Returns:
 //  unencrypted reply
 func gosa_show_log_files_by_date_and_mac(xmlmsg *xml.Hash) *xml.Hash {
+  macaddress := xmlmsg.Text("mac")
+  lmac := strings.ToLower(macaddress)
+  subdir := xmlmsg.Text("date")
+  
+  if !macAddressRegexp.MatchString(macaddress) {
+    emsg := fmt.Sprintf("Illegal or missing <mac> element in message: %v", xmlmsg)
+    util.Log(0, "ERROR! %v", emsg)
+    return ErrorReplyXML(emsg)
+  }
+  
+  // As a precaution, make sure subdir contains no slashes.
+  subdir = strings.Replace(subdir,"/","_",-1)
+  
+  if subdir == "" {
+    emsg := fmt.Sprintf("Missing or empty <date> element in message: %v", xmlmsg)
+    util.Log(0, "ERROR! %v", emsg)
+    return ErrorReplyXML(emsg)
+  }
+  
   header := "show_log_files_by_date_and_mac"
-  x := xml.NewHash("xml","header",header)
+  x := xml.NewHash("xml","header", header)
   x.Add(header)
+  
+  logdir := path.Join(config.FAILogPath, lmac, subdir)
+  
+  util.Log(2, "DEBUG! Listing log files from %v", logdir)
+  
+  names := []string{}
+  
+  dir, err := os.Open(logdir)
+  if err == nil || !os.IsNotExist(err.(*os.PathError).Err) {
+    if err != nil {
+      util.Log(0, "ERROR! gosa_show_log_files_by_date_and_mac: %v", err)
+    } else {
+      defer dir.Close()
+      
+      fi, err := dir.Readdir(0)
+      if err != nil {
+        util.Log(0, "ERROR! gosa_show_log_files_by_date_and_mac: %v", err)
+      } else {
+        for _, info := range fi {
+          // only list ordinary files
+          if info.Mode() &^ os.ModePerm == 0 { names = append(names, info.Name()) }
+        }
+        sort.Strings(names)
+        for _, n := range names { x.Add(header, n) }
+      }
+    }
+  }
+  
   x.Add("source", config.ServerSourceAddress)
   x.Add("target", "GOSA")
   x.Add("session_id","1")

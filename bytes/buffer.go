@@ -55,9 +55,10 @@ func (b *Buffer) Capacity() int { return b.capa }
 // Returns the number of meaningful bytes in the buffer (as opposed to Capacity()).
 func (b *Buffer) Len() int { return b.sz }
 
-// grow grows the buffer to guarantee space for n more bytes.
-// It returns the index where bytes should be written.
+// Grow() grows the buffer to guarantee space for n more bytes.
+// It returns Len().
 // If the buffer can't grow it will panic with ErrTooLarge.
+// Grow() does not change Len(), only Capacity().
 func (b *Buffer) Grow(n int) int {
   if n > 0 {
     rest := b.capa - b.sz
@@ -78,6 +79,15 @@ func (b *Buffer) Grow(n int) int {
   } else if n < 0 { panic(ErrTooLarge) } // not really too large, but this case is just a precaution.
   
   return b.sz
+}
+
+// Appends n 0-bytes to the buffer. 
+func (b* Buffer) Write0(n int) {
+  if n <= 0 { return }
+  b.Grow(n);
+  data := ((*[maxInt]byte)(b.ptr))[b.sz:b.capa]
+  for i := 0; i < n; i++ { data[i] = 0 }
+  b.sz += n
 }
 
 // WriteByte appends the byte c to the buffer. 
