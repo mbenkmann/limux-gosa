@@ -12,6 +12,8 @@ LC_ALL=C hg log -r $oldrev:tip -v -I main/go-susi.go -I "message/*.go" -I "actio
 make clean
 make test &>>testdata/citest.log || exit $?
 make deb &>>testdata/citest.log
+rm -rf deploy/deb
+mv deb deploy
 rm -f deploy/gosa-si-server  # remove so that we can cleanly replace it even if running
 cp -a go-susi deploy/gosa-si-server
 cp config/version.go deploy/
