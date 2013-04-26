@@ -21,7 +21,14 @@ MA  02110-1301, USA.
 package message
 
 import (
+         "os"
+         "fmt"
+         "path"
+         "sort"
+         "strings"
+         
          "../xml"
+         "../util"
          "../config"
        )
 
@@ -30,11 +37,49 @@ import (
 // Returns:
 //  unencrypted reply
 func gosa_show_log_by_mac(xmlmsg *xml.Hash) *xml.Hash {
-  header := "show_log_by_mac"
-  x := xml.NewHash("xml","header",header)
-  x.Add(header)
+  macaddress := xmlmsg.Text("mac")
+  
+  if !macAddressRegexp.MatchString(macaddress) {
+    emsg := fmt.Sprintf("Illegal or missing <mac> element in message: %v", xmlmsg)
+    util.Log(0, "ERROR! %v", emsg)
+    return ErrorReplyXML(emsg)
+  }
+  
+  lmac := strings.ToLower(macaddress)
+  logdir := path.Join(config.FAILogPath, lmac)
+
+  names := []string{}
+  
+  dir, err := os.Open(logdir)
+  if err == nil || !os.IsNotExist(err.(*os.PathError).Err) {
+    if err != nil {
+      util.Log(0, "ERROR! gosa_show_log_by_mac: %v", err)
+      return ErrorReplyXML(err)
+    }
+    defer dir.Close()
+    
+    fi, err := dir.Readdir(0)
+    if err != nil {
+      util.Log(0, "ERROR! gosa_show_log_by_mac: %v", err)
+      return ErrorReplyXML(err)
+    }
+    
+    for _, info := range fi {
+      if info.IsDir() { names = append(names, info.Name()) }
+    }
+    
+    sort.Strings(names)
+  }
+  
+  ele := "mac_" + strings.Replace(lmac,":","_",-1)
+  
+  x := xml.NewHash("xml","header", "show_log_by_mac")
+  x.Add("show_log_by_mac")
   x.Add("source", config.ServerSourceAddress)
   x.Add("target", "GOSA")
   x.Add("session_id","1")
+  for _, name := range names {
+    x.Add(ele, name)
+  }
   return x
 }

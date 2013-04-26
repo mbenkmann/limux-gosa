@@ -86,7 +86,7 @@ func clmsg_save_fai_log(buf *bytes.Buffer) {
   
   timestamp := util.MakeTimestamp(time.Now())
   logname := action+"_"+timestamp[0:8]+"_"+timestamp[8:]
-  logdir := path.Join(config.FAILogPath, macaddress, logname)
+  logdir := path.Join(config.FAILogPath, strings.ToLower(macaddress), logname)
   
   // NOTE: 1kB = 1000B, 1kiB = 1024B
   util.Log(1, "INFO! Storing %vkB of %v log files from %v in %v",len(data)/1000, action, macaddress, logdir)
@@ -100,9 +100,9 @@ func clmsg_save_fai_log(buf *bytes.Buffer) {
   // Create convenience symlink with the system's name as alias for MAC address.
   go util.WithPanicHandler(func() {
     if plainname := db.SystemPlainnameForMAC(macaddress); plainname != "none" {
-      err := os.Symlink(macaddress, path.Join(config.FAILogPath, plainname))
+      err := os.Symlink(strings.ToLower(macaddress), path.Join(config.FAILogPath, strings.ToLower(plainname)))
       if err != nil && !os.IsExist(err.(*os.LinkError).Err) {
-        util.Log(0, "ERROR! Could not create symlink %v => %v: %v", path.Join(config.FAILogPath, plainname), macaddress, err)
+        util.Log(0, "ERROR! Could not create symlink %v => %v: %v", path.Join(config.FAILogPath, strings.ToLower(plainname)), strings.ToLower(macaddress), err)
       }
     }
   })

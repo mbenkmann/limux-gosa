@@ -506,13 +506,20 @@ func jtan(mac, timestamp, ou, template_sys_name, ip string) {
 }
 
 func run_save_fai_log_tests() {
-  x := hash("xml(header(CLMSG_save_fai_log)source(%v)target(%v)macaddress(%v)fai_action(install))",client_listen_address, config.ServerSourceAddress, Jobs[0].MAC)
+  mac := Jobs[1].MAC
+  lowermac := strings.ToLower(mac)
+  check(mac != lowermac, true)
+  
+  x := gosa("show_log_by_mac", hash("xml(mac(%v))", mac))
+  check(checkTags(x,"header,source,target,show_log_by_mac,session_id?"), "")
+  
+  x = hash("xml(header(CLMSG_save_fai_log)source(%v)target(%v)macaddress(%v)fai_action(install))",client_listen_address, config.ServerSourceAddress, mac)
   x.Add("CLMSG_save_fai_log", fmt.Sprintf("log_file:frodo:SG9i Yml0 Cg== log_file:gandalf:V2\nl6YXJkCg==\n"))
   send("CLIENT", x)
   time.Sleep(1*time.Second)
-  ls, err := ioutil.ReadDir(path.Join(confdir,Jobs[0].MAC))
+  ls, err := ioutil.ReadDir(path.Join(confdir,lowermac))
   if check(err, nil) && check(len(ls), 1) {
-    logdir := path.Join(confdir, Jobs[0].MAC, ls[0].Name())
+    logdir := path.Join(confdir, lowermac, ls[0].Name())
     logdata,err := ioutil.ReadFile(logdir+"/frodo")
     if check(err,nil) {
       check(string(logdata),"Hobbit\n")
@@ -524,9 +531,19 @@ func run_save_fai_log_tests() {
   }
   
   // Check if convenience symlink exists
-  target, err := os.Readlink(path.Join(confdir, Jobs[0].Plainname))
+  target, err := os.Readlink(path.Join(confdir, Jobs[1].Plainname))
   check(err, nil)
-  check(target, Jobs[0].MAC)
+  check(target, lowermac)
+  
+  ele := "mac_"+strings.Replace(lowermac,":","_",-1)
+  x = gosa("show_log_by_mac", hash("xml(mac(%v))", mac))
+  if check(checkTags(x,"header,source,target,show_log_by_mac,session_id?,"+ele), "") {
+    dirname := x.Text(ele)
+    t := util.ParseTimestamp(strings.Replace(strings.Replace(dirname,"_","",-1), "install","",-1))
+    dur := time.Since(t)
+    if dur <= 2*time.Second { dur = 0 }
+    check(dur, 0)
+  }
 }
 
 func run_hook_tests() {
