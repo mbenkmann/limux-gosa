@@ -183,9 +183,8 @@ func ProcessXMLMessage(xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply *
     case "CLMSG_LOGOUT":        clmsg_logout(xml)
     case "CLMSG_PROGRESS":      clmsg_progress(xml)
     case "CLMSG_GOTOACTIVATION":clmsg_gotoactivation(xml)
-    case "gosa_set_activated_for_installation": 
-                                // same as gosa_trigger_action_activate
-                                // without the reply
+    case "job_set_activated_for_installation",
+         "gosa_set_activated_for_installation":
                                 gosa_set_activated_for_installation(xml)
     case "gosa_trigger_action_lock",      // "Sperre"
          "gosa_trigger_action_halt",      // "Anhalten"

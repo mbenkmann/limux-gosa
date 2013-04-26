@@ -27,7 +27,11 @@ import (
 // Handles the message "gosa_set_activated_for_installation".
 //  xmlmsg: the decrypted and parsed message
 func gosa_set_activated_for_installation(xmlmsg *xml.Hash) {
-  util.Log(2, "DEBUG! gosa_set_activated_for_installation -> gosa_trigger_action_activate")
-  xmlmsg.First("header").SetText("gosa_trigger_action_activate")
-  gosa_trigger_action(xmlmsg)
+  if xmlmsg.Text("header")[0:4] == "gosa" { 
+    util.Log(2, "DEBUG! gosa_set_activated_for_installation -> gosa_trigger_action")
+    gosa_trigger_action(xmlmsg) 
+  } else {
+    util.Log(2, "DEBUG! job_set_activated_for_installation -> job_trigger_action")
+    job_trigger_action(xmlmsg) 
+  }
 }

@@ -31,7 +31,7 @@ import (
 // Returns:
 //  unencrypted reply
 func gosa_trigger_action(xmlmsg *xml.Hash) *xml.Hash {
-  util.Log(2, "DEBUG! gosa_trigger_action(%v)", xmlmsg)
+  util.Log(2, "DEBUG! gosa_trigger_action(%v) -> job_trigger_action", xmlmsg)
   // translate gosa_trigger_* to job_trigger_*
   header := "job_" + strings.SplitN(xmlmsg.Text("header"),"_",2)[1]
   xmlmsg.First("header").SetText(header)
