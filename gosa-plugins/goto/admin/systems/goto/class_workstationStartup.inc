@@ -490,8 +490,8 @@ class workstartup extends plugin
                 $server= "ldap://".preg_replace('/^([^:]+):/', '\1/', $server);
         } else {
             $server= preg_replace("/^[^:]+:/", "", $server);
-            $lData[$key] = array('data'=>array($server));
-        }    
+        }
+        $lData[$key] = array('data'=>array($server));
         }
         $this->ldapList->setListData($data,$lData);
         $this->ldapList->update();
