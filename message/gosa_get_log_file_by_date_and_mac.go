@@ -43,6 +43,13 @@ func gosa_get_log_file_by_date_and_mac(xmlmsg *xml.Hash) *xml.Hash {
   subdir := xmlmsg.Text("date")
   log_file := xmlmsg.Text("log_file")
   
+  header := "get_log_file_by_date_and_mac"
+  x := xml.NewHash("xml","header", header)
+  x.Add(header)
+  x.Add("source", config.ServerSourceAddress)
+  x.Add("target", "GOSA")
+  x.Add("session_id","1")
+  
   if !macAddressRegexp.MatchString(macaddress) {
     emsg := fmt.Sprintf("Illegal or missing <mac> element in message: %v", xmlmsg)
     util.Log(0, "ERROR! %v", emsg)
@@ -54,6 +61,11 @@ func gosa_get_log_file_by_date_and_mac(xmlmsg *xml.Hash) *xml.Hash {
   log_file = strings.Replace(log_file,"/","_",-1)
   
   if subdir == "" {
+    // When you open the installation logs in GOsa for the first time, GOsa sends
+    // a broken request that is characterized by an empty <date> and log_file==0.
+    // If we return an error, GOsa presents it to the user which
+    // gives a bad experience. So we instead return an empty reply in this special case.
+    if log_file == "0" { return x }      
     emsg := fmt.Sprintf("Missing or empty <date> element in message: %v", xmlmsg)
     util.Log(0, "ERROR! %v", emsg)
     return ErrorReplyXML(emsg)
@@ -96,10 +108,7 @@ func gosa_get_log_file_by_date_and_mac(xmlmsg *xml.Hash) *xml.Hash {
   data := b.Bytes()
   copy(data[idx:], data)
   data = util.Base64EncodeInPlace(data, idx)
- 
-  header := "get_log_file_by_date_and_mac"
-  x := xml.NewHash("xml","header", header)
-  x.Add(header)
+
   data_element := x.Add(log_file)
   
   // To reduce memory leak potential, we append in pieces rather than as one large string
@@ -109,8 +118,5 @@ func gosa_get_log_file_by_date_and_mac(xmlmsg *xml.Hash) *xml.Hash {
   }
   data_element.AppendString(string(data[end-xml.MaxFragmentLength:]))
   
-  x.Add("source", config.ServerSourceAddress)
-  x.Add("target", "GOSA")
-  x.Add("session_id","1")
   return x
 }
