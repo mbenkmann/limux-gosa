@@ -120,14 +120,17 @@ func getFile(name string, files map[string]string, pxelinux_hook string) (*bytes
     
     cmd := exec.Command(pxelinux_hook)
     cmd.Env = append(env, os.Environ()...)
-    out, err := cmd.CombinedOutput()
-    data.Write(out)
+    var errbuf bytes.Buffer
+    defer errbuf.Reset()
+    cmd.Stdout = data
+    cmd.Stderr = &errbuf
+    err = cmd.Run()
     if err != nil {
-      util.Log(0, "ERROR! TFTP: error executing %v: %v (%v)", pxelinux_hook, err, string(out))
+      util.Log(0, "ERROR! TFTP: error executing %v: %v (%v)", pxelinux_hook, err, errbuf.String())
       return data, err
      }
      
-     util.Log(1, "INFO! TFTP: Generated %v:\n%v", name, string(out))
+     util.Log(1, "INFO! TFTP: Generated %v:\n%v", name, data.String())
      return data,err
   }
   
