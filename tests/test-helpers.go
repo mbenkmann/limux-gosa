@@ -312,10 +312,18 @@ Templates: foo
 "
 `), 0755)
 
+  generate_pxelinux_cfg := tempdir+"/generate_pxelinux_cfg"
+  ioutil.WriteFile(generate_pxelinux_cfg, []byte(`#!/bin/bash
+echo $macaddress
+`), 0755)
+
   send_user_msg := tempdir+"/send_user_msg"
   ioutil.WriteFile(send_user_msg, []byte(`#!/bin/bash
 set >"$0.env"
 `), 0755)
+
+  pxelinux := tempdir+"/pxelinux.txt"
+  ioutil.WriteFile(pxelinux, []byte("This is\000pxelinux.0"), 0644)
   
   fpath := tempdir + "/server.conf"
   ioutil.WriteFile(fpath, []byte(`
@@ -325,6 +333,7 @@ pid-file = `+tempdir+`/go-susi.pid
 kernel-list-hook = `+tempdir+`/generate_kernel_list
 package-list-hook = `+tempdir+`/generate_package_list
 user-msg-hook = `+tempdir+`/send_user_msg
+pxelinux-cfg-hook = `+tempdir+`/generate_pxelinux_cfg
 
 [bus]
 enabled = false
@@ -337,6 +346,13 @@ ldap-uri = ldap://127.0.0.1:20088
 ldap-base = o=go-susi,c=de
 ldap-admin-dn = cn=admin,o=go-susi,c=de
 ldap-admin-password = password
+
+[tftp]
+port = 20069
+/pxelinux.0 = `+tempdir+`/pxelinux.txt
+
+[faimon]
+port = 24711
 
 [ClientPackages]
 key = ClientPackages

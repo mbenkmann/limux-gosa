@@ -1,0 +1,41 @@
+#!/bin/bash
+
+test -z "$macaddress" && { echo "# Environment variables not properly set" ; exit 1 ; }
+
+# If faistate is empty, that may either mean there is no LDAP object or that
+# the LDAP server is having trouble. Make sure we only start a reinstall if
+# there actually is no such object.
+test -z "$faistate" && {
+  result="$(ldapsearch -x -L "macaddress=$macaddress" dn)"
+  test $? = 0 && { # exit code 0 => LDAP okay
+    echo "$result" | grep -q "# numEntries:"
+    test $? != 0 && { # exit code not 0 => "# numEntries" not found
+      echo "$result" | grep -q "# numResponses: 1"
+      test $? = 0 && { # exit code 0 => "# numResponses: 1" found
+        faistate=install
+      }
+    }
+  }
+}
+
+# Alternatively if faistate is empty and the system is in ou=incoming,
+# it's also proper to install it
+test -z "$faistate" && { 
+  echo "$dn" | grep -q ",ou=incoming,"
+  test $? = 0 && faistate=install
+}
+
+echo "default fai-generated"
+echo
+echo "label fai-generated"
+
+case "$faistate" in
+  install*|error*) echo "kernel vmlinuz-install
+append  initrd=initrd.img-install nfsroot=/nfsroot,nfs4,union FAI_ACTION=install FAI_FLAGS=syslogd,verbose,sshd,poweroff ip=dhcp devfs=nomount root=/dev/nfs vga=788 dazuko=0 nomodeset watchdog=softdog,nowayout=1 panic=poweroff:120 quiet
+ipappend 2
+"
+  ;;
+  
+  *) echo "localboot 0"
+  ;;
+esac

@@ -11,6 +11,7 @@ import (
          "runtime"
          "syscall"
          "strings"
+         "strconv"
          "os"
          "os/exec"
          "encoding/base64"
@@ -339,19 +340,99 @@ func SystemTest(daemon string, is_gosasi bool) {
       run_hook_tests()
     }
   }
-  
+
   if gosasi {
     fmt.Print("gosa-si does not support re-directing log files to --temp dir => ")
     siFail(true,false)
-  } else {
-    run_save_fai_log_tests()
-  }
-  
-  if gosasi {
     fmt.Print("gosa-si handles job_trigger_activate_new different from go-susi => ")
     siFail(true,false)
+    fmt.Print("gosa-si does not include a TFTP server => ")
+    siFail(true,false)
   } else {
+    run_save_fai_log_tests()
     run_trigger_activate_new_tests()
+    run_tftp_tests()
+  }
+}
+
+func run_tftp_tests() {
+  tftp_addr,err := net.ResolveUDPAddr("udp", "localhost:"+config.TFTPPort)
+  if err != nil { panic(err) }
+  local_addr,err := net.ResolveUDPAddr("udp", ":45672")
+  if err != nil { panic(err) }
+  conn, err := net.ListenUDP("udp", local_addr)
+  if err != nil { panic(err) }
+  //conn,err := net.DialUDP("udp", local_addr, addr)
+  if check(err, nil) {
+    defer conn.Close()
+    if err != nil { panic(err) }
+    n, err := conn.WriteToUDP([]byte("\000\001pxelinux.0\000octet\000tsize\0000\000blksize\0007\000"), tftp_addr)
+    check(err,nil)
+    buf := make([]byte,256)
+    conn.SetReadDeadline(time.Now().Add(3*time.Second))
+    n, remote_addr, err := conn.ReadFromUDP(buf)
+    check(err,nil)
+    if check(n > 8, true) {
+      check(buf[0:2],[]byte{0,6})
+      parts := strings.Split(string(buf[2:n]),"\000")
+      check(len(parts),5)
+      if parts[0] == "blksize" {
+        parts[0],parts[1],parts[2],parts[3] = parts[2],parts[3],parts[0],parts[1]
+      }
+      check(parts[2],"blksize")
+      check(parts[3],"7")
+      check(parts[4],"")
+      check(parts[0],"tsize")
+      datasize,err := strconv.Atoi(parts[1])
+      check(err, nil)
+      
+      _, err = conn.WriteToUDP([]byte{0,4,0,0}, remote_addr)
+      check(err,nil)
+      
+      cmp,_ := ioutil.ReadFile(path.Join(confdir,"pxelinux.txt")) //.txt not .0!
+      check(datasize,len(cmp))
+      
+      start := 0
+      blocksize := 7
+      blockid := 1
+      for {
+        sz := len(cmp) - start
+        if sz > blocksize { sz = blocksize }
+        conn.SetReadDeadline(time.Now().Add(3*time.Second))
+        n, remote_addr, err := conn.ReadFromUDP(buf)
+        check(err,nil)
+        if !check(n > 4, true) { break }
+        check(buf[0], 0)
+        check(buf[1], 3)
+        check(buf[2], 0)
+        check(buf[3], blockid&0xff)
+        check(string(buf[4:n]), string(cmp[start:start+sz]))
+        _, err = conn.WriteToUDP([]byte{0,4,0,byte(blockid)}, remote_addr)
+        check(err,nil)
+        start += sz
+        blockid++    
+        if sz < blocksize { break }
+      }
+    }
+    
+    _, err = conn.WriteToUDP([]byte("\000\001doesntexist\000octet\000"), tftp_addr)
+    check(err,nil)
+    conn.SetReadDeadline(time.Now().Add(3*time.Second))
+    n, _, err = conn.ReadFromUDP(buf)
+    check(err,nil)
+    if check(n >= 4, true) {
+      check(buf[0:4], []byte{0,5,0,1})
+    }
+    
+    _,err = conn.WriteToUDP([]byte("\000\001pxelinux.cfg/01-0a-0b-0c-0d-0e-0f\000octet\000"),tftp_addr)
+    check(err,nil)
+    conn.SetReadDeadline(time.Now().Add(3*time.Second))
+    n, _, err = conn.ReadFromUDP(buf)
+    check(err,nil)
+    if check(n >= 4, true) {
+      check(buf[0:4], []byte{0,3,0,1})
+      check(string(buf[4:n]), "0a:0b:0c:0d:0e:0f\n")
+    }
   }
 }
 

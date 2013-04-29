@@ -42,6 +42,7 @@ import (
           "../xml"
           "../util"
           "../util/deque"
+          "../tftp"
           "../bytes"
           "../config"
           "../action"
@@ -159,6 +160,12 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   // NOTE: signals channel is created at the beginning of main()
   
   util.Log(1, "INFO! Intercepting these signals: %v", signals_to_watch)
+  
+  util.Log(1, "INFO! Accepting FAI monitoring messages on %v", config.FAIMonPort)
+  go faimon(":"+config.FAIMonPort)
+  
+  util.Log(1, "INFO! Accepting TFTP requests on %v", config.TFTPPort)
+  go tftp.ListenAndServe(":"+config.TFTPPort, config.TFTPFiles, config.PXELinuxCfgHookPath)
   
   util.Log(1, "INFO! Accepting connections on %v", tcp_addr);
   go acceptConnections(listener, tcp_connections)
@@ -360,4 +367,73 @@ func printStats() int {
     fmt.Println(c.Element().Name()+": "+c.Element().Text())
   }
   return 0
+}
+
+func faimon(listen_address string) {
+  listener, err := net.Listen("tcp", listen_address)
+  if err != nil {
+    util.Log(0, "ERROR! Cannot start FAI monitor: %v", err)
+    return
+  }
+  
+  for {
+    conn, err := listener.Accept()
+    if err != nil { 
+      util.Log(0,"ERROR! FAI monitor error: %v", err)
+      continue
+    }
+    
+    go util.WithPanicHandler(func(){faiConnection(conn.(*net.TCPConn))})
+  }
+}
+
+func faiConnection(conn *net.TCPConn) {
+  defer conn.Close()
+  var err error
+  
+  err = conn.SetKeepAlive(true)
+  if err != nil {
+    util.Log(0, "ERROR! SetKeepAlive: %v", err)
+  }
+  
+  var buf bytes.Buffer
+  defer buf.Reset()
+  readbuf := make([]byte, 4096)
+  n := 1
+  for n != 0 {
+    n, err = conn.Read(readbuf)
+    if err != nil && err != io.EOF {
+      util.Log(0, "ERROR! Read: %v", err)
+    }
+    if n == 0 && err == nil {
+      util.Log(0, "ERROR! Read 0 bytes but no error reported")
+    }
+    
+    // Find complete lines terminated by '\n' and process them.
+    for start := 0;; {
+      eol := start
+      for ; eol < n; eol++ {
+        if readbuf[eol] == '\n' { break }
+      }
+      
+      // no \n found, append to buf and continue reading
+      if eol == n {
+        buf.Write(readbuf[start:n])
+        break
+      }
+      
+      // append to rest of line to buffered contents
+      buf.Write(readbuf[start:eol])
+      start = eol+1
+      
+      buf.TrimSpace()
+      
+      util.Log(2, "DEBUG! FAI monitor message from %v: %v", conn.RemoteAddr(), buf.String())
+      buf.Reset()
+    }
+  }
+  
+  if  buf.Len() != 0 {
+    util.Log(2, "DEBUG! Incomplete FAI monitor message (i.e. not terminated by \"\\n\") from %v: %v", conn.RemoteAddr(), buf.String())
+  }
 }

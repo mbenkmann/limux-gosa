@@ -78,11 +78,26 @@ var PackageListHookPath = "/usr/lib/go-susi/generate_package_list"
 // Called when a job_send_user_msg job is executed.
 var UserMessageHookPath = "/usr/lib/go-susi/send_user_msg"
 
+// Called to generate a pxelinux.cfg file for a system.
+var PXELinuxCfgHookPath = "/usr/lib/go-susi/generate_pxelinux_cfg"
+
 // Path where log files from CLMSG_save_fai_log are stored.
 // Within this directory go-susi creates sub-directories named
 // after the clients' MAC addresses and symlinks named after the
 // clients' plain names.
 var FAILogPath = "/var/log/fai"
+
+// Port for accepting FAI status updates send via /usr/lib/fai/subroutines:sendmon()
+var FAIMonPort = "4711"
+
+// UDP Port for receiving TFTP requests
+var TFTPPort = "69"
+
+// Maps a file name as contained in a TFTP request to the actual path on
+// the local filesystem for satisfying that request.
+// Only files contained in this map will be served, in addition to
+// files matching "pxelinux.cfg/<MAC>".
+var TFTPFiles = map[string]string{}
 
 // Temporary directory only accessible by the user running go-susi.
 // Used e.g. for storing password files. Deleted in config.Shutdown().
@@ -379,6 +394,9 @@ func ReadConfig() {
     if user_msg_hook, ok := general["user-msg-hook"]; ok {
       UserMessageHookPath = user_msg_hook
     }
+    if pxelinux_cfg_hook, ok := general["pxelinux-cfg-hook"]; ok {
+      PXELinuxCfgHookPath = pxelinux_cfg_hook
+    }
   }
   
   if serverpackages, ok := conf["[ServerPackages]"]; ok {
@@ -423,6 +441,26 @@ func ReadConfig() {
       if err != nil { util.Log(0, "ERROR! Could not write user password to file: %v", err) } 
     }
   }
+  
+  if faimon, ok:= conf["[faimon]"]; ok {
+    if port,ok := faimon["port"]; ok {
+      FAIMonPort = port
+    }
+  }
+  
+  if tftp, ok:= conf["[tftp]"]; ok {
+    if port,ok := tftp["port"]; ok {
+      TFTPPort = port
+    }
+    
+    for tftp_path, real_path := range tftp {
+      if len(tftp_path) > 1 && tftp_path[0] == '/' {
+        TFTPFiles[tftp_path[1:]] = real_path
+      }
+    }
+  }
+  
+  
 }
 
 // Reads network parameters.
