@@ -39,7 +39,7 @@ const ALMOST_DONE_PROGRESS = "95"
 func clmsg_progress(xmlmsg *xml.Hash) {
   macaddress := xmlmsg.Text("macaddress")
   progress   := xmlmsg.Text("CLMSG_PROGRESS")
-  util.Log(1, "INFO! Progress info from client %v with MAC %v: %v",xmlmsg.Text("source"), progress, macaddress)
+  util.Log(1, "INFO! Progress info from client %v with MAC %v: %v",xmlmsg.Text("source"), macaddress, progress)
   // Because we don't know what kind of job the progress is for, we update
   // all local jobs in status processing for the client's MAC.
   // In theory only one job should be in status processing for a single client at
