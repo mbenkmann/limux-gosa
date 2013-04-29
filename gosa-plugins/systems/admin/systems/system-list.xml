@@ -184,8 +184,8 @@
 
     <column>
       <label>Description</label>
-      <sortAttribute>description</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>description,cn</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{filter:filterSystemDescription(row,dn,pid,state,description)}</value>
       <export>true</export>
     </column>
@@ -200,8 +200,8 @@
 
     <column>
       <label>Object group</label>
-      <sortAttribute>ogroup</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>ogroup,cn</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{filter:filterOgroup(ogroup)}</value>
       <export>true</export>
    </column>
@@ -272,7 +272,7 @@
       <name>new_gotoPrinter</name>
       <type>entry</type>
       <image>plugins/systems/images/select_printer.png[new]</image>
-      <label>Network printer</label>
+      <label>Printer</label>
       <depends>printgeneric</depends>
      </action>
 
@@ -347,7 +347,7 @@
         <depends>DaemonEvent_update</depends>
         <type>entry</type>
         <image>plugins/goto/images/update.png</image>
-        <label>Update</label>
+        <label>Software update</label>
       </action>
 
       <action>
@@ -421,7 +421,7 @@
         <depends>DaemonEvent_update</depends>
         <type>entry</type>
         <image>plugins/goto/images/update.png</image>
-        <label>Update</label>
+        <label>Software update</label>
       </action>
 
       <action>

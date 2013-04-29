@@ -65,6 +65,7 @@ class faiScriptEntry extends plugin
         /* Fill templating stuff */
         $smarty     = get_smarty();
         $smarty->assign("freeze", preg_match("/freeze/i",$this->FAIstate));
+        $smarty->assign("read_only",$this->read_only);
         $display = "";
 
         if(isset($_POST['ImportUpload']) && $this->acl_is_writeable("FAIscript")){

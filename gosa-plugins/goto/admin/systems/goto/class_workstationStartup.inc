@@ -490,8 +490,8 @@ class workstartup extends plugin
                 $server= "ldap://".preg_replace('/^([^:]+):/', '\1/', $server);
         } else {
             $server= preg_replace("/^[^:]+:/", "", $server);
-            $lData[$key] = array('data'=>array($server));
-        }    
+        }
+        $lData[$key] = array('data'=>array($server));
         }
         $this->ldapList->setListData($data,$lData);
         $this->ldapList->update();
@@ -609,9 +609,9 @@ class workstartup extends plugin
                     $desc = ""; 
 
                     $objects = array(
-                            "Pl"  => array("IMG"=> "plugins/fai/images/fai_partitionTable.png",
+                            "Pt"  => array("IMG"=> "plugins/fai/images/fai_partitionTable.png",
                                         "TITLE" => _('Partition table')),
-                            "Pt"     => array("IMG"=> "plugins/fai/images/fai_packages.png",
+                            "Pl"     => array("IMG"=> "plugins/fai/images/fai_packages.png",
                                         "TITLE" => _('Packages')),
                             "S"          => array("IMG"=> "plugins/fai/images/fai_script.png",
                                         "TITLE" => _('Scripts')

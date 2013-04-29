@@ -632,37 +632,30 @@ class termDNS extends plugin
             }
         }
 
-
-        /* Check if mac and ip are already used */
-        if(!empty($this->ipHostNumber) && $this->DNS_is_account && 
-                $this->ipHostNumber != $this->orig_ipHostNumber && 
-                in_array_strict("ip:".$this->ipHostNumber,$this->used_ip_mac)){
-            $message[]= msgPool::duplicated(_("IP address"));
-        }
-        if(!empty($this->macAddress) && $this->dhcp_is_Account && 
-                $this->macAddress != $this->orig_macAddress && 
-                in_array_strict("mac:".$this->macAddress,$this->used_ip_mac)){
-            $message[]= msgPool::duplicated(_("MAC address"));
-        }
-
-        /* Check if ip must be given
-         */  
-        if(($this->IPisMust)||($this->DNS_is_account)){
-            if (empty($this->ipHostNumber)){
-                $message[]= msgPool::required(_("IP address"));
-            }elseif (!tests::is_ip($this->ipHostNumber)){
-                $message[]= msgPool::invalid(_("IP address"), "", "", "192.168.1.10");
-            }
-        }
-
-        /* Check if mac is empty 
+        /* Check ip
          */
-        if($this->MACisMust || $this->dhcp_is_Account){
-            if ($this->macAddress == "" ){
-                $message[]= msgPool::required(_("MAC address"));
-            }elseif(!tests::is_mac($this->macAddress)){
+        if(!empty($this->ipHostNumber)) {
+            if (!tests::is_ip($this->ipHostNumber))
+                $message[]= msgPool::invalid(_("IP address"), "", "", "192.168.1.10");
+            elseif($this->DNS_is_account && $this->ipHostNumber != $this->orig_ipHostNumber && 
+                    in_array_strict("ip:".$this->ipHostNumber,$this->used_ip_mac))
+                $message[]= msgPool::duplicated(_("IP address"));
+        }
+        elseif(($this->IPisMust || $this->DNS_is_account)){
+            $message[]= msgPool::required(_("IP address"));
+        }
+
+        /* Check mac 
+         */
+        if(!empty($this->macAddress)) {
+            if (!tests::is_mac($this->macAddress))
                 $message[]= msgPool::invalid(_("MAC address"), "", "", "00:0C:7F:31:33:F1");
-            }
+            elseif($this->dhcp_is_Account && $this->macAddress != $this->orig_macAddress && 
+                    in_array_strict("mac:".$this->macAddress,$this->used_ip_mac))
+                $message[]= msgPool::duplicated(_("MAC address"));
+        }
+        elseif(($this->MACisMust || $this->dhcp_is_Account)){
+            $message[]= msgPool::required(_("MAC address"));
         }
 
         /* only perfrom this checks if this is a valid DNS account */

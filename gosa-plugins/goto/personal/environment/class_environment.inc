@@ -1348,6 +1348,10 @@ class environment extends plugin
     if(preg_match("/[^0-9]/",$this->gotoProfileQuota)) {
       $message[] = msgPool::invalid(_("Profile quota"),$this->gotoProfileQuota,"/[0-9]/") ;
     } 
+    $maxSize=4294967295; //2^32 - 1
+    if($this->gotoProfileQuota > $maxSize) {
+      $message[] = msgPool::toobig(_("Profile quota"));
+    }
     if(!isset($this->attrs['objectClass'])){
       $this->attrs['objectClass']=array();
     } 

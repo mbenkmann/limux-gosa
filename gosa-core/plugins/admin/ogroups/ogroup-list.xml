@@ -47,8 +47,8 @@
 
     <column>
       <label>Description</label>
-      <sortAttribute>description</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>description,cn</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{filter:link(row,dn,"%s",description)}</value>
       <export>true</export>
     </column>
@@ -76,7 +76,7 @@
       <name>new</name>
       <type>entry</type>
       <image>plugins/ogroups/images/ogroup.png[new]</image>
-      <label>Group</label>
+      <label>Object group</label>
      </action>
     </action>
 

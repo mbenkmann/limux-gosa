@@ -1669,7 +1669,7 @@ msgstr ""
 
 #: addons/goto/class_gotomasses.inc:26
 msgid "Deployment status"
-msgstr "Verteilungs-Status"
+msgstr "Verteilungsstatus"
 
 #: addons/goto/class_gotomasses.inc:27
 msgid "Monitor and schedule system deployment and update processes"
@@ -2977,7 +2977,7 @@ msgstr "Arbeitsstation"
 
 #: admin/systems/goto/class_workstationGeneric.inc:529
 msgid "A valid LDAP server assignment is missing!"
-msgstr "Es fehlt eine gültige LDAP-Server-Zusweisung!"
+msgstr "Es fehlt eine gültige LDAP-Server-Zuweisung!"
 
 #: admin/systems/goto/class_workstationGeneric.inc:539
 msgid "Software deployment"

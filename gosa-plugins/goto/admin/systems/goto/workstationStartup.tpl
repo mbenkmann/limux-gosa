@@ -61,7 +61,7 @@
       {/render}
 
       {render acl=$gotoLdapServerACL_inherit}
-        <select name='ldap_server_to_add' id='ldap_server_to_add' size=1>
+        <select name='ldap_server_to_add' id='ldap_server_to_add' size="1" style="max-width:480px">
          {html_options options=$gotoLdapServerList}	
         </select>
       {/render}

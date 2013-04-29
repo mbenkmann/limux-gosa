@@ -17,6 +17,9 @@ class filterFAIPackages {
       foreach($ret as $attr){
         
         $attr['objectClass'] = "FAKE_OC__FaiPackage";
+	if(!isset($attr['DESCRIPTION'])){
+          $attr['DESCRIPTION']="";
+	}
         $attr['DESCRIPTION'] = base64_decode($attr['DESCRIPTION']);
 
         $item = array();

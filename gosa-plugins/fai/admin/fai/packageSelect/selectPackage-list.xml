@@ -46,8 +46,8 @@
 
     <column>
       <label>Version</label>
-      <sortAttribute>VERSION</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>VERSION,PACKAGE</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{VERSION}</value>
       <export>true</export>
     </column>

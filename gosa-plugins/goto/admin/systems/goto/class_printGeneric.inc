@@ -790,6 +790,9 @@ class printgeneric extends plugin
         if(empty($this->labeledURI)){
             $message[]= msgPool::required(_("Printer URL"));
         }
+        elseif(!tests::is_cups_uri($this->labeledURI)) {
+            $message[]=msgPool::invalid(_("Printer URL"));
+        }
 
         /* Check if there is already an entry with this cn*/
         if (($this->orig_dn != $dn)&&( preg_match("/printer/i",$this->BelongsTo))){

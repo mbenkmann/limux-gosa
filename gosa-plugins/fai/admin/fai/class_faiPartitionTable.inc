@@ -161,6 +161,7 @@ class faiPartitionTable extends plugin
       $this->dialog->set_acl_base($this->acl_base_for_current_object($this->dn));
       $this->dialog->set_acl_category("fai");
       $this->dialog->FAIstate = $this->FAIstate;
+      $this->dialog->read_only=$this->read_only;
 
 
       $this->is_dialog = true;
@@ -282,6 +283,7 @@ class faiPartitionTable extends plugin
         $this->dialog->set_acl_base($this->acl_base_for_current_object($dn));
         $this->dialog->set_acl_category("fai");
         $this->dialog->FAIstate = $this->FAIstate;
+        $this->dialog->read_only=$this->read_only;
         $this->is_dialog = true;
       }
     }
@@ -345,10 +347,12 @@ class faiPartitionTable extends plugin
     $dn = $this->acl_base_for_current_object($this->dn);
     $smarty->assign("sub_object_is_addable",
         preg_match("/c/",$this->ui->get_permissions($dn,"fai/faiPartitionTableEntry")) &&
-        !preg_match("/freeze/",$this->FAIstate));
+        !preg_match("/freeze/",$this->FAIstate) &&
+        !$this->read_only);
     $smarty->assign("sub_object_is_removeable",
         preg_match("/d/",$this->ui->get_permissions($dn,"fai/faiPartitionTableEntry")) &&
-        !preg_match("/freeze/",$this->FAIstate));
+        !preg_match("/freeze/",$this->FAIstate) &&
+        !$this->read_only);
 
     $tmp = $this->plInfo();
     foreach($tmp['plProvidedAcls'] as $name => $translated){

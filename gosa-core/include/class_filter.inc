@@ -167,8 +167,8 @@ class filter {
 
     function getTextfield($tag, $value= "", $element= null)
     {
-        $size= 30;
-        $maxlength= 30;
+        $size= 31;
+        $maxlength= 31;
         $result= "<input class='filter_textfield' placeholder='"._("Search")."...' id='$tag' name='$tag' type='text' size='$size' maxlength='{$maxlength}' value='".$value."'>";
         if ($element && isset($element['autocomplete'])) {
             $frequency= "0.5";
@@ -238,8 +238,10 @@ class filter {
     function render()
     {
         $content= "<table class='filter-wrapper' summary='"._("Search filter")."'><tr><td>".$this->renderFilterMenu()."</td><td>";
-        $content.= "<div class='search-filter'>".$this->getTextfield('search_filter', set_post($this->value), $this->searches[$this->search])."</div>".
-            "&nbsp;<button class='search-filter' type='submit' title='"._("Search")."'>".image("images/find.png")."</button></td></tr></table>";
+	$content.= "<div class='search-filter'>".$this->getTextfield('search_filter', set_post($this->value), $this->searches[$this->search])."</div>";
+        $content.= "&nbsp;<button class='search-filter' type='submit' title='"._("Search")."'>".image("images/find.png")."</button>";
+        $content.= "&nbsp;<button class='search-filter' onClick='$(\"search_filter\").value=\"\";$(\"act\").value= \"filter-default\";$(\"exec_act\").click();' type=\"submit\" title=\""._("Delete filter")."\">".image("images/lists/trash.png")."</button>";
+        $content.= "</td></tr></table>";
 
         // Return meta data
         return ("<input type='hidden' name='FILTER_PID' value='".$this->pid."'>".$content);

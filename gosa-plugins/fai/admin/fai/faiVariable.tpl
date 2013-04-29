@@ -47,8 +47,9 @@
        {msgPool type=addButton}</button>
        
       {/if}
+      {if not $read_only}
       <button type='submit' name='EditSubObject' title="{t}Edit{/t}">{t}Edit{/t}</button>
-      
+      {/if}
       {if $is_removeable}
        <button type='submit' name='DelSubObject' title="{msgPool type=delButton}">
        {msgPool type=delButton}</button>

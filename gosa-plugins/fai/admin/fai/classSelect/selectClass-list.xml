@@ -9,7 +9,7 @@
     <template>../plugins/admin/fai/classSelect/selectClass-list.tpl</template>
     <module>users</module>
     <label>Please select the desired entries</label>
-    <defaultSortColumn>1</defaultSortColumn>
+    <defaultSortColumn>0</defaultSortColumn>
 
     <objectType>
       <label>FAI</label>

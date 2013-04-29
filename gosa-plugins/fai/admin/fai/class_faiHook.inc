@@ -177,6 +177,7 @@ class faiHook extends plugin
 
         $this->dialog= new $this->subClassName($this->config,$this->dn,$obj);
         $this->dialog->FAIstate = $this->FAIstate;
+        $this->dialog->read_only=$this->read_only;
         $this->dialog->set_acl_base($this->acl_base_for_current_object($obj['dn']));
         $this->dialog->set_acl_category("fai");
 
@@ -206,6 +207,7 @@ class faiHook extends plugin
     if(isset($_POST['AddSubObject'])){
       $c_dn = $this->acl_base_for_current_object($this->dn);
       $this->dialog= new $this->subClassName($this->config,"new");
+      $this->read_only=$this->read_only;
       $this->dialog->set_acl_base($c_dn);
       $this->dialog->FAIstate = $this->FAIstate;
       $this->dialog->set_acl_category("fai");
@@ -296,7 +298,7 @@ class faiHook extends plugin
     $tmp = $this->plInfo();
       
     $c_dn = $this->acl_base_for_current_object($this->dn);
-    $smarty->assign("sub_object_is_addable", preg_match("/c/",$this->ui->get_permissions($c_dn,"fai/faiHookEntry")) && !preg_match('/^freeze/', $this->FAIstate));
+    $smarty->assign("sub_object_is_addable", preg_match("/c/",$this->ui->get_permissions($c_dn,"fai/faiHookEntry")) && !preg_match('/^freeze/', $this->FAIstate) && !$this->read_only);
     foreach($tmp['plProvidedAcls'] as $name => $translation){
       $smarty->assign($name."ACL",$this->getacl($name));
     }

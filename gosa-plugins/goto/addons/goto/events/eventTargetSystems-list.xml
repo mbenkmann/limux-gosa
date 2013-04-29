@@ -71,32 +71,32 @@
 
     <column>
       <label>Description</label>
-      <sortAttribute>description</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>description,cn</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{description}</value>
       <export>true</export>
     </column>
 
     <column>
       <label>IP</label>
-      <sortAttribute>ipHostNumber</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>ipHostNumber,cn</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{ipHostNumber}</value>
       <export>true</export>
     </column>
 
     <column>
       <label>Mac</label>
-      <sortAttribute>macAddress</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>macAddress,cn</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{macAddress}</value>
       <export>true</export>
     </column>
 
     <column>
       <label>Release</label>
-      <sortAttribute>Release</sortAttribute>
-      <sortType>string</sortType>
+      <sortAttribute>sort,cn</sortAttribute>
+      <sortType>string,string</sortType>
       <value>%{filter:systemRelease(dn,objectClass,FAIclass)}</value>
       <export>true</export>
     </column>

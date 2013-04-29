@@ -42,9 +42,14 @@
 	  <td><br><LABEL for="base">{t}Base{/t}</LABEL>{$must}</td>
 	  <td>
 	   <br>
+<style type="text/css">
+#wrapper-base .treeList { max-width:700px; word-wrap:break-word; }
+</style>
+<div id="wrapper-base">
 {render acl=$baseACL}
            {$base}
 {/render}
+</div>
 	   </td>
 	  </tr>
 	  <tr>

@@ -208,13 +208,14 @@ class group extends plugin
         // Prepare lists
         $this->memberList = new sortableListing();
         $this->memberList->setDeleteable(true);
+        $this->memberList->setMassdelete(true);
         $this->memberList->setInstantDelete(false);
         $this->memberList->setEditable(false);
         $this->memberList->setWidth("100%");
         $this->memberList->setHeight("300px");
-        $this->memberList->setHeader(array('~',_("Surname"),_("Given name"),_("Login")));
-        $this->memberList->setColspecs(array('20px','*','*','*','20px'));
-        $this->memberList->setDefaultSortColumn(1);
+        $this->memberList->setHeader(array("X",'~',_("Surname"),_("Given name"),_("Login")));
+        $this->memberList->setColspecs(array('20px','20px','*','*','*','20px'));
+        $this->memberList->setDefaultSortColumn(2);
 
         $this->reload(TRUE);
     }
@@ -338,7 +339,7 @@ class group extends plugin
                 if(isset($member['sn'])){
                     $image = image('plugins/users/images/select_user.png');
                 }
-                $lData[$uid] = array('data' => array($image,$sn, $givenName, $uid));
+                $lData[$uid] = array('data' => array("",$image,$sn, $givenName, $uid));
             }
             $this->memberList->setListData($data,$lData);
             $bool = $this->isRestrictedByDynGroup();

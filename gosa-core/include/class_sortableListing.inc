@@ -42,12 +42,13 @@ class sortableListing {
     private $columns= 0;
     private $deleteable= false;
     private $editable= false;
+    private $massdelete= false;
     private $colorAlternate= false;
     private $instantDelete= true;
     private $action;
     private $mapping;
     private $current_mapping;
-    private $active_index;
+    private $active_index= array();
     private $scrollPosition= 0;
     private $sortColumn= 0;
     private $sortDirection= array();
@@ -210,6 +211,12 @@ class sortableListing {
     }
 
 
+    public function setMassdelete($flag)
+    {
+        $this->massdelete= $flag;
+    }
+
+
     public function setHeight($height)
     {
         $this->height= $height;
@@ -254,8 +261,10 @@ class sortableListing {
         }
         if (strpos($this->acl, 'w') === false) {
             $delete_image= $delete_img_disabled;
+            $massdelete_enabled= false;
         } else {
             $delete_image= $delete_img_enabled;
+            $massdelete_enabled= true;
         }
 
         // Do we need colspecs?
@@ -281,6 +290,8 @@ class sortableListing {
         if ($this->header) {
             $result.= " <thead>\n  <tr>\n";
             $first= " style='border-left:0'";
+            if ($this->massdelete && $massdelete_enabled)
+                $this->header[0]="<input type='checkbox' id='select_all' name='select_all' title='"._("Select all")."' onClick='toggle_all_(\"listing_selected_[0-9]*\$\",\"select_all\");' />";
             for ($i= 0; $i<$this->columns; $i++) {
                 $link= "href='?plug=".$_GET['plug']."&amp;PID=".$this->id."&amp;act=SORT_$i'";
                 $sorter= "";
@@ -288,7 +299,9 @@ class sortableListing {
                     $sorter= "&nbsp;".image("images/lists/sort-".($this->sortDirection[$i]?"up":"down").".png", null, $this->sortDirection[$i]?_("Sort ascending"):_("Sort descending"));
                 }
 
-                if ($this->reorderable) {
+                if($this->massdelete && $massdelete_enabled && $i==0) {
+                    $result.="<th$first>{$this->header[0]}</th>";
+                } elseif ($this->reorderable) {
                     $result.= "   <th$first>".(isset($this->header[$i])?$this->header[$i]:"")."</th>";
                 } else {
                     $result.= "   <th$first><a $link>".(isset($this->header[$i])?$this->header[$i]:"")."</a>$sorter</th>";
@@ -336,6 +349,13 @@ class sortableListing {
                 $result.= "  <tr class='sortableListItem".((($nr&1)||!$this->colorAlternate)?'':'Odd')."$id' id='item_".$this->id."_$nr'$reorderable>\n";
                 $first= " style='border:0'";
 
+                if ($this->massdelete) {
+                    if ($massdelete_enabled)
+                        $this->displayData[$row][0]="<input type=\"checkbox\" id=\"listing_selected_$nr\" name=\"massdelete[]\" value=\"{$this->id}_$nr\" />";
+                    else
+                        $this->displayData[$row][0]="";
+                }
+
                 foreach ($this->displayData[$row] as $column) {
 
                     // Do NOT use the onClick statement for columns that contain links or buttons.
@@ -368,6 +388,8 @@ class sortableListing {
 #    $result.= " <input type='hidden' name='PID' value='".$this->id."' id='PID'>\n";
         $result.= " <input type='hidden' name='position_".$this->id."' id='position_".$this->id."'>\n";
         $result.= " <input type='hidden' name='reorder_".$this->id."' id='reorder_".$this->id."'>\n";
+        if($this->massdelete && $massdelete_enabled)
+            $result.= "<button name='massdelete_active' value=\"removeme\">".msgPool::delButton()."</button>\n";
 
         // Append script stuff if needed
         $result.= '<script type="text/javascript" language="javascript">';
@@ -453,6 +475,17 @@ class sortableListing {
             }
         }
 
+        if(isset($_POST["massdelete_active"]) && $_POST["massdelete_active"]!="") {
+            $t= get_post("massdelete");
+            $targets= array();
+            foreach ($t as $id) {
+                if (preg_match('/^'.$this->id.'_([0-9]+)$/', $id, $matches))
+                    $_POST["del_".$this->id."_".$matches[1]]= true;
+            }
+        }
+
+        $this->active_index= array();
+
         foreach ($_POST as $key => $value) {
             $value = get_post($key);
 
@@ -460,18 +493,18 @@ class sortableListing {
             if (preg_match('/^del_'.$this->id.'_([0-9]+)$/', $key, $matches)) {
                 if(!isset($this->mapping[$matches[1]])) return;
 
-                $this->active_index= $this->mapping[$matches[1]];
+                $me= $this->mapping[$matches[1]];
 
                 // Ignore request if mode requests it
-                if (isset($this->modes[$this->active_index]) && $this->modes[$this->active_index] == LIST_DISABLED) {
-                    $this->active_index= null;
+                if (isset($this->modes[$me]) && $this->modes[$me] == LIST_DISABLED) {
+                    $me= null;
                     continue;
                 }
     
                 // Allowed to delete?
                 $allow_delete = strpos($this->acl, 'w');
-                if (isset($this->actions[$this->active_index]['delete'])) {
-                    $this->actions[$this->active_index]['delete'];
+                if (isset($this->actions[$me]['delete'])) {
+                    $this->actions[$me]['delete'];
                 }
 
                 // Set action
@@ -479,8 +512,10 @@ class sortableListing {
 
                 // Remove value if requested
                 if ($this->instantDelete) {
-                    $this->deleteEntry($this->active_index);
+                    $this->deleteEntry($me);
                 }
+                
+                $this->active_index[]=$me;
             }
 
 
@@ -520,8 +555,10 @@ class sortableListing {
             return array("targets" => $this->current_mapping, "mapping" => $this->mapping, "action" => $this->action);
         }
 
+        if(!is_array($this->active_index))
+            $this->active_index=array($this->active_index);
         // Edit and delete
-        $result= array("targets" => array($this->active_index), "action" => $this->action);
+        $result= array("targets" => $this->active_index, "action" => $this->action);
 
         return $result;
     }
