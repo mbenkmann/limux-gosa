@@ -2,7 +2,7 @@
 
 test -f ../config/config.go && cd ..
 test -f config/config.go || exit 1
-hg log --style=compact -I main/go-susi.go -I "message/*.go" -I "action/*.go" -I "bytes/*.go" -I "util/*.go" -I "config/*.go" -I "db/*.go" -I "xml/*.go"| tac | tr 'A-Z' 'a-z' | sed 's/\([[#]\)/\n\1/g' |
+hg log --style=compact -I main/go-susi.go -I "message/*.go" -I "action/*.go" -I "bytes/*.go" -I "util/*.go" -I "config/*.go" -I "db/*.go" -I "xml/*.go" -I "tftp/*.go" | tac | tr 'A-Z' 'a-z' | sed 's/\([[#]\)/\n\1/g' |
 (
   milestone=-1
   minor=0
