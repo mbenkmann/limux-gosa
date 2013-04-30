@@ -174,6 +174,10 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   go message.Broadcast_new_server()
   go message.DistributeForeignJobUpdates()
   go func(){http.ListenAndServe("localhost:6060", nil)}()
+  
+  myself, err := db.SystemGetAllDataForMAC(config.MAC, true)
+  if err != nil { util.Log(0, "ERROR! Error getting my own LDAP object: %v", err) }
+  go func(){message.Send_new_ldap_config(config.ServerSourceAddress, myself)}()
 
   /********************  main event loop ***********************/  
   for{ 

@@ -170,10 +170,6 @@ var client_connections_mutex sync.Mutex
 // Returns a ClientConnection for talking to addr, which can be either
 // IP:ADDR or HOST:ADDR (where HOST is something that DNS can resolve).
 func Client(addr string) *ClientConnection {
-  if addr == config.ServerSourceAddress { 
-    panic("Client() called with my own address. This is a bug!") 
-  }
-  
   host, port, err := net.SplitHostPort(addr)
   if err != nil {
     util.Log(0, "ERROR! Client(%v): %v", addr, err)
