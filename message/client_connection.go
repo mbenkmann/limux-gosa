@@ -26,6 +26,7 @@ import (
          "time"
           
          "../db"
+         "../xml"
          "../util"
          "../config"
        )
@@ -109,8 +110,14 @@ func (conn *ClientConnection) Tell(text string, ttl time.Duration) {
       
       client := db.ClientWithAddress(conn.addr)
       if client == nil {
-        util.Log(0, "ERROR! Client %v not found in clientdb")
-        continue
+        if conn.addr == config.ServerSourceAddress {
+          // If sending to myself (e.g. new_ldap_config), fake a client object
+          client = xml.NewHash("xml","source",config.ServerSourceAddress)
+          client.Add("key", config.ModuleKey["[ClientPackages]"])
+        } else {
+          util.Log(0, "ERROR! Client %v not found in clientdb", conn.addr)
+          continue
+        }
       }
       
       // if client is registered at a foreign server
