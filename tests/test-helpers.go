@@ -322,6 +322,22 @@ echo $macaddress
 set >"$0.env"
 `), 0755)
 
+  update_config := tempdir+"/update_config"
+  ioutil.WriteFile(update_config, []byte(`#!/bin/bash
+exec >>`+tempdir+`/config.txt
+
+test -n "$new_ldap_config" && {
+  echo $department
+  echo $admin_base
+  for l in $ldap_uri ; do echo $l ; done
+}
+
+test -n "$new_ntp_config" && {
+  for s in $server ; do echo $s ; done
+}
+exit 0
+`), 0755)
+
   pxelinux := tempdir+"/pxelinux.txt"
   ioutil.WriteFile(pxelinux, []byte("This is\000pxelinux.0"), 0644)
   
@@ -334,6 +350,7 @@ kernel-list-hook = `+tempdir+`/generate_kernel_list
 package-list-hook = `+tempdir+`/generate_package_list
 user-msg-hook = `+tempdir+`/send_user_msg
 pxelinux-cfg-hook = `+tempdir+`/generate_pxelinux_cfg
+new-config-hook = `+tempdir+`/update_config
 
 [bus]
 enabled = false

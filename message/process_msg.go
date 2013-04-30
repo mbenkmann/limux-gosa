@@ -183,6 +183,8 @@ func ProcessXMLMessage(xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply *
     case "CLMSG_LOGOUT":        clmsg_logout(xml)
     case "CLMSG_PROGRESS":      clmsg_progress(xml)
     case "CLMSG_GOTOACTIVATION":clmsg_gotoactivation(xml)
+    case "new_ldap_config",
+         "new_ntp_config":      new_foo_config(xml)
     case "job_set_activated_for_installation",
          "gosa_set_activated_for_installation":
                                 gosa_set_activated_for_installation(xml)

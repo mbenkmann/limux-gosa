@@ -348,10 +348,25 @@ func SystemTest(daemon string, is_gosasi bool) {
     siFail(true,false)
     fmt.Print("gosa-si does not include a TFTP server => ")
     siFail(true,false)
+    fmt.Print("gosa-si does not support new_foo_config messages => ")
+    siFail(true,false)
   } else {
     run_save_fai_log_tests()
     run_trigger_activate_new_tests()
     run_tftp_tests()
+    run_new_foo_config_tests()
+  }
+}
+
+func run_new_foo_config_tests() {
+  newcfg1 := hash("xml(header(new_ldap_config)admin_base(A)department(D)ldap_uri(ldap://foo)ldap_uri(ldap://bar))")
+  newcfg2 := hash("xml(header(new_ntp_config)server(foo)server(bar))")
+  send("[GOsaPackages]", newcfg1)
+  send("[GOsaPackages]", newcfg2)
+  time.Sleep(1*time.Second)
+  data, err := ioutil.ReadFile(path.Join(confdir,"config.txt"))
+  if check(err, nil) {
+    check(string(data), "D\nA\nldap://foo\nldap://bar\nfoo\nbar\n")
   }
 }
 

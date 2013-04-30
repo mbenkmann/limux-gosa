@@ -81,6 +81,9 @@ var UserMessageHookPath = "/usr/lib/go-susi/send_user_msg"
 // Called to generate a pxelinux.cfg file for a system.
 var PXELinuxCfgHookPath = "/usr/lib/go-susi/generate_pxelinux_cfg"
 
+// Called whenever a new_foo_config message is received.
+var NewConfigHookPath = "/usr/lib/go-susi/update_config_files"
+
 // Path where log files from CLMSG_save_fai_log are stored.
 // Within this directory go-susi creates sub-directories named
 // after the clients' MAC addresses and symlinks named after the
@@ -396,6 +399,9 @@ func ReadConfig() {
     }
     if pxelinux_cfg_hook, ok := general["pxelinux-cfg-hook"]; ok {
       PXELinuxCfgHookPath = pxelinux_cfg_hook
+    }
+    if new_config_hook, ok := general["new-config-hook"]; ok {
+      NewConfigHookPath = new_config_hook
     }
   }
   
