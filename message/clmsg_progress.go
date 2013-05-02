@@ -70,6 +70,7 @@ var watchers = map[string]uint64{}
 
 func processing_finished_watcher(macaddress, client_addr string) {
   id := <-nextID
+  util.Log(2, "DEBUG! Installation/Update of client %v almost done => Watcher %v started", macaddress, id)
   mutex.Lock()
   watchers[client_addr] = id
   mutex.Unlock()
@@ -82,7 +83,10 @@ func processing_finished_watcher(macaddress, client_addr string) {
     mutex.Lock()
     quit := (watchers[client_addr] != id)
     mutex.Unlock()
-    if quit { return }
+    if quit { 
+      util.Log(2, "DEBUG! Watcher %v quitting because another watcher has taken responsibility for %v", id, macaddress)
+      return 
+    }
     if err != nil { break }
     time.Sleep(10*time.Second)
   }
@@ -95,5 +99,7 @@ func processing_finished_watcher(macaddress, client_addr string) {
   if db.JobsQuery(filter).FirstChild() != nil { // if we have stalled jobs
     util.Log(0, "WARNING! Client %v did not report progress 100%% => Removing stalled jobs (Triggered by %v)", macaddress, err)
     db.JobsModifyLocal(filter, xml.NewHash("job","status","done"))
+  } else {
+    util.Log(2, "DEBUG! Client %v has shut down. No stalled jobs found. Watcher %v quitting.", macaddress, id)
   }
 }
