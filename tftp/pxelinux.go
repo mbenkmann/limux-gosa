@@ -45,6 +45,8 @@ import (
 // via environment variables to the executable at path pxelinux_hook. Its stdout is
 // sent to the requestor.
 func ListenAndServe(listen_address string, files map[string]string, pxelinux_hook string) {
+  util.Log(1, "INFO! TFTP: Serving the following files: %v", files)
+  
   udp_addr,err := net.ResolveUDPAddr("udp", listen_address)
   if err != nil {
     util.Log(0, "ERROR! ResolveUDPAddr(): %v", err)
