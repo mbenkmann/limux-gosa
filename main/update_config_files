@@ -1,17 +1,17 @@
 #!/bin/bash
 
-exec 2>>/tmp/update.log
+exec 2>>/var/log/update_config_files.log
 set -x
 
-conf="$(cat /etc/gosa-si/client.conf | tr -d ' \t')"
+conf="$(cat /etc/gosa-si/server.conf /etc/gosa-si/client.conf | tr -d ' \t')"
 
-ldap_config=$(echo "$conf" | sed -n -r 's/^ldap-config=(.*)/\1/p')
+ldap_config=$(echo "$conf" | sed -n -r 's/^ldap-config=(.*)/\1/p' | tail -n 1)
 test -z "$ldap_config" && ldap_config=/etc/ldap/ldap.conf
-pam_config=$(echo "$conf" | sed -n -r 's/^pam-config=(.*)/\1/p')
+pam_config=$(echo "$conf" | sed -n -r 's/^pam-config=(.*)/\1/p' | tail -n 1)
 test -z "$pam_config" && pam_config=/etc/pam_ldap.conf
-nss_config=$(echo "$conf" | sed -n -r 's/^nss-config=(.*)/\1/p')
+nss_config=$(echo "$conf" | sed -n -r 's/^nss-config=(.*)/\1/p' | tail -n 1)
 test -z "$nss_config" && nss_config=/etc/libnss-ldap.conf
-offline_enabled=$(echo "$conf" | sed -n -r 's/^offline-ldap=(.*)/\1/p')
+offline_enabled=$(echo "$conf" | sed -n -r 's/^offline-ldap=(.*)/\1/p' | tail -n 1)
 test -z "$offline_enabled" && offline_enabled=0
 
 test -n "$new_ldap_config" && {
