@@ -204,7 +204,7 @@ func sendAndWaitForAck(udp_conn *net.UDPConn, peer_addr *net.UDPAddr, sendbuf []
           return true
         } else {
           if readbuf[0] == 0 && readbuf[1] == 5 { // error
-            util.Log(2, "DEBUG! TFTP ERROR received while waiting for ACK from %v: %v", peer_addr, string(readbuf[4:]))
+            util.Log(2, "DEBUG! TFTP ERROR received while waiting for ACK from %v: %v", peer_addr, string(readbuf[4:n]))
             break outer // retries make no sense => bail out
           } else {
             util.Log(2, "DEBUG! TFTP waiting for ACK but received: %#v", string(readbuf[0:n]))
