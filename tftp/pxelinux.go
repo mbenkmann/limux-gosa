@@ -40,7 +40,7 @@ import (
 
 // Accepts UDP connections for TFTP requests on listen_address, serves read requests
 // for path P by sending the file at local path files[P], with a special case
-// for every path of the form "pxelinux.cfg/ab-cd-ef-gh-ij-kl" where the latter
+// for every path of the form "pxelinux.cfg/01-ab-cd-ef-gh-ij-kl" where the latter
 // part is a MAC address. For these requests the LDAP object is extracted and passed
 // via environment variables to the executable at path pxelinux_hook. Its stdout is
 // sent to the requestor.
@@ -49,7 +49,7 @@ func ListenAndServe(listen_address string, files map[string]string, pxelinux_hoo
   
   udp_addr,err := net.ResolveUDPAddr("udp", listen_address)
   if err != nil {
-    util.Log(0, "ERROR! ResolveUDPAddr(): %v", err)
+    util.Log(0, "ERROR! Cannot start TFTP server: %v", err)
     return
   }
   
