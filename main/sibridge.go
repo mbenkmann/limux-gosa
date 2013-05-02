@@ -248,7 +248,7 @@ func main() {
   
   // If requested, accept TCP connections
   if ListenForConnections {
-    tcp_addr, err := net.ResolveTCPAddr("ip4", config.ServerListenAddress)
+    tcp_addr, err := net.ResolveTCPAddr("tcp4", config.ServerListenAddress)
     if err != nil {
       util.Log(0, "ERROR! ResolveTCPAddr: %v", err)
       os.Exit(1)
