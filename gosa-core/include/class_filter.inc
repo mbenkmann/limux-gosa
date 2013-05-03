@@ -111,6 +111,16 @@ class filter {
             $this->scope= $this->scopeMode;
         }
 
+        // Check if scope was set in session
+        if(session::global_is_set("filterScopeMode")){
+          $this->scopeMode=session::global_get("filterScopeMode");
+        }
+        if(session::global_is_set("filterScope")){
+          $this->scope=session::global_get("filterScope");
+        }
+        session::global_set("filterScopeMode",$this->scopeMode);
+        session::global_set("filterScope",$this->scope); 
+
         // Transfer attributes
         $this->attributes= $xmlData['definition']['attribute'];
         if (!is_array($this->attributes)) {
@@ -231,6 +241,8 @@ class filter {
     function setCurrentScope($scope)
     {
         $this->scope= $scope;
+        session::global_set("filterScopeMode",$this->scopeMode);
+        session::global_set("filterScope",$this->scope); 
     }
 
 
@@ -325,6 +337,9 @@ class filter {
 
     function update()
     {
+        //get scope from session to incorporate changes made in other filter
+        $this->scope=session::global_get("filterScope");
+        $this->scopeMode=session::global_get("filterScopeMode"); 
         if (isset($_POST['FILTER_PID']) && $_POST['FILTER_PID'] == $this->pid) {
             // Save input field
             if (isset($_POST['search_filter'])) {
@@ -346,6 +361,8 @@ class filter {
                 }
             }
         }
+        session::global_set("filterScopeMode",$this->scopeMode);
+        session::global_set("filterScope",$this->scope); 
 
     }
 
