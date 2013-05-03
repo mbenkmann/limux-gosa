@@ -226,5 +226,26 @@ func testBuffer() {
   check(b.Capacity(), c)
   check(b.Pointer(), p)
   check(b.String(), "otzt in den Cottbuser Postkot")
+  
+  b.Reset()
+  b.Write0(-1)
+  b.Write0(-100)
+  b.Write0(0)
+  check(b.Len(), 0)
+  check(b.Capacity(), 0)
+  check(b.Pointer(), nil)
+  
+  b.Write0(1)
+  check(b.Len(), 1)
+  check(b.Capacity(), 1)
+  check(b.Bytes(), []byte{0})
+  
+  b.WriteByte(111)
+  b.Write0(1)
+  b.WriteByte(222)
+  b.Write0(2)
+  b.WriteByte(99)
+  check(b.Len(), 7)
+  check(b.Bytes(), []byte{0,111,0,222,0,0,99})
 }
 
