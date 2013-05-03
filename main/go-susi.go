@@ -35,6 +35,7 @@ import (
           "log"
           "path"
           "time"
+          "strings"
           "syscall"
           "sync/atomic"
           
@@ -161,13 +162,13 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
   util.Log(1, "INFO! Intercepting these signals: %v", signals_to_watch)
   
-  util.Log(1, "INFO! Accepting FAI monitoring messages on %v", config.FAIMonPort)
+  util.Log(1, "INFO! Accepting FAI monitoring messages on TCP port %v", config.FAIMonPort)
   go faimon(":"+config.FAIMonPort)
   
-  util.Log(1, "INFO! Accepting TFTP requests on %v", config.TFTPPort)
+  util.Log(1, "INFO! Accepting TFTP requests on UDP port %v", config.TFTPPort)
   go tftp.ListenAndServe(":"+config.TFTPPort, config.TFTPFiles, config.PXELinuxCfgHookPath)
   
-  util.Log(1, "INFO! Accepting connections on %v", tcp_addr);
+  util.Log(1, "INFO! Accepting gosa-si protocol connections on TCP port %v", strings.SplitN(config.ServerSourceAddress,":",2)[1]);
   go acceptConnections(listener, tcp_connections)
   
   go message.CheckPossibleClients()
