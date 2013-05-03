@@ -136,7 +136,7 @@ func getFile(name string, files map[string]string, pxelinux_hook string) (*bytes
      return data,err
   }
   
-  return data, fmt.Errorf("File \"%v\" not found", name)
+  return data, fmt.Errorf("TFTP not configured to serve file \"%v\"", name)
 }
 
 // Sends a TFTP ERROR to addr with the given error code and error message emsg.
