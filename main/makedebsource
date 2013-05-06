@@ -11,11 +11,16 @@ debversion=${version}-1
 
 test -d deb/ && { echo "deb/ already exists!" ; exit 1 ; }
 mkdir deb || exit 1
+make doc || exit 1
+make man || exit 1
 hg archive -t tar -p go-susi-$version deb/go-susi_$version.orig.tar
+mkdir -p deb/go-susi-$version/doc
+cp doc/go-susi-manual.pdf deb/go-susi-$version/doc/go-susi-$version-manual.pdf
+cp doc/go-susi-manual.odt deb/go-susi-$version/doc/go-susi-$version-manual.odt
+cp doc/go-susi-manual.xhtml deb/go-susi-$version/doc/go-susi-$version-manual.xhtml
+cp doc/*.5 doc/*.1 deb/go-susi-$version/doc/
 cd deb || exit 1
-mkdir -p go-susi-$version/doc
-wget "https://docs.google.com/document/d/17_j8s2-PBVJLaQzmjrdeh6CVWkzP_viA3Uo7AtFmt8c/export?format=pdf" -O go-susi-$version/doc/go-susi-$version-manual.pdf
-wget "https://docs.google.com/document/d/17_j8s2-PBVJLaQzmjrdeh6CVWkzP_viA3Uo7AtFmt8c/export?format=odt" -O go-susi-$version/doc/go-susi-$version-manual.odt
+tar --delete --file=go-susi_$version.orig.tar go-susi-$version/doc/go-susi-manual.{pdf,xhtml,odt}
 tar rf go-susi_$version.orig.tar go-susi-$version/doc
 gzip -9 go-susi_$version.orig.tar
 
@@ -138,9 +143,13 @@ build:
 	chmod a+rx main/gosa-si-server main/generate_* main/send_* main/update_config_files
 	mkdir -p dist/etc/gosa-si dist/etc/logrotate.d dist/usr/lib/go-susi/ dist/usr/sbin
 	mkdir -p dist/usr/share/doc/go-susi
+	mkdir -p dist/usr/share/man/man1
+	mkdir -p dist/usr/share/man/man5
 	cp debian/copyright dist/usr/share/doc/go-susi
 	cp debian/changelog dist/usr/share/doc/go-susi/changelog.Debian
-	cp doc/* dist/usr/share/doc/go-susi/
+	cp doc/*.odt doc/*.pdf doc/*.xhtml dist/usr/share/doc/go-susi/
+	cp doc/*.1 dist/usr/share/man/man1
+	cp doc/*.5 dist/usr/share/man/man5
 	gzip -9 dist/usr/share/doc/go-susi/changelog.Debian
 	cp main/generate_* main/send_user_msg main/update_config_files dist/usr/lib/go-susi/
 	cp go-susi dist/usr/lib/go-susi/gosa-si-server

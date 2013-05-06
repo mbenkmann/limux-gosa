@@ -16,7 +16,7 @@ all: man
 
 .PHONY: man
 man: VERSION=$(shell main/makeversion && sed -n 's/.*Version.*=.*"\([^"]*\)".*/\1/p' config/version.go)
-man:
+man: doc/manpage.xsl
 	xsltproc >doc/go-susi.1 --stringparam name GO-SUSI --stringparam section 1 --stringparam start_id "id.jes9sqqlstzn" --stringparam stop_id "id.sj4np8e9wdb8" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
 	xsltproc >doc/gosa-si-server.1 --stringparam name GOSA-SI-SERVER --stringparam section 1 --stringparam start_id "id.anooi87iwmip" --stringparam stop_id "id.l8s0fislnev7" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
 	xsltproc >doc/sibridge.1 --stringparam name SIBRIDGE --stringparam section 1 --stringparam start_id "id.ejujf2q7dp37" --stringparam stop_id "id.anooi87iwmip" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
@@ -34,6 +34,9 @@ doc:
 	wget -nv "https://docs.google.com/document/d/17_j8s2-PBVJLaQzmjrdeh6CVWkzP_viA3Uo7AtFmt8c/export?format=pdf" -O doc/go-susi-manual.pdf
 	wget -nv "https://docs.google.com/document/d/17_j8s2-PBVJLaQzmjrdeh6CVWkzP_viA3Uo7AtFmt8c/export?format=odt" -O doc/go-susi-manual.odt
 	wget -nv "https://docs.google.com/document/d/17_j8s2-PBVJLaQzmjrdeh6CVWkzP_viA3Uo7AtFmt8c/export?format=html" -O - | tidy -quiet -numeric -asxml -indent -o doc/go-susi-manual.xhtml 2>&1 | { grep -v Warning || true ; }
+
+
+doc/manpage.xsl: doc/manpage.pxsl
 	LC_ALL=C pretty-xml/pretty-xsl doc/manpage.pxsl >doc/manpage.xsl
 	
 frankensusi:
