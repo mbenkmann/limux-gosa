@@ -6,3 +6,5 @@ main/test*
 config/version.go
 gosa-si-server_2.6.4+svn21170-1plophos1_i386.deb
 deb/
+doc/*.1
+doc/*.5
