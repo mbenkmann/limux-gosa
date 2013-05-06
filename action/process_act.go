@@ -228,7 +228,7 @@ func Forward(job *xml.Hash) bool {
   if headertag == "trigger_action_update" || headertag == "trigger_action_reinstall" { 
     header = "job_"+headertag
   }
-  gosa_trigger_action := xml.NewHash("xml","header","gosa_"+headertag)
+  gosa_trigger_action := xml.NewHash("xml","header",header)
   gosa_trigger_action.Add("source","GOSA")
   gosa_trigger_action.Add("macaddress",macaddress)
   gosa_trigger_action.Add("target",macaddress)
