@@ -2,7 +2,8 @@
 
 test -f ../config/config.go && cd ..
 test -f config/config.go || exit 1
-hg log --style=compact -I main/go-susi.go -I "message/*.go" -I "action/*.go" -I "bytes/*.go" -I "util/*.go" -I "config/*.go" -I "db/*.go" -I "xml/*.go" -I "tftp/*.go" | tac | tr 'A-Z' 'a-z' | sed 's/\([[#]\)/\n\1/g' |
+logdata="$(LC_ALL=C hg log --style=compact -I main/go-susi.go -I main/makedebsource -I "message/*.go" -I "action/*.go" -I "bytes/*.go" -I "util/*.go" -I "config/*.go" -I "db/*.go" -I "xml/*.go" -I "tftp/*.go")"
+echo "$logdata" | tac | tr 'A-Z' 'a-z' | sed 's/\([[#]\)/\n\1/g' |
 (
   milestone=-1
   minor=0
@@ -28,7 +29,7 @@ hg log --style=compact -I main/go-susi.go -I "message/*.go" -I "action/*.go" -I 
     esac
   done
   
-  revision=$(hg log --style=compact -I main/go-susi.go -I "message/*.go" -I "action/*.go" -I "bytes/*.go" -I "util/*.go" -I "config/*.go" -I "db/*.go" -I "xml/*.go"| head -n 1 | sed 's/^[^ ]*  *\([a-zA-Z0-9]*\) .*/\1/')
+  revision=$(echo "$logdata" | head -n 1 | sed 's/^[^ ]*  *\([a-zA-Z0-9]*\) .*/\1/')
   
   echo "// WARNING! THIS FILE IS AUTO-GENERATED AND WILL BE OVERWRITTEN!
 
