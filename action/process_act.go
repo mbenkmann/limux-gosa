@@ -222,6 +222,12 @@ func Forward(job *xml.Hash) bool {
   // gosa-si-server does not seem to process some jobs when sent as job_...
   // So we use gosa_.... However this means that <periodic> won't work properly with
   // non-go-susi peers :-(
+  // We make an exception for reinstall and update because these need to be sent
+  // as job_ or they won't appear in deployment status.
+  header := "gosa_"+headertag
+  if headertag == "trigger_action_update" || headertag == "trigger_action_reinstall" { 
+    header = "job_"+headertag
+  }
   gosa_trigger_action := xml.NewHash("xml","header","gosa_"+headertag)
   gosa_trigger_action.Add("source","GOSA")
   gosa_trigger_action.Add("macaddress",macaddress)
