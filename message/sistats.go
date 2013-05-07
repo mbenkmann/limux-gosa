@@ -102,6 +102,9 @@ func sistats() *xml.Hash {
   answer.Add("MyClientsUp", up)
   answer.Add("MyClientsDown", clistats.MyClients-int(up))
   
+  answer.Add("TotalRegistrations", atomic.LoadInt32(&TotalRegistrations))
+  answer.Add("MissedRegistrations", atomic.LoadInt32(&MissedRegistrations))
+  
   var m runtime.MemStats
   runtime.ReadMemStats(&m)
   answer.Add("Alloc",m.Alloc)

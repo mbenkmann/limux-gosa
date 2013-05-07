@@ -22,6 +22,7 @@ package message
 import (
          "time"
          "strings"
+         "sync/atomic"
          
          "../db"
          "../xml"
@@ -29,15 +30,20 @@ import (
          "../config"
        )
 
+var TotalRegistrations int32
+var MissedRegistrations int32
+
 // Handles the message "here_i_am".
 //  xmlmsg: the decrypted and parsed message
 func here_i_am(xmlmsg *xml.Hash) {
+  start := time.Now()
   client := xml.NewHash("xml","header","new_foreign_client")
   client.Add("new_foreign_client")
   client.Add("source",config.ServerSourceAddress)
   client.Add("target",config.ServerSourceAddress)
   client_addr := xmlmsg.Text("source")
   macaddress  := xmlmsg.Text("mac_address") //Yes, that's "mac_address" with "_"
+  util.Log(1, "INFO! here_i_am from client %v (%v)", client_addr, macaddress)
   client.Add("client", client_addr)
   client.Add("macaddress",macaddress)
   client.Add("key",xmlmsg.Text("new_passwd"))
@@ -48,17 +54,22 @@ func here_i_am(xmlmsg *xml.Hash) {
     client.First("target").SetText(server)
     Peer(server).Tell(client.String(), "")
   }
+  checkTime(start, macaddress)
 
   message_start := "<xml><source>"+config.ServerSourceAddress+"</source><target>"+client_addr+"</target>"
   registered := message_start + "<header>registered</header><registered></registered>"
   
+  util.Log(1, "INFO! Getting LDAP data for client %v (%v) including groups", client_addr, macaddress)
   system, err := db.SystemGetAllDataForMAC(macaddress, true)
+  checkTime(start, macaddress)
   
   if system != nil && system.Text("gotoldapserver") != "" {
     registered += "<ldap_available>true</ldap_available>"
   }
   registered += "</xml>"
   Client(client_addr).Tell(registered, config.LocalClientMessageTTL)
+  atomic.AddInt32(&TotalRegistrations, 1)
+  if !checkTime(start, macaddress) { atomic.AddInt32(&MissedRegistrations, 1) }
   
   if err != nil { // if no LDAP data available for system, create install job, do hardware detection
     util.Log(1, "INFO! %v => Creating install job and sending detect_hardware to %v", err, macaddress)
@@ -129,4 +140,12 @@ func DoNotChangeCN(system *xml.Hash) bool {
     if strings.HasSuffix(system.Text("dn"),config.CNRenameBlacklist[i]) { return true }
   }
   return false
+}
+
+// Returns true if less than 8s have passed since start.
+// Otherwise logs a warning and returns false.
+func checkTime(start time.Time, macaddress string) bool {
+  if time.Since(start) < 8*time.Second { return true }
+  util.Log(0, "WARNING! Could not complete registration of client %v within the time window", macaddress)
+  return false 
 }

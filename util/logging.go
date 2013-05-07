@@ -47,11 +47,14 @@ var LogLevel = 0
 // developers. There is usually no need for higher levels.
 func Log(level int, format string, args ...interface{}) {
   if (level > LogLevel) { return }
-  message := fmt.Sprintf(format, args...)
   t := time.Now()
+  message := fmt.Sprintf(format, args...)
   output := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d %v",
       t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), message)
   Logger.Println(output)
+  if time.Since(t) > 1*time.Second {
+    Logger.Println("WARNING! Logger delayed for more than 1s")
+  }
 }
 
 // Returns a io.WriteCloser that appends to the file fpath, checking on each
