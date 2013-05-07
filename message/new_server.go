@@ -101,13 +101,18 @@ func handleClients(xmlmsg *xml.Hash) {
       util.Log(0, "ERROR! Illegal <client> value: %v", client.Text())
       continue
     }
-    cxml := xml.NewHash("xml","header","new_foreign_client")
-    cxml.Add("source", server)
-    cxml.Add("target", config.ServerSourceAddress)
-    cxml.Add("client", cli[0])
-    cxml.Add("macaddress", cli[1])
-    cxml.Add("new_foreign_client")
-    new_foreign_client(cxml) 
+    
+    // Only create new_foreign_client message if client is unknown or has changed.
+    old := db.ClientWithMAC(cli[1])
+    if old == nil || old.Text("source") != server || old.Text("client") != cli[0] {
+      cxml := xml.NewHash("xml","header","new_foreign_client")
+      cxml.Add("source", server)
+      cxml.Add("target", config.ServerSourceAddress)
+      cxml.Add("client", cli[0])
+      cxml.Add("macaddress", cli[1])
+      cxml.Add("new_foreign_client")
+      new_foreign_client(cxml)
+    }
   }
 }
 
