@@ -90,11 +90,31 @@ func confirm_new_server(xmlmsg *xml.Hash) {
   db.ServerUpdate(xmlmsg)
 }
 
+type ClientsToUpdate struct {
+  Server string
+  // maps MAC => IP:PORT
+  Clients map[string]string
+}
+
+// If x is in up with the same Server and IP:PORT, remove it from up.
+func (up *ClientsToUpdate) Accepts(x *xml.Hash) bool {
+  if x == nil { return false }
+  macaddress := x.Text("macaddress")
+  if c_addr,ok := up.Clients[macaddress]; ok {
+    if c_addr == x.Text("client") && x.Text("source") == up.Server {
+      delete(up.Clients, macaddress)
+    }
+  }
+  return false
+}
+
+
 // Takes a confirm_new_server or new_server message and evaluates the <client>
 // elements, converts them into new_foreign_client messages and passes these
 // to the new_foreign_client() handler.
 func handleClients(xmlmsg *xml.Hash) {
-  server := xmlmsg.Text("source")
+  clientsToUpdate := ClientsToUpdate{Server:xmlmsg.Text("source"),Clients:map[string]string{}}
+  
   for client := xmlmsg.First("client"); client != nil; client = client.Next() {
     cli := strings.Split(client.Text(),",")
     if len(cli) != 2 {
@@ -102,17 +122,20 @@ func handleClients(xmlmsg *xml.Hash) {
       continue
     }
     
-    // Only create new_foreign_client message if client is unknown or has changed.
-    old := db.ClientWithMAC(cli[1])
-    if old == nil || old.Text("source") != server || old.Text("client") != cli[0] {
-      cxml := xml.NewHash("xml","header","new_foreign_client")
-      cxml.Add("source", server)
-      cxml.Add("target", config.ServerSourceAddress)
-      cxml.Add("client", cli[0])
-      cxml.Add("macaddress", cli[1])
-      cxml.Add("new_foreign_client")
-      new_foreign_client(cxml)
-    }
+    clientsToUpdate.Clients[cli[1]]=cli[0]
+  }
+   
+  // remove all unchanged clients from clientsToUpdate
+  db.ClientsQuery(&clientsToUpdate)
+  
+  for macaddress, client := range clientsToUpdate.Clients {
+    cxml := xml.NewHash("xml","header","new_foreign_client")
+    cxml.Add("source", clientsToUpdate.Server)
+    cxml.Add("target", config.ServerSourceAddress)
+    cxml.Add("client", client)
+    cxml.Add("macaddress", macaddress)
+    cxml.Add("new_foreign_client")
+    new_foreign_client(cxml)
   }
 }
 
