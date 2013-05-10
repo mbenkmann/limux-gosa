@@ -376,6 +376,7 @@ func JobAddLocal(job *xml.Hash) {
     if plainname == "none" { 
       JobsUpdateNameForMAC(request.Job.Text("macaddress")) 
     }
+    util.Log(1, "INFO! New job for me to execute: %v", request.Job)
     JobUpdateXMLMessage(request.Job)
     jobDB.AddClone(request.Job)
     scheduleProcessPendingActions(request.Job.Text("timestamp"))
