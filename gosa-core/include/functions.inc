@@ -456,7 +456,7 @@ function gosa_log ($message)
     }
   }
 
-  syslog(LOG_INFO,"GOsa$username: $message");
+  syslog(LOG_INFO,"GOsa: $message");
 }
 
 
