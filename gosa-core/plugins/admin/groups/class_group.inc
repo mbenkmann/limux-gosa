@@ -257,7 +257,8 @@ class group extends plugin
 
         /* Add objects? */
         if (isset($_POST["edit_membership"]) && preg_match("/w/",$this->getacl("memberUid"))){
-            $this->userSelect= new userSelect($this->config, get_userinfo());
+            $member_dns = array_map(function ($x) { return $x['dn']; }, array_values($this->members));
+            $this->userSelect= new userSelect($this->config, get_userinfo(), $member_dns);
         }
 
         /* Add objects finished? */
