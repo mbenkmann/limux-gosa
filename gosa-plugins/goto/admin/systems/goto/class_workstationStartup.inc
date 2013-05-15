@@ -191,6 +191,19 @@ class workstartup extends plugin
             $this->gotoBootKernels= array("default-inherited" => '['._("inherited").']'); 
         }
 
+        /* Make sure the default option is always in the list */
+        $this->gotoBootKernels["default"] = _("default");
+ 
+            /* Make sure the currently selected kernel is always in the list.
+               We add it here with appended text _("Not available in current setup").
+               If the kernel is actually in the list of supported kernels for
+               this release this mapping will be overwritten. So the additional text
+               will only be visible if the current kernel is not available for the
+               selected release. */
+            if (isset($this->attrs['gotoBootKernel'])) {
+                $this->gotoBootKernels[$this->attrs['gotoBootKernel'][0]] = $this->attrs['gotoBootKernel'][0] . ' ['._("Not available in current setup").']';
+            }
+
         /* If we are member in an object group,
          *  we have to handle inherited values.
          * So you can see what is inherited.
