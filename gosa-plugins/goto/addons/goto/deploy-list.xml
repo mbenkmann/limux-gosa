@@ -233,6 +233,7 @@
       <label>Process now</label>
     </action>
 
+    <!--
     <action>
       <name>viewLogs</name>
       <type>entry</type>
@@ -240,6 +241,7 @@
       <image>plugins/goto/images/view_logs.png</image>
       <label>View logs</label>
     </action>
+    -->
 
     <action>
       <name>edit</name>
