@@ -40,7 +40,7 @@ echo >debian/control "Source: go-susi
 Section: $section
 Priority: $priority
 Maintainer: Matthias S. Benkmann <matthias@winterdrache.de>
-Build-Depends: golang | golang-stable
+Build-Depends: golang | golang-stable | golang-tip
 Standards-Version: 3.9.4
 
 Package: go-susi
@@ -139,7 +139,7 @@ build:
 	go build main/go-susi.go
 	go build main/sibridge.go
 	go build main/encrypt.go
-	strip go-susi sibridge encrypt
+	# DO NOT STRIP BINARIES! THIS BREAKS THEM WITH GO 1.1 (AT LEAST ON ARM)
 	chmod a+rx main/gosa-si-server main/generate_* main/send_* main/update_config_files
 	mkdir -p dist/etc/gosa-si dist/etc/logrotate.d dist/usr/lib/go-susi/ dist/usr/sbin
 	mkdir -p dist/usr/share/doc/go-susi
