@@ -136,6 +136,18 @@ func foreign_job_updates(xmlmsg *xml.Hash) {
              Case 2: The updated job belongs to the sender
 *************************************************************************************/        
 /*2*/ } else if siserver == source {
+        // If the job is in status "processing", cancel all local jobs for the same
+        // MAC in status "processing", because only one job can be processing at
+        // any time.
+        // NOTE: I'm not sure if clearing <periodic> is the right thing to do
+        // in this case. I've chosen to do it like this because I'm wary of
+        // situations where 2 servers might end up having the same periodic job.
+        // I think a lost periodic job is better than too many.
+        if job.Text("status") == "processing" {
+          filter := xml.FilterSimple("siserver", config.ServerSourceAddress, "macaddress", macaddress, "status", "processing")
+          db.JobsRemoveLocal(filter, true)
+        }
+        
         // Because the job belongs to the sender, the <id> field corresponds to
         // the <original_id> we have in our database, so we can select the
         // job with precision.
