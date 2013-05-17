@@ -77,21 +77,21 @@ func here_i_am(xmlmsg *xml.Hash) {
     detect_hardware := message_start + "<header>detect_hardware</header><detect_hardware></detect_hardware></xml>"
     Client(client_addr).Tell(detect_hardware, config.LocalClientMessageTTL)
     
-    job := xml.NewHash("job")
-    job.Add("progress", "hardware-detection")
-    job.Add("status", "processing")
-    job.Add("siserver", config.ServerSourceAddress)
-    job.Add("targettag", macaddress)
-    job.Add("macaddress", macaddress)
-    job.Add("modified", "1")
-    job.Add("timestamp", util.MakeTimestamp(time.Now()))
-    job.Add("headertag", "trigger_action_reinstall")
-    job.Add("result", "none")
-    
-    db.JobAddLocal(job)
-    
+    makeSureWeHaveAppropriateProcessingJob(macaddress, "trigger_action_reinstall", "hardware-detection")
+
   } else { // if LDAP data for system is available
+    
     Send_new_ldap_config(client_addr, system)
+    
+    switch (system.Text("faistate")+"12345")[0:5] {
+      case "local":  local_processing := xml.FilterSimple("siserver", config.ServerSourceAddress, "macaddress", macaddress, "status", "processing")
+                     db.JobsRemoveLocal(local_processing, false) // false => re-schedule if periodic
+      case "reins",
+           "insta": makeSureWeHaveAppropriateProcessingJob(macaddress, "trigger_action_reinstall", "none")
+      case "updat",
+           "softu": makeSureWeHaveAppropriateProcessingJob(macaddress, "trigger_action_update", "none")
+      case "error": // db.FAIError(macaddress, "pxe", "-1", "crit", "Error message")
+    }
     
     // Update LDAP entry if cn != DNS name  or ipHostNumber != IP
     client_ip := strings.SplitN(client_addr,":",2)[0]
@@ -148,4 +148,33 @@ func checkTime(start time.Time, macaddress string) bool {
   if time.Since(start) < 8*time.Second { return true }
   util.Log(0, "WARNING! Could not complete registration of client %v within the time window", macaddress)
   return false 
+}
+
+func makeSureWeHaveAppropriateProcessingJob(macaddress, headertag, progress string) {
+  job := xml.NewHash("job")
+  job.Add("progress", progress)
+  job.Add("status", "processing")
+  job.Add("siserver", config.ServerSourceAddress)
+  job.Add("targettag", macaddress)
+  job.Add("macaddress", macaddress)
+  job.Add("modified", "1")
+  job.Add("timestamp", util.MakeTimestamp(time.Now()))
+  job.Add("headertag", headertag)
+  job.Add("result", "none")
+  
+  // Filter for selecting local jobs in status "processing" for the client's MAC.
+  local_processing := xml.FilterSimple("siserver", config.ServerSourceAddress, "macaddress", macaddress, "status", "processing")
+  
+  // If we don't already have an appropriate job with status "processing", create one
+  if db.JobsQuery(xml.FilterAnd([]xml.HashFilter{local_processing, xml.FilterSimple("headertag", headertag)})).FirstChild() == nil {
+  
+    // First cancel other local jobs for the same MAC in status "processing",
+    // because only one job can be processing at any time.
+    // NOTE: I'm not sure if clearing <periodic> is the right thing to do
+    // in this case. See the corresponding note in foreign_job_updates.go
+    db.JobsRemoveLocal(local_processing, true)
+    
+    // Now add the new job.
+    db.JobAddLocal(job)
+  }
 }
