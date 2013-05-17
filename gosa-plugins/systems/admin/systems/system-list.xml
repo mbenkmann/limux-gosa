@@ -241,6 +241,7 @@
       <type>entry</type>
       <image>images/lists/edit.png</image>
       <label>Device</label>
+      <acl>devices/deviceGeneric[c]</acl> 
       <depends>Device</depends>
      </action>
 
@@ -249,6 +250,7 @@
       <type>entry</type>
       <image>plugins/systems/images/select_server.png[new]</image>
       <label>Server</label>
+      <acl>server/servgeneric[c]</acl> 
       <depends>servgeneric</depends>
      </action>
 
@@ -257,6 +259,7 @@
       <type>entry</type>
       <image>plugins/systems/images/select_workstation.png[new]</image>
       <label>Workstation</label>
+      <acl>workstation/workgeneric[c]</acl> 
       <depends>workgeneric</depends>
      </action>
 
@@ -265,6 +268,7 @@
       <type>entry</type>
       <image>plugins/systems/images/select_terminal.png[new]</image>
       <label>Terminal</label>
+      <acl>terminal/termgeneric[c]</acl> 
       <depends>termgeneric</depends>
      </action>
 
@@ -273,6 +277,7 @@
       <type>entry</type>
       <image>plugins/systems/images/select_printer.png[new]</image>
       <label>Printer</label>
+      <acl>printer/printgeneric[c]</acl> 
       <depends>printgeneric</depends>
      </action>
 
@@ -281,6 +286,7 @@
       <type>entry</type>
       <image>plugins/systems/images/select_phone.png[new]</image>
       <label>Phone</label>
+      <acl>phone/phoneGeneric[c]</acl>
       <depends>phoneGeneric</depends>
      </action>
 
@@ -289,6 +295,7 @@
       <type>entry</type>
       <image>plugins/systems/images/select_component.png[new]</image>
       <label>Network device</label>
+      <acl>component/componentGeneric[c]</acl>
       <depends>componentGeneric</depends>
      </action>
 
