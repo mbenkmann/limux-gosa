@@ -630,7 +630,7 @@ func jobdb_test() {
     check(job.Text("status"), "done")
   }
   
-  db.JobAddLocal(hash("job(progress(none)status(waiting)siserver(%v)macaddress(11:22:33:44:55:6F)targettag(11:22:33:44:55:6F)timestamp(91110102030405)headertag(trigger_action_lock)periodic(1_minutes))",config.ServerSourceAddress))
+  db.JobAddLocal(hash("job(progress(none)status(waiting)siserver(%v)macaddress(01:02:03:04:05:06)targettag(01:02:03:04:05:06)timestamp(91110102030405)headertag(trigger_action_lock)periodic(1_minutes))",config.ServerSourceAddress))
   db.JobAddLocal(hash("job(progress(none)status(waiting)siserver(%v)macaddress(11:22:33:44:55:6F)targettag(11:22:33:44:55:6F)timestamp(81110102030405)headertag(trigger_action_lock)periodic(1_minutes))",config.ServerSourceAddress))
   
   time.Sleep(1*time.Second) // wait for plainname to be filled in
@@ -664,14 +664,14 @@ func jobdb_test() {
   
   jobs = db.JobsQuery(xml.FilterAll)
   job = jobs.First("job")
-  check(job.Text("plainname"), "systest2")
+  check(job.Text("plainname") == "systest2" || job.Text("plainname") == "systest1", true)
   check(job.Text("id"), job.Text("original_id"))
   check(job.Text("timestamp"), "10001011000000")
   check(job.Text("periodic"), "1_minutes")
   check(job.Text("status"), "processing")
   check(job.Text("headertag"), "trigger_action_lock")
   job = job.Next()
-  check(job.Text("plainname"), "systest2")
+  check(job.Text("plainname") == "systest2" || job.Text("plainname") == "systest1", true)
   check(job.Text("id"), job.Text("original_id"))
   check(job.Text("timestamp"), "10001011000000")
   check(job.Text("periodic"), "1_minutes")
