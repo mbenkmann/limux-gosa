@@ -12,7 +12,7 @@ class faiPartition extends plugin
   var $FAIfsCreateOptions = "";
   var $FAIfsOptions = "";
   var $FAIfsTuneOptions = "";
-  var $FAIfsType = "";
+  var $FAIfsType = "swap";
   var $FAImountOptions = "";
   var $FAImountPoint = "";
   var $FAIpartitionNr = "undefined"; // Initial value for new partitions
@@ -52,7 +52,7 @@ class faiPartition extends plugin
 
     // Check if we should be able to add primary partitions.
     if(!$object || $object['FAIpartitionType'] == "logical"){
-      if($this->FAIdiskType == "disk"){
+      if($this->parent->disklabel !== 'gpt' && $this->FAIdiskType == "disk"){
         $types = array('logical' => array(), 'primary' => array());
         foreach($this->parent->partitions as $key => $part){
           $types[$part['FAIpartitionType']][$part['FAIpartitionNr']] = 1;
@@ -160,6 +160,8 @@ class faiPartition extends plugin
       if($this->disablePrimary){
         $types  = array(
             "logical" => _("Logical"));
+      }elseif ($this->parent->disklabel === 'gpt' && $this->FAIpartitionType !== 'logical'){
+        $types  = array("primary" => _("Primary"));
       }else{
         $types  = array(
             "primary" => _("Primary"),
@@ -194,9 +196,10 @@ class faiPartition extends plugin
         );
 
     // Preserve types 
-    $preserveTypes = array(
-        "always" => _("always"),
-        "reinstall" => _("reinstall"));
+    $preserveTypes = array();
+    foreach (faiDiskEntry::$supportedPreserveTypes as $preserveType) {
+      $preserveTypes[$preserveType] = _($preserveType);
+    }
 
     // File system types.  
     $FAIfsTypes = array(

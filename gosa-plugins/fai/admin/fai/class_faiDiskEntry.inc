@@ -26,6 +26,8 @@ class faiDiskEntry extends plugin
   
   var $lvmDevices          = array();
 
+  public static $supportedPreserveTypes = array('always', 'reinstall', 'lazy');
+
   function faiDiskEntry (&$config, $dn= NULL,$parent,$disk,$type)
   {
     plugin::plugin ($config, $dn);
@@ -116,28 +118,18 @@ class faiDiskEntry extends plugin
             continue;
           }
 
-          // Load preserve_always flag for partitions 
-          if (preg_match("/^preserve_always:/", $option)){
-            $preserve = explode(",", trim(preg_replace("/^preserve_always:/","",$option),","));
-            foreach($preserve as $presflag){
-              if(isset($this->partitions[$presflag])){
-                $this->partitions[$presflag]['preserve'] = TRUE;  
-                $this->partitions[$presflag]['preserveType'] = 'always';  
+          // Load preserve flags for partitions
+          foreach (faiDiskEntry::$supportedPreserveTypes as $preserveType) {
+            if (preg_match("/^preserve_$preserveType:/", $option)) {
+              $preserve = explode(",", trim(preg_replace("/^preserve_$preserveType:/","",$option),","));
+              foreach ($preserve as $presflag) {
+                if (isset($this->partitions[$presflag])) {
+                  $this->partitions[$presflag]['preserve'] = TRUE;
+                  $this->partitions[$presflag]['preserveType'] = $preserveType;
               }
             }
             continue;
           }
-
-          // Load preserve_reinstall flag for partitions 
-          if (preg_match("/^preserve_reinstall:/", $option)){
-            $preserve = explode(",", trim(preg_replace("/^preserve_reinstall:/","",$option),","));
-            foreach($preserve as $presflag){
-              if(isset($this->partitions[$bootflag])){
-                $this->partitions[$presflag]['preserve'] = TRUE;  
-                $this->partitions[$presflag]['preserveType'] = 'reinstall'; 
-              } 
-            }
-            continue;
           }
         }
       } else {
@@ -149,6 +141,7 @@ class faiDiskEntry extends plugin
     $this->diskList = new sortableListing();
     $this->diskList->setDeleteable(true);
     $this->diskList->setEditable(true);
+    $this->diskList->setInstantDelete(false);
     $this->diskList->setWidth("100%");
     $this->diskList->setHeight("400px");
     $this->diskList->setColspecs(array('200px','*'));
@@ -218,7 +211,6 @@ class faiDiskEntry extends plugin
       // Validate new partition
       $new_partition = $this->dialog->save(); 
       $msgs = $this->dialog->check();
-      $msgs = array_merge($msgs,$this->check_disks($new_partition));
 
       if(!count($msgs)){
         $this->updatePartition($new_partition);
@@ -504,8 +496,8 @@ class faiDiskEntry extends plugin
         $opt.= "&nbsp;"._("boot able").", ";
       }      
       if(isset($part['preserve']) && $part['preserve']){
-        $opt.= "&nbsp;"._("preserve").":&nbsp;".$part['preserveType'].", ";
-      }     
+        $opt.= "&nbsp;"._("preserve").":&nbsp;"._($part['preserveType']).", ";
+      }
 
       // Combine options to a single table col. 
       $opt = "<i>".preg_replace('/, $/',"",$opt)."&nbsp;</i>";
@@ -569,8 +561,11 @@ class faiDiskEntry extends plugin
     // Build up disk options 
     $bootable = "";
     $resize = "";
-    $preserve_always = "";
-    $preserve_reinstall = "";
+    $preserve = array();
+
+    foreach (faiDiskEntry::$supportedPreserveTypes as $preserveType) {
+      $preserve[$preserveType] = "";
+    }
 
     /* Assemble boot, resize and preserve flags 
      */
@@ -582,11 +577,7 @@ class faiDiskEntry extends plugin
         $resize .= $id.",";
       }
       if(isset($part['preserve']) && $part['preserve']){
-        if($part['preserveType'] == "always"){
-          $preserve_always .= $id.",";
-        }else{
-          $preserve_reinstall .= $id.",";
-        }
+        $preserve[$part['preserveType']] .= $id.",";
       }
 
       // Unset non valid attributes 
@@ -605,11 +596,10 @@ class faiDiskEntry extends plugin
     if(!empty($resize)){
       $tmp['FAIdiskOption'][] = "resize:".trim($resize,",");
     }
-    if(!empty($preserve_always)){
-      $tmp['FAIdiskOption'][] = "preserve_always:".trim($preserve_always,",");
+    foreach ($preserve as $preserveType => $preserveValue) {
+      if(!empty($preserveValue)){
+        $tmp['FAIdiskOption'][] = "preserve_$preserveType:".trim($preserveValue,",");
     }
-    if(!empty($preserve_reinstall)){
-      $tmp['FAIdiskOption'][] = "preserve_reinstall:".trim($preserve_reinstall,",");
     }
 
     return($tmp);
@@ -648,6 +638,16 @@ class faiDiskEntry extends plugin
       $message[] = msgPool::invalid(_("Name"),$d,"/[a-z0-9_\-]/i");
     }
 
+    $types = array('logical' => array(), 'primary' => array());
+    foreach($this->partitions as $key => $part){
+      $types[$part['FAIpartitionType']][$part['FAIpartitionNr']] = 1;
+    }
+    if (($this->FAIdiskType === "disk") && ($this->disklabel === 'gpt') && (count($types['logical']) > 0)) {
+      $message[] = _("GPT does not support logical partitions.");
+    }
+
+    $message = array_merge($message, $this->check_disks());
+
     return ($message);
   }
 
@@ -659,18 +659,23 @@ class faiDiskEntry extends plugin
   {
     $msgs = array();
 
+    $types = array('logical' => array(), 'primary' => array());
+
+    if ($disk_to_add) {
+      $types[$disk_to_add['FAIpartitionType']][$disk_to_add['FAIpartitionNr']] = 1;
+    }
+
+    foreach($this->partitions as $key => $part){
+      $types[$part['FAIpartitionType']][$part['FAIpartitionNr']] = 1;
+    }
+
     /* Check 'disk' combinations. 
      *  - There can be four primary partitions.
      *  - If there is at least one 'logical' partition, then there can be only 
      *     three 'primary' partitions.
-     */    
-    if($this->FAIdiskType == "disk"){
-     
-      $types = array('logical' => array(), 'primary' => array());
-      $types[$disk_to_add['FAIpartitionType']][$disk_to_add['FAIpartitionNr']] = 1;
-      foreach($this->partitions as $key => $part){
-        $types[$part['FAIpartitionType']][$part['FAIpartitionNr']] = 1;
-      }
+     */
+    if($this->FAIdiskType == "disk" && $this->disklabel !== 'gpt'){
+
 
       // There can only be four primary partitions per disk - without any logical partition.
       if(count($types['logical']) == 0){

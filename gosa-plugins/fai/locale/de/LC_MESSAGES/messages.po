@@ -602,6 +602,9 @@ msgstr "immer"
 msgid "reinstall"
 msgstr "bei Neuinstallation"
 
+msgid "lazy"
+msgstr "wenn vorhanden"
+
 #: admin/fai/class_faiPartition.inc:203
 msgid "swap space"
 msgstr "Auslagerungsspeicher"
@@ -1400,6 +1403,10 @@ msgstr ""
 "Sie haben mehr als 3 primäre Partitionen bei gleichzeitiger Nutzung von "
 "logischen Partitionen in ihrer Konfiguration. Bitte prüfen Sie die "
 "Konfiguration."
+
+msgid "GPT does not support logical partitions."
+msgstr "GPT unterstützt keine logischen Partitionen."
+
 
 #: admin/fai/class_faiDiskEntry.inc:695
 #: admin/fai/class_faiPartitionTableEntry.inc:430
