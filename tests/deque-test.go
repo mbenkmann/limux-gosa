@@ -459,13 +459,13 @@ func Deque_test() {
   check(deck.InsertAt(2,2.5), true)
   check(Deque(deck,2,2.5,3),"")
   
-  deck.Init(0, deque.DiscardIfOverflow)
+  deck.Init(0, deque.DropItemIfOverflow)
   check(deck.InsertAt(1,2), false)
   check(deck.Insert(2), false)
   check(deck.Push(2), false)
   check(Deque(deck),"")
   
-  deck.Init([]interface{}{1,2,3}, deque.DiscardIfOverflow)
+  deck.Init([]interface{}{1,2,3}, deque.DropItemIfOverflow)
   check(deck.InsertAt(1,2), false)
   check(deck.Insert(2), false)
   check(deck.Push(2), false)

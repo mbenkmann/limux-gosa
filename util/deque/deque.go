@@ -235,7 +235,7 @@ var GrowthFactor uint = 16
 const DROP_FAR_END = ^uint(0)
 // If Growth() returns this, the behaviour is as DropNearEndIfOverflow().
 const DROP_NEAR_END = DROP_FAR_END - 1
-// If Growth() returns this, the behaviour is as DiscardIfOverflow().
+// If Growth() returns this, the behaviour is as DropItemIfOverflow().
 const DISCARD = DROP_FAR_END - 2
 
 // The GrowthFunc Double() doubles the capacity every time it is called (multiple
@@ -353,7 +353,7 @@ func DropFarEndIfOverflow(uint, uint, uint) uint { return DROP_FAR_END }
 // ATTENTION! As explained at DropFarEndIfOverflow(), conceptually the insertion
 // happens before dropping an element. This means that with functions
 // that append to either end such as Push() and Insert() DropNearEndIfOverflow
-// is equivalent to DiscardIfOverflow.
+// is equivalent to DropItemIfOverflow.
 func DropNearEndIfOverflow(uint, uint, uint) uint { 
   panic("TODO: Add DROP_NEAR_END case to insertAt()")
   return DROP_NEAR_END
@@ -365,7 +365,7 @@ func DropNearEndIfOverflow(uint, uint, uint) uint {
 // One use case of this function is to temporarily disable a consumer without
 // having to notify/disrupt/block producers and without having to worry about
 // unbounded buffer growth.
-func DiscardIfOverflow(uint, uint, uint) uint { return DISCARD }
+func DropItemIfOverflow(uint, uint, uint) uint { return DISCARD }
 
 
 /*********************************************************************************
@@ -867,7 +867,7 @@ func (self *Deque) Search(item interface{}, cmp func(interface{},interface{}) in
 
 // Inserts item into the deque so that if it was sorted according to Sort(cmp) it
 // remains sorted. Returns idx so that At(idx) is the inserted item. If the item
-// was discarded due to the Growth function (e.g. DiscardIfOverflow) InsertSorted()
+// was discarded due to the Growth function (e.g. DropItemIfOverflow) InsertSorted()
 // returns -1.
 //
 //  NOTE: This call is preferable to calling Search() and InsertAt() separately 
