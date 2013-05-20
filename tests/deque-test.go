@@ -197,17 +197,17 @@ func Deque_test() {
   check(deck.Capacity(),10)
   
   deck = deque.New()
-  check(deck.Push(1)==deck,true); check(Deque(deck,1),"")
-  check(deck.Push(2)==deck,true); check(Deque(deck,1,2),"")
-  check(deck.PushAt(-2,"x"),nil); check(Deque(deck,1,2),"")
-  check(deck.PushAt(-1,"x"),nil); check(Deque(deck,1,2),"")
-  check(deck.PushAt(3,"x"),nil); check(Deque(deck,1,2),"")
-  check(deck.PushAt(4,"x")==nil,true); check(Deque(deck,1,2),"")
-  check(deck.PushAt(0,"foo")==deck,true); check(Deque(deck,1,2,"foo"),"")
-  check(deck.PushAt(1,"bar")==deck,true); check(Deque(deck,1,2,"bar","foo"),"")
-  check(deck.PushAt(4,"FOO")==deck,true); check(Deque(deck,"FOO",1,2,"bar","foo"),"")
-  check(deck.PushAt(5,"BAR")==deck,true); check(Deque(deck,"BAR","FOO",1,2,"bar","foo"),"")
-  check(deck.PushAt(3,1.5)==deck,true); check(Deque(deck,"BAR","FOO",1,1.5,2,"bar","foo"),"")
+  check(deck.Push(1),true); check(Deque(deck,1),"")
+  check(deck.Push(2),true); check(Deque(deck,1,2),"")
+  check(deck.PushAt(-2,"x"),false); check(Deque(deck,1,2),"")
+  check(deck.PushAt(-1,"x"),false); check(Deque(deck,1,2),"")
+  check(deck.PushAt(3,"x"),false); check(Deque(deck,1,2),"")
+  check(deck.PushAt(4,"x"),false); check(Deque(deck,1,2),"")
+  check(deck.PushAt(0,"foo"),true); check(Deque(deck,1,2,"foo"),"")
+  check(deck.PushAt(1,"bar"),true); check(Deque(deck,1,2,"bar","foo"),"")
+  check(deck.PushAt(4,"FOO"),true); check(Deque(deck,"FOO",1,2,"bar","foo"),"")
+  check(deck.PushAt(5,"BAR"),true); check(Deque(deck,"BAR","FOO",1,2,"bar","foo"),"")
+  check(deck.PushAt(3,1.5),true); check(Deque(deck,"BAR","FOO",1,1.5,2,"bar","foo"),"")
   check(deck.Pop(),"foo"); check(Deque(deck,"BAR","FOO",1,1.5,2,"bar"),"")
   check(deck.PopAt(0),"bar"); check(Deque(deck,"BAR","FOO",1,1.5,2),"")
   check(deck.PopAt(5),nil); check(Deque(deck,"BAR","FOO",1,1.5,2),"")
@@ -233,17 +233,17 @@ func Deque_test() {
   }
   
   deck = deque.New()
-  check(deck.Insert(1)==deck,true); check(DequeReversed(deck,1),"")
-  check(deck.Insert(2)==deck,true); check(DequeReversed(deck,1,2),"")
-  check(deck.InsertAt(-2,"x"),nil); check(DequeReversed(deck,1,2),"")
-  check(deck.InsertAt(-1,"x"),nil); check(DequeReversed(deck,1,2),"")
-  check(deck.InsertAt(3,"x"),nil); check(DequeReversed(deck,1,2),"")
-  check(deck.InsertAt(4,"x")==nil,true); check(DequeReversed(deck,1,2),"")
-  check(deck.InsertAt(0,"foo")==deck,true); check(DequeReversed(deck,1,2,"foo"),"")
-  check(deck.InsertAt(1,"bar")==deck,true); check(DequeReversed(deck,1,2,"bar","foo"),"")
-  check(deck.InsertAt(4,"FOO")==deck,true); check(DequeReversed(deck,"FOO",1,2,"bar","foo"),"")
-  check(deck.InsertAt(5,"BAR")==deck,true); check(DequeReversed(deck,"BAR","FOO",1,2,"bar","foo"),"")
-  check(deck.InsertAt(3,1.5)==deck,true); check(DequeReversed(deck,"BAR","FOO",1,1.5,2,"bar","foo"),"")
+  check(deck.Insert(1),true); check(DequeReversed(deck,1),"")
+  check(deck.Insert(2),true); check(DequeReversed(deck,1,2),"")
+  check(deck.InsertAt(-2,"x"),false); check(DequeReversed(deck,1,2),"")
+  check(deck.InsertAt(-1,"x"),false); check(DequeReversed(deck,1,2),"")
+  check(deck.InsertAt(3,"x"),false); check(DequeReversed(deck,1,2),"")
+  check(deck.InsertAt(4,"x"),false); check(DequeReversed(deck,1,2),"")
+  check(deck.InsertAt(0,"foo"),true); check(DequeReversed(deck,1,2,"foo"),"")
+  check(deck.InsertAt(1,"bar"),true); check(DequeReversed(deck,1,2,"bar","foo"),"")
+  check(deck.InsertAt(4,"FOO"),true); check(DequeReversed(deck,"FOO",1,2,"bar","foo"),"")
+  check(deck.InsertAt(5,"BAR"),true); check(DequeReversed(deck,"BAR","FOO",1,2,"bar","foo"),"")
+  check(deck.InsertAt(3,1.5),true); check(DequeReversed(deck,"BAR","FOO",1,1.5,2,"bar","foo"),"")
   check(deck.Next(),"foo"); check(DequeReversed(deck,"BAR","FOO",1,1.5,2,"bar"),"")
   check(deck.RemoveAt(0),"bar"); check(DequeReversed(deck,"BAR","FOO",1,1.5,2),"")
   check(deck.RemoveAt(5),nil); check(DequeReversed(deck,"BAR","FOO",1,1.5,2),"")
@@ -382,6 +382,168 @@ func Deque_test() {
   check(Deque(deck,0,1,2,3,4,5,7),"")
   check(deck.RemoveAt(2), "2") // _,_,_,[a]0,1,3,4,5,7,[b]_,_,_
   check(Deque(deck,0,1,3,4,5,7),"")
+  
+  deck.Init([]interface{}{}, deque.GrowBy(1))
+  check(deck.InsertAt(-1,"foo"),false)
+  check(deck.InsertAt(1,"foo"),false)
+  check(deck.InsertAt(0,11),true)
+  check(Deque(deck,11),"")
+  deck.Init(deck, deque.BlockIfFull)
+  go func(){time.Sleep(1*time.Second);deck.Pop()}()
+  check(deck.InsertAt(0,22),true)
+  check(Deque(deck,22),"")
+  
+  deck.Init([]interface{}{0,1,2}, deque.GrowBy(1))
+  check(deck.InsertAt(0,-1),true)
+  check(Deque(deck,-1,0,1,2),"")
+  deck.Init([]interface{}{0,1,2}, deque.GrowBy(1))
+  deck.Raw(1)
+  check(deck.InsertAt(0,-1),true)
+  check(Deque(deck,-1,0,1,2),"")
+  deck.Init([]interface{}{0,1,2}, deque.GrowBy(1))
+  deck.Raw(2)
+  check(deck.InsertAt(0,-1),true)
+  check(Deque(deck,-1,0,1,2),"")
+  
+  deck.Init(0,deque.GrowBy(2))
+  go func(){
+    time.Sleep(500*time.Millisecond)
+    deck.InsertAt(0,0)
+  }()
+  check(deck.Capacity(),0)
+  check(deck.WaitForSpace(2*time.Second), true)
+  check(deck.Capacity(),2)
+  
+  deck.Init([]interface{}{0,1,2,3,4,5,6,7}, deque.BlockIfFull)
+  go func(){
+    time.Sleep(500*time.Millisecond)
+    deck.Init([]interface{}{0,1}, 3)
+  }()
+  check(deck.Push(2), true)
+  check(Deque(deck,0,1,2),"")
+  
+  deck.Init(0, deque.DropFarEndIfOverflow)
+  check(deck.Push("should be discarded"), false)
+  check(Deque(deck),"")
+  
+  deck.Init([]interface{}{0}, deque.DropFarEndIfOverflow)
+  check(deck.PushAt(0,1), true)
+  check(Deque(deck,1),"")
+  check(deck.PushAt(1,2), true)
+  check(Deque(deck,2),"")
+  
+  deck.Init([]interface{}{3,5}, deque.DropFarEndIfOverflow)
+  check(deck.InsertAt(0,1), true)
+  check(Deque(deck,1,3),"")
+  check(deck.InsertAt(1,2), true)
+  if deck.At(0).(int) == 2 {
+    check(Deque(deck,2,3),"")
+  } else {
+    check(Deque(deck,1,2),"")
+  }
+  
+  deck.Init([]interface{}{3,5}, deque.DropFarEndIfOverflow)
+  deck.Raw(1)
+  check(deck.InsertAt(0,1), true)
+  check(Deque(deck,1,3),"")
+  check(deck.InsertAt(1,2), true)
+  if deck.At(0).(int) == 2 {
+    check(Deque(deck,2,3),"")
+  } else {
+    check(Deque(deck,1,2),"")
+  }
+  
+  deck.Init([]interface{}{1,3,5}, deque.DropFarEndIfOverflow)
+  check(deck.InsertAt(1,2), true)
+  check(Deque(deck,1,2,3),"")
+  check(deck.InsertAt(2,2.5), true)
+  check(Deque(deck,2,2.5,3),"")
+  
+  deck.Init(0, deque.DiscardIfOverflow)
+  check(deck.InsertAt(1,2), false)
+  check(deck.Insert(2), false)
+  check(deck.Push(2), false)
+  check(Deque(deck),"")
+  
+  deck.Init([]interface{}{1,2,3}, deque.DiscardIfOverflow)
+  check(deck.InsertAt(1,2), false)
+  check(deck.Insert(2), false)
+  check(deck.Push(2), false)
+  check(Deque(deck,1,2,3),"")
+  
+  deck.Init(0, deque.GrowBy(1))
+  check(deck.Push(42),true)
+  check(deck.Push(43),true)
+  check(Deque(deck,42,43),"")
+  
+  deck.Init(0, deque.GrowBy(2))
+  go func(){
+    deck.WaitForSpace(0)
+    deck.Push(2)
+  }()
+  time.Sleep(500*time.Millisecond)
+  check(deck.Push(1),true)
+  time.Sleep(500*time.Millisecond)
+  check(deck.Push(3),true)
+  check(Deque(deck,1,2,3),"")
+  check(deck.Capacity(),4)
+
+  deck.Init([]interface{}{0,1}, 3)
+  deck.Raw(2)
+  check(deck.Push(2), true)
+  check(Deque(deck,0,1,2),"")
+  
+  deck.Init(3)
+  go func(){
+    deck.WaitForItem(0)
+    deck.Push(2)
+  }()
+  time.Sleep(500*time.Millisecond)
+  check(deck.Push(1),true)
+  time.Sleep(500*time.Millisecond)
+  deck.Push(3)
+  deck.Push(4)
+  deck.Push(5)
+  check(deck.InsertAt(2,2.5), true)
+  check(Deque(deck,1,2,2.5,3,4,5),"")
+  
+  deck.Init([]interface{}{1,2,3,4,5},7)
+  check(deck.InsertAt(0,-1), true)
+  check(Deque(deck,-1,1,2,3,4,5),"")
+  
+  deck.Raw(0)
+  check(deck.InsertAt(4,3.5), true)
+  check(Deque(deck,-1,1,2,3,3.5,4,5),"")
+  
+  deck.Init([]interface{}{1,2,3,4,5}, 10)
+  deck.Raw(8)
+  check(deck.InsertAt(2,2.5), true)
+  check(Deque(deck,1,2,2.5,3,4,5),"")
+  
+  deck.Init([]interface{}{1,2,3,4,5,6,7}, 10)
+  deck.Raw(8)
+  check(deck.InsertAt(3,3.5), true)
+  check(Deque(deck,1,2,3,3.5,4,5,6,7),"")
+  
+  deck.Init([]interface{}{1,2,3,4,5,6,7,8,9,10}, 12)
+  deck.Raw(10)
+  check(deck.InsertAt(4,4.5), true)
+  check(Deque(deck,1,2,3,4,4.5,5,6,7,8,9,10),"")
+  
+  deck.Init([]interface{}{1,2,3,4,5,6,7,8,9,10}, 12)
+  deck.Raw(10)
+  check(deck.InsertAt(5,5.5), true)
+  check(Deque(deck,1,2,3,4,5,5.5,6,7,8,9,10),"")
+  
+  deck.Init([]interface{}{1,2,3,4,5,6,7,8,9,10}, 12)
+  deck.Raw(5)
+  check(deck.InsertAt(6,6.5), true)
+  check(Deque(deck,1,2,3,4,5,6,6.5,7,8,9,10),"")
+  
+  deck.Init([]interface{}{1,2,3,4,5,6,7,8,9,10}, 11)
+  deck.Raw(5)
+  check(deck.InsertAt(5,5.5), true)
+  check(Deque(deck,1,2,3,4,5,5.5,6,7,8,9,10),"")
 }
 
 func Overcapacity(i int) string {
@@ -475,16 +637,16 @@ func Insert(maxcapacity int) string {
           testdeque := deque.New(capa, testdata)
           _,rawidx := testdeque.Raw(a)
           if rawidx != a { return fmt.Sprintf("Raw(%v) is broken",a) }
-          var res *deque.Deque
+          var res bool
           if idx >= 0 && idx <= len(testdata) {
-            res = testdeque
+            res = true
           }
           x := testdeque.InsertAt(idx,"foo")
           if x != res { 
             return fmt.Sprintf("After Raw(%v) Deque(%v,%v).InsertAt(%v) == %v but should be %v",a,capa,testdata,idx,x,res)
           }
           var testdata2 []interface{}
-          if x != nil {
+          if x {
             testdata2 = make([]interface{},len(testdata)+1)
             copy(testdata2[0:idx],testdata[0:idx])
             testdata2[idx] = "foo"

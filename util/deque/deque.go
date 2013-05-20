@@ -574,19 +574,30 @@ func (self *Deque) WaitForEmpty(timeout time.Duration) bool {
 
 
 // Makes item the new stack top. After this, Peek(0), Pop(), PopAt(0) and 
-// At(Count()-1) will return item. Push() returns the Deque itself for easy chaining.
+// At(Count()-1) will return item. 
 // If the Deque is full, Growth() will be called beforehand.
-func (self *Deque) Push(item interface{}) *Deque {
+// Returns false iff the item was discarded due to Growth().
+func (self *Deque) Push(item interface{}) bool {
   self.Mutex.Lock()
   defer self.Mutex.Unlock()
-  return self.insertAt(self.count, item)
+restart:
+  res := self.insertAt(self.count, item)
+  if res < 0 { return false }
+  if res == 0  { 
+    self.waitFor(&self.hasSpace, 0)
+    goto restart
+  }
+  return true
 }
 
 // Inserts item at index idx counting from the stack top. PushAt(0, item) is
 // equivalent to Push(item).
 // After calling this function, Peek(idx) and PopAt(idx) will return item.
-// If idx is out of range (idx < 0 or idx > Count()), the call will do nothing
-// and return nil. Otherwise the function returns the Deque.
+//
+// If the Deque is full, Growth() will be call beforehand.
+//
+// Returns false if idx is out of range (idx < 0 or idx > Count()) or
+// if the item was discarded due to Growth().
 //
 // Note that Count() is a valid index for this function whereas for most other
 // SomethingAt() functions Count()-1 is the maximum permissible index.
@@ -594,10 +605,17 @@ func (self *Deque) Push(item interface{}) *Deque {
 // Optimization note: PushAt() and InsertAt() have the exact same performance
 // and automatically minimize the size of the memory block that needs to be moved.
 // You can not optimize anything by choosing one or the other based on the index.
-func (self *Deque) PushAt(idx int, item interface{}) *Deque { 
+func (self *Deque) PushAt(idx int, item interface{}) bool { 
   self.Mutex.Lock()
   defer self.Mutex.Unlock()
-  return self.insertAt(self.count-idx, item)
+restart:
+  res := self.insertAt(self.count-idx, item)
+  if res < 0 { return false }
+  if res == 0  { 
+    self.waitFor(&self.hasSpace, 0)
+    goto restart
+  }
+  return true
 }
 
 // Blocks until there is at least 1 item in the Deque, then removes and returns
@@ -657,19 +675,30 @@ func (self *Deque) Poke(idx int, item interface{}) interface{} {
 **********************************************************************************/
 
 // Makes item the new first element. After this, At(0), Next(), RemoveAt(0) and 
-// PopAt(Count()-1) will return item. Insert() returns the Deque itself for
-// easy chaining. If the Deque is full, Growth() will be called beforehand.
-func (self *Deque) Insert(item interface{}) *Deque {
+// PopAt(Count()-1) will return item. 
+// If the Deque is full, Growth() will be called beforehand.
+// Returns false iff the item was discarded due to Growth().
+func (self *Deque) Insert(item interface{}) bool {
   self.Mutex.Lock()
   defer self.Mutex.Unlock()
-  return self.insertAt(0, item)
+restart:
+  res := self.insertAt(0, item)
+  if res < 0 { return false }
+  if res == 0  { 
+    self.waitFor(&self.hasSpace, 0)
+    goto restart
+  }
+  return true
 }
 
 // Makes item the new idx-th element (counting from the bottom). 
 // InsertAt(0, item) is equivalent to Insert(item).
 // After calling this function, At(idx) and RemoveAt(idx) will return item.
-// If idx is out of range (idx < 0 or idx > Count()), the call will do nothing
-// and return nil. Otherwise the function returns the Deque.
+//
+// If the Deque is full, Growth() will be call beforehand.
+//
+// Returns false if idx is out of range (idx < 0 or idx > Count()) or
+// if the item was discarded due to Growth().
 //
 // Note that Count() is a valid index for this function whereas for most other
 // SomethingAt() functions Count()-1 is the maximum permissible index.
@@ -677,10 +706,17 @@ func (self *Deque) Insert(item interface{}) *Deque {
 // Optimization note: PushAt() and InsertAt() have the exact same performance
 // and automatically minimize the size of the memory block that needs to be moved.
 // You can not optimize anything by choosing one or the other based on the index.
-func (self *Deque) InsertAt(idx int, item interface{}) *Deque {
+func (self *Deque) InsertAt(idx int, item interface{}) bool {
   self.Mutex.Lock()
   defer self.Mutex.Unlock()
-  return self.insertAt(idx, item)
+restart:
+  res := self.insertAt(idx, item)
+  if res < 0 { return false }
+  if res == 0  { 
+    self.waitFor(&self.hasSpace, 0)
+    goto restart
+  }
+  return true
 }
 
 // Blocks until there is at least 1 item in the Deque, then removes and returns
@@ -1166,10 +1202,13 @@ func (self *Deque) removeAt(idx int) interface{} {
 
 
 //*************************** insertAt() ******************************/
-func (self *Deque) insertAt(idx int, item interface{}) *Deque {
+// Returns <0  => item discarded or index out of range
+//         >0 => item added successfully
+//          0 => wait for free space, then try again
+func (self *Deque) insertAt(idx int, item interface{}) int {
   if self.data == nil { self.init() }
   if idx < 0 || idx > self.count { // Note: self.count IS a valid idx for insertAt()!
-    return nil 
+    return -1
   }
   
   // If buffer is full, grow it or wait for an empty slot.
@@ -1178,14 +1217,12 @@ func (self *Deque) insertAt(idx int, item interface{}) *Deque {
     self.GrowthCount++
     switch growth {
       case 0: { // no growth => block until there's space
-        for ; self.count == len(self.data) ; {
-          self.waitFor(&self.hasSpace, 0)
-        }
+        return 0
       }
       
       case DROP_FAR_END: { // drop far end
-        if len(self.data) == 0 { return self }
-        if idx > self.count-idx { // A end is far end
+        if len(self.data) == 0 { return -1 }
+        if idx+idx > self.count { // A end is far end
           self.a++
           if self.a == len(self.data) { self.a = 0 }
           idx--
@@ -1197,7 +1234,7 @@ func (self *Deque) insertAt(idx int, item interface{}) *Deque {
       }
       
       case DISCARD: { // discard the new item
-        return self
+        return -1
       }        
       
       default: { // grow buffer
@@ -1289,5 +1326,5 @@ func (self *Deque) insertAt(idx int, item interface{}) *Deque {
   }
   self.count++
   
-  return self
+  return 1
 }
