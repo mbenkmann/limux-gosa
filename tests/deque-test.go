@@ -568,6 +568,19 @@ func Deque_test() {
   check(Search(2,1,1,1,1),4)
   check(Search(2,2,2,2,2),0)
   
+  deck.Init(deque.DropItemIfOverflow, 0)
+  check(deck.InsertSorted(42, intcmp), -1)
+  
+  deck.Init(deque.BlockIfFull, 0)
+  go func(){
+    time.Sleep(500*time.Millisecond)
+    deck.Init([]interface{}{1,2,3,4,5,6}, 10, deque.BlockIfFull)
+  }()
+  check(deck.InsertSorted(3,intcmp), 2)
+  check(Deque(deck,1,2,3,3,4,5,6),"")
+  
+  check(deck.InsertSorted(5,intcmp), 5)
+  check(Deque(deck,1,2,3,3,4,5,5,6),"")
 }
 
 var intcmp = func(a,b interface{}) int { return a.(int)-b.(int) }
