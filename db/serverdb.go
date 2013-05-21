@@ -121,7 +121,11 @@ func addServersFromDNS() {
 // Adds server (host:port) to the database if it does not exist yet (and if it
 // is not identical to this go-susi).
 func addServer(server string) {
-    host, port, _ := net.SplitHostPort(server)
+    host, port, err := net.SplitHostPort(server)
+    if err != nil {
+      util.Log(0, "ERROR! Could not add peer \"%v\": %v", server, err)
+      return
+    }
     addrs, err := net.LookupIP(host)
     if err != nil || len(addrs) == 0 {
       if err != nil {
