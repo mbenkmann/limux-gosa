@@ -162,7 +162,7 @@ import (
 
                    STRUCTURE DEFINITION
 
-**********************************************************************************/
+*********************************************************************************/
 
 // It is sufficient to declare a variable of type Deque. The Deque will be 
 // initialized with default values when one of its methods is called for the first
@@ -208,7 +208,7 @@ type Deque struct {
 
                    GROWTH FUNCTIONS
 
-**********************************************************************************/
+*********************************************************************************/
 
 // When new items are to be added to the deque and there is not enough
 // capacity, the deque's Growth() function is called.
@@ -372,7 +372,7 @@ func DropItemIfOverflow(uint, uint, uint) uint { return DISCARD }
 
                    CREATING AND INITIALIZING DEQUES
 
-**********************************************************************************/
+*********************************************************************************/
 
 // The default capacity for a Deque if none is specified on creation.
 var CapacityDefault uint = 16
@@ -444,7 +444,7 @@ func (self *Deque) Clear() *Deque {
 
                    SIZE AND CAPACITY
 
-**********************************************************************************/
+*********************************************************************************/
 
 // Returns the number of items in the Deque, not to be confused with Capacity().
 func (self *Deque) Count() int { 
@@ -570,7 +570,7 @@ func (self *Deque) WaitForEmpty(timeout time.Duration) bool {
 
                    STACK METHODS
 
-**********************************************************************************/
+*********************************************************************************/
 
 
 // Makes item the new stack top. After this, Peek(0), Pop(), PopAt(0) and 
@@ -672,7 +672,7 @@ func (self *Deque) Poke(idx int, item interface{}) interface{} {
 
                    VECTOR/LIST/QUEUE METHODS
 
-**********************************************************************************/
+*********************************************************************************/
 
 // Makes item the new first element. After this, At(0), Next(), RemoveAt(0) and 
 // PopAt(Count()-1) will return item. 
@@ -774,7 +774,7 @@ func (self *Deque) Put(idx int, item interface{}) interface{} {
 
                    STRUCTURAL METHODS
 
-**********************************************************************************/
+*********************************************************************************/
 
 // Takes any combination of []interface{} slices and *Deques and appends 
 // all their elements in order to the Deque's current list of elements.
@@ -861,8 +861,9 @@ func (self *Deque) IndexOf(item interface{}, cmp... func(interface{},interface{}
 // as passed to Search(), the latter will perform a binary search for the given item
 // and return the smallest index idx so that InsertAt(idx, item) keeps the Deque sorted.
 func (self *Deque) Search(item interface{}, cmp func(interface{},interface{}) int) int { 
-  panic("TODO: Implement Search()")
-  return self.Count() 
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+  return self.search(item, cmp)
 }
 
 // Inserts item into the deque so that if it was sorted according to Sort(cmp) it
@@ -876,8 +877,18 @@ func (self *Deque) Search(item interface{}, cmp func(interface{},interface{}) in
 //  NOTE: Like Insert() this function may block if the deque's GrowthFunction is
 //  BlockIfFull.
 func (self *Deque) InsertSorted(item interface{}, cmp func(interface{},interface{}) int) int { 
-  panic("TODO: Implement InsertSorted()")
-  return -1
+  self.Mutex.Lock()
+  defer self.Mutex.Unlock()
+restart:
+  // idx must be recomputed on each restart!
+  idx := self.search(item, cmp)
+  res := self.insertAt(idx, item)
+  if res < 0 { return -1 }
+  if res == 0  { 
+    self.waitFor(&self.hasSpace, 0)
+    goto restart
+  }
+  return idx
 }
 
 // Returns true if the Deque contains an item that compares equal to the given
@@ -919,7 +930,7 @@ func (self *Deque) CheckInvariant() {
 
                    TYPE CONVERSIONS
 
-**********************************************************************************/
+*********************************************************************************/
 
 // Returns a string representation of the Deque.
 func (self *Deque) String() string { 
@@ -981,7 +992,7 @@ func (self *Deque) Raw(index0 int) (ring []interface{}, idx0 int) {
 
                    ITERATION
 
-**********************************************************************************/
+*********************************************************************************/
 
 func (self* Deque) Iterator() Iterator {
   panic("TODO: Implement Iterator()")
@@ -996,7 +1007,7 @@ type Iterator interface{
 
                    IMPLEMENTATION (PRIVATE FUNCTIONS)
 
-**********************************************************************************/
+*********************************************************************************/
 // like Init() but the caller is responsible for locking self.
 func (self *Deque) init(args... interface{}) *Deque {
   locklist := map[*Deque]bool{self:true}
@@ -1132,6 +1143,19 @@ func (self *Deque) put(idx int, item interface{}) interface{} {
   return old
 }
 
+func (self *Deque) search(item interface{}, cmp func(interface{},interface{}) int) int {
+  a := 0
+  b := self.count
+  for a != b {
+    h := (a+b) >> 1
+    if cmp(self.at(h), item) < 0 {
+      a = h+1
+    } else {
+      b = h
+    }
+  }
+  return a
+}
 
 //*************************** removeAt() ******************************/
 func (self *Deque) removeAt(idx int) interface{} {

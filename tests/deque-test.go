@@ -544,6 +544,38 @@ func Deque_test() {
   deck.Raw(5)
   check(deck.InsertAt(5,5.5), true)
   check(Deque(deck,1,2,3,4,5,5.5,6,7,8,9,10),"")
+  
+  check(Search(2),0)
+  check(Search(2,1),1)
+  check(Search(2,2),0)
+  check(Search(2,3),0)
+  check(Search(2,1,2),1)
+  check(Search(2,2,2),0)
+  check(Search(2,1,1),2)
+  check(Search(2,3,4),0)
+  check(Search(2,2,3,4),0)
+  check(Search(2,1,1,2),2)
+  check(Search(2,1,1,1),3)
+  check(Search(2,1,2,3),1)
+  check(Search(2,3,4,5,6),0)
+  check(Search(2,2,3,4,5),0)
+  check(Search(2,1,2,3,4),1)
+  check(Search(2,1,3,4,5),1)
+  check(Search(2,1,1,4,5),2)
+  check(Search(2,1,1,2,5),2)
+  check(Search(2,1,1,1,5),3)
+  check(Search(2,1,1,1,2),3)
+  check(Search(2,1,1,1,1),4)
+  check(Search(2,2,2,2,2),0)
+  
+}
+
+var intcmp = func(a,b interface{}) int { return a.(int)-b.(int) }
+
+func Search(item int, x... int) int {
+  deck := deque.New(len(x)*2)
+  for _, xx := range x { deck.Push(xx) }
+  return deck.Search(item, intcmp)
 }
 
 func Overcapacity(i int) string {
