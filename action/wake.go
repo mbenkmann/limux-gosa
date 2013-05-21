@@ -21,8 +21,6 @@ MA  02110-1301, USA.
 package action
 
 import (
-         "strings"
-         
          "../db"
          "../xml"
          "../util"
@@ -34,31 +32,7 @@ import (
 func Wake(job *xml.Hash) {
   macaddress := job.Text("macaddress")
   
-  wake_target := []string{}
-  if system := db.ServerWithMAC(macaddress); system != nil {
-    wake_target = append(wake_target, strings.Split(system.Text("source"),":")[0])
-  }
-  if system := db.ClientWithMAC(macaddress); system != nil {
-    wake_target = append(wake_target, strings.Split(system.Text("client"),":")[0])
-  }
-  if system := db.SystemFullyQualifiedNameForMAC(macaddress); system != "none" {
-    wake_target = append(wake_target, system)
-  }  
-  
-  woken := false
-  for i := range wake_target {
-    if err := util.Wake(macaddress, wake_target[i]); err == nil { 
-      util.Log(1, "INFO! Sent Wake-On-LAN for MAC %v to %v", macaddress, wake_target[i])
-      woken = true
-      // We do not break here, because the data in the serverDB or clientDB may
-      // be stale and since we're sending UDP packets, there's no guarantee
-      // that util.Wake() will fail even if the system is no longer there.
-      // Since the WOL packets include the MAC address it can't hurt to
-      // send more than necessary.
-    } else {
-      util.Log(0, "ERROR! Could not send Wake-On-LAN for MAC %v to %v: %v", macaddress,wake_target[i],err)
-    }
-  }
+  woken := message.TriggerWake(macaddress)
   
   // While sending a few excess WOL packets should be harmless, spamming all
   // known networks with WOLs is very ugly, especially when it's completely
