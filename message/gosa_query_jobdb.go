@@ -53,22 +53,25 @@ func gosa_query_jobdb(xmlmsg *xml.Hash) *xml.Hash {
   jobdb_xml := db.JobsQuery(filter)
   
   // sort jobs
-/*  cmp  := func(a,b interface{}) int {
+  cmp  := func(a,b interface{}) int {
     x  := a.(*xml.Hash)
     y  := b.(*xml.Hash)
     ts := x.Text("timestamp")+"00000000000000"
-    c1 := ts[0:10]+x.Text("headertag","status","plainname","macaddress")
+    // NOTE: The first component has only the 1st 10 digits of the timestamp.
+    // This quantizes jobs by hour (i.e. ignoring minutes and seconds).
+    // For this reason we have "timestamp" listed a 2nd time as the final component,
+    // in that case including all digits.
+    c1 := ts[0:10]+x.Text("headertag","status","plainname","macaddress","timestamp")
     ts  = y.Text("timestamp")+"00000000000000"
-    c2 := ts[0:10]+y.Text("headertag","status","plainname","macaddress")
+    c2 := ts[0:10]+y.Text("headertag","status","plainname","macaddress","timestamp")
     if c1 < c2 { return -1 }
     if c1 > c2 { return +1 }
     return 0
-  }*/
+  }
   answers := deque.New()
   for child := jobdb_xml.FirstChild(); child != nil; child = child.Next() {
     answer := child.Remove()
-    //answers.InsertSorted(answer, cmp)
-    answers.Insert(answer)
+    answers.InsertSorted(answer, cmp)
   }
 
   // maps IP:PORT to a string representation of that peer's downtime
