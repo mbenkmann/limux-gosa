@@ -27,7 +27,7 @@ class userSelect extends management
     protected $skipFooter = TRUE;
     protected $skipHeader = TRUE;
 
-    function __construct($config,$ui)
+    function __construct($config,$ui,$exclude_dns = array())
     {
         $this->config = $config;
         $this->ui = $ui;
@@ -41,6 +41,7 @@ class userSelect extends management
             $filter = new filter(get_template_path("user-filter.xml", true, dirname(__FILE__)));
             $filter->setObjectStorage($this->storagePoints);
         }
+        $filter->setExcludeDns($exclude_dns);
         $this->setFilter($filter);
 
         // Build headpage

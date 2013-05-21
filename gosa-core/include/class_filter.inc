@@ -39,6 +39,7 @@ class filter {
     var $converter= null;
     var $pid;
 
+    var $excludeDns = array();
 
     function filter($filename)
     {
@@ -302,6 +303,13 @@ class filter {
           $seen_dns[] = $dn;
         }
 
+        // Filter excludes
+        foreach ($result as $id => $entry) {
+          $dn = $entry['dn'];
+          if(in_array($dn, $this->excludeDns)) {
+            unset($result[$id]);
+          }
+        }
         
         return ($result);
     }
@@ -501,6 +509,10 @@ class filter {
     function getFixedFilters()
     {
         return array_keys($this->searches);
+    }
+
+    function setExcludeDns($dns) {
+        $this->excludeDns = $dns;
     }
 
 }
