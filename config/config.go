@@ -185,6 +185,9 @@ var MaxPeerDowntime = 7 * 24 * time.Hour
 // to make sure its derived wait time is still enough.
 var GosaQueryJobdbMaxDelay = 4*time.Second
 
+// The interval between calls to db.groomJobDB() to clean up stale jobs.
+var JobDBGroomInterval = 1*time.Hour
+
 // The maximum delay between a change to a database and the writing
 // of the new data to disk. Longer delays improve performance and reduce
 // memory usage.

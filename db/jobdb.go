@@ -202,10 +202,13 @@ func JobsShutdown() {
 //    all these messages go over the same channels, they cannot overtake each other
 //    and will always fit together.
 func handleJobDBRequests() {
+  groom_ticker := time.Tick(config.JobDBGroomInterval)
   var request *jobDBRequest
   for {
     select {
       case request = <-jobDBRequests : request.Action(request)
+      
+      case _ = <-groom_ticker: go util.WithPanicHandler(groomJobDB)
       
       case _ = <-processPendingActions :
                /*** WARNING! WARNING! ***
@@ -705,4 +708,56 @@ func JobUpdateXMLMessage(job *xml.Hash) {
   peri = "<periodic>" + peri + "</periodic>"
   xmlmess := fmt.Sprintf("<xml><source>GOSA</source><header>job_%v</header><target>%v</target><macaddress>%v</macaddress><timestamp>%v</timestamp>%v</xml>", job.Text("headertag"), job.Text("targettag"), job.Text("macaddress"), job.Text("timestamp"), peri)
   job.FirstOrAdd("xmlmessage").SetText(base64.StdEncoding.EncodeToString([]byte(xmlmess)))
+}
+
+// Checks the jobdb for stale jobs and cleans them up.
+func groomJobDB() {
+  util.Log(1, "INFO! Grooming jobdb")
+  
+  older_than_5_minutes := xml.FilterRel("timestamp", util.MakeTimestamp(time.Now().Add(-5*time.Minute)), -1, 0)
+  jobs := JobsQuery(older_than_5_minutes)
+  
+  for jobi := jobs.FirstChild(); jobi != nil; jobi = jobi.Next() {
+    job := jobi.Element()
+    
+    macaddress := job.Text("macaddress")
+    siserver := job.Text("siserver")
+    
+    if (job.Text("headertag") == "trigger_action_reinstall" || 
+        job.Text("headertag") == "trigger_action_update") && job.Text("status") == "processing" {
+        // job is update or install job that is (believed to be) currently running
+        
+        var faistate string
+        system, err := SystemGetAllDataForMAC(macaddress, false)
+        if err == nil { faistate = system.Text("faistate") } else { faistate = err.Error() }
+        
+        state := (faistate + "12345")[0:5]
+        if (job.Text("headertag") == "trigger_action_reinstall" && (state == "reins" || state == "insta")) || 
+           (job.Text("headertag") == "trigger_action_update"    && (state == "updat" || state == "softu")) {
+           // FAIstate matches job => OK
+           continue
+        }
+        
+        // FAIstate does not match job
+        util.Log(0, "WARNING! FAIstate \"%v\" for %v is inconsistent with job that is supposedly processing: %v", faistate, macaddress, job)
+        
+        if siserver == config.ServerSourceAddress { // job is local => remove
+          util.Log(1, "INFO! Removing inconsistent job: %v", job)
+          JobsRemoveLocal(xml.FilterSimple("id", job.Text("id")), false)
+        }
+        
+    } else { // whatever the job is, it shouldn't be like this.
+             // It has apparently not been launched (or has not been removed after launching).
+             
+      if siserver == config.ServerSourceAddress {
+        util.Log(0, "ERROR! Job has not launched. This is a bug. Please report. Job: %v", job)
+        update := xml.NewHash("job", "status", "error")
+        update.Add("result", "Job has not launched. This is a bug. Please report.")
+        JobsModifyLocal(xml.FilterSimple("id", job.Text("id")), update)
+        
+      } else {
+        util.Log(0, "WARNING! Peer %v has not taken action for job or not told us about it: %v", siserver, job)
+      }
+    }
+  }
 }
