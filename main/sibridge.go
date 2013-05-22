@@ -716,39 +716,38 @@ func parseGosaReply(reply_from_gosa string) string {
      strings.HasPrefix(x.Text("answer1"),"ARRAY") { return "OK" }
   
   reply := ""
-  for _, tag := range x.Subtags() {
-    if !strings.HasPrefix(tag, "answer") { continue }
-    for answer := x.First(tag); answer != nil; answer = answer.Next() {
-      if reply != "" {reply = reply + "\n" }
-      job := answer.Text("headertag")
-      if strings.Index(job, "trigger_action_") == 0 { job = job[15:] }
-      progress := answer.Text("progress")
-      status := (answer.Text("status")+"    ")[:4]
-      if status == "proc" {
-        if progress != "" && progress != "none" {
-          status = progress+"%"
-        }
-      } else {
-        if progress != "" && progress != "none" {
-          status += "("+progress+"%)"
-        }
+  for child := x.FirstChild(); child != nil; child = child.Next() {
+    if !strings.HasPrefix(child.Element().Name(), "answer") { continue }
+    answer := child.Element()
+    if reply != "" {reply = reply + "\n" }
+    job := answer.Text("headertag")
+    if strings.Index(job, "trigger_action_") == 0 { job = job[15:] }
+    progress := answer.Text("progress")
+    status := (answer.Text("status")+"    ")[:4]
+    if status == "proc" {
+      if progress != "" && progress != "none" {
+        status = progress+"%"
       }
-      periodic := answer.Text("periodic")
-      if periodic == "none" { periodic = "" }
-      if periodic != "" {
-        periodic = " repeated every " + strings.Replace(periodic, "_", " ",-1)
+    } else {
+      if progress != "" && progress != "none" {
+        status += "("+progress+"%)"
       }
-      handler := ""
-      siserver := answer.Text("siserver")
-      if siserver != "localhost" && siserver != x.Text("source") {
-        siserver = strings.Split(siserver,":")[0]
-        handler = db.SystemNameForIPAddress(siserver)
-        if handler == "none" { handler = siserver }
-        handler = strings.Split(handler, ".")[0]
-        handler = " [by "+handler+"]"
-      }
-      reply = reply + fmt.Sprintf("== %4v %-9v %v  %v (%v)%v%v", status, job, util.ParseTimestamp(answer.Text("timestamp")).Format("_2.1 15:04:05"), answer.Text("macaddress"), answer.Text("plainname"),periodic,handler)
     }
+    periodic := answer.Text("periodic")
+    if periodic == "none" { periodic = "" }
+    if periodic != "" {
+      periodic = " repeated every " + strings.Replace(periodic, "_", " ",-1)
+    }
+    handler := ""
+    siserver := answer.Text("siserver")
+    if siserver != "localhost" && siserver != x.Text("source") {
+      siserver = strings.Split(siserver,":")[0]
+      handler = db.SystemNameForIPAddress(siserver)
+      if handler == "none" { handler = siserver }
+      handler = strings.Split(handler, ".")[0]
+      handler = " [by "+handler+"]"
+    }
+    reply = reply + fmt.Sprintf("== %4v %-9v %v  %v (%v)%v%v", status, job, util.ParseTimestamp(answer.Text("timestamp")).Format("_2.1 15:04:05"), answer.Text("macaddress"), answer.Text("plainname"),periodic,handler)
   }
   
   return reply
