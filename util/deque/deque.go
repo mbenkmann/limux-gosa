@@ -472,27 +472,34 @@ func (self *Deque) Capacity() int {
 // Overcapacity() can be used with a non-0 number to reserve memory ahead of
 // adding a known number of items to avoid expensive calls to Growth().
 //
-// Optimization note: Overcapacity() may create a new buffer of the desired
-// length and copy the data into it. It is therefore an expensive operation.
-// However if remaining is already the current remaining capacity, this is avoided.
-// So there's no point checking for this yourself.
+// Optimization note: Overcapacity() creates a new buffer of the desired
+// length and copies the data into it, even if remaining is smaller than
+// the current capacity. This ensures that memory can actually be freed.
+// Overcapacity is therefore an expensive operation.
+// However if remaining is exactly equal to the current remaining capacity,
+// this is avoided. So there's no point checking for this yourself.
 func (self *Deque) Overcapacity(remaining uint) *Deque { 
   self.Mutex.Lock()
   defer self.Mutex.Unlock()
   if self.data == nil { self.init() }
   r := len(self.data) - self.count
   if uint(r) != remaining {
-    new_data := make([]interface{},0,self.count + int(remaining))
-    if self.a < self.b || self.count == 0 {
-      new_data = append(new_data, self.data[self.a:self.b]...)
-    } else {
-      new_data = append(new_data, self.data[self.a:]...)
-      new_data = append(new_data, self.data[:self.b]...)
+    new_buf := make([]interface{},self.count + int(remaining))
+    if self.a < self.b {
+      copy(new_buf[0:], self.data[self.a:self.b])
+    } else { // this includes the cases where a==b and self.count==0
+      copy(new_buf[copy(new_buf[0:], self.data[self.a:]):], self.data[0:self.b])
     }
-    self.data = new_data[0:cap(new_data)]
+    
+    self.data = new_buf
     self.a = 0
-    self.b = self.count
-    if self.b == len(self.data) { self.b = 0 }
+    if self.count == len(self.data) {
+      self.b = 0
+    } else {
+      self.b = self.count
+      for _,c := range self.hasSpace { c <- true } 
+      self.hasSpace = self.hasSpace[0:0]
+    }
   }
   return self
 }

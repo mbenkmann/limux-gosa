@@ -196,6 +196,17 @@ func Deque_test() {
   check(Deque(deck),"")
   check(deck.Capacity(),10)
   
+  deck.Init(deque.BlockIfFull,[]interface{}{1,2,3})
+  go func() {
+    time.Sleep(500*time.Millisecond)
+    check(Deque(deck,1,2,3),"")
+    check(deck.Capacity(),3)
+    deck.Overcapacity(1)
+  }()
+  deck.Push(4)
+  check(Deque(deck,1,2,3,4),"")
+  check(deck.Capacity(),4)
+  
   deck = deque.New()
   check(deck.Push(1),true); check(Deque(deck,1),"")
   check(deck.Push(2),true); check(Deque(deck,1,2),"")
