@@ -599,12 +599,11 @@ class appgroup extends plugin
         if($entry['TYPE'] == "ENTRY"){
             $r_entry['PARAMETER'] = $this->app_parameter;
             $r_entry['FLAGS'] = $this->gosaApplicationFlags;
-            if($r_entry['STATUS'] != "ADDED"){
-                $r_entry['STATUS'] = "EDITED";
-            } 
         }
         if($entry['TYPE'] == "FOLDER"){
             $r_entry['ICON']   = $this->edit_entry['ICON'];
+        }
+        if($r_entry['STATUS'] != "ADDED"){
             $r_entry['STATUS'] = "EDITED";
         }
         $this->dialog = FALSE;
