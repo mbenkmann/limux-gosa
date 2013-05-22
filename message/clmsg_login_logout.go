@@ -21,10 +21,10 @@ MA  02110-1301, USA.
 package message
 
 import (
-         "strings"
+//         "strings"
          
          "../xml"
-         "../util"
+//         "../util"
        )
 
 var mapUserToMAC = map[string]string{}
@@ -60,7 +60,7 @@ func clmsg_logout(xmlmsg *xml.Hash) {
 
 
 func add_remove_users(add bool, xmlmsg *xml.Hash, tag string) {
-  mac := xmlmsg.Text("macaddress")
+/*  mac := xmlmsg.Text("macaddress")
   if mac == "" {
     util.Log(0, "ERROR! Missing <macaddress> in message: %v", xmlmsg)
     return
@@ -78,6 +78,6 @@ func add_remove_users(add bool, xmlmsg *xml.Hash, tag string) {
     }
   }
   
-  util.Log(2, "DEBUG! Big brother says: %v", mapUserToMAC)
+  util.Log(2, "DEBUG! Big brother says: %v", mapUserToMAC)*/
 }
 
