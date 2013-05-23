@@ -510,9 +510,13 @@ class appgroup extends plugin
 
         /* Assign copy / paste values 
          */
-        if(!empty($this->copied_release)){
+        if(session::global_is_set('appgroup_copied_menu')){
             $smarty->assign("copied", TRUE);
-            $smarty->assign("copy_source", $this->copied_release);
+            $smarty->assign("copy_source", 
+              sprintf(_('Release %s in group %s'), 
+                session::global_get('appgroup_copied_menu_release'),
+                session::global_get('appgroup_copied_menu_group')));
+                  
         }else{
             $smarty->assign("copied", FALSE);
         }
@@ -887,7 +891,14 @@ class appgroup extends plugin
 
             $value = get_post($name);
             if(preg_match("/^menu_copy/",$name)){
-                $this->copied_release = $this->FAIrelease;
+                $source_rel  = $this->_get_release_key($this->FAIrelease);
+                $all = $this->_get_all_entries();
+                $menu = $all[$source_rel]['ENTRIES'];
+                session::global_set('appgroup_copied_menu', $menu);
+                session::global_set('appgroup_copied_menu_release', $this->FAIrelease);
+                session::global_set('appgroup_copied_menu_group', 
+                  $this->parent->by_object['group']->cn);
+                
                 break;
             }
             if(preg_match("/^menu_delete/",$name)){
@@ -896,18 +907,14 @@ class appgroup extends plugin
                 break;
             }
             if(preg_match("/^menu_paste/",$name)){
-                $source_rel   = $this->_get_release_key($this->copied_release); 
-                $current_rel  = $this->_get_release_key($this->FAIrelease);
-
-                $all = $this->_get_all_entries();
-                $menu = $all[$source_rel]['ENTRIES'];
+                $current_rel  = $this->_get_release_key($this->FAIrelease); 
+                $menu = session::global_get('appgroup_copied_menu');
 
                 foreach($menu as $entry){
                     if(in_array_strict($entry['TYPE'],array("FOLDER","ENTRY","SEPERATOR"))){
                         $this->_add_entry($current_rel,$entry,-1);
                     }
                 }
-                $this->copied_release = "";
                 break;
             }
 

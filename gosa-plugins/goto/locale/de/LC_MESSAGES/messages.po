@@ -2352,6 +2352,9 @@ msgstr "Menü kopieren"
 msgid "Paste menu from"
 msgstr "Menü einfügen von"
 
+msgid "Release %s in group %s"
+msgstr "Release %s in Gruppe %s"
+
 #: admin/groups/apps/app_list.tpl:21
 msgid "Delete menu"
 msgstr "Menü entfernen"
