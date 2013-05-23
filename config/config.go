@@ -96,6 +96,9 @@ var FAIMonPort = "4711"
 // UDP Port for receiving TFTP requests
 var TFTPPort = "69"
 
+// Port for gosa-si-client.
+var ClientPort = "20083"
+
 // Maps a file name as contained in a TFTP request to the actual path on
 // the local filesystem for satisfying that request.
 // Only files contained in this map will be served, in addition to

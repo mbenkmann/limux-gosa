@@ -124,16 +124,20 @@ func ProcessEncryptedMessage(buf *bytes.Buffer, tcpAddr *net.TCPAddr) (reply *by
   util.Log(0, "ERROR! Could not decrypt message from %v", tcpAddr)
   
   // If the sender is one of our clients, maybe we got out of sync with its
-  // encryption key (e.g. by missing a new_key message). In that case, spam
-  // the client to cause it to re-register.
+  // encryption key (e.g. by missing a new_key message). 
+  // If the sender is not one of our clients, maybe it believes it is.
+  // In either case, spam the client to cause it to re-register.
   ip := tcpAddr.IP.To4()
   if ip == nil {
     util.Log(0, "ERROR! Cannot convert sender address to IPv4 address: %v", tcpAddr)
   } else {
     client := db.ClientWithAddress(ip.String())
-    if client != nil && client.Text("source") == config.ServerSourceAddress {
-      util.Log(1, "INFO! Sender is one of my clients. Sending 'Müll' to make it re-register")
+    if client != nil {
+      util.Log(1, "INFO! Sender is a known client. Sending 'Müll' to make it re-register")
       go util.SendLnTo(client.Text("client"), "Müll", config.Timeout)
+    } else {
+      util.Log(1, "INFO! Sender is not a known client. Trying to send 'Müll' to client port %v at sender IP %v", config.ClientPort, ip)
+      go util.SendLnTo(ip.String()+":"+config.ClientPort, "Müll", config.Timeout)
     }
   }
   
