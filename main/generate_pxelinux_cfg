@@ -38,7 +38,7 @@ initrd="initrd.img-${kernel#vmlinuz-}"
 conf="$(cat /etc/gosa-si/server.conf | tr '\t' ' ' | tr -s ' ' | sed 's/^ //;s/ $//;s/^\([^=]*\) =/\1=/;s/^\([^=]*\)= /\1=/')"
 
 echo "$conf" | grep -q "/$kernel=" 
-test $? != 0 -a "$state" != error && { 
+test $? != 0 -a "$state" != error -a "$state" != localboot && { 
   state="error"
   error="boot:666:ultra:The selected kernel $kernel is not available on the boot server"
 }
