@@ -83,6 +83,8 @@ func here_i_am(xmlmsg *xml.Hash) {
     
     Send_new_ldap_config(client_addr, system)
     
+    util.Log(1, "INFO! Making sure job database is consistent with faistate \"%v\"", system.Text("faistate"))
+    
     switch (system.Text("faistate")+"12345")[0:5] {
       case "local":  local_processing := xml.FilterSimple("siserver", config.ServerSourceAddress, "macaddress", macaddress, "status", "processing")
                      db.JobsRemoveLocal(local_processing, false) // false => re-schedule if periodic
@@ -90,7 +92,7 @@ func here_i_am(xmlmsg *xml.Hash) {
            "insta": makeSureWeHaveAppropriateProcessingJob(macaddress, "trigger_action_reinstall", "none")
       case "updat",
            "softu": makeSureWeHaveAppropriateProcessingJob(macaddress, "trigger_action_update", "none")
-      case "error": // db.FAIError(macaddress, "pxe", "-1", "crit", "Error message")
+      case "error":
     }
     
     // Update LDAP entry if cn != DNS name  or ipHostNumber != IP
