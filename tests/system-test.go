@@ -509,6 +509,7 @@ func run_trigger_activate_new_tests() {
   sysold,err := db.SystemGetAllDataForMAC(mac, false)
   check(err,nil)
   
+  db.SystemSetStateMulti(mac, "iphostnumber", []string{})
   hia := hash("xml(header(here_i_am)source(%v)target(%v)new_passwd(%v)mac_address(%v))", client_listen_address, config.ServerSourceAddress, keys[len(keys)-1], mac)
   t0 := time.Now()
   send("[ClientPackages]", hia)
@@ -516,8 +517,8 @@ func run_trigger_activate_new_tests() {
   
   sysnew,err := db.SystemGetAllDataForMAC(mac, false)
   if check(err, nil) {
-    check(sysnew.Text("cn"), config.Hostname)
-    check(sysnew.Text("dn"), "cn="+config.Hostname+",ou=workstations,ou=systems,o=go-susi,c=de")
+    check(sysnew.Text("cn"), "_fa-1e-c9-76-00-aa_")
+    check(sysnew.Text("dn"), "cn=_fa-1e-c9-76-00-aa_,ou=workstations,ou=systems,o=go-susi,c=de")
     sysold.RemoveFirst("cn")
     sysold.RemoveFirst("dn")
     sysold.FirstOrAdd("iphostnumber").SetText(strings.SplitN(client_listen_address,":",2)[0])

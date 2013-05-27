@@ -96,7 +96,10 @@ func here_i_am(xmlmsg *xml.Hash) {
     }
     
     // Update LDAP entry if cn != DNS name  or ipHostNumber != IP
-    client_ip := strings.SplitN(client_addr,":",2)[0]
+    client_addr := strings.SplitN(client_addr,":",2)
+    client_ip := client_addr[0]
+    client_port := ""
+    if len(client_addr) > 1 { client_port = client_addr[1] }
     client_name := db.SystemNameForIPAddress(client_ip)
     new_name := strings.SplitN(client_name,".",2)[0]
     if config.FullQualifiedCN { new_name = client_name }
@@ -105,7 +108,9 @@ func here_i_am(xmlmsg *xml.Hash) {
     update_ip := false
     cn := system.Text("cn")
     if client_name != "none" && cn != client_name && cn != strings.SplitN(client_name,".",2)[0] {
-      if DoNotChangeCN(system) { 
+      if client_port != config.ClientPort {
+        util.Log(1, "INFO! Client cn (%v) does not match DNS name (%v) but client runs on non-standard port (%v) => Assuming test and will not update cn", cn, new_name, client_port)
+      } else if DoNotChangeCN(system) { 
         util.Log(1, "INFO! Client cn (%v) does not match DNS name (%v) but client is blacklisted for cn updates", cn, new_name)
       } else {
         util.Log(1, "INFO! Client cn (%v) does not match DNS name (%v) => Update cn", cn, new_name)
@@ -113,8 +118,12 @@ func here_i_am(xmlmsg *xml.Hash) {
       }
     }
     if client_ip != system.Text("iphostnumber") {
-      util.Log(1, "INFO! Client ipHostNumber (%v) does not match IP (%v) => Update ipHostNumber", system.Text("iphostnumber"), client_ip)
-      update_ip = true
+      if system.Text("iphostnumber") != "" && client_port != config.ClientPort {
+        util.Log(1, "INFO! Client ipHostNumber (%v) does not match IP (%v) but client runs on non-standard port (%v) => Assuming test and will not update ipHostNumber", system.Text("iphostnumber"), client_ip, client_port)
+      } else {
+        util.Log(1, "INFO! Client ipHostNumber (%v) does not match IP (%v) => Update ipHostNumber", system.Text("iphostnumber"), client_ip)
+        update_ip = true
+      }
     }
     
     if update_ip || update_name {
