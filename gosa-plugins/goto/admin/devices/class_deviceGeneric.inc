@@ -110,13 +110,21 @@ class deviceGeneric extends plugin
         if(empty($this->serial)){
             $message[]= msgPool::required(_("Product-ID"));
         }elseif(!$this->is_2byteHex($this->serial)){
-            $message[]= msgPool::invalid(_("Product-ID"),"","","0x123 0x1234");
+            if(preg_match("/^(0x|x|)[a-f0-9]{5,}$/i",$this->serial)){
+                $message[]= msgPool::invalidRange("Product-ID");
+            }else{
+                $message[]= msgPool::invalid(_("Product-ID"),"","","0x123 0x1234");
+            }
         } 
 
         if(empty($this->vendor)){
             $message[]= msgPool::required(_("Vendor-ID"));
         }elseif(!$this->is_2byteHex($this->vendor)){
-            $message[]= msgPool::invalid(_("Vendor-ID"),"","","0x123 0x1234");
+            if(preg_match("/^(0x|x|)[a-f0-9]{5,}$/i",$this->vendor)){
+                $message[]= msgPool::invalidRange("Vendor-ID");
+            }else{
+                $message[]= msgPool::invalid(_("Vendor-ID"),"","","0x123 0x1234");
+            }
         }
 
         // Check if a wrong base was supplied
@@ -243,7 +251,7 @@ class deviceGeneric extends plugin
     /* check if given str in like this 0xffff*/
     function is_2byteHex($str)
     {
-        return !strlen($str) || preg_match("/^(0x|x|)[a-f0-9]{3,4}$/i",$str);
+        return !strlen($str) || preg_match("/^(0x|x|)[a-f0-9]{1,4}$/i",$str);
     }
 
 

@@ -284,6 +284,12 @@ class msgPool
   }
 
 
+  public static function invalidRange($name)
+  {
+    return (sprintf(_("%s is not in the valid range of values! (0x0 to 0xffff)"), bold($name)));
+  }
+
+
   public static function missingext($name)
   {
     return sprintf(_("Missing %s PHP extension!"), bold($name));
