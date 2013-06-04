@@ -128,8 +128,8 @@ class logonManagementDialog extends plugin
       $message[] = msgPool::required(_("Script name"));
     }
 
-    if(preg_match("/[^a-z0-9,\.-;:_\(\)!\? ]/i",$this->LogonDescription)){
-      $message[] = msgPool::required(_("Description"),$this->LogonDescription,"/[a-z0-9,\.-;:_\(\)!\? ]/i");
+    if(empty($this->LogonDescription)){
+      $message[] = msgPool::required(_("Description"));
     }
 
     return $message;

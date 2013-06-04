@@ -128,8 +128,8 @@ class logoffManagementDialog extends plugin
       $message[] = msgPool::required(_("Script name"));
     }
 
-    if(preg_match("/[^a-z0-9,\.-;:_\(\)!\? ]/i",$this->LogoffDescription)){
-      $message[] = msgPool::required(_("Description"),$this->LogoffDescription,"/[a-z0-9,\.-;:_\(\)!\? ]/i");
+    if(empty($this->LogoffDescription)){
+      $message[] = msgPool::required(_("Description"));
     }
 
     return $message;
