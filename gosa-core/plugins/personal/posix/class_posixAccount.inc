@@ -821,6 +821,7 @@ class posixAccount extends plugin
         $g= new grouptabs($this->config,$this->config->data['TABS']['GROUPTABS'], $key,"groups");
         $g->set_acl_base($key);
         $g->by_object['group']->addUser($this->uid);
+        $g->save_object();
         $g->save();
       }
     }
@@ -831,6 +832,7 @@ class posixAccount extends plugin
         $g= new grouptabs($this->config,$this->config->data['TABS']['GROUPTABS'], $key,"groups");
         $g->set_acl_base($key);
         $g->by_object['group']->removeUser ($this->uid);
+        $g->save_object();
         $g->save();
       }
     }
