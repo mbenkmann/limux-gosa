@@ -912,12 +912,15 @@ class environment extends plugin
           if(preg_match("/^!/",$this->gotoShares[$key]['server'])){
             unset($this->gotoShares[$key]);
           }
+          $share_key = str_replace("!", "", $key);
+          if(isset($this->gotoShares[$share_key]))
+            $this->gotoShares[$share_key]['PwdHash'] = "";
         }
       }
     }
 
     // Build up share list
-    $data = $lData = array(); 
+    $data = $lData = array();
     foreach($this->gotoShares as $key => $entry){
       $img = "";
 
@@ -925,16 +928,38 @@ class environment extends plugin
       if( empty($entry['server']) && empty($entry['name']) &&
           empty($entry['mountPoint']) && empty($entry['Username'])){
         continue;
-      } 
+      }
+
+      // Is a password entry?
+      if( $entry['PwdHash'] != "") {
+        // If we are currently editing groups environment, skip entries */ 
+        if( $this->is_group )
+          continue;
+
+        $pwd_key = $key;
+        $share_key = str_replace("!", "", $pwd_key);
+
+        if( ($entry['mountPoint'] == "") &&
+            (array_key_exists($share_key, $this->gotoShares)) ) {
+          $this->gotoShares[$share_key]['PwdHash'] = $entry['PwdHash'];
+          continue;
+        }
+      }
+      else {
+        $share_key = $key;
+        $pwd_key = str_replace("|", "|!", $share_key);
+
+        if (array_key_exists($pwd_key, $this->gotoShares))
+          $entry['PwdHash'] = $this->gotoShares[$pwd_key]['PwdHash'];
+      }
 
       // While editing mutlipe users at once we've to seperate 
       //  entries used by all users and those used by only some.
-      $color = "";
+      $value = '';
       if($this->multiple_support_active){
         if($entry['UsedByAllUsers']){
           $value .= "&nbsp;(<b>"._("Used by all users")."</b>)";
         }else{
-          $color = "color: #999999;";
           $value .= "&nbsp;(<b>"._("Used by some users")."</b>)";
         }
       }
@@ -943,7 +968,7 @@ class environment extends plugin
       if($entry['PwdHash'] != ""){
           $img.= 
               image('plugins/goto/images/list_reset_password.png',
-                      'gotoShareResetPwd_'.postEncode($key),
+                      'gotoShareResetPwd_'.postEncode($pwd_key),
                       _("Reset password hash"));
       }
 
@@ -951,28 +976,26 @@ class environment extends plugin
       $data[$key]=$key;
       if(preg_match("/^!/",$this->gotoShares[$key]['server'])){
 
-        // If we are currently editing groups environment, skip those ! entries */ 
-        if($this->is_group) continue;
-
         $lData[$key] = array('data' => array(
-                    $entry['server']."://",
-                    $entry['name'], 
+                    '<div style="color:#777777;">' . str_replace("!", "", $entry['server']) . "://</div>",
+                    '<div style="color:#777777;">' . $entry['name'] . "</div>", 
                     "",
                     "",
                     image("plugins/groups/images/select_group.png","",_("Group share")),
                     $img));
       }else{
 
-        $img.= image('images/lists/trash.png',"gotoShareDel_".postEncode($key),msgPool::delButton());
+        $img.= image('images/lists/trash.png',"gotoShareDel_".postEncode($share_key),msgPool::delButton());
         $lData[$key] = array('data' => array(
                     $entry['server']."://",
-                    $entry['name'], 
+                    $entry['name'] . $value,
                     $entry['mountPoint'], 
                     $entry['Username'], 
                     image("plugins/users/images/select_user.png","",_("User share")),
                     $img));
       }
     }
+
     $this->shareList->setListData($data,$lData);
     $this->shareList->update();
     $this->shareList->setAcl($this->getacl("gotoShare"));
