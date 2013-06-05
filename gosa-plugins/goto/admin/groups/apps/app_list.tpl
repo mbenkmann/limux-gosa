@@ -124,7 +124,7 @@
 				</div>
 			</td>
 			<td style="background-color: transparent;">
-				{$item.NAME} {$item.INFO}
+				{$item.NAME} {$item.INFO} <span style="color: red"> {$item.WARNING} </span>
 			</td>
 			<td style='width:100px;text-align:right;background-color: transparent;'>
 				{image title="{t}Move up{/t}" action="up_{$item.UNIQID}" path='images/lists/sort-up.png'}

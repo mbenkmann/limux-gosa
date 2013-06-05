@@ -1225,6 +1225,8 @@ class appgroup extends plugin
             if($skip_release && $entry['TYPE'] == "RELEASE"){
                 continue;
             }    
+            $entry['INFO'] = '';
+            $entry['WARNING'] = '';
             if($entry['TYPE'] == "ENTRY"){
                 $found = FALSE;
                 foreach($this->apps as $app){
@@ -1237,7 +1239,7 @@ class appgroup extends plugin
                     }
                 } 
                 if(!$found){
-                    $entry['INFO'] = "("._("Not available in release.").")";
+                    $entry['WARNING'] = "("._("Not available in release.").")";
                 }
             }
 
