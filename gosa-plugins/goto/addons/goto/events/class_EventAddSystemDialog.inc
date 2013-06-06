@@ -52,6 +52,10 @@ class EventAddSystemDialog extends management
     parent::__construct($config, $ui, "object", $headpage);
   }
 
+  function setExcludeDns($exclude_dns) {
+      $this->filter->setExcludeDns($exclude_dns);
+  }
+
   function save_object() {}
 
   function save()
