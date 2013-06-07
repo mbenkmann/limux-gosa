@@ -473,14 +473,6 @@
     </action>
 
     <action>
-      <name>activateMultiple</name>
-      <depends>DaemonEvent_activate</depends>
-      <type>entry</type>
-      <image>images/lists/unlocked.png</image>
-      <label>Activate systems</label>
-    </action>
-
-    <action>
       <name>remove</name>
       <type>entry</type>
       <image>images/lists/trash.png</image>
