@@ -170,3 +170,14 @@
 	focus_field('cn');
   -->
 </script>
+
+<!-- #9128 freezed application: show entire path of execution -->
+<script type="text/javascript" language="javascript">
+var inputElement=$("gosaApplicationExecute");
+if(inputElement && inputElement.disabled) {
+    inputElement.writeAttribute('type', 'hidden');
+    var execCommand=inputElement.getValue();
+    var parentElement=inputElement.up();
+    parentElement.update(execCommand); 
+}
+</script>

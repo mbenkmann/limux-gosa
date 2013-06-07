@@ -5523,6 +5523,11 @@ msgstr "%s sind nicht erlaubt!"
 msgid "The Field %s contains invalid characters!"
 msgstr "Das Feld %s enthält ungültige Zeichen!"
 
+#: include/utils/class_msgPool.inc:288
+#, php-format
+msgid "%s is not in the valid range of values! (0x0 to 0xffff)"
+msgstr "Das Feld %s enthält einen falschen Wertebereich! (0x0 bis 0xffff)"
+
 #: include/utils/class_msgPool.inc:289
 #, php-format
 msgid "Missing %s PHP extension!"

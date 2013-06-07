@@ -8,6 +8,7 @@
     <scope>auto</scope>
     <attribute>SECTION</attribute>
     <attribute>VERSION</attribute>
+    <attribute>DESCRIPTION</attribute>
     <attribute>PACKAGE</attribute>
   </definition>
 

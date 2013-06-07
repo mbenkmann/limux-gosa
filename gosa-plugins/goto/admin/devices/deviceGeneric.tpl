@@ -57,7 +57,7 @@
      <td><LABEL for="vendor">{t}Vendor-ID{/t}&nbsp;{t}(idVendor){/t}</LABEL>{$must}</td>
      <td>
       {render acl=$vendorACL}
-       <input type="text" value="{$vendor}" name="vendor" id="vendor">
+       <input type="text" value="{$vendor}" name="vendor" id="vendor" maxlength="6">
       {/render}
      </td>
     </tr>
@@ -65,7 +65,7 @@
      <td><LABEL for="produkt">{t}Product-ID{/t}&nbsp;{t}(idProduct){/t}</LABEL>{$must}</td>
      <td>
       {render acl=$serialACL}
-       <input type="text" value="{$serial}" name="serial" id="serial">
+       <input type="text" value="{$serial}" name="serial" id="serial" maxlength="6">
       {/render}
      </td>
     </tr>

@@ -21,7 +21,7 @@
   </definition>
 
   <table>
-    <layout>|20px;c||180|</layout>
+    <layout>|20px;c|||180|</layout>
 
     <department>
       <value>%{filter:objectType(dn,objectClass)}</value>
@@ -41,6 +41,14 @@
       <sortAttribute>PACKAGE</sortAttribute>
       <sortType>string</sortType>
       <value>%{PACKAGE}</value>
+      <export>true</export>
+    </column>
+
+    <column>
+      <label>Description</label>
+      <sortAttribute>DESCRIPTION,PACKAGE</sortAttribute>
+      <sortType>string,string</sortType>
+      <value>%{DESCRIPTION}</value>
       <export>true</export>
     </column>
 

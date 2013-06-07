@@ -26,6 +26,11 @@
    <input type="text" name="gotoProfileQuota" value="{$gotoProfileQuota}" size="6" id="gotoProfileQuota">{t}MB{/t}
    {/render}
    <br>
+   {render acl=$gotoProfileFlagIACL checkbox=$multiple_support checked=$use_gotoProfileFlagI}
+   <input class="center" type="checkbox" name="gotoProfileFlagI" value="I" {$gotoProfileFlagICHK} id="gotoProfileFlagI">&nbsp;
+   {t}Interactive profile synchronisation{/t}
+   {/render}
+   <br/>
    {render acl=$gotoProfileFlagCACL checkbox=$multiple_support checked=$use_gotoProfileFlagC}
    <input class="center" type="checkbox" name="gotoProfileFlagC" value="C" {$gotoProfileFlagCCHK} id="gotoProfileFlagC">&nbsp;
    {t}Cache profile locally{/t}
@@ -39,7 +44,8 @@
      <td>
 
       {render acl=$gotoProfileACL}
-      <input class="center" type="checkbox" value="1" {$useProfileCHK} name="useProfile" id="useProfile" onclick="changeState('gotoProfileServer');changeState('gotoProfileFlagC');changeState('gotoProfileQuota');">
+      <input class="center" type="checkbox" value="1" {$useProfileCHK} name="useProfile" id="useProfile"
+        onclick="changeState('gotoProfileServer'); changeState('gotoProfileQuota'); changeState('gotoProfileFlagI'); changeState('gotoProfileFlagC')">
       {/render}
      </td>
      <td>
@@ -91,9 +97,17 @@
         </td>
        </tr>
        <tr>
-        <td colspan=2> 
+        <td colspan=2>
+         {render acl=$gotoProfileFlagIACL checkbox=$multiple_support checked=$use_gotoProfileFlagI}
+         <input type="checkbox" name="gotoProfileFlagI" id="gotoProfileFlagI" value="L" {$gotoProfileFlagICHK} class="center">&nbsp;
+         {/render}
+         <label for="gotoProfileFlagI">{t}Interactive profile synchronisation{/t}</label>
+        </td>
+       </tr>
+       <tr>
+        <td colspan=2>
          {render acl=$gotoProfileFlagCACL}
-         <input class="center" type="checkbox" name="gotoProfileFlagC" value="C" {$gotoProfileFlagCCHK} id="gotoProfileFlagC">&nbsp;
+         <input type="checkbox" name="gotoProfileFlagC" id="gotoProfileFlagC" value="C" {$gotoProfileFlagCCHK} class="center" >&nbsp;
          {/render}
          <label for="gotoProfileFlagC">{t}Cache profile locally{/t}</label>
         </td>
@@ -176,15 +190,9 @@
 </tr>
 <tr>
  <td colspan=2>
- <div style="display:none;">
-  {render acl=$gotoProfileFlagLACL checkbox=$multiple_support checked=$use_gotoProfileFlagL}
-  <input type="checkbox" name="gotoProfileFlagL" id="gotoProfileFlagL" value="L" class="center">
-  {/render}
-  <label for="gotoProfileFlagL">{t}Resolution changeable during session{/t}</label>
- </div>
  </td>
 </tr>
-</table> 
+</table>
 
 
 

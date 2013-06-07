@@ -153,6 +153,10 @@ msgstr "Profil-Verwaltung"
 msgid "Profile server management"
 msgstr "Profil-Server-Verwaltung"
 
+#: personal/environment/environment.tpl:98
+msgid "Interactive profile synchronisation"
+msgstr "Interaktive Profilsynchronisation"
+
 #: personal/environment/environment.tpl:81
 #: personal/environment/class_environment.inc:1349
 #: personal/environment/class_environment.inc:1780

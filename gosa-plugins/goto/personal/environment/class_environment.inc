@@ -20,23 +20,23 @@ class environment extends plugin
    */
 
   /* profile management */
-  var $useProfile         = false;  // Specifies if we want to use a Server 
-  var $gotoProfileServer  = "";     // Specifies the selected profile server
-  var $gotoProfileServers = array();// Specifies all available and selectable servers
-  var $gotoProfileFlags   = "";     // Flags enabled  ? only used to set ACL and save 
-  var $gotoProfileFlagC  = "";     // Flag is set to C if we have the profile caching fucntion enabled 
-  
+  var $useProfile         = false;   // Specifies if we want to use a Server 
+  var $gotoProfileServer  = "";      // Specifies the selected profile server
+  var $gotoProfileServers = array(); // Specifies all available and selectable servers
+  var $gotoProfileQuota   = "";      // User Quota Settings
+  var $gotoProfileFlagI   = false;   // Specifies whether interactive profile synchronisation is activated
+  var $gotoProfileFlagC   = false;   // Specifies whether local profile caching is enabled 
+  var $gotoProfileFlags   = "";      // Collective representation of these flags, for backend storage purpose
+
   var $gotoXResolution    = "auto";     // The selected resolution eg: 1024x768
   var $gotoXResolutions   = array();// Contains all available resolutions for this account
-  var $gotoProfileFlagL  = "";     // Flag is set to L to enable runtime resolution change 
-  var $gotoProfileQuota   = "";     // User Quota Settings
 
   /* Logon script section*/
-  var $gotoLogonScripts   = array();// Contains all available Logon Scripts  
+  var $gotoLogonScripts   = array();// Contains all available Logon Scripts
   var $gotoLogonScript    = "";     // The selected Logon Script
 
   /* Logo script section*/
-  var $gotoLogoffScripts   = array();// Contains all available Logoff Scripts  
+  var $gotoLogoffScripts   = array();// Contains all available Logoff Scripts
   var $gotoLogoffScript    = "";     // The selected Logoff Script
 
   /* Printer */
@@ -69,14 +69,14 @@ class environment extends plugin
   // Sets the attributes which will kept on page reload, which will be saved, ...
 
   var $CopyPasteVars      = array(
-                            "gotoProfileServer",
-                            "gotoProfileFlags",
-                            "gotoProfileFlagC",
-                            "gotoProfileFlagL",
                             "useProfile",
+                            "gotoProfileServer",
+                            "gotoProfileQuota",
+                            "gotoProfileFlagI",
+                            "gotoProfileFlagC",
+                            "gotoProfileFlags",
                             "gotoHotplugDeviceDN",
                             "gotoXResolution",
-                            "gotoProfileQuota",
                             "gotoLogonScripts",
                             "gotoLogonScript",
                             "gotoLogoffScripts",
@@ -153,11 +153,8 @@ class environment extends plugin
     /* Update gotoProfileFlags */
     $this->update_gotoProfileFlags();
 
-    if((!empty($this->gotoProfileServer))||($this->gotoProfileFlagC=="C")){
-      $this->useProfile = true;
-    }else{
-      $this->useProfile = false;
-    }
+    $this->useProfile = ! empty($this->gotoProfileServer)
+      || $this->gotoProfileFlagI || $this->gotoProfileFlagC;
 
     /* Set resolutions */
     $this->gotoXResolutions = array("auto"=>_("auto"),
@@ -223,15 +220,12 @@ class environment extends plugin
     $this->shareList->setDefaultSortColumn(1);
   }
 
-  function update_gotoProfileFlags($flags=NULL) {
-    if(!$flags) {
-      $flags = $this->gotoProfileFlags;
-    }
-    for($i = 0 ; $i < strlen($flags) ; $i ++){
-      $chr = $this->gotoProfileFlags[$i];
-      $name = "gotoProfileFlag".$chr;
-      $this->$name = $chr;;
-    }
+  function update_gotoProfileFlags($string_flags = NULL) {
+
+    $string_flags = strtoupper($string_flags ? $string_flags : $this->gotoProfileFlags);
+    $this->gotoProfileFlagI = is_int(strpos($string_flags, "I"));
+    $this->gotoProfileFlagC = is_int(strpos($string_flags, "C"));
+
   }
 
   function get_LogonScripts($data=NULL) {
@@ -638,7 +632,7 @@ class environment extends plugin
       $smarty->assign("$val"."ACL", $this->getacl($val));
     }
 
-    foreach(array("gotoProfileFlagC","gotoProfileFlagL") as $s_attr){
+    foreach(array("gotoProfileFlagI", "gotoProfileFlagC") as $s_attr){
       $smarty->assign($s_attr."ACL",$this->getacl($s_attr));
     }
 
@@ -648,39 +642,22 @@ class environment extends plugin
       $smarty->assign("gotoPrinterACL","rw");
     }
 
-
     $smarty->assign("useProfile",$this->useProfile);
     if(empty($this->useProfile) && !$this->multiple_support_active){
       $smarty->assign("useProfileCHK","");
       $smarty->assign("gotoProfileServerACL" , preg_replace("/w/","",$this->getacl("gotoProfileServer")));
       $smarty->assign("gotoProfileQuotaACL" , preg_replace("/w/","",$this->getacl("gotoProfileQuota")));
+      $smarty->assign("gotoProfileFlagIACL" , preg_replace("/w/","",$this->getacl("gotoProfileFlagI")));
       $smarty->assign("gotoProfileFlagCACL" , preg_replace("/w/","",$this->getacl("gotoProfileFlagC")));
     }else{
       $smarty->assign("useProfileCHK"," checked ");
     }
-    
+
     $smarty->assign("gotoProfileServerWriteable", $this->acl_is_writeable("gotoProfileServer"));
     $smarty->assign("gotoProfileACL", $this->getacl("gotoProfileServer").$this->getacl("gotoProfileQuota"));
 
-    /* HANDLE Profile Settings here 
-     * Assign available Quota and resolution settings
-     * Get all available profile server
-     * Get cache checkbox
-     * Assign this all to Smarty 
-     */
-
-    if(empty($this->gotoProfileFlagL)){
-      $smarty->assign("gotoProfileFlagLCHK"," ");
-    }else{
-      $smarty->assign("gotoProfileFlagLCHK"," checked ");
-    }
-
-    if(empty($this->gotoProfileFlagC)){
-      $smarty->assign("gotoProfileFlagCCHK"," ");
-    }else{
-      $smarty->assign("gotoProfileFlagCCHK"," checked ");
-    }
-
+    $smarty->assign("gotoProfileFlagICHK", $this->gotoProfileFlagI ? " checked " : " ");
+    $smarty->assign("gotoProfileFlagCCHK", $this->gotoProfileFlagC ? " checked " : " ");
 
     $smarty->assign("gotoXResolutions"    , set_post($this->gotoXResolutions));
     $smarty->assign("gotoXResolutionKeys" , set_post(array_flip($this->gotoXResolutions)));
@@ -935,12 +912,15 @@ class environment extends plugin
           if(preg_match("/^!/",$this->gotoShares[$key]['server'])){
             unset($this->gotoShares[$key]);
           }
+          $share_key = str_replace("!", "", $key);
+          if(isset($this->gotoShares[$share_key]))
+            $this->gotoShares[$share_key]['PwdHash'] = "";
         }
       }
     }
 
     // Build up share list
-    $data = $lData = array(); 
+    $data = $lData = array();
     foreach($this->gotoShares as $key => $entry){
       $img = "";
 
@@ -948,16 +928,38 @@ class environment extends plugin
       if( empty($entry['server']) && empty($entry['name']) &&
           empty($entry['mountPoint']) && empty($entry['Username'])){
         continue;
-      } 
+      }
+
+      // Is a password entry?
+      if( $entry['PwdHash'] != "") {
+        // If we are currently editing groups environment, skip entries */ 
+        if( $this->is_group )
+          continue;
+
+        $pwd_key = $key;
+        $share_key = str_replace("!", "", $pwd_key);
+
+        if( ($entry['mountPoint'] == "") &&
+            (array_key_exists($share_key, $this->gotoShares)) ) {
+          $this->gotoShares[$share_key]['PwdHash'] = $entry['PwdHash'];
+          continue;
+        }
+      }
+      else {
+        $share_key = $key;
+        $pwd_key = str_replace("|", "|!", $share_key);
+
+        if (array_key_exists($pwd_key, $this->gotoShares))
+          $entry['PwdHash'] = $this->gotoShares[$pwd_key]['PwdHash'];
+      }
 
       // While editing mutlipe users at once we've to seperate 
       //  entries used by all users and those used by only some.
-      $color = "";
+      $value = '';
       if($this->multiple_support_active){
         if($entry['UsedByAllUsers']){
           $value .= "&nbsp;(<b>"._("Used by all users")."</b>)";
         }else{
-          $color = "color: #999999;";
           $value .= "&nbsp;(<b>"._("Used by some users")."</b>)";
         }
       }
@@ -966,7 +968,7 @@ class environment extends plugin
       if($entry['PwdHash'] != ""){
           $img.= 
               image('plugins/goto/images/list_reset_password.png',
-                      'gotoShareResetPwd_'.postEncode($key),
+                      'gotoShareResetPwd_'.postEncode($pwd_key),
                       _("Reset password hash"));
       }
 
@@ -974,28 +976,26 @@ class environment extends plugin
       $data[$key]=$key;
       if(preg_match("/^!/",$this->gotoShares[$key]['server'])){
 
-        // If we are currently editing groups environment, skip those ! entries */ 
-        if($this->is_group) continue;
-
         $lData[$key] = array('data' => array(
-                    $entry['server']."://",
-                    $entry['name'], 
+                    '<div style="color:#777777;">' . str_replace("!", "", $entry['server']) . "://</div>",
+                    '<div style="color:#777777;">' . $entry['name'] . "</div>", 
                     "",
                     "",
                     image("plugins/groups/images/select_group.png","",_("Group share")),
                     $img));
       }else{
 
-        $img.= image('images/lists/trash.png',"gotoShareDel_".postEncode($key),msgPool::delButton());
+        $img.= image('images/lists/trash.png',"gotoShareDel_".postEncode($share_key),msgPool::delButton());
         $lData[$key] = array('data' => array(
                     $entry['server']."://",
-                    $entry['name'], 
+                    $entry['name'] . $value,
                     $entry['mountPoint'], 
                     $entry['Username'], 
                     image("plugins/users/images/select_user.png","",_("User share")),
                     $img));
       }
     }
+
     $this->shareList->setListData($data,$lData);
     $this->shareList->update();
     $this->shareList->setAcl($this->getacl("gotoShare"));
@@ -1214,8 +1214,9 @@ class environment extends plugin
     }
 
     /* Assign used attributes for multiple edit */
-    foreach(array("gotoPrinter","kiosk_server","gotoProfileFlagL","gotoXResolution",
-                  "useProfile","gotoProfileServer","gotoProfileQuota","gotoProfileFlagC") as $box){
+    foreach(array("useProfile", "gotoProfileServer", "gotoProfileQuota",
+        "gotoProfileFlagI", "gotoProfileFlagC",
+        "gotoXResolution", "gotoPrinter", "kiosk_server") as $box){
       $ubox ="use_".$box;
       if(in_array_strict($box,$this->multi_boxes)){
         $smarty->assign($ubox,TRUE);
@@ -1296,32 +1297,20 @@ class environment extends plugin
       }
 
       if(preg_match("/w/",$PACL)){
-        if(isset($_POST['useProfile'])){
-          $this->useProfile = true;
-        }else{
-          $this->useProfile = false;
-        }
+        $this->useProfile = isset($_POST['useProfile']);
+      }
+
+      if($this->acl_is_writeable("gotoProfileFlagI")){
+        $this->gotoProfileFlagI = isset($_POST['gotoProfileFlagI']);
       }
 
       if($this->acl_is_writeable("gotoProfileFlagC")){
-        if(isset($_POST['gotoProfileFlagC'])){
-          $this->gotoProfileFlagC = get_post('gotoProfileFlagC');
-        }else{
-          $this->gotoProfileFlagC = false;
-        }
-      }
-
-      if($this->acl_is_writeable("gotoProfileFlagL")){
-        if(isset($_POST['gotoProfileFlagL'])){
-          $this->gotoProfileFlagL = get_post('gotoProfileFlagL');
-        }else{
-          $this->gotoProfileFlagL = false;
-        }
+        $this->gotoProfileFlagC = isset($_POST['gotoProfileFlagC']);
       }
 
       plugin::save_object();
       foreach($this->attributes as $s_attr){
-        if((!isset($_POST[$s_attr])) || 
+        if((!isset($_POST[$s_attr])) ||
             in_array_strict($s_attr,array("gosaDefaultPrinter","gotoShare","gotoHotplugDevices","gotoPrinter","gotoLogonScripts","gotoLogoffScripts","uid"))) continue;
         if(!$this->acl_is_writeable($s_attr)){
           continue;
@@ -1491,7 +1480,7 @@ class environment extends plugin
 
 
     if($this->gotoXResolution == "auto") $this->gotoXResolution ="";
-    $saveThis = array("gotoProfileQuota","gotoXResolution","gotoProfileServer","gotoKioskProfile","gosaDefaultPrinter");
+    $saveThis = array("gotoProfileServer","gotoProfileQuota","gotoXResolution","gotoKioskProfile","gosaDefaultPrinter");
 
     foreach($saveThis as $tosave){
       if(!empty($this->$tosave)){
@@ -1502,14 +1491,12 @@ class environment extends plugin
     }
 
     /* Prepare Flags */
-    $this->attrs['gotoProfileFlags'] = array($this->gotoProfileFlagC.$this->gotoProfileFlagL);
-    if(empty($this->attrs['gotoProfileFlags'][0])){
-      $this->attrs['gotoProfileFlags']=array();
-    }
-
-    if($this->useProfile == false){
-      $this->attrs['gotoProfileFlags'] = preg_replace("/C/i","",$this->attrs['gotoProfileFlags']);
-      $this->attrs['gotoProfileServer']= array(); 
+    if (! $this->useProfile) {
+      $this->attrs['gotoProfileServer'] = array(); 
+      $this->attrs['gotoProfileFlags'] = array();
+    } else {
+      $string_flags = ($this->gotoProfileFlagI ? "I" : "") . ($this->gotoProfileFlagC ? "C" : "");
+      $this->attrs['gotoProfileFlags'] = empty($string_flags) ? array() : array($string_flags);
     }
 
     $ldap->cat ($this->dn, array('dn'));
@@ -1694,11 +1681,8 @@ class environment extends plugin
     $this->update_kiosk_profiles();
     $this->gotoKioskProfile= preg_replace("/^.*\//i","",$this->gotoKioskProfile);
 
-    if((!empty($this->gotoProfileServer))||($this->gotoProfileFlagC=="C")){
-      $this->useProfile = true;
-    }else{
-      $this->useProfile = false;
-    }
+    $this->useProfile = ! empty($this->gotoProfileServer)
+      || $this->gotoProfileFlagI || $this->gotoProfileFlagC;
 
   }
 
@@ -1748,10 +1732,6 @@ class environment extends plugin
       $ret['add_del_printer_member_was_called'] = TRUE;
     }
   
-    if(in_array_strict("gotoProfileFlagL",$this->multi_boxes)){
-      $ret['gotoProfileFlagL'] = $this->gotoProfileFlagL;
-    }
-
     if(in_array_strict("useProfile",$this->multi_boxes)){
       $ret['useProfile']=$this->useProfile;
       if(in_array_strict("gotoProfileServer",$this->multi_boxes)){
@@ -1759,6 +1739,9 @@ class environment extends plugin
       }
       if(in_array_strict("gotoProfileQuota",$this->multi_boxes)){
         $ret['gotoProfileQuota']=$this->gotoProfileQuota;
+      }
+      if(in_array_strict("gotoProfileFlagI",$this->multi_boxes)){
+        $ret['gotoProfileFlagI'] = $this->gotoProfileFlagI;
       }
       if(in_array_strict("gotoProfileFlagC",$this->multi_boxes)){
         $ret['gotoProfileFlagC'] = $this->gotoProfileFlagC;
@@ -1791,26 +1774,14 @@ class environment extends plugin
   {
     if(isset($_POST['environment_multiple_posted'])){
       plugin::multiple_save_object();
-      
-      if(isset($_POST['useProfile'])){
-        $this->useProfile = true;
-      }else{
-        $this->useProfile = false;
-      }
-      if(isset($_POST['gotoProfileFlagC'])){
-        $this->gotoProfileFlagC = get_post('gotoProfileFlagC');
-      }else{
-        $this->gotoProfileFlagC = false;
-      }
 
-      if(isset($_POST['gotoProfileFlagL'])){
-        $this->gotoProfileFlagL = get_post('gotoProfileFlagL');
-      }else{
-        $this->gotoProfileFlagL = false;
-      }
+      $this->useProfile = isset($_POST['useProfile']);
+      $this->gotoProfileFlagI = isset($_POST['gotoProfileFlagI']);
+      $this->gotoProfileFlagC = isset($_POST['gotoProfileFlagC']);
 
-      foreach(array("gotoProfileFlagL","gotoPrinter","kiosk_server","gotoXResolution",
-                    "useProfile","gotoProfileServer","gotoProfileQuota","gotoProfileFlagC") as $attr){
+      foreach(array("useProfile", "gotoProfileServer", "gotoProfileQuota",
+          "gotoProfileFlagI", "gotoProfileFlagC", "gotoXResolution",
+          "kiosk_server", "gotoPrinter") as $attr) {
         $uattr = "use_".$attr;
         if(isset($_POST[$uattr])){
           $this->multi_boxes[] = $attr;
@@ -1927,16 +1898,16 @@ class environment extends plugin
 
                   "plProvidedAcls"  => array(
 
-                          "gotoPrinter"         => _("Printer") ,
-                          "gotoProfileServer"   => _("Profile server") ,
+                          "gotoPrinter"         => _("Printer"),
+                          "gotoProfileServer"   => _("Profile server"),
+                          "gotoProfileQuota"    => _("Profile quota"),
+                          "gotoProfileFlagI"    => _("Interactive profile synchronisation"),
+                          "gotoProfileFlagC"    => _("Cache profile locally"),
+                          "gotoShare"           => _("Shares"),
                           "gosaDefaultPrinter"  => _("Default printer"),
-                          "gotoProfileQuota"    => _("Profile quota") ,
-                          "gotoProfileFlagC"    => _("Cache profile locally") ,
-                          "gotoShare"          => _("Shares"),
                           "gotoHotplugDeviceDN" => _("Hot-plug devices"),
-                          "gotoKioskProfile"    => _("Kiosk profile") ,
-                          "gotoProfileFlagL"    => _("Resolution changeable during session") ,
-                          "gotoXResolution"     => _("Resolution") ,
+                          "gotoKioskProfile"    => _("Kiosk profile"),
+                          "gotoXResolution"     => _("Resolution"),
                           "gotoLogonScript"     => _("Log on script"),
                           "gotoLogoffScript"    => _("Log off script"))
                       ));

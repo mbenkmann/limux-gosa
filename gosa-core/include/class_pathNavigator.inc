@@ -83,7 +83,7 @@ class pathNavigator
         }
         $title = !empty($dn) ? 'title="'.$dn.'"' : '';
         if (!empty($dn)) {
-          $dnHeader = "<div class='dnHeader'>$dn<hr></div";
+          $dnHeader = "<div class='dnHeader'>$dn<hr></div>";
         }
 
         $path.= "\n<li {$title} class='left path-element'>{$entry['NAME']}</li>";

@@ -438,6 +438,20 @@ class rsyslog extends plugin
     return "$d.$m.$y $time";
   }
 
+    static function plInfo()
+    {
+        return (array(
+                    "plShortName"   => _("Log view"),
+                    "plDescription" => _("Log view addon"),
+                    "plSelfModify"  => FALSE,
+                    "plDepends"     => array(),
+                    "plPriority"    => 0,
+                    "plSection"     => array("addon"),
+                    "plCategory"    => array("rsyslog" => array("objectClass" => "none", "description" => _("System logs"))),
+                    "plProvidedAcls" => array()
+                    ));
+    }
+
 }
 // vim:tabstop=2:expandtab:shiftwidth=2:filetype=php:syntax:ruler:
 ?>

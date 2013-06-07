@@ -1766,6 +1766,7 @@ class gosaSupportDaemon
    */
   public function get_log_info_for_mac($mac)
   {
+    if ($mac == "") return array();
     $xml_msg = "
       <xml>
       <header>gosa_show_log_by_mac</header>
