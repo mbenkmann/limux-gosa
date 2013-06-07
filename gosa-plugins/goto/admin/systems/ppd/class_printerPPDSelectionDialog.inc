@@ -12,6 +12,7 @@ class printerPPDSelectionDialog extends plugin
     var $current_del_id       = "";
     var $Vendor               = "";
     var $selectedPPD = "";
+    var $ppdFilter="";
 
     function printerPPDSelectionDialog (&$config, $dn= NULL,$list=false,$headers=false,$ppd=false)
     {
@@ -100,6 +101,10 @@ class printerPPDSelectionDialog extends plugin
             }
         }
 
+        //update PPD filter if searchbutton was pressed
+        if(isset($_POST["ppdSearch"]) && isset($_POST["SearchPPD"]))
+            $this->ppdFilter=set_post(get_post("ppdSearch"));
+        $smarty->assign("ppdFilter",$this->ppdFilter);
 
         $data = $lData = array();
         if(empty($this->Vendor)){
@@ -109,6 +114,7 @@ class printerPPDSelectionDialog extends plugin
                 $data[$key] = array('TYPE' => 'VENDOR' , 'ID' => $key);
                 $lData[$key] = array('data'=>array($key));
             } 
+            $smarty->assign("mode","vnd");
 
         }else{
             $data[] = array('TYPE' => 'VENDOR' , 'ID' => '..');
@@ -127,6 +133,21 @@ class printerPPDSelectionDialog extends plugin
                       'actions'=>array('delete' => is_writable($ppd['link'])),
                     );
                 }
+            }
+            $smarty->assign("mode","ppd");
+        }
+
+        //remove the elements which do not match the filter
+        if($this->ppdFilter!="") {
+            $keysToWipe=array();
+            foreach($lData as $key=>$val) {
+                $name=$val["data"][0];
+                if(strpos($name,$this->ppdFilter)===FALSE && $key!==0) {
+                    $keysToWipe[]=$key;
+                }
+            }
+            foreach($keysToWipe as $key) {
+                unset($lData[$key],$data[$key]);
             }
         }
 
@@ -149,6 +170,7 @@ class printerPPDSelectionDialog extends plugin
             if($data['TYPE'] == "VENDOR"){
                 $this->Vendor = $data['ID'];
                 if($this->Vendor == "..") $this->Vendor = "";
+                $this->ppdFilter="";
             }
             if($data['TYPE'] == "PPD"){
                 $this->selectedPPD = $data['ID'];
