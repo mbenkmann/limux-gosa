@@ -117,8 +117,6 @@
                         changeState('delNtpServer');">{t}Inherit time server attributes{/t}
                         <br><br>
     {/render}
-    {else}
-      <input disabled type='checkbox' name='option_disabled'>{t}Inherit time server attributes{/t}<br><br>
     {/if}
          <LABEL for="gotoNtpServerSelected">{t}NTP server{/t}</LABEL>
          <br>
