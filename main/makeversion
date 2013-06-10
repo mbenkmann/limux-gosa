@@ -2,6 +2,13 @@
 
 test -f ../config/config.go && cd ..
 test -f config/config.go || exit 1
+
+which hg >/dev/null 2>&1
+if [ $? -ne 0 ] || [ ! -d ".hg" ]; then
+  test -f config/version.go || exit 1
+  exit 0
+fi
+
 logdata="$(LC_ALL=C hg log --style=compact -I main/go-susi.go -I main/makedebsource -I util/deque/deque.go -I "message/*.go" -I "action/*.go" -I "bytes/*.go" -I "util/*.go" -I "config/*.go" -I "db/*.go" -I "xml/*.go" -I "tftp/*.go")"
 echo "$logdata" | tac | tr 'A-Z' 'a-z' | sed 's/\([[#]\)/\n\1/g' |
 (
