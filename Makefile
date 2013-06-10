@@ -4,15 +4,19 @@ susi:
 	main/makeversion
 	go build main/go-susi.go
 
-all: man
+all: strip man
+
+build:
 	main/makeversion
 	go build main/run-tests.go
 	go build main/go-susi.go
 	go build main/encrypt.go
 	go build main/decrypt.go
 	go build main/sibridge.go
-	strip $(BINARIES)
 	ln -snf go-susi gosa-si-server
+
+strip: build
+	strip $(BINARIES)
 
 .PHONY: man
 man: VERSION=$(shell main/makeversion && sed -n 's/.*Version.*=.*"\([^"]*\)".*/\1/p' config/version.go)
