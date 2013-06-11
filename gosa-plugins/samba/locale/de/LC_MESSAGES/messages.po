@@ -596,8 +596,8 @@ msgstr ""
 #~ msgid "Password expires on"
 #~ msgstr "Passwort läuft ab am"
 
-#~ msgid "Account expires after"
-#~ msgstr "Konto läuft ab am"
+msgid "Account expires after"
+msgstr "Konto läuft ab am"
 
 #~ msgid "The password is valid till %s, by domain policy."
 #~ msgstr "Das Passwort ist aufgrund der Domänen-Richtline bis %s gültig."
