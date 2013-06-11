@@ -932,6 +932,7 @@ class plugin
       $o_ogroup->member[$dst_dn]= $dst_dn;
       
       // Save object group
+      $o_ogroup->reload();
       $o_ogroup->save();
     }
 
