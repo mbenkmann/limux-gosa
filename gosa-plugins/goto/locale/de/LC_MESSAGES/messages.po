@@ -2688,7 +2688,15 @@ msgstr "Die Freigabe '%s' existiert bereits auf einem anderen Server '%s'"
 msgid "Select objects to add"
 msgstr "Wählen Sie die hinzuzufügenden Objekte"
 
-#: admin/systems/ppd/printerPPDSelectionDialog.tpl:5
+#: admin/systems/ppd/printerPPDSelectionDialog.tpl:15
+msgid "Search for printer model"
+msgstr "Suche Modell"
+
+#: admin/systems/ppd/printerPPDSelectionDialog.tpl:15
+msgid "Search for printer manufacturer"
+msgstr "Suche Hersteller"
+
+#: admin/systems/ppd/printerPPDSelectionDialog.tpl:16
 msgid "Close"
 msgstr "Schliessen"
 
