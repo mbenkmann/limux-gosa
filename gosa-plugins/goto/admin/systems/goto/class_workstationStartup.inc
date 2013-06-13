@@ -1079,7 +1079,7 @@ another location! */
                 $ldap = $this->config->get_ldap_link();
                 foreach($servers as $server){
                     $ui = get_userinfo();
-                    if ($ui->gosaUnitTag != $server['TAG']) {
+                    if (isset($server['TAG']) && ($ui->gosaUnitTag != $server['TAG'])) {
                       continue;
                     }
 
