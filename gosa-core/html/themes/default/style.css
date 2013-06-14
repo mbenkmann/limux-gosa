@@ -99,7 +99,7 @@ textarea, select {
   background-color:white;
 }
 
-textarea[disabled], select:disabled, select[size="1"]:disabled {
+textarea[disabled], textarea[readonly], select:disabled, select[size="1"]:disabled {
 color:#666;
 background-color:#F0F0F0;
 border-color:#CCC;
@@ -121,7 +121,7 @@ select[size="1"]:hover{
   border:1px solid #777;
 }
 
-input[disabled]:hover, select[disabled]:hover, textarea[disabled]:hover {
+input[disabled]:hover, select[disabled]:hover, textarea[disabled]:hover, textarea[readonly]:hover {
   border:1px solid #CCC;
 }                     
 
