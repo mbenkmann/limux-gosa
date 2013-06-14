@@ -19,6 +19,7 @@ import (
           "io"
           "io/ioutil"
           "os"
+          "os/exec"
           "os/signal"
           "fmt"
           "net"
@@ -30,6 +31,8 @@ import (
           "strconv"
           "syscall"
           
+          "../db"
+          "../xml"
           "../util"
           "../util/deque"
           "../config"
@@ -127,9 +130,35 @@ Commands:
     "timeout" command, will stop the skipping. The timeout itself will remain
     in effect for future commands.
   
+  ldif <LDIF data> ...
+    Changes both the current and default values of a client's LDAP object.
+    If no LDAP object exists for a client, it will NOT be created
+    (use "summon" to create it), so you can use e.g.
+      for all ldif faistate:install
+    to change the faiState of all clients currently existing in LDAP
+    (as well as the default faiState of all 65536 possible clients).
+    The attributes "dn", "cn" and "macaddress" are filled in automatically
+    for each client and cannot be changed.
+    By default, attributes from <LDIF data> ... replace existing attributes
+    with the same names, leaving other attributes alone.
+    If you want some attribute values from <LDIF data> ... to be added to
+    the existing values, include the pseudo-attribute "add" in <LDIF data> ...
+    like this:
+      add: foo, bar, bla
+    This will cause attribute values for attributes "foo", "bar" and "bla" to
+    be added to existing values (if any) instead of replacing them.
+    Use the pseudo-attribute "delete" to remove attributes, e.g.:
+      delete: foo, bar, bla
+    <LDIF data> ... must only contain lines that start with "attribute:",
+    "attribute::", " " (continuation) or "\t" (continuation). The first line
+    that does not conform to this will be interpreted as the next command.
+    You can use ";" instead of "\n" to separate the lines in <LDIF data> ...
+    This means that semicolons in attribute values require use of base64.
+  
   summon [ <client/range> ... ]
     Creates LDAP objects for the requested clients. Any existing LDAP objects
-    will be reset to their default values.
+    will be reset to their default values (which can be set using the "ldif" 
+    command).
     If at least one client range is passed as argument, only these arguments
     will be used. Otherwise the most recent "for" command determines the
     clients.
@@ -154,6 +183,7 @@ type demon struct {
   Timeout time.Duration
   TimeoutMessage []string
   Skipping bool
+  LDAPData *xml.Hash
 }
 
 var COMMANDS = map[string]command{"":{true,false,execUnknown},
@@ -162,7 +192,9 @@ var COMMANDS = map[string]command{"":{true,false,execUnknown},
                                   "timeout":{true,true,execTimeout},
                                   "timein":{true,true,execTimein},
                                   "sleep":{true,false,execSleep},
+                                  "summon":{true,false,execSummon},
                                   "#":{false,true,func(*[]int,[]string){}},
+                                  "ldif":{false,true,nil},
                                   }
 
 type clientTime struct {
@@ -266,6 +298,8 @@ var SpecialFiles = []string{}
 
 var ProgramStartTime = time.Now()
 
+var LegionWorkstationsDN string
+
 func main() {
   // This is NOT config.ReadArgs() !!
   ReadArgs(os.Args[1:])
@@ -287,6 +321,8 @@ func main() {
   
   config.ReadNetwork() // after config.ReadConfig()
   config.Timeout = 20*time.Second
+  
+  LegionWorkstationsDN = "ou=workstations,ou=systems,"+LDAPLegionDN()
   
   // Create channels for receiving events. 
   // The main() goroutine receives on all these channels 
@@ -331,7 +367,9 @@ func main() {
   /********************  client loop ***************************/
   for client := range DEMONS {
     go func(id int) {
-      self := &demon{ID:id}
+      self := &demon{ID:id, LDAPData:xml.NewHash("xml","cn",DEMONS[id])}
+      self.LDAPData.Add("dn","cn="+DEMONS[id]+","+LegionWorkstationsDN)
+      self.LDAPData.Add("macaddress","ab:cd:ef:00:%02x:%02x",id >> 8, id&0xff)
       for {
         cmd := queues[id].Next().(func(*demon))
         cmd(self)
@@ -369,6 +407,8 @@ func main() {
   }
 }
 
+var ldif_re = regexp.MustCompile("^ |([a-zA-Z][a-zA-Z0-9]*:)")
+
 // Reads \n terminated lines from conn, tokenizes them, splits them into commands and
 // calls handle_command for each of them.
 // Pushes "true" into connectionTracker at the beginning and pops when connection closed.
@@ -388,6 +428,8 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
   }
 
   clients := &[]int{0}
+  inside_ldif := false
+  var ldif bytes.Buffer
   
   var buf = make([]byte, 65536)
   i := 0
@@ -422,7 +464,7 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
     for k := 0; k < i; k++ {
       if buf[k] == ';' { buf[k] = '\n' }
     }
-
+    
     // Find complete lines terminated by '\n' and process them.
     for start := 0;; {
       eol := bytes.IndexByte(buf[start:i], '\n')
@@ -442,6 +484,20 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
       cur_cmd := COMMANDS[""]
       args := []string{}
       for {
+        if inside_ldif {
+          if ldif_re.MatchString(line) {
+            ldif.Write([]byte(line))
+            ldif.Write([]byte{'\n'})
+            break
+          } else {
+            handle_ldif(clients,&ldif)
+            cur_cmd = COMMANDS[""]
+            args = []string{}
+            inside_ldif = false
+            ldif.Reset()
+          }
+        }
+        
         line = strings.TrimLeft(line, SPACE)
         if line == "" { break }
 
@@ -460,6 +516,11 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
               cur_cmd = cmd
               args = []string{word}
               line = line[len(word):]
+              if word == "ldif" {
+                inside_ldif = true
+                line = strings.TrimLeft(line, SPACE)
+                if line == "" { line = "dn: dummy" } // prevent empty line from terminating ldif before it has started
+              }
               goto next
             }
           }
@@ -469,12 +530,82 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
       next:
       }
       
-      if len(args) > 0 {
+      if !inside_ldif && len(args) > 0 {
         handle_command(cur_cmd,clients,args)
       }
       
     }
   }
+  
+  if inside_ldif { handle_ldif(clients,&ldif) }
+  
+}
+
+type attributes map[string]bool
+func (a *attributes) Accepts(h *xml.Hash) bool {
+  if h == nil { return false }
+  return (*a)[h.Name()]
+}
+
+func handle_ldif(clients *[]int, ldif io.Reader) {
+  x, err := xml.LdifToHash("", true, ldif)
+  if err != nil {
+    util.Log(0, "ERROR! ldif: %v", err)
+    return
+  }
+  
+  x.Remove(&attributes{"cn":true,"dn":true,"macaddress":true})
+  
+  for _, i := range *clients {
+    queues[i].Push(func(d *demon){
+      if !d.Skipping {
+        /*******
+        ATTENTION! DO NOT MODIFY x HERE, BECAUSE IT IS SHARED BY ALL queues!
+        ********/
+        
+        del := &attributes{}
+        // delete all attributes listed in "delete" pseudo-attribute
+        for _, d := range x.Get("delete") {
+          for _, a := range strings.Fields(strings.Replace(d,","," ",-1)) {
+            (*del)[a] = true
+          }
+        }
+        // delete all attributes for which we have values, unless ...
+        for _, a := range x.Subtags() {
+          (*del)[a] = true
+        }
+        // ... they are listed in the "add" pseudo-attribute
+        for _, add := range x.Get("add") {
+          for _, a := range strings.Fields(strings.Replace(add,","," ",-1)) {
+            (*del)[a] = false
+          }
+        }
+        
+        // Protect against stupidity
+        (*del)["dn"] = false
+        (*del)["cn"] = false
+        (*del)["macaddress"] = false
+        
+        d.LDAPData.Remove(del)
+        
+        for iter := x.FirstChild(); iter != nil; iter = iter.Next() {
+          d.LDAPData.AddClone(iter.Element())
+        }
+        
+        // Remove pseudo-attributes that were copied
+        d.LDAPData.Remove(&attributes{"add":true,"delete":true})
+      }
+    })
+  }
+  
+  // For all systems that already exist in LDAP, issue a "summon" to update LDAP data.
+  climap := map[int]bool{}
+  for _, i := range *clients { climap[i] = true }
+  tosummon := []int{}
+  for _,e := range LDAPLegionIDs() {
+    if climap[e] { tosummon = append(tosummon, e) }
+  }
+  execSummon(&tosummon, []string{"summon"})
 }
 
 // cmd: command to execute
@@ -483,7 +614,11 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
 //
 // NOTE: This function updates clients if necessary (e.g. command "for")
 func handle_command(cmd command, clients *[]int, args []string) {
-  util.Log(2, "Executing command %v for clients %v", args, *clients)
+  if len(*clients) <= 10 {
+    util.Log(2, "Executing command %v for clients %v", args, *clients)
+  } else {
+    util.Log(2, "Executing command %v for %v clients", args, len(*clients))
+  }
 
 /*
   // Unless the command is "for", check if the first argument is a range
@@ -581,6 +716,39 @@ func execTimein(clients *[]int, args []string) {
   }
 }
 
+func execSummon(clients *[]int, args []string) {
+  cli := *clients
+  
+  if len(args) > 1 {
+    cli = []int{}
+    for i := 1; i < len(args); i++ {
+      c := parseRange(args[i])
+      if len(c) == 0 {
+        util.Log(0, "ERROR! Illegal client/range \"%v\" in command %v", args[i], args)
+        return
+      }
+      cli = append(cli, c...)
+    }
+  }
+  
+  for _, i := range cli {
+    queues[i].Push(func(d *demon){
+      if !d.Skipping {
+        sys, _ := db.SystemGetAllDataForMAC(d.LDAPData.Text("macaddress"), false)
+        if sys != nil && sys.Text("dn") != d.LDAPData.Text("dn") {
+          util.Log(0, "ERROR! MAC address %v used by system not part of Legion", sys.Text("dn"))
+        } else {
+          err := db.SystemReplace(sys, d.LDAPData)
+          if err != nil {
+            util.Log(0, "ERROR! %v", err)
+          }
+        }
+      }
+    })
+  }
+  
+}
+
 func execFor(clients *[]int, args []string) {
   // In case of an error, it's safest to clear the clients list
   *clients = []int{}
@@ -594,7 +762,7 @@ func execFor(clients *[]int, args []string) {
   for i := 1; i < len(args); i++ {
     c := parseRange(args[i])
     if len(c) == 0 {
-      util.Log(0, "ERROR! Illegal client/range \"%v\" in \"for\" command %v", args[i], args)
+      util.Log(0, "ERROR! Illegal client/range \"%v\" in command %v", args[i], args)
       return
     }
     new_clients = append(new_clients, c...)
@@ -723,6 +891,47 @@ func ReadArgs(args []string) {
       util.Log(0, "ERROR! ReadArgs: Unknown command line switch: %v", arg)
     }
   }
+}
+
+// Returns the dn of the first object under config.LDAPBase that matches
+// (&(objectClass=organizationalUnit)(description=My name is Legion, for we are many.)).
+// Logs an error and returns "" if an error occurs or no object is found.
+func LDAPLegionDN() string {
+  legion, err := xml.LdifToHash("legion", true, ldapSearch(fmt.Sprintf("(&(objectClass=organizationalUnit)(description=My name is Legion, for we are many.))"),"dn"))
+  if err != nil || legion.First("legion") == nil {
+    util.Log(0, "ERROR! Could not find Legion OU under base %v: %v", config.LDAPBase, err)
+    return ""
+  }
+  return legion.First("legion").Text("dn")
+}
+
+// Returns the ids of all clients with an existing LDAP object.
+func LDAPLegionIDs() []int {
+  clients := []int{}
+  legion, err := xml.LdifToHash("", true, ldapSearchBase(LegionWorkstationsDN, fmt.Sprintf("(objectClass=GOhard)"),"macaddress"))
+  if err == nil {
+    for _,mac := range legion.Get("macaddress") {
+      if len(mac) != 17 { continue }
+      i, err := strconv.ParseInt(mac[12:14]+mac[15:17], 16, 32)
+      if err == nil {
+        clients = append(clients, int(i))
+      }
+    }
+  }
+  return clients
+}
+
+func ldapSearch(query string, attr... string) *exec.Cmd {
+  return ldapSearchBase(config.LDAPBase, query, attr...)
+}
+
+func ldapSearchBase(base string, query string, attr... string) *exec.Cmd {
+  args := []string{"-x", "-LLL", "-H", config.LDAPURI, "-b", base}
+  if config.LDAPUser != "" { args = append(args,"-D",config.LDAPUser,"-y",config.LDAPUserPasswordFile) }
+  args = append(args, query)
+  args = append(args, attr...)
+  util.Log(2, "DEBUG! ldapsearch %v",args)
+  return exec.Command("ldapsearch", args...)
 }
 
 type TimeoutError struct{}
