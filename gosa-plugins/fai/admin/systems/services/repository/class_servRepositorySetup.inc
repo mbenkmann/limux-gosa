@@ -276,7 +276,7 @@ class servRepositorySetup  extends plugin
         $ret = array();
         $ldap = $this->config->get_ldap_link();
         $ldap->cd($this->config->current['BASE']);
-        $ldap->search("(objectClass=FAIrepositoryServer)",array("cn", "FAIrepository"));
+        $ldap->search("(objectClass=FAIrepositoryServer)",array("cn", "FAIrepository"), TRUE, TRUE);
         while($attr = $ldap->fetch()){
             $i = 0;
             if($attr['cn'][0] == $this->cn || !isset($attr['FAIrepository'][0])) continue;
