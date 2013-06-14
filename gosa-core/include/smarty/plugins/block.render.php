@@ -87,6 +87,11 @@ function smarty_block_render($params, $text, &$smarty)
 			$to   [] = "disabled name=";
 		}
 
+		if(preg_match("/<textarea/",$text)){
+                        $from [] = "/disabled/i" ;
+                        $to   [] = "readonly";
+                }
+
 		$text 	= preg_replace($from,$to,$text);
 
 		/* Replace picture if object is disabled */
