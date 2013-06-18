@@ -50,6 +50,7 @@ func main() {
     var pkt_header *C.struct_pcap_pkthdr
     var pkt_data *C.u_char
     if C.pcap_next_ex(pcap_handle, &pkt_header, &pkt_data) < 0 { panic(C.GoString(C.pcap_geterr(pcap_handle))) }
+    if pkt_data == nil { continue }
     data := make([]byte, pkt_header.caplen)
     copy(data, (*(*[10000000]byte)(unsafe.Pointer(pkt_data)))[0:])
     from_mac,to_mac := checkwol(data)
