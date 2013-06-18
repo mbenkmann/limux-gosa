@@ -65,6 +65,8 @@ func checkwol(data []byte) (from_mac string, to_mac string) {
   to_mac = ""
   if len(data) < 16*6+6+6 { return }
   from := data[6:12]
+  from_ip := data[28:32]
+  to_ip:= data[32:36]
   data = data[len(data)-(16*6+6+6):]
   if data[0] != 0x9c { return } // high byte of port 40000
   if data[1] != 0x40 { return } // low byte of port 40000
@@ -77,6 +79,8 @@ func checkwol(data []byte) (from_mac string, to_mac string) {
     }
   }
   
+  from_mac = fmt.Sprintf("%d.%d.%d.%d/",from_ip[0],from_ip[1],from_ip[2],from_ip[3])
+  
   for i := 0; i < 6; i++ {
     x := from[i] >> 4
     from_mac += hex[x:x+1]
@@ -84,6 +88,8 @@ func checkwol(data []byte) (from_mac string, to_mac string) {
     from_mac += hex[x:x+1]
     if i != 5 { from_mac += ":" }
   }
+  
+  to_mac = fmt.Sprintf("%d.%d.%d.%d/",to_ip[0],to_ip[1],to_ip[2],to_ip[3])
   
   for i := 0; i < 6; i++ {
     x := data[12+i] >> 4
