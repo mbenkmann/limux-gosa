@@ -36,6 +36,7 @@ import (
           "../util"
           "../util/deque"
           "../config"
+          "../message"
        )
 
 /*
@@ -107,19 +108,19 @@ Commands:
     do not form a contiguous range, because all other commands only take a
     single range as argument.
   
-  print [ word ... ]
+  print [ <word> ... ]
     All words are joined with spaces between them.
     The result is used as a key that identifies a list to which an entry will
     be added storing the id of the printing client and the timestamp.
     IOW, a database is kept of who wrote what when. The program will output
     this information in aggregated form whenever it changes.
   
-  sleep duration
+  sleep <duration>
     Does nothing for the requested duration (in seconds). 
     Does not trigger timeout even if sleep duration is
     longer than timeout duration.
   
-  timeout duration [ word ... ]
+  timeout <duration> [ <word> ... ]
     If any command that waits for a message targetting a selected client
     does not receive that message within the specified duration (in seconds),
     the client
@@ -131,7 +132,7 @@ Commands:
     replace an existing one. Use duration "0" to completely deactivate
     timing out of commands.
   
-  timein [ word ... ]
+  timein [ <word> ... ]
     When a client is skipping commands due to "timeout" (see above), a "timein"
     with either no "word ..." arguments or with the exact same arguments as the
     "timeout" command, will stop the skipping. The timeout itself will remain
@@ -179,6 +180,26 @@ Commands:
   wol
     Makes the client wait until it receives a wake-on-lan.
     Use "timeout" if you want to limit the waiting time.
+  
+  server <host>[:<port>]
+    Sets the si-server to communicate with. This setting is global and affects
+    all subsequent commands for all clients.
+    The default <port> is 20081. Before the "server" command is used, the
+    si-server address is taken from server.conf.
+    As a side effect this command removes all jobs affecting legion clients
+    from the chosen server.
+  
+  job <type> <delay>
+    The selected client(s) send(s) a job_trigger_action_<type> message
+    to the si-server with a timestamp <delay> seconds in the future.
+    Each client creates a job targetting itself.
+  
+  get <URL>
+    Reads the data from <URL>. If a read error occurs, this triggers a
+    timeout, even if timeout has been set to "0" (=infinity).
+    <URL> has the format <proto>:[//<server>]/<path> where supported
+    values for <proto> are "tftp" and "http". If //<server> is omitted,
+    it defaults to the server set with the "server" command.
 `
 
 type command struct {
@@ -206,6 +227,8 @@ var COMMANDS = map[string]command{"":{true,false,execUnknown},
                                   "#":{false,true,func(*[]int,[]string){}},
                                   "ldif":{true,true,nil},
                                   "wol":{true,false,execWOL},
+                                  "server":{true,false,execServer},
+                                  "job":{true,false,execJob},
                                   }
 
 type clientTime struct {
@@ -384,10 +407,16 @@ func main() {
     }
   }()
   
-  LDAPLegionInitAllClients()
-  
   // watch for WOL events and distribute them to the proper events[i] deques
   go WOLWatcher()
+  // There seems to be some kind of race condition when WOLWatcher tries to
+  // initialize pcap in the background. I guess it's with something in the
+  // Go runtime. Anyway, sleeping a little here (together with
+  // starting WOLWatcher before LDAPLegionInitAllClients()) works around this
+  // problem by avoiding any other significant Goroutines running in parallel.
+  time.Sleep(100*time.Millisecond)
+  
+  LDAPLegionInitAllClients()
   
   /********************  print loop ****************************/
   go func() {
@@ -861,6 +890,65 @@ func execFor(clients *[]int, args []string) {
   *clients = new_clients
 }
 
+func execServer(clients *[]int, args []string) {
+  if len(args) != 2 {
+    util.Log(0, "ERROR! \"server\" needs exactly one argument (command %v)", args)
+    return
+  }
+  
+  port := "20081"
+  host := args[1]
+  colon := strings.Index(host,":")
+  if colon > 0 {
+    host = host[0:colon]
+    port = host[colon+1:]
+  }
+  
+  config.ServerSourceAddress = host+":"+port
+  
+  del := xml.NewHash("xml","where","clause","connector","or")
+  clause := del.First("where").First("clause")
+  jobs := gosa("query_jobdb", xml.NewHash("xml","where"))
+  for iter := jobs.FirstChild(); iter != nil; iter = iter.Next() {
+    if strings.HasPrefix(iter.Element().Name(),"answer") {
+      mac := iter.Element().Text("macaddress")
+      
+      // if this job affects a legion client, add the client's mac to the delete list
+      id := idFromMAC(mac)
+      if id >= 0 {
+        clause.Add("phrase").Add("macaddress", mac)
+      }
+    }
+  }
+  
+  gosa("delete_jobdb_entry", del)
+}
+
+func execJob(clients *[]int, args []string) {
+  if len(args) != 3 {
+    util.Log(0, "ERROR! Command \"job\" takes 2 arguments (illegal command: %v)", args)
+    return
+  }
+  
+  typ := args[1]
+  secs,err := strconv.Atoi(args[2])
+  if err != nil {
+    util.Log(0, "ERROR! %v: %v", args, err)
+    return
+  }
+  
+  for _, i := range *clients {
+    QueueAction(i,func(d *demon){
+      if !d.Skipping {
+        timestamp := util.MakeTimestamp(time.Now().Add(time.Duration(secs)*time.Second))
+        job := xml.NewHash("xml","macaddress",d.LDAPData.Text("macaddress"))
+        job.Add("timestamp", timestamp)
+        gosa("job_trigger_action_"+typ, job)
+      }
+    })
+  }
+}
+
 // Understands the following formats:
 //   "all":  same as 0-65535
 //   number: (0-65535) client id
@@ -931,20 +1019,30 @@ func WOLWatcher() {
   C.pcap_set_promisc(pcap_handle, 1)
   C.pcap_set_snaplen(pcap_handle, 512) // more than enough to recognize a WOL packet
   C.pcap_setdirection(pcap_handle, C.PCAP_D_IN)
+  if C.pcap_set_timeout(pcap_handle, 2147483647) != 0 { panic("pcap_set_timeout") }
   if C.pcap_activate(pcap_handle) != 0 { panic(C.GoString(C.pcap_geterr(pcap_handle))) }
   
   var bpf_program C.struct_bpf_program
   if C.pcap_compile(pcap_handle, &bpf_program, pcap_filter, 0, 0) != 0 { panic(C.GoString(C.pcap_geterr(pcap_handle))) }
   if C.pcap_setfilter(pcap_handle, &bpf_program) != 0 { panic(C.GoString(C.pcap_geterr(pcap_handle))) }
-  
+
   for {
     var pkt_header *C.struct_pcap_pkthdr
     var pkt_data *C.u_char
-    if C.pcap_next_ex(pcap_handle, &pkt_header, &pkt_data) < 0 { panic(C.GoString(C.pcap_geterr(pcap_handle))) }
+    res := C.pcap_next_ex(pcap_handle, &pkt_header, &pkt_data)
+    if res < 0 { panic(C.GoString(C.pcap_geterr(pcap_handle))) }
+    if res == 0 {
+      util.Log(0, "ERROR! pcap_next_ex timed out")
+      continue
+    }
+    if pkt_data == nil { 
+      util.Log(0, "ERROR! pcap_next_ex returned pkt_header=%v, pkt_data=%v",pkt_header,pkt_data)
+      continue 
+    }
     data := make([]byte, pkt_header.caplen)
     copy(data, (*(*[10000000]byte)(unsafe.Pointer(pkt_data)))[0:])
     if mac := checkwol(data); mac != "" { 
-      util.Log(2, "DEBUG! Received WOL for %v", mac)
+      util.Log(1, "INFO! Received WOL for %v", mac)
       if client := idFromMAC(mac); client >= 0 {
         events[client].Push("wol")
       }
@@ -1126,6 +1224,39 @@ func ldapSearchBase(base string, query string, attr... string) *exec.Cmd {
   util.Log(2, "DEBUG! ldapsearch %v",args)
   return exec.Command("ldapsearch", args...)
 }
+
+// Sends a GOSA message to the server being tested and
+// returns the reply.
+// Automatically adds <header>gosa_typ</header> (unless typ starts with "job_" 
+// or "gosa_" in which case <header>typ</header> will be used.)
+// and <source>GOSA</source> as well as <target>GOSA</target> (unless a subelement
+// of the respective name is already present).
+func gosa(typ string, x *xml.Hash) *xml.Hash {
+  if !strings.HasPrefix(typ, "gosa_") && !strings.HasPrefix(typ, "job_") {
+    typ = "gosa_" + typ
+  }
+  if x.First("header") == nil {
+    x.Add("header", typ)
+  }
+  if x.First("source") == nil {
+    x.Add("source", "GOSA")
+  }
+  if x.First("target") == nil {
+    x.Add("target", "GOSA")
+  }
+  conn, err := net.Dial("tcp", config.ServerSourceAddress)
+  if err != nil {
+    util.Log(0, "ERROR! Dial: %v", err)
+    return xml.NewHash("error")
+  }
+  defer conn.Close()
+  util.SendLn(conn, message.GosaEncrypt(x.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+  reply := message.GosaDecrypt(util.ReadLn(conn, config.Timeout), config.ModuleKey["[GOsaPackages]"])
+  x, err = xml.StringToHash(reply)
+  if err != nil { x = xml.NewHash("error") }
+  return x
+}
+
 
 type TimeoutError struct{}
 func (e *TimeoutError) Error() string { return "Timeout" }
