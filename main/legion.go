@@ -33,6 +33,7 @@ import (
           
           "../db"
           "../xml"
+          "../tftp"
           "../util"
           "../util/deque"
           "../config"
@@ -200,6 +201,10 @@ Commands:
     <URL> has the format <proto>:[//<server>]/<path> where supported
     values for <proto> are "tftp" and "http". If //<server> is omitted,
     it defaults to the server set with the "server" command.
+    NOTE: If a timeout is set, it will restart on each block of data that
+    is received. This makes more sense than having a timeout for the whole
+    operation because the transfer time depends on the file size and network
+    speed so that a useful timeout for the whole operation is hard to guess.
 `
 
 type command struct {
@@ -229,6 +234,7 @@ var COMMANDS = map[string]command{"":{true,false,execUnknown},
                                   "wol":{true,false,execWOL},
                                   "server":{true,false,execServer},
                                   "job":{true,false,execJob},
+                                  "get":{true,false,execGet},
                                   }
 
 type clientTime struct {
@@ -944,6 +950,55 @@ func execJob(clients *[]int, args []string) {
         job := xml.NewHash("xml","macaddress",d.LDAPData.Text("macaddress"))
         job.Add("timestamp", timestamp)
         gosa("job_trigger_action_"+typ, job)
+      }
+    })
+  }
+}
+
+func execGet(clients *[]int, args []string) {
+  if len(args) != 2 {
+    util.Log(0, "ERROR! Command \"get\" takes 1 argument (illegal command: %v)", args)
+    return
+  }
+  
+  url := args[1]
+  
+  if len(url) < len("http:") || (
+    strings.ToLower(url[:5]) != "http:" &&
+    strings.ToLower(url[:5]) != "tftp:" ) {
+    util.Log(0, "ERROR! URL needs to start with \"http:\" or \"tftp:\" (illegal command: %v)", args)
+    return
+  }
+  
+  proto := strings.ToLower(url[0:4])
+  url = url[5:]
+  
+  host := strings.SplitN(config.ServerSourceAddress,":",2)[0]
+  if len(url) > 2 && url[:2] == "//" {
+    url = url[2:]
+    idx := strings.Index(url,"/")
+    if idx < 0 {
+      util.Log(0, "ERROR! Illegal URL in command %v", args)
+      return
+    }
+    host = url[0:idx]
+    url = url[idx+1:]
+  }
+  
+  for _, i := range *clients {
+    QueueAction(i,func(d *demon){
+      if !d.Skipping {
+        if proto == "tftp" {
+          util.Log(1,"DEBUG! Client %v: Getting \"%v\" from server %v", DEMONS[d.ID], url, host)
+          data,err := tftp.Get(host,url,d.Timeout)
+          if err != nil {
+            util.Log(0, "WARNING! Client %v: Error \"%v\" while getting \"%v\" from server %v", DEMONS[d.ID], err, url, host)
+            monitor.print(d.ID, d.TimeoutMessage...)
+            d.Skipping = true
+          } else {
+            util.Log(1,"INFO! %v received %d bytes with md5sum %v\n", DEMONS[d.ID], len(data), util.Md5sum(string(data)))
+          }
+        }
       }
     })
   }

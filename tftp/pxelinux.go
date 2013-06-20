@@ -19,7 +19,7 @@
  * SOFTWARE. 
  */
 
-// A read-only TFTP server for serving pxelinux-related files.
+// Read-only TFTP server for pxelinux-related files and other TFTP routines.
 package tftp
 
 import (
