@@ -23,6 +23,7 @@ import (
           "os/signal"
           "fmt"
           "net"
+          "net/http"
           "sync"
           "time"
           "bytes"
@@ -988,20 +989,83 @@ func execGet(clients *[]int, args []string) {
   for _, i := range *clients {
     QueueAction(i,func(d *demon){
       if !d.Skipping {
+        util.Log(1,"DEBUG! Client %v: Getting \"%v:%v\" from server %v", DEMONS[d.ID], proto, url, host)
+        
+        var data []byte
+        var err error
         if proto == "tftp" {
-          util.Log(1,"DEBUG! Client %v: Getting \"%v\" from server %v", DEMONS[d.ID], url, host)
-          data,err := tftp.Get(host,url,d.Timeout)
-          if err != nil {
-            util.Log(0, "WARNING! Client %v: Error \"%v\" while getting \"%v\" from server %v", DEMONS[d.ID], err, url, host)
-            monitor.print(d.ID, d.TimeoutMessage...)
-            d.Skipping = true
-          } else {
-            util.Log(1,"INFO! %v received %d bytes with md5sum %v\n", DEMONS[d.ID], len(data), util.Md5sum(string(data)))
-          }
+          data, err = tftp.Get(host, url, d.Timeout)
+        } else { // proto == "http"
+          data, err = httpGet(host, url, d.Timeout)
+        }
+          
+        if err != nil {
+          util.Log(0, "WARNING! Client %v: Error \"%v\" while getting \"%v\" from server %v", DEMONS[d.ID], err, url, host)
+          monitor.print(d.ID, d.TimeoutMessage...)
+          d.Skipping = true
+        } else {
+          util.Log(1,"INFO! %v received %d bytes with md5sum %v\n", DEMONS[d.ID], len(data), util.Md5sum(string(data)))
         }
       }
     })
   }
+}
+
+func httpGet(host, path string, timeout time.Duration) ([]byte, error) {
+  c := make(chan []byte)
+  var eresult error = nil
+  
+  go func(){
+    resp, err := http.Get("http://"+host+"/"+path)
+    if err != nil { 
+      eresult = err 
+      c <- nil
+      return
+    }
+    
+    defer resp.Body.Close()
+    
+    for {
+      slice := make([]byte, 4096)
+      n, err := resp.Body.Read(slice)
+      if err != nil && err != io.EOF {
+        eresult = err
+        c <- nil
+        break
+      }
+  
+      if err == io.EOF {
+        c <- nil
+        break
+      }
+    
+      if n == 0 && err == nil {
+        eresult = fmt.Errorf("Read 0 bytes but no error reported")
+        c <- nil
+        break
+      }
+      
+      c <- slice[0:n]
+    }
+  }()
+  
+  if timeout == 0 { timeout = 1000*24*60*60*time.Second }
+  
+  buf := []byte{}
+  
+  for {
+    tim := time.NewTimer(timeout)
+    select {
+      case sl := <- c:  
+                       tim.Stop()
+                       if sl == nil { return buf, eresult }
+                       buf = append(buf, sl...)
+      case _ = <- tim.C:
+                       return buf, fmt.Errorf("Timeout")
+    }
+  }
+  
+  return []byte{},nil // never reached
 }
 
 // Understands the following formats:
