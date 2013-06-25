@@ -206,6 +206,12 @@ Commands:
     is received. This makes more sense than having a timeout for the whole
     operation because the transfer time depends on the file size and network
     speed so that a useful timeout for the whole operation is hard to guess.
+  
+  faimon [ <word> ... ]
+    All words are joined with spaces between them and sent to port 4711 of
+    the default server.
+    If an error occurs during sending, this will trigger a timeout even if
+    the timeout duration is "0" (=infinity).
 `
 
 type command struct {
@@ -220,6 +226,19 @@ type demon struct {
   TimeoutMessage []string
   Skipping bool
   LDAPData *xml.Hash
+  Env map[string]string
+}
+
+func (d *demon) expandArgs(args []string) []string {
+  ret := make([]string,0,len(args))
+  for i := range args { ret = append(ret, d.expandArg(args[i])) }
+  return ret
+}
+
+func (d *demon) expandArg(arg string) string {  
+  return env_re.ReplaceAllStringFunc(arg, func(v string)string{
+    return d.Env[v[2:len(v)-1]]
+  })
 }
 
 var COMMANDS = map[string]command{"":{true,false,execUnknown},
@@ -236,6 +255,7 @@ var COMMANDS = map[string]command{"":{true,false,execUnknown},
                                   "server":{true,false,execServer},
                                   "job":{true,false,execJob},
                                   "get":{true,false,execGet},
+                                  "faimon":{true,true,execFaimon},
                                   }
 
 type clientTime struct {
@@ -373,6 +393,10 @@ func main() {
   for _, i := range LDAPLegionIDs() { ExistsInLDAP[i] = true }
   ExistsMutex.Unlock()
   config.UnitTag = LDAPLegionUnitTag()
+  
+  // Add placeholders for virtual environment variables dynamically filled
+  // in by client goroutines when executing commands.
+  os.Setenv("hwaddress","${hwaddress}")
     
   // Create channels for receiving events. 
   // The main() goroutine receives on all these channels 
@@ -696,7 +720,33 @@ func execPrint(clients *[]int, args []string) {
   for _, i := range *clients {
     QueueAction(i,func(d *demon){
       if !d.Skipping {
+        args := d.expandArgs(args)
         monitor.print(d.ID, args...)
+      }
+    })
+  }
+}
+
+func execFaimon(clients *[]int, args []string) {
+  target := config.ServerSourceAddress[0:strings.Index(config.ServerSourceAddress,":")]+":4711"
+  
+  args = args[1:] // remove first argument which is command name "faimon"
+  for _, i := range *clients {
+    QueueAction(i,func(d *demon){
+      if !d.Skipping {
+        args := d.expandArgs(args)
+        message := strings.Join(args," ")
+        conn, err := net.Dial("tcp", target)
+        if err == nil {
+          defer conn.Close()
+          err = util.SendLn(conn, message, d.Timeout)
+        }
+        
+        if err != nil {
+          util.Log(0, "WARNING! Could not send message to %v: %v", target, err)
+          monitor.print(d.ID, d.TimeoutMessage...)
+          d.Skipping = true
+        }
       }
     })
   }
@@ -752,6 +802,7 @@ func execTimeout(clients *[]int, args []string) {
   for _, i := range *clients {
     QueueAction(i,func(d *demon){
       if !d.Skipping {
+        args := d.expandArgs(args)
         d.Timeout = time.Duration(timeout)*time.Second
         d.TimeoutMessage = args[2:]
       }
@@ -763,6 +814,7 @@ func execTimein(clients *[]int, args []string) {
   args = args[1:] // remove first argument which is the command name "timein"
   for _, id := range *clients {
     QueueAction(id,func(d *demon){
+      args := d.expandArgs(args)
       eq := (len(args) == 0 || len(args) == len(d.TimeoutMessage))
       for i := range args {
         if i >= len(d.TimeoutMessage) { break }
@@ -983,12 +1035,16 @@ func execGet(clients *[]int, args []string) {
       return
     }
     host = url[0:idx]
-    url = url[idx+1:]
+    url = url[idx:]
   }
+  
+  // remove leading slash from relative part
+  if url != "" && url[0] == '/' { url = url[1:] }
   
   for _, i := range *clients {
     QueueAction(i,func(d *demon){
       if !d.Skipping {
+        url := d.expandArg(url)
         util.Log(1,"DEBUG! Client %v: Getting \"%v:%v\" from server %v", DEMONS[d.ID], proto, url, host)
         
         var data []byte
@@ -1511,6 +1567,7 @@ func QueueAction(id int, f func(*demon)){
       self.LDAPData.Add("objectclass","GOhard")
       self.LDAPData.Add("objectclass","gotoWorkstation")
       self.LDAPData.Add("objectclass","top")
+      self.Env = map[string]string{"hwaddress":fmt.Sprintf("01-ab-cd-ef-00-%02x-%02x",id >> 8, id&0xff)}
       if config.UnitTag != "" {
         self.LDAPData.Add("objectclass", "gosaAdministrativeUnitTag")
         self.LDAPData.Add("gosaunittag", config.UnitTag)
