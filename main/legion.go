@@ -1234,7 +1234,7 @@ func execGet(clients *[]int, args []string) {
     QueueAction(i,func(d *demon){
       if !d.Skipping {
         url := d.expandArg(url)
-        util.Log(1,"DEBUG! Client %v: Getting \"%v:%v\" from server %v", DEMONS[d.ID], proto, url, host)
+        util.Log(1,"INFO! Client %v: Getting \"%v:%v\" from server %v", DEMONS[d.ID], proto, url, host)
         
         var data []byte
         var err error
