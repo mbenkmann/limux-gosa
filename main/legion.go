@@ -94,9 +94,11 @@ const HELP_MESSAGE = `Basics:
     (&(objectClass=gosaDepartment)(description=My name is Legion, for we are many.))
   * Multiple commands per line are permitted. A separating ";" is optional.
   * Comments start with "#" and extend to the end of the line.
-  * Environment variables can be referred to as ${NAME} (braces mandatory).
   * Every command affects the most recent client (range) set with the "for"
     command, or client id 0, if "for" has not yet been used.
+  * Environment variables can be referred to as ${NAME} (braces mandatory).
+  * The following virtual per-client environment variables exist:
+     ${hwaddress}, ${cn}
 
 Commands:
   help
@@ -179,9 +181,18 @@ Commands:
     will be used. Otherwise the most recent "for" command determines the
     clients.
   
-  wol
-    Makes the client wait until it receives a wake-on-lan.
+  wait <EVENT>
+    If the client has received <EVENT> since the last call to "clear",
+    "wait" succeeds immediately. Otherwise makes the client wait until it
+    receives <EVENT>. In either case <EVENT> is removed from the event queue.
     Use "timeout" if you want to limit the waiting time.
+    The following <EVENT>s are supported: 
+      "wol" (Wake-On-LAN)
+      "foo" for every server->client XML message with <header>foo</header>.
+  
+  clear
+    Clears the event queue. Use this before a call to "wait" to make sure that
+    only a new event will cause "wait" to succeed.
   
   server <host>[:<port>]
     Sets the si-server to communicate with. This setting is global and affects
@@ -261,7 +272,8 @@ var COMMANDS = map[string]command{"":{true,false,execUnknown},
                                   "banish":{true,false,execBanish},
                                   "#":{false,true,func(*[]int,[]string){}},
                                   "ldif":{true,true,nil},
-                                  "wol":{true,false,execWOL},
+                                  "wait":{true,false,execWait},
+                                  "clear":{true,false,execClear},
                                   "server":{true,false,execServer},
                                   "job":{true,false,execJob},
                                   "get":{true,false,execGet},
@@ -409,6 +421,7 @@ func main() {
   // Add placeholders for virtual environment variables dynamically filled
   // in by client goroutines when executing commands.
   os.Setenv("hwaddress","${hwaddress}")
+  os.Setenv("cn","${cn}")
     
   // Create channels for receiving events. 
   // The main() goroutine receives on all these channels 
@@ -701,9 +714,9 @@ func handle_ldif(clients *[]int, ldif io.Reader) {
 // NOTE: This function updates clients if necessary (e.g. command "for")
 func handle_command(cmd command, clients *[]int, args []string) {
   if len(*clients) <= 10 {
-    util.Log(2, "Executing command %v for clients %v", args, *clients)
+    util.Log(2, "DEBUG! Executing command %v for clients %v", args, *clients)
   } else {
-    util.Log(2, "Executing command %v for %v clients", args, len(*clients))
+    util.Log(2, "DEBUG! Executing command %v for %v clients", args, len(*clients))
   }
 
 /*
@@ -898,9 +911,9 @@ func execTimein(clients *[]int, args []string) {
   }
 }
 
-func execWOL(clients *[]int, args []string) {
-  if len(args) > 1 {
-    util.Log(0, "ERROR! Too many arguments in command %v", args)
+func execClear(clients *[]int, args []string) {
+  if len(args) != 1 {
+    util.Log(0, "ERROR! \"clear\" takes no arguments (illegal command: %v)", args)
     return
   }
   
@@ -908,15 +921,43 @@ func execWOL(clients *[]int, args []string) {
     QueueAction(i,func(d *demon){
       if !d.Skipping {
         events[d.ID].Clear()
+      }
+    })
+  }
+}
+
+func execWait(clients *[]int, args []string) {
+  if len(args) != 2 {
+    util.Log(0, "ERROR! \"wait\" takes exactly 1 argument (illegal command: %v)", args)
+    return
+  }
+  
+  event := args[1]
+  
+  for _, i := range *clients {
+    QueueAction(i,func(d *demon){
+      if !d.Skipping {
+        util.Log(2, "DEBUG! %v waiting for event \"%v\"", DEMONS[d.ID], event)
         end := time.Now().Add(d.Timeout)
+        unused_events := deque.New()
         for {
           remaining := end.Sub(time.Now())
           if remaining > 0 {
             if events[d.ID].WaitForItem(remaining) {
-              if events[d.ID].Next().(string) == "wol" { return }
+              e := events[d.ID].Next().(string)
+              if e == event { 
+                // put back unused events
+                for !unused_events.IsEmpty() {
+                  events[d.ID].Insert(unused_events.Pop())
+                }
+                util.Log(2, "DEBUG! %v got waited-for event \"%v\"", DEMONS[d.ID], event)
+                return 
+              } else {
+                unused_events.Push(e)
+              }
             }
           } else {
-            util.Log(0, "WARNING! Timeout while waiting for WOL for %v", DEMONS[d.ID])
+            util.Log(0, "WARNING! Client %v timeout while waiting for event \"%v\"", DEMONS[d.ID], event)
             monitor.print(d.ID, d.TimeoutMessage...)
             d.Skipping = true
             return
@@ -1668,7 +1709,7 @@ func QueueAction(id int, f func(*demon)){
   if !Running[id] {
     /********************  client loop ***************************/
     go func(id int) {
-      self := &demon{ID:id}
+      self := &demon{ID:id, Timeout:1000*24*60*60*time.Second, TimeoutMessage:[]string{"Timeout"}}
       present := false
       if self.LDAPData, present = InitialLDAPData[id]; !present {
         self.LDAPData = xml.NewHash("xml","cn",DEMONS[id])
@@ -1687,7 +1728,8 @@ func QueueAction(id int, f func(*demon)){
         }
       }
       
-      self.Env = map[string]string{"hwaddress":fmt.Sprintf("01-ab-cd-ef-00-%02x-%02x",id >> 8, id&0xff)}
+      self.Env = map[string]string{"hwaddress":fmt.Sprintf("01-ab-cd-ef-00-%02x-%02x",id >> 8, id&0xff),
+                                   "cn":self.LDAPData.Text("cn")}
       
       port := 0
       var listener *net.TCPListener
