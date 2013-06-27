@@ -207,11 +207,20 @@ Commands:
     operation because the transfer time depends on the file size and network
     speed so that a useful timeout for the whole operation is hard to guess.
   
-  faimon [ <word> ... ]
-    All words are joined with spaces between them and sent to port 4711 of
-    the default server.
-    If an error occurs during sending, this will trigger a timeout even if
-    the timeout duration is "0" (=infinity).
+  faimon <TYPE> [ <word> ... ]
+    Sends the message "${hwaddress} <TYPE> <word> ..." to port 4711 of
+    the default server and the corresponding CLMSG_<TYPE> XML message to
+    the default server's address as set by "server". Either send attempt
+    will give up after 10s regardless of the "timeout" command, however
+    the "faimon" command does not trigger a timeout, because delivery of
+    these messages is not crucial.
+    <TYPE> "PROGRESS" is treated specially. The sending to port 4711 is
+    not done for this <TYPE> and if <word> ... is the single word "100",
+    a timeout will trigger if the message could not be sent within the
+    time frame set by the "timeout" command.
+  
+  here_i_am
+    Sends a here_i_am message to the server.
 `
 
 type command struct {
@@ -227,6 +236,7 @@ type demon struct {
   Skipping bool
   LDAPData *xml.Hash
   Env map[string]string
+  ListenAddress string
 }
 
 func (d *demon) expandArgs(args []string) []string {
@@ -256,6 +266,7 @@ var COMMANDS = map[string]command{"":{true,false,execUnknown},
                                   "job":{true,false,execJob},
                                   "get":{true,false,execGet},
                                   "faimon":{true,true,execFaimon},
+                                  "here_i_am":{true,false,execHereIAm},
                                   }
 
 type clientTime struct {
@@ -363,6 +374,7 @@ var LegionWorkstationsDN string
 
 var ExistsMutex sync.Mutex
 var ExistsInLDAP = map[int]bool{}
+var InitialLDAPData = map[int]*xml.Hash{}
 
 var Running = map[int]bool{}
 
@@ -727,25 +739,86 @@ func execPrint(clients *[]int, args []string) {
   }
 }
 
+func execHereIAm(clients *[]int, args []string) {
+  if len(args) != 1 {
+    util.Log(0, "ERROR! Too many arguments in command %v", args)
+    return
+  }
+  
+  for _, i := range *clients {
+    QueueAction(i,func(d *demon){
+      if !d.Skipping {
+        hia := xml.NewHash("xml","header","here_i_am")
+        hia.Add("mac_address",d.LDAPData.Text("macaddress"))
+        hia.Add("source", d.ListenAddress)
+        hia.Add("target", config.ServerSourceAddress)
+        hia.Add("new_passwd", DEMONS[d.ID])
+        conn, err := net.Dial("tcp", config.ServerSourceAddress)
+        if err == nil {
+          defer conn.Close()
+          err = util.SendLn(conn, message.GosaEncrypt(hia.String(), config.ModuleKey["[ClientPackages]"]), d.Timeout)
+        }
+        
+        if err != nil {
+          util.Log(0, "ERROR! Could not send here_i_am: %v", err)
+          monitor.print(d.ID, d.TimeoutMessage...)
+          d.Skipping = true
+        }
+      }
+    })
+  }
+}
+
 func execFaimon(clients *[]int, args []string) {
-  target := config.ServerSourceAddress[0:strings.Index(config.ServerSourceAddress,":")]+":4711"
+  if len(args) < 2 {
+    util.Log(0, "ERROR! Command \"faimon\" needs at least a TYPE argument (illegal command: %v)", args)
+    return
+  }
+  
+  clmsg_target := config.ServerSourceAddress
+  faimond_target := config.ServerSourceAddress[0:strings.Index(config.ServerSourceAddress,":")]+":4711"
   
   args = args[1:] // remove first argument which is command name "faimon"
   for _, i := range *clients {
     QueueAction(i,func(d *demon){
       if !d.Skipping {
+        timeout := 10*time.Second
         args := d.expandArgs(args)
-        message := strings.Join(args," ")
-        conn, err := net.Dial("tcp", target)
+        typ := args[0]
+        if typ != "PROGRESS" {
+          msg := d.expandArg("${hwaddress} ") + strings.Join(args," ")
+          conn, err := net.Dial("tcp", faimond_target)
+          if err == nil {
+            defer conn.Close()
+            err = util.SendLn(conn, msg, timeout)
+          }
+        
+          if err != nil {
+            util.Log(0, "WARNING! Could not send message to %v: %v", faimond_target, err)
+            // no timeout, see help for "faimon" command
+          }
+        }
+        
+        do_timeout := false
+        if typ == "PROGRESS" && len(args) == 2 && args[1] == "100" {
+          timeout = d.Timeout
+          do_timeout = true
+        }
+        
+        msg := fmt.Sprintf("<xml><header>CLMSG_%v</header><CLMSG_%v>%v</CLMSG_%v><macaddress>%v</macaddress><target>%v</target><source>%v</source><timestamp>%v</timestamp></xml>",typ,typ,strings.Join(args[1:]," "),typ,d.LDAPData.Text("macaddress"),clmsg_target,d.ListenAddress,util.MakeTimestamp(time.Now()))
+        conn, err := net.Dial("tcp", clmsg_target)
         if err == nil {
           defer conn.Close()
-          err = util.SendLn(conn, message, d.Timeout)
+          err = util.SendLn(conn, message.GosaEncrypt(msg, DEMONS[d.ID]), timeout)
         }
         
         if err != nil {
-          util.Log(0, "WARNING! Could not send message to %v: %v", target, err)
-          monitor.print(d.ID, d.TimeoutMessage...)
-          d.Skipping = true
+          util.Log(0, "WARNING! Could not send message to %v: %v", clmsg_target, err)
+          if do_timeout {
+            monitor.print(d.ID, d.TimeoutMessage...)
+            d.Skipping = true
+            return
+          }
         }
       }
     })
@@ -963,7 +1036,13 @@ func execServer(clients *[]int, args []string) {
     port = host[colon+1:]
   }
   
-  config.ServerSourceAddress = host+":"+port
+  addrs, err := net.LookupIP(host)
+  if err != nil || len(addrs) == 0 {
+    util.Log(0, "ERROR! %v", err)
+    return
+  }
+  
+  config.ServerSourceAddress = addrs[0].String() + ":" + port
   
   del := xml.NewHash("xml","where","clause","connector","or")
   clause := del.First("where").First("clause")
@@ -1195,7 +1274,10 @@ func WOLWatcher() {
   C.pcap_set_snaplen(pcap_handle, 512) // more than enough to recognize a WOL packet
   C.pcap_setdirection(pcap_handle, C.PCAP_D_IN)
   if C.pcap_set_timeout(pcap_handle, 2147483647) != 0 { panic("pcap_set_timeout") }
-  if C.pcap_activate(pcap_handle) != 0 { panic(C.GoString(C.pcap_geterr(pcap_handle))) }
+  if C.pcap_activate(pcap_handle) != 0 { 
+    util.Log(0, "ERROR! Cannot sniff for WOLs: %v", C.GoString(C.pcap_geterr(pcap_handle)))
+    return
+  }
   
   var bpf_program C.struct_bpf_program
   if C.pcap_compile(pcap_handle, &bpf_program, pcap_filter, 0, 0) != 0 { panic(C.GoString(C.pcap_geterr(pcap_handle))) }
@@ -1377,12 +1459,9 @@ func LDAPLegionInitAllClients() {
   if err == nil {
     for client := legion.First("client"); client != nil; client = client.Next() {
       i := idFromMAC(client.Text("macaddress"))
-      if i < 0 { continue }
-      
-      client_data := client.Clone() // create new variable for closure below
-      QueueAction(i,func(d *demon){
-        d.LDAPData = client_data
-      })
+      if i >= 0 {
+        InitialLDAPData[i] = client.Clone()
+      }
     }
   }
 }
@@ -1554,24 +1633,80 @@ func NopCloser(w io.Writer) io.WriteCloser {
   return nopCloser{w}
 }
 
+func clientListener(listener *net.TCPListener, id int) {
+  for {
+    conn, err := listener.Accept()
+    if err != nil { 
+      util.Log(0, "ERROR! Client listener for %v stopped: %v", DEMONS[id], err)
+      return 
+    }
+    
+    go clientConnection(conn, id)
+  }
+}
+
+func clientConnection(conn net.Conn, id int) {
+  defer conn.Close()
+  data, err := ioutil.ReadAll(conn)
+  if err != nil {
+    util.Log(0, "WARNING! %v: %v", DEMONS[id], err)
+    return
+  }
+  
+  m := message.GosaDecrypt(string(data), DEMONS[id])
+  util.Log(2, "DEBUG! Message for %v: %v", DEMONS[id], m)
+  i1 := strings.Index(m, "<header>")
+  i2 := strings.Index(m, "</header>")
+  if i1 >= 0 && i2 >= 0 { 
+    event := m[i1+8:i2]
+    util.Log(1, "INFO! Event for %v: %v", DEMONS[id], event)
+    events[id].Push(event)
+  }
+}
+
 func QueueAction(id int, f func(*demon)){
   if !Running[id] {
     /********************  client loop ***************************/
     go func(id int) {
-      self := &demon{ID:id, LDAPData:xml.NewHash("xml","cn",DEMONS[id])}
-      self.LDAPData.Add("dn","cn="+DEMONS[id]+","+LegionWorkstationsDN)
-      self.LDAPData.Add("macaddress","ab:cd:ef:00:%02x:%02x",id >> 8, id&0xff)
-      self.LDAPData.Add("faiclass","Modul_Standard :unknown")
-      self.LDAPData.Add("faistate","localboot")
-      self.LDAPData.Add("objectclass","FAIobject")
-      self.LDAPData.Add("objectclass","GOhard")
-      self.LDAPData.Add("objectclass","gotoWorkstation")
-      self.LDAPData.Add("objectclass","top")
-      self.Env = map[string]string{"hwaddress":fmt.Sprintf("01-ab-cd-ef-00-%02x-%02x",id >> 8, id&0xff)}
-      if config.UnitTag != "" {
-        self.LDAPData.Add("objectclass", "gosaAdministrativeUnitTag")
-        self.LDAPData.Add("gosaunittag", config.UnitTag)
+      self := &demon{ID:id}
+      present := false
+      if self.LDAPData, present = InitialLDAPData[id]; !present {
+        self.LDAPData = xml.NewHash("xml","cn",DEMONS[id])
+        self.LDAPData.Add("dn","cn="+DEMONS[id]+","+LegionWorkstationsDN)
+        self.LDAPData.Add("macaddress","ab:cd:ef:00:%02x:%02x",id >> 8, id&0xff)
+        self.LDAPData.Add("faiclass","Modul_Standard :unknown")
+        self.LDAPData.Add("faistate","localboot")
+        self.LDAPData.Add("objectclass","FAIobject")
+        self.LDAPData.Add("objectclass","GOhard")
+        self.LDAPData.Add("objectclass","gotoWorkstation")
+        self.LDAPData.Add("objectclass","top")
+      
+        if config.UnitTag != "" {
+          self.LDAPData.Add("objectclass", "gosaAdministrativeUnitTag")
+          self.LDAPData.Add("gosaunittag", config.UnitTag)
+        }
       }
+      
+      self.Env = map[string]string{"hwaddress":fmt.Sprintf("01-ab-cd-ef-00-%02x-%02x",id >> 8, id&0xff)}
+      
+      port := 0
+      var listener *net.TCPListener
+      tcp_addr, err := net.ResolveTCPAddr("tcp4", ":0")
+      if err != nil {
+        util.Log(0, "ERROR! ResolveTCPAddr: %v", err)
+      } else {
+        listener, err = net.ListenTCP("tcp4", tcp_addr)
+        if err != nil {
+          util.Log(0, "ERROR! ListenTCP: %v", err)
+        } else {
+          port = listener.Addr().(*net.TCPAddr).Port
+        }
+      }
+      
+      self.ListenAddress = fmt.Sprintf("%v:%v", config.IP, port)
+      util.Log(2, "DEBUG! %v listening on %v", DEMONS[id], self.ListenAddress)
+      go clientListener(listener, id)
+      
       for {
         cmd := queues[id].Next().(func(*demon))
         cmd(self)
