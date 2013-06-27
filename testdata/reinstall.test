@@ -1,0 +1,1577 @@
+server vts-susi
+
+for all banish
+
+for 0
+
+summon
+print Tests running
+
+clear
+job reinstall 10
+
+timeout 20 WOL failures
+wait wol
+print WOLs received
+
+sleep 36
+
+timeout 10 TFTP failure getting pxelinux.0
+url tftp:/pxelinux.0
+timeout 10 TFTP failure getting pxelinux.cfg
+url tftp:/pxelinux.cfg/${hwaddress}
+timeout 10 TFTP failure getting vmlinuz-install
+url tftp:/vmlinuz-install
+timeout 10 TFTP failure getting initrd.img-install
+url tftp:/initrd.img-install
+
+sleep 7
+
+timeout 10 Registration failed
+here_i_am
+wait registered
+wait new_ldap_config
+
+timeout 10 Timeouts
+
+faimon TASKBEGIN confdir
+sleep 5
+faimon check ${cn}
+sleep 4
+faimon TASKEND confdir 0
+faimon HOOK setup.DEFAULT
+faimon HOOK setup.LAST
+sleep 1
+faimon HOOK setup.LAST.source
+faimon TASKBEGIN setup
+faimon TASKEND setup 0
+faimon TASKBEGIN defclass
+faimon TASKEND defclass 0
+sleep 1
+faimon PROGRESS 1
+faimon TASKBEGIN defvar
+faimon TASKEND defvar 0
+faimon HOOK action.basismodul
+faimon TASKBEGIN action
+sleep 1
+faimon PROGRESS 2
+sleep 6
+faimon TASKBEGIN install
+faimon HOOK partition.LAST
+faimon TASKBEGIN partition
+sleep 38
+faimon TASKEND partition 0
+faimon TASKBEGIN mountdisks
+sleep 1
+faimon TASKEND mountdisks 0
+faimon HOOK extrbase.LAST
+faimon HOOK extrbase.LAST.source
+faimon TASKBEGIN extrbase
+faimon PROGRESS 3
+sleep 2
+
+timeout 60 Failed downloads
+
+get http:/repo/dists/plophos/4.1.0/lhm/binary-i386/Packages.bz2
+get http:/repo/dists/plophos/4.1.0/Release
+get http:/repo/dists/plophos/4.1.0/main/binary-i386/Packages.bz2
+get http:/repo/pool/lhm/b/base-passwd/base-passwd_3.5.22-lhm1_i386.deb
+get http:/repo/pool/lhm/f/findutils/findutils_4.4.2-1ubuntu1lhm2_i386.deb
+get http:/repo/pool/lhm/i/initramfs-tools/initramfs-tools_0.92bubuntu78-lhm6_all.deb
+get http:/repo/pool/lhm/i/initramfs-tools/initramfs-tools-bin_0.92bubuntu78-lhm6_i386.deb
+get http:/repo/pool/lhm/libd/libdrm/libdrm2_2.4.28-0~lhm1_i386.deb
+get http:/repo/pool/lhm/libd/libdrm/libdrm-intel1_2.4.28-0~lhm1_i386.deb
+faimon PROGRESS 4
+get http:/repo/pool/lhm/libd/libdrm/libdrm-nouveau1_2.4.28-0~lhm1_i386.deb
+get http:/repo/pool/lhm/libd/libdrm/libdrm-nouveau1a_2.4.28-0~lhm1_i386.deb
+get http:/repo/pool/lhm/libd/libdrm/libdrm-radeon1_2.4.28-0~lhm1_i386.deb
+get http:/repo/pool/lhm/libe/libeatmydata/eatmydata_15-4ubuntu1~lhm1_i386.deb
+get http:/repo/pool/lhm/o/openldap/libldap-2.4-2_2.4.21-0ubuntu5.7lhm1_i386.deb
+get http:/repo/pool/lhm/s/sed/sed_4.2.1-6lhm2_i386.deb
+get http:/repo/pool/lhm/s/sysvinit/initscripts_2.87dsf-4ubuntu17.5lhm1_i386.deb
+get http:/repo/pool/lhm/s/sysvinit/sysvinit-utils_2.87dsf-4ubuntu17.5lhm1_i386.deb
+get http:/repo/pool/lhm/s/sysvinit/sysv-rc_2.87dsf-4ubuntu17.5lhm1_all.deb
+get http:/repo/pool/main/a/acl/libacl1_2.2.49-2_i386.deb
+get http:/repo/pool/main/a/adduser/adduser_3.112ubuntu1_all.deb
+get http:/repo/pool/main/a/apt/apt_0.7.25.3ubuntu9.9_i386.deb
+get http:/repo/pool/main/a/apt/apt-utils_0.7.25.3ubuntu9.9_i386.deb
+get http:/repo/pool/main/a/aptitude/aptitude_0.4.11.11-1ubuntu10lucid1_i386.deb
+get http:/repo/pool/main/a/attr/libattr1_2.4.44-1_i386.deb
+get http:/repo/pool/main/b/base-files/base-files_5.0.0ubuntu20.10.04.4_i386.deb
+get http:/repo/pool/main/b/bash/bash_4.1-2ubuntu3_i386.deb
+get http:/repo/pool/main/b/busybox/busybox-initramfs_1.13.3-1ubuntu11_i386.deb
+get http:/repo/pool/main/b/bzip2/libbz2-1.0_1.0.5-4ubuntu0.2_i386.deb
+get http:/repo/pool/main/c/ca-certificates/ca-certificates_20090814ubuntu0.10.04.1_all.deb
+get http:/repo/pool/main/c/coreutils/coreutils_7.4-2ubuntu3_i386.deb
+get http:/repo/pool/main/c/cpio/cpio_2.10-1ubuntu2_i386.deb
+get http:/repo/pool/main/c/cron/cron_3.0pl1-106ubuntu5_i386.deb
+get http:/repo/pool/main/c/cwidget/libcwidget3_0.5.13-1ubuntu1_i386.deb
+get http:/repo/pool/main/c/cyrus-sasl2/libsasl2-2_2.1.23.dfsg1-5ubuntu1_i386.deb
+get http:/repo/pool/main/c/cyrus-sasl2/libsasl2-modules_2.1.23.dfsg1-5ubuntu1_i386.deb
+get http:/repo/pool/main/d/dash/dash_0.5.5.1-3ubuntu2_i386.deb
+get http:/repo/pool/main/d/db/libdb4.8_4.8.24-1ubuntu1_i386.deb
+get http:/repo/pool/main/d/dbus/libdbus-1-3_1.2.16-2ubuntu4.3_i386.deb
+get http:/repo/pool/main/d/debconf/debconf_1.5.28ubuntu4_all.deb
+get http:/repo/pool/main/d/debconf/debconf-i18n_1.5.28ubuntu4_all.deb
+get http:/repo/pool/main/d/debianutils/debianutils_3.2.2_i386.deb
+get http:/repo/pool/main/d/dhcp3/dhcp3-client_3.1.3-2ubuntu3.3_i386.deb
+get http:/repo/pool/main/d/dhcp3/dhcp3-common_3.1.3-2ubuntu3.3_i386.deb
+get http:/repo/pool/main/d/diffutils/diffutils_2.8.1-18_i386.deb
+get http:/repo/pool/main/d/dmidecode/dmidecode_2.9-1.2_i386.deb
+get http:/repo/pool/main/d/dpkg/dpkg_1.15.5.6ubuntu4.5_i386.deb
+get http:/repo/pool/main/e/e2fsprogs/e2fslibs_1.41.11-1ubuntu2.1_i386.deb
+get http:/repo/pool/main/e/e2fsprogs/e2fsprogs_1.41.11-1ubuntu2.1_i386.deb
+get http:/repo/pool/main/e/e2fsprogs/libcomerr2_1.41.11-1ubuntu2.1_i386.deb
+get http:/repo/pool/main/e/e2fsprogs/libss2_1.41.11-1ubuntu2.1_i386.deb
+get http:/repo/pool/main/e/eglibc/libc6_2.11.1-0ubuntu7.8_i386.deb
+get http:/repo/pool/main/e/eglibc/libc6-i686_2.11.1-0ubuntu7.8_i386.deb
+get http:/repo/pool/main/e/eglibc/libc-bin_2.11.1-0ubuntu7.8_i386.deb
+get http:/repo/pool/main/e/eject/eject_2.1.5+deb1+cvs20081104-7_i386.deb
+get http:/repo/pool/main/f/file/file_5.03-5ubuntu1_i386.deb
+get http:/repo/pool/main/f/file/libmagic1_5.03-5ubuntu1_i386.deb
+get http:/repo/pool/main/f/fribidi/libfribidi0_0.19.2-1_i386.deb
+get http:/repo/pool/main/g/gcc-4.4/gcc-4.4-base_4.4.3-4ubuntu5_i386.deb
+get http:/repo/pool/main/g/gcc-4.4/libgcc1_4.4.3-4ubuntu5_i386.deb
+get http:/repo/pool/main/g/gcc-4.4/libstdc++6_4.4.3-4ubuntu5_i386.deb
+get http:/repo/pool/main/g/gdbm/libgdbm3_1.8.3-9_i386.deb
+get http:/repo/pool/main/g/glib2.0/libglib2.0-0_2.24.1-0ubuntu1_i386.deb
+get http:/repo/pool/main/g/gnupg/gnupg_1.4.10-2ubuntu1_i386.deb
+get http:/repo/pool/main/g/gnupg/gnupg-curl_1.4.10-2ubuntu1_i386.deb
+get http:/repo/pool/main/g/gnupg/gpgv_1.4.10-2ubuntu1_i386.deb
+get http:/repo/pool/main/g/gnutls26/libgnutls26_2.8.5-2_i386.deb
+get http:/repo/pool/main/g/gpm/libgpm2_1.20.4-3.2ubuntu2_i386.deb
+get http:/repo/pool/main/g/grep/grep_2.5.4-4build1_i386.deb
+get http:/repo/pool/main/g/gzip/gzip_1.3.12-9ubuntu1.1_i386.deb
+get http:/repo/pool/main/h/hostname/hostname_3.03ubuntu1_i386.deb
+get http:/repo/pool/main/i/ifupdown/ifupdown_0.6.8ubuntu29.2_i386.deb
+get http:/repo/pool/main/i/insserv/insserv_1.12.0-14_i386.deb
+get http:/repo/pool/main/i/iproute/iproute_20091226-1_i386.deb
+get http:/repo/pool/main/i/iputils/iputils-ping_20071127-2ubuntu1_i386.deb
+get http:/repo/pool/main/k/keyutils/libkeyutils1_1.2-12_i386.deb
+get http:/repo/pool/main/k/klibc/klibc-utils_1.5.17-4ubuntu1_i386.deb
+get http:/repo/pool/main/k/klibc/libklibc_1.5.17-4ubuntu1_i386.deb
+get http:/repo/pool/main/k/krb5/libgssapi-krb5-2_1.8.1+dfsg-2ubuntu0.10_i386.deb
+get http:/repo/pool/main/k/krb5/libk5crypto3_1.8.1+dfsg-2ubuntu0.10_i386.deb
+get http:/repo/pool/main/k/krb5/libkrb5-3_1.8.1+dfsg-2ubuntu0.10_i386.deb
+get http:/repo/pool/main/k/krb5/libkrb5support0_1.8.1+dfsg-2ubuntu0.10_i386.deb
+get http:/repo/pool/main/libc/libcap2/libcap2_2.17-2ubuntu1_i386.deb
+get http:/repo/pool/main/libc/libclass-accessor-perl/libclass-accessor-perl_0.34-1_all.deb
+get http:/repo/pool/main/libe/libept/libept0_0.5.30_i386.deb
+get http:/repo/pool/main/libg/libgcrypt11/libgcrypt11_1.4.4-5ubuntu2_i386.deb
+get http:/repo/pool/main/libg/libgpg-error/libgpg-error0_1.6-1ubuntu2_i386.deb
+get http:/repo/pool/main/libi/libidn/libidn11_1.15-2_i386.deb
+get http:/repo/pool/main/libi/libio-string-perl/libio-string-perl_1.08-2_all.deb
+get http:/repo/pool/main/libl/liblocale-gettext-perl/liblocale-gettext-perl_1.05-6_i386.deb
+get http:/repo/pool/main/libl/liblockfile/liblockfile1_1.08-3ubuntu1_i386.deb
+get http:/repo/pool/main/libn/libnih/libnih1_1.0.1-1_i386.deb
+get http:/repo/pool/main/libn/libnih/libnih-dbus1_1.0.1-1_i386.deb
+get http:/repo/pool/main/libp/libparse-debianchangelog-perl/libparse-debianchangelog-perl_1.1.1-2ubuntu2_all.deb
+get http:/repo/pool/main/libp/libpciaccess/libpciaccess0_0.11.0-1_i386.deb
+get http:/repo/pool/main/libp/libpng/libpng12-0_1.2.42-1ubuntu2.2_i386.deb
+get http:/repo/pool/main/libs/libselinux/libselinux1_2.0.89-4_i386.deb
+get http:/repo/pool/main/libs/libsepol/libsepol1_2.0.40-2_i386.deb
+get http:/repo/pool/main/libs/libsigc++-2.0/libsigc++-2.0-0c2a_2.2.4.2-1_i386.deb
+get http:/repo/pool/main/libs/libsub-name-perl/libsub-name-perl_0.04-1build1_i386.deb
+get http:/repo/pool/main/libt/libtasn1-3/libtasn1-3_2.4-1_i386.deb
+get http:/repo/pool/main/libt/libtext-charwidth-perl/libtext-charwidth-perl_0.04-6_i386.deb
+get http:/repo/pool/main/libt/libtext-iconv-perl/libtext-iconv-perl_1.7-2_i386.deb
+get http:/repo/pool/main/libt/libtext-wrapi18n-perl/libtext-wrapi18n-perl_0.06-7_all.deb
+get http:/repo/pool/main/libu/libusb/libusb-0.1-4_0.1.12-14ubuntu0.2_i386.deb
+get http:/repo/pool/main/l/langpack-locales/locales_2.11+git20100304-3_all.deb
+get http:/repo/pool/main/l/laptop-detect/laptop-detect_0.13.7ubuntu2_i386.deb
+get http:/repo/pool/main/l/less/less_436-1_i386.deb
+get http:/repo/pool/main/l/linux-atm/libatm1_2.5.1-1.2_i386.deb
+get http:/repo/pool/main/l/lockfile-progs/lockfile-progs_0.1.13ubuntu1_i386.deb
+get http:/repo/pool/main/l/logrotate/logrotate_3.7.8-4ubuntu2.2_i386.deb
+get http:/repo/pool/main/l/lsb/lsb-base_4.0-0ubuntu8_all.deb
+get http:/repo/pool/main/l/lsb/lsb-release_4.0-0ubuntu8_all.deb
+get http:/repo/pool/main/l/lvm2/dmsetup_1.02.39-1ubuntu4.1_i386.deb
+get http:/repo/pool/main/l/lvm2/libdevmapper1.02.1_1.02.39-1ubuntu4.1_i386.deb
+get http:/repo/pool/main/l/lzma/lzma_4.43-14ubuntu2_i386.deb
+get http:/repo/pool/main/m/makedev/makedev_2.3.1-89ubuntu1_all.deb
+get http:/repo/pool/main/m/make-dfsg/make_3.81-7ubuntu1_i386.deb
+get http:/repo/pool/main/m/mawk/mawk_1.3.3-15ubuntu2_i386.deb
+get http:/repo/pool/main/m/mime-support/mime-support_3.48-1ubuntu1_all.deb
+get http:/repo/pool/main/m/module-init-tools/module-init-tools_3.11.1-2ubuntu1_i386.deb
+get http:/repo/pool/main/m/mountall/mountall_2.15.3_i386.deb
+get http:/repo/pool/main/n/ncurses/libncurses5_5.7+20090803-2ubuntu3_i386.deb
+get http:/repo/pool/main/n/ncurses/libncursesw5_5.7+20090803-2ubuntu3_i386.deb
+get http:/repo/pool/main/n/ncurses/ncurses-base_5.7+20090803-2ubuntu3_all.deb
+get http:/repo/pool/main/n/ncurses/ncurses-bin_5.7+20090803-2ubuntu3_i386.deb
+get http:/repo/pool/main/n/netbase/netbase_4.35ubuntu3_all.deb
+get http:/repo/pool/main/n/netcat-openbsd/netcat-openbsd_1.89-3ubuntu2_i386.deb
+get http:/repo/pool/main/n/net-tools/net-tools_1.60-23ubuntu2_i386.deb
+get http:/repo/pool/main/n/newt/libnewt0.52_0.52.10-5ubuntu1_i386.deb
+get http:/repo/pool/main/n/newt/whiptail_0.52.10-5ubuntu1_i386.deb
+get http:/repo/pool/main/n/ntp/ntpdate_4.2.4p8+dfsg-1ubuntu2.1_i386.deb
+get http:/repo/pool/main/o/openssl/libssl0.9.8_0.9.8k-7ubuntu8.6_i386.deb
+get http:/repo/pool/main/o/openssl/openssl_0.9.8k-7ubuntu8.6_i386.deb
+get http:/repo/pool/main/p/pam/libpam0g_1.1.1-2ubuntu5.4_i386.deb
+get http:/repo/pool/main/p/pam/libpam-modules_1.1.1-2ubuntu5.4_i386.deb
+get http:/repo/pool/main/p/pam/libpam-runtime_1.1.1-2ubuntu5.4_all.deb
+get http:/repo/pool/main/p/pcre3/libpcre3_7.8-3build1_i386.deb
+get http:/repo/pool/main/p/perl/perl_5.10.1-8ubuntu2.1_i386.deb
+get http:/repo/pool/main/p/perl/perl-base_5.10.1-8ubuntu2.1_i386.deb
+get http:/repo/pool/main/p/perl/perl-modules_5.10.1-8ubuntu2.1_all.deb
+get http:/repo/pool/main/p/plymouth/libplymouth2_0.8.2-2ubuntu2.2_i386.deb
+get http:/repo/pool/main/p/plymouth/plymouth_0.8.2-2ubuntu2.2_i386.deb
+get http:/repo/pool/main/p/popt/libpopt0_1.15-1_i386.deb
+get http:/repo/pool/main/p/procps/procps_3.2.8-1ubuntu4_i386.deb
+get http:/repo/pool/main/p/python2.6/python2.6_2.6.5-1ubuntu6_i386.deb
+get http:/repo/pool/main/p/python2.6/python2.6-minimal_2.6.5-1ubuntu6_i386.deb
+get http:/repo/pool/main/p/python-central/python-central_0.6.15ubuntu1_all.deb
+get http:/repo/pool/main/p/python-defaults/python_2.6.5-0ubuntu1_all.deb
+get http:/repo/pool/main/p/python-defaults/python-minimal_2.6.5-0ubuntu1_all.deb
+get http:/repo/pool/main/r/readline6/libreadline6_6.1-1_i386.deb
+get http:/repo/pool/main/r/readline6/readline-common_6.1-1_all.deb
+get http:/repo/pool/main/r/rsyslog/rsyslog_4.2.0-2ubuntu8.1_i386.deb
+get http:/repo/pool/main/s/sensible-utils/sensible-utils_0.0.1ubuntu3_all.deb
+get http:/repo/pool/main/s/shadow/login_4.1.4.2-1ubuntu2.2_i386.deb
+get http:/repo/pool/main/s/shadow/passwd_4.1.4.2-1ubuntu2.2_i386.deb
+get http:/repo/pool/main/s/slang2/libslang2_2.2.2-2ubuntu1_i386.deb
+get http:/repo/pool/main/s/sqlite3/libsqlite3-0_3.6.22-1_i386.deb
+get http:/repo/pool/main/s/sudo/sudo_1.7.2p1-1ubuntu5.3_i386.deb
+get http:/repo/pool/main/t/tar/tar_1.22-2ubuntu1_i386.deb
+get http:/repo/pool/main/t/tasksel/tasksel_2.73ubuntu26_all.deb
+get http:/repo/pool/main/t/tasksel/tasksel-data_2.73ubuntu26_all.deb
+get http:/repo/pool/main/t/timedate/libtimedate-perl_1.1900-1_all.deb
+get http:/repo/pool/main/t/tzdata/tzdata_2011n-0ubuntu0.10.04_all.deb
+get http:/repo/pool/main/u/ubuntu-keyring/ubuntu-keyring_2010.11.09_all.deb
+get http:/repo/pool/main/u/ucf/ucf_3.0025_all.deb
+get http:/repo/pool/main/u/udev/libudev0_151-12.3_i386.deb
+get http:/repo/pool/main/u/udev/udev_151-12.3_i386.deb
+get http:/repo/pool/main/u/upstart/upstart_0.6.5-8_i386.deb
+get http:/repo/pool/main/u/ureadahead/ureadahead_0.100.0-4.1.3_i386.deb
+get http:/repo/pool/main/u/util-linux/bsdutils_2.17.2-0ubuntu1.10.04.2_i386.deb
+get http:/repo/pool/main/u/util-linux/libblkid1_2.17.2-0ubuntu1.10.04.2_i386.deb
+get http:/repo/pool/main/u/util-linux/libuuid1_2.17.2-0ubuntu1.10.04.2_i386.deb
+get http:/repo/pool/main/u/util-linux/mount_2.17.2-0ubuntu1.10.04.2_i386.deb
+get http:/repo/pool/main/u/util-linux/util-linux_2.17.2-0ubuntu1.10.04.2_i386.deb
+get http:/repo/pool/main/v/vim/vim-common_7.2.330-1ubuntu3_i386.deb
+get http:/repo/pool/main/v/vim/vim-tiny_7.2.330-1ubuntu3_i386.deb
+get http:/repo/pool/main/x/xapian-core/libxapian15_1.0.18-1_i386.deb
+get http:/repo/pool/main/x/xfonts-terminus/console-terminus_4.30-2_all.deb
+get http:/repo/pool/main/x/xkeyboard-config/xkb-data_1.8-1ubuntu8.1~10.04.1_all.deb
+get http:/repo/pool/main/z/zlib/zlib1g_1.2.3.3.dfsg-15ubuntu1_i386.deb
+faimon PROGRESS 6
+sleep 19
+faimon PROGRESS 8
+sleep 19
+faimon PROGRESS 10
+sleep 13
+faimon PROGRESS 12
+sleep 19
+faimon TASKEND extrbase 0
+faimon TASKBEGIN debconf
+faimon PROGRESS 15
+sleep 1
+faimon TASKEND debconf 0
+faimon HOOK repository.LAST
+faimon TASKBEGIN repository
+get http:/repo/pool/lhm/c/curl/libcurl3-gnutls_7.21.6-3ubuntu3%7elhm1_i386.deb
+get http:/repo/pool/lhm/r/rtmpdump/librtmp0_2.3-2ubuntu1%7elhm1_i386.deb
+faimon TASKEND repository 0
+faimon HOOK updatebase.basismodul
+faimon HOOK updatebase.LAST
+sleep 1
+faimon PROGRESS 16
+faimon TASKBEGIN updatebase
+get http:/repo/dists/plophos/4.1.0/ff/binary-i386/Packages.gz
+get http:/repo/dists/plophos/4.1.0/ff/binary-i386/Packages.lzma
+get http:/repo/dists/plophos/4.1.0/lhm/binary-i386/Packages.gz
+get http:/repo/dists/plophos/4.1.0/lhm/binary-i386/Packages.lzma
+get http:/repo/dists/plophos/4.1.0/main/binary-i386/Packages.gz
+get http:/repo/dists/plophos/4.1.0/main/binary-i386/Packages.lzma
+get http:/repo/dists/plophos/4.1.0/multiverse/binary-i386/Packages.gz
+get http:/repo/dists/plophos/4.1.0/multiverse/binary-i386/Packages.lzma
+get http:/repo/dists/plophos/4.1.0/Release.gpg
+get http:/repo/dists/plophos/4.1.0/Release
+get http:/repo/dists/plophos/4.1.0/restricted/binary-i386/Packages.gz
+get http:/repo/dists/plophos/4.1.0/restricted/binary-i386/Packages.lzma
+get http:/repo/dists/plophos/4.1.0/universe/binary-i386/Packages.gz
+get http:/repo/dists/plophos/4.1.0/universe/binary-i386/Packages.lzma
+faimon TASKEND updatebase 0
+faimon HOOK instsoft.basismodul
+faimon HOOK instsoft.LAST
+faimon TASKBEGIN instsoft
+get http:/repo/pool/lhm/a/antivir-workstation-prof/antivir-workstation-prof_3.1.3.4-1-0lhm6_i386.deb
+get http:/repo/pool/main/a/anacron/anacron_2.3-13.1ubuntu11_i386.deb
+get http:/repo/pool/main/f/fuse/fuse-utils_2.8.1-1.1ubuntu3.1_i386.deb
+get http:/repo/pool/main/f/fuse/libfuse2_2.8.1-1.1ubuntu3.1_i386.deb
+get http:/repo/pool/main/n/ntfs-3g/libntfs-3g75_2010.3.6-1ubuntu1_i386.deb
+get http:/repo/pool/main/n/ntfs-3g/ntfs-3g_2010.3.6-1ubuntu1_i386.deb
+get http:/repo/pool/universe/g/gcc-3.3/libstdc++5_3.3.6-20%7elucid1_i386.deb
+get http:/repo/pool/main/libx/libxml2/libxml2_2.7.6.dfsg-1ubuntu1.3_i386.deb
+get http:/repo/pool/universe/d/diffutils/diff_2.8.1-18_all.deb
+get http:/repo/pool/lhm/c/cdebconf/cdebconf_0.147+lhm1_i386.deb
+get http:/repo/pool/lhm/c/cups/libcups2_1.4.6-5ubuntu1%7elhm5_i386.deb
+get http:/repo/pool/lhm/c/cups/libcupsimage2_1.4.6-5ubuntu1%7elhm5_i386.deb
+get http:/repo/pool/main/a/avahi/libavahi-client3_0.6.25-1ubuntu6.2_i386.deb
+get http:/repo/pool/main/a/avahi/libavahi-common3_0.6.25-1ubuntu6.2_i386.deb
+get http:/repo/pool/main/a/avahi/libavahi-common-data_0.6.25-1ubuntu6.2_i386.deb
+get http:/repo/pool/main/d/defoma/defoma_0.11.10-4ubuntu1_all.deb
+get http:/repo/pool/main/e/expat/libexpat1_2.0.1-7ubuntu1_i386.deb
+get http:/repo/pool/main/f/fontconfig/fontconfig-config_2.8.0-2ubuntu1_all.deb
+get http:/repo/pool/main/f/fontconfig/libfontconfig1_2.8.0-2ubuntu1_i386.deb
+get http:/repo/pool/main/f/foomatic-filters/foomatic-filters_4.0.4-0ubuntu1.1_i386.deb
+get http:/repo/pool/main/f/freetype/libfreetype6_2.3.11-1ubuntu2.5_i386.deb
+get http:/repo/pool/main/g/ghostscript/libgs8_8.71.dfsg.1-0ubuntu5.4_i386.deb
+get http:/repo/pool/main/libd/libdebian-installer/libdebian-installer4_0.68ubuntu3_i386.deb
+get http:/repo/pool/main/libj/libjpeg6b/libjpeg62_6b-15ubuntu1_i386.deb
+get http:/repo/pool/main/libp/libpaper/libpaper1_1.1.23+nmu1build1_i386.deb
+get http:/repo/pool/main/libt/libtextwrap/libtextwrap1_0.1-8ubuntu2_i386.deb
+get http:/repo/pool/main/t/tiff/libtiff4_3.9.2-2ubuntu0.7_i386.deb
+get http:/repo/pool/main/t/ttf-bitstream-vera/ttf-bitstream-vera_1.10-0ubuntu1_all.deb
+get http:/repo/pool/main/t/ttf-dejavu/ttf-dejavu-core_2.30-2_all.deb
+get http:/repo/pool/main/t/ttf-freefont/ttf-freefont_20090104-5_all.deb
+get http:/repo/pool/universe/d/dialog/dialog_1.1-20080819-1_i386.deb
+get http:/repo/pool/lhm/c/cups/cups_1.4.6-5ubuntu1%7elhm5_i386.deb
+get http:/repo/pool/lhm/c/cups/cups-client_1.4.6-5ubuntu1%7elhm5_i386.deb
+get http:/repo/pool/lhm/c/cups/cups-common_1.4.6-5ubuntu1%7elhm5_all.deb
+get http:/repo/pool/lhm/c/cups/cups-ppdc_1.4.6-5ubuntu1%7elhm5_i386.deb
+get http:/repo/pool/lhm/c/cups/libcupscgi1_1.4.6-5ubuntu1%7elhm5_i386.deb
+get http:/repo/pool/lhm/c/cups/libcupsdriver1_1.4.6-5ubuntu1%7elhm5_i386.deb
+get http:/repo/pool/lhm/c/cups/libcupsmime1_1.4.6-5ubuntu1%7elhm5_i386.deb
+get http:/repo/pool/lhm/c/cups/libcupsppdc1_1.4.6-5ubuntu1%7elhm5_i386.deb
+get http:/repo/pool/main/b/bc/bc_1.06.95-2_i386.deb
+get http:/repo/pool/main/f/foomatic-db/foomatic-db_20100216-0ubuntu3_all.deb
+get http:/repo/pool/main/g/ghostscript/ghostscript_8.71.dfsg.1-0ubuntu5.4_i386.deb
+get http:/repo/pool/main/g/gsfonts/gsfonts_8.11+urwcyr1.0.7%7epre44-4_all.deb
+get http:/repo/pool/main/i/ijs/libijs-0.35_0.35-7build1_i386.deb
+get http:/repo/pool/main/l/lcms/liblcms1_1.18.dfsg-1ubuntu2.10.04.1_i386.deb
+get http:/repo/pool/main/o/openslp-dfsg/libslp1_1.2.1-7.6ubuntu0.1_i386.deb
+get http:/repo/pool/main/p/poppler/libpoppler5_0.12.4-0ubuntu5.2_i386.deb
+get http:/repo/pool/main/p/poppler/poppler-utils_0.12.4-0ubuntu5.2_i386.deb
+get http:/repo/pool/main/s/ssl-cert/ssl-cert_1.0.23ubuntu2_all.deb
+get http:/repo/pool/ff/i/icaclient/icaclient_11.100_i386.deb
+get http:/repo/pool/main/a/alsa-lib/libasound2_1.0.22-0ubuntu7_i386.deb
+get http:/repo/pool/main/a/arts-trinity/libartsc0-trinity_3.5.13-0ubuntu9+r1259246+pr5%7elucid_i386.deb
+get http:/repo/pool/main/a/audiofile/libaudiofile0_0.2.6-8ubuntu1_i386.deb
+get http:/repo/pool/main/f/fontconfig/fontconfig_2.8.0-2ubuntu1_i386.deb
+get http:/repo/pool/main/f/foomatic-db-engine/foomatic-db-engine_4.0.4-0ubuntu1_i386.deb
+get http:/repo/pool/main/g/gawk/gawk_3.1.6.dfsg-4build1_i386.deb
+get http:/repo/pool/main/liba/libart-lgpl/libart-2.0-2_2.3.20-2build1_i386.deb
+get http:/repo/pool/main/libi/libice/libice6_1.0.6-1_i386.deb
+get http:/repo/pool/main/libm/libmad/libmad0_0.15.1b-4ubuntu1_i386.deb
+get http:/repo/pool/main/libm/libmng/libmng1_1.0.9-1ubuntu1_i386.deb
+get http:/repo/pool/main/libo/libogg/libogg0_1.1.4%7edfsg-2_i386.deb
+get http:/repo/pool/main/libs/libsm/libsm6_1.1.1-1_i386.deb
+get http:/repo/pool/main/libx/libx11/libx11-6_1.3.2-1ubuntu3_i386.deb
+get http:/repo/pool/main/libx/libx11/libx11-data_1.3.2-1ubuntu3_all.deb
+get http:/repo/pool/main/libx/libxau/libxau6_1.0.5-1_i386.deb
+get http:/repo/pool/main/libx/libxaw/libxaw7_1.0.7-1_i386.deb
+get http:/repo/pool/main/libx/libxcb/libxcb1_1.5-2_i386.deb
+get http:/repo/pool/main/libx/libxcursor/libxcursor1_1.1.10-1_i386.deb
+get http:/repo/pool/main/libx/libxdmcp/libxdmcp6_1.0.3-1_i386.deb
+get http:/repo/pool/main/libx/libxext/libxext6_1.1.1-2_i386.deb
+get http:/repo/pool/main/libx/libxfixes/libxfixes3_4.0.4-1_i386.deb
+get http:/repo/pool/main/libx/libxi/libxi6_1.3-3_i386.deb
+get http:/repo/pool/main/libx/libxinerama/libxinerama1_1.1-2_i386.deb
+get http:/repo/pool/main/libx/libxmu/libxmu6_1.0.5-1_i386.deb
+get http:/repo/pool/main/libx/libxp/libxp6_1.0.0.xsf1-2build1_i386.deb
+get http:/repo/pool/main/libx/libxpm/libxpm4_3.5.8-1_i386.deb
+get http:/repo/pool/main/libx/libxrandr/libxrandr2_1.3.0-3_i386.deb
+get http:/repo/pool/main/libx/libxrender/libxrender1_0.9.5-1_i386.deb
+get http:/repo/pool/main/libx/libxt/libxt6_1.0.7-1_i386.deb
+get http:/repo/pool/main/n/nas/libaudio2_1.9.2-3_i386.deb
+get http:/repo/pool/main/p/python2.6/libpython2.6_2.6.5-1ubuntu6_i386.deb
+get http:/repo/pool/main/q/qt-x11-free/libqt3-mt_3.3.8-d-0ubuntu0+sr59+pr157%7elucid_i386.deb
+get http:/repo/pool/main/w/wget/wget_1.12-1.1ubuntu2.1_i386.deb
+get http:/repo/pool/main/x/xft/libxft2_2.1.14-1ubuntu1_i386.deb
+get http:/repo/pool/main/x/xorg/x11-common_7.5+5ubuntu1.1_all.deb
+faimon PROGRESS 17
+get http:/repo/pool/main/a/arts-trinity/libarts1c2a-trinity_3.5.13-0ubuntu9+r1259246+pr5%7elucid_i386.deb
+get http:/repo/pool/main/a/aspell/libaspell15_0.60.6-3ubuntu1_i386.deb
+get http:/repo/pool/main/h/hicolor-icon-theme/hicolor-icon-theme_0.11-1_all.deb
+get http:/repo/pool/main/i/ilmbase/libilmbase6_1.0.1-3build2_i386.deb
+get http:/repo/pool/main/j/jasper/libjasper1_1.900.1-7ubuntu0.10.04.1_i386.deb
+get http:/repo/pool/main/k/kdelibs-trinity/kdelibs-data-trinity_3.5.13-0ubuntu9+r1260477+pr16%7elucid_all.deb
+get http:/repo/pool/main/libt/libtqtinterface/libtqtinterface_3.5.13-0ubuntu8+r1255040+pr3%7elucid_i386.deb
+get http:/repo/pool/main/libv/libvorbis/libvorbis0a_1.2.3-3ubuntu1_i386.deb
+get http:/repo/pool/main/libv/libvorbis/libvorbisfile3_1.2.3-3ubuntu1_i386.deb
+get http:/repo/pool/main/libx/libxcomposite/libxcomposite1_0.4.1-1_i386.deb
+get http:/repo/pool/main/libx/libxslt/libxslt1.1_1.1.26-1ubuntu1_i386.deb
+get http:/repo/pool/main/o/openexr/libopenexr6_1.6.1-4.1_i386.deb
+get http:/repo/pool/lhm/m/mesa/libgl1-mesa-glx_7.11.2-0%7elhm1_i386.deb
+get http:/repo/pool/lhm/m/mesa/libglapi-mesa_7.11.2-0%7elhm1_i386.deb
+get http:/repo/pool/lhm/x/x11-utils/x11-utils_7.5+4lhm1_i386.deb
+get http:/repo/pool/main/g/gcc-4.4/cpp-4.4_4.4.3-4ubuntu5_i386.deb
+get http:/repo/pool/main/g/gcc-defaults/cpp_4.4.3-1ubuntu1_i386.deb
+get http:/repo/pool/main/g/gmp/libgmp3c2_4.3.2+dfsg-1ubuntu1_i386.deb
+get http:/repo/pool/main/k/kdelibs-trinity/kdelibs4c2a-trinity_3.5.13-0ubuntu9+r1260477+pr16%7elucid_i386.deb
+get http:/repo/pool/main/libf/libfontenc/libfontenc1_1.0.5-1_i386.deb
+get http:/repo/pool/main/libf/libfs/libfs6_1.0.2-1build1_i386.deb
+get http:/repo/pool/main/libx/libxdamage/libxdamage1_1.1.2-1_i386.deb
+get http:/repo/pool/main/libx/libxkbfile/libxkbfile1_1.0.6-1_i386.deb
+get http:/repo/pool/main/libx/libxmu/libxmuu1_1.0.5-1_i386.deb
+get http:/repo/pool/main/libx/libxtst/libxtst6_1.1.0-2_i386.deb
+get http:/repo/pool/main/libx/libxv/libxv1_1.0.5-1_i386.deb
+get http:/repo/pool/main/libx/libxxf86dga/libxxf86dga1_1.1.1-2_i386.deb
+get http:/repo/pool/main/libx/libxxf86vm/libxxf86vm1_1.1.0-2_i386.deb
+get http:/repo/pool/main/l/launchpad-integration/launchpad-integration_0.1.35_all.deb
+get http:/repo/pool/main/m/mpfr/libmpfr1ldbl_2.4.2-3ubuntu1_i386.deb
+get http:/repo/pool/main/x/x11-apps/x11-apps_7.5+1ubuntu2_i386.deb
+get http:/repo/pool/main/x/x11-session-utils/x11-session-utils_7.5+1_i386.deb
+get http:/repo/pool/main/x/x11-xfs-utils/x11-xfs-utils_7.4+1build2_i386.deb
+get http:/repo/pool/main/x/x11-xkb-utils/x11-xkb-utils_7.5+1_i386.deb
+get http:/repo/pool/main/x/x11-xserver-utils/x11-xserver-utils_7.5+1ubuntu2.1_i386.deb
+get http:/repo/pool/main/x/xauth/xauth_1.0.4-1_i386.deb
+get http:/repo/pool/main/x/xcb-util/libxcb-atom1_0.3.6-1build1_i386.deb
+get http:/repo/pool/main/x/xinit/xinit_1.2.0-1_i386.deb
+get http:/repo/pool/main/x/xorg/xbase-clients_7.5+5ubuntu1.1_all.deb
+faimon PROGRESS 18
+get http:/repo/pool/main/d/dbus-tqt/libdbus-tqt-1-1c2_3.5.13-0ubuntu8+r1249343+pr2%7elucid_i386.deb
+get http:/repo/pool/main/f/flac/libflac++6_1.2.1-2build2_i386.deb
+get http:/repo/pool/main/f/flac/libflac8_1.2.1-2build2_i386.deb
+get http:/repo/pool/main/h/hal/libhal1_0.5.14-0ubuntu6_i386.deb
+get http:/repo/pool/universe/libd/libdvdread/libdvdread4_4.1.3-8ubuntu1_i386.deb
+get http:/repo/pool/main/k/k3b-trinity/libk3b3-trinity_3.5.13-0ubuntu9+r1258943+pr4%7elucid_i386.deb
+get http:/repo/pool/main/libv/libvorbis/libvorbisenc2_1.2.3-3ubuntu1_i386.deb
+get http:/repo/pool/main/t/taglib/libtag1c2a_1.6.3-0ubuntu1_i386.deb
+get http:/repo/pool/main/t/taglib/libtag1-vanilla_1.6.3-0ubuntu1_i386.deb
+get http:/repo/pool/main/c/cdparanoia/cdparanoia_3.10.2+debian-9_i386.deb
+get http:/repo/pool/main/c/cdparanoia/libcdparanoia0_3.10.2+debian-9_i386.deb
+get http:/repo/pool/main/c/cdrdao/cdrdao_1.2.2-18ubuntu4_i386.deb
+get http:/repo/pool/main/c/cdrkit/genisoimage_1.1.10-1ubuntu1_i386.deb
+get http:/repo/pool/main/c/cdrkit/wodim_1.1.10-1ubuntu1_i386.deb
+get http:/repo/pool/main/k/k3b-i18n/k3b-i18n_1.0.5-1-lhm1_all.deb
+get http:/repo/pool/main/k/k3b-trinity/k3b-data-trinity_3.5.13-0ubuntu9+r1258943+pr4%7elucid_all.deb
+get http:/repo/pool/main/k/k3b-trinity/k3b-trinity_3.5.13-0ubuntu9+r1258943+pr4%7elucid_i386.deb
+get http:/repo/pool/main/liba/libao/libao2_0.8.8-5ubuntu2_i386.deb
+get http:/repo/pool/main/libm/libmusicbrainz-2.1/libmusicbrainz4c2a_2.1.5-4_i386.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/k3b-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/lhm/l/language-pack-de-base/language-pack-de-base_10.04+20110931lhm1_all.deb
+get http:/repo/pool/lhm/l/language-pack-de/language-pack-de_10.04+20110931lhm1_all.deb
+get http:/repo/pool/main/l/language-pack-en-base/language-pack-en-base_10.04+20110931_all.deb
+get http:/repo/pool/main/l/language-pack-en/language-pack-en_10.04+20110931_all.deb
+get http:/repo/pool/main/l/language-pack-gnome-de-base/language-pack-gnome-de-base_10.04+20110931_all.deb
+get http:/repo/pool/lhm/l/linux-lts-backport-oneiric/linux-image-3.0.0-16-generic_3.0.0-16.29%7elucid1lhm1_i386.deb
+get http:/repo/pool/main/l/language-pack-gnome-de/language-pack-gnome-de_10.04+20110931_all.deb
+get http:/repo/pool/main/w/wireless-crda/wireless-crda_1.12_i386.deb
+faimon PROGRESS 19
+get http:/repo/pool/lhm/o/openldap/slapd_2.4.21-0ubuntu5.7lhm1_i386.deb
+get http:/repo/pool/lhm/o/openmotif/libmotif4_2.3.3-5ubuntu1%7elhm1_i386.deb
+get http:/repo/pool/main/a/at/at_3.1.11-1ubuntu5.1_i386.deb
+get http:/repo/pool/main/a/auth-client-config/auth-client-config_0.9_all.deb
+get http:/repo/pool/main/b/bash-completion/bash-completion_1.1-3ubuntu2_all.deb
+get http:/repo/pool/main/b/bind9/bind9-host_9.7.0.dfsg.P1-1ubuntu0.4_i386.deb
+get http:/repo/pool/main/b/bind9/dnsutils_9.7.0.dfsg.P1-1ubuntu0.4_i386.deb
+get http:/repo/pool/main/b/bind9/libbind9-60_9.7.0.dfsg.P1-1ubuntu0.4_i386.deb
+get http:/repo/pool/main/b/bind9/libdns64_9.7.0.dfsg.P1-1ubuntu0.4_i386.deb
+get http:/repo/pool/main/b/bind9/libisc60_9.7.0.dfsg.P1-1ubuntu0.4_i386.deb
+get http:/repo/pool/main/b/bind9/libisccc60_9.7.0.dfsg.P1-1ubuntu0.4_i386.deb
+get http:/repo/pool/main/b/bind9/libisccfg60_9.7.0.dfsg.P1-1ubuntu0.4_i386.deb
+get http:/repo/pool/main/b/bind9/liblwres60_9.7.0.dfsg.P1-1ubuntu0.4_i386.deb
+get http:/repo/pool/main/b/bsdmainutils/bsdmainutils_8.0.1ubuntu1_i386.deb
+get http:/repo/pool/main/c/console-setup/console-setup_1.34ubuntu15_all.deb
+get http:/repo/pool/main/d/db4.7/libdb4.7_4.7.25-9_i386.deb
+get http:/repo/pool/main/d/dosfstools/dosfstools_3.0.7-1_i386.deb
+get http:/repo/pool/main/e/ed/ed_1.4-1build1_i386.deb
+get http:/repo/pool/main/e/exim4/exim4-config_4.71-3ubuntu1.3_all.deb
+get http:/repo/pool/main/g/geoip/libgeoip1_1.4.6.dfsg-17_i386.deb
+get http:/repo/pool/main/k/kbd/kbd_1.15-1ubuntu3_i386.deb
+get http:/repo/pool/main/libn/libnss-ldap/libnss-ldap_264-2ubuntu2_i386.deb
+get http:/repo/pool/main/libp/libpam-ldap/libpam-ldap_184-8.2ubuntu1_i386.deb
+get http:/repo/pool/main/libt/libtool/libltdl7_2.2.6b-2ubuntu1_i386.deb
+get http:/repo/pool/main/l/ldap-auth-client/ldap-auth-client_0.5.2_all.deb
+get http:/repo/pool/main/l/ldap-auth-client/ldap-auth-config_0.5.2_all.deb
+get http:/repo/pool/main/p/perl/libperl5.10_5.10.1-8ubuntu2.1_i386.deb
+get http:/repo/pool/main/p/psmisc/psmisc_22.10-1_i386.deb
+get http:/repo/pool/main/t/tcp-wrappers/libwrap0_7.6.q-18_i386.deb
+get http:/repo/pool/main/u/unixodbc/odbcinst1debian1_2.2.11-21_i386.deb
+get http:/repo/pool/main/u/unixodbc/odbcinst_2.2.11-21_i386.deb
+get http:/repo/pool/main/u/unixodbc/unixodbc_2.2.11-21_i386.deb
+get http:/repo/pool/main/e/exim4/exim4_4.71-3ubuntu1.3_all.deb
+get http:/repo/pool/main/e/exim4/exim4-base_4.71-3ubuntu1.3_i386.deb
+get http:/repo/pool/main/e/exim4/exim4-daemon-light_4.71-3ubuntu1.3_i386.deb
+get http:/repo/pool/main/g/gettext/gettext-base_0.17-8ubuntu3_i386.deb
+get http:/repo/pool/main/g/groff/groff-base_1.20.1-7_i386.deb
+get http:/repo/pool/main/h/hdparm/hdparm_9.15-1ubuntu9_i386.deb
+get http:/repo/pool/main/i/iptables/iptables_1.4.4-2ubuntu2_i386.deb
+get http:/repo/pool/main/i/iso-codes/iso-codes_3.12.1-1_all.deb
+get http:/repo/pool/main/libb/libbsd/libbsd0_0.2.0-1_i386.deb
+get http:/repo/pool/main/libe/libedit/libedit2_2.11-20080614-1build1_i386.deb
+get http:/repo/pool/main/libg/libgc/libgc1c2_6.8-1.2ubuntu1_i386.deb
+get http:/repo/pool/main/libh/libhtml-parser-perl/libhtml-parser-perl_3.64-1_i386.deb
+get http:/repo/pool/main/libh/libhtml-tagset-perl/libhtml-tagset-perl_3.20-2_all.deb
+get http:/repo/pool/main/libh/libhtml-tree-perl/libhtml-tree-perl_3.23-1_all.deb
+get http:/repo/pool/main/libm/libmailtools-perl/libmailtools-perl_2.05-1_all.deb
+get http:/repo/pool/main/libp/libpcap/libpcap0.8_1.0.0-6_i386.deb
+get http:/repo/pool/main/libu/liburi-perl/liburi-perl_1.52-1_all.deb
+get http:/repo/pool/main/libx/libxml-libxml-perl/libxml-libxml-perl_1.70.ds-1_i386.deb
+get http:/repo/pool/main/libx/libxml-namespacesupport-perl/libxml-namespacesupport-perl_1.09-3_all.deb
+get http:/repo/pool/main/libx/libxml-sax-perl/libxml-sax-perl_0.96+dfsg-2_all.deb
+get http:/repo/pool/main/l/lsof/lsof_4.81.dfsg.1-1build1_i386.deb
+get http:/repo/pool/main/m/man-db/man-db_2.5.7-2ubuntu1_i386.deb
+get http:/repo/pool/main/n/netkit-ftp/ftp_0.17-19build1_i386.deb
+get http:/repo/pool/main/p/pciutils/libpci3_3.0.0-4ubuntu17_i386.deb
+get http:/repo/pool/lhm/a/acpid/acpid_1.0.10-5ubuntu2.5lhm1_i386.deb
+get http:/repo/pool/main/a/acpi-support/acpi-support_0.136.1_i386.deb
+get http:/repo/pool/main/a/alsa-driver/alsa-base_1.0.22.1+dfsg-0ubuntu3_all.deb
+get http:/repo/pool/main/a/alsa-driver/linux-sound-base_1.0.22.1+dfsg-0ubuntu3_all.deb
+get http:/repo/pool/main/a/alsa-utils/alsa-utils_1.0.22-0ubuntu5_i386.deb
+get http:/repo/pool/main/b/bsd-finger/finger_0.17-13build1_i386.deb
+get http:/repo/pool/main/d/directfb/libdirectfb-1.2-0_1.2.8-5ubuntu2_i386.deb
+get http:/repo/pool/main/k/kdepim-trinity/akregator-trinity_3.5.13-0ubuntu9+r1258263+pr11%7elucid_i386.deb
+get http:/repo/pool/main/k/kdepim-trinity/libkcal2b-trinity_3.5.13-0ubuntu9+r1258263+pr11%7elucid_i386.deb
+get http:/repo/pool/main/k/kdepim-trinity/libkdepim1a-trinity_3.5.13-0ubuntu9+r1258263+pr11%7elucid_i386.deb
+get http:/repo/pool/main/k/kdepim-trinity/libkmime2-trinity_3.5.13-0ubuntu9+r1258263+pr11%7elucid_i386.deb
+get http:/repo/pool/main/k/kdepim-trinity/libktnef1-trinity_3.5.13-0ubuntu9+r1258263+pr11%7elucid_i386.deb
+get http:/repo/pool/main/libi/libical/libical0_0.44-3_i386.deb
+get http:/repo/pool/main/m/manpages/manpages_3.23-1_all.deb
+get http:/repo/pool/main/n/nano/nano_2.2.2-1_i386.deb
+get http:/repo/pool/main/o/openssh/openssh-client_5.3p1-3ubuntu7_i386.deb
+get http:/repo/pool/main/p/pciutils/pciutils_3.0.0-4ubuntu17_i386.deb
+get http:/repo/pool/main/p/pm-utils/pm-utils_1.3.0-1ubuntu3_all.deb
+get http:/repo/pool/main/p/powermgmt-base/powermgmt-base_1.31_i386.deb
+get http:/repo/pool/main/p/ppp/ppp_2.4.5%7egit20081126t100229-0ubuntu3_i386.deb
+get http:/repo/pool/main/p/python-support/python-support_1.0.4ubuntu1_all.deb
+get http:/repo/pool/main/s/strace/strace_4.5.19-2_i386.deb
+get http:/repo/pool/main/s/sysfsutils/libsysfs2_2.1.0-6_i386.deb
+get http:/repo/pool/main/t/time/time_1.7-23build1_i386.deb
+get http:/repo/pool/main/t/tslib/libts-0.0-0_1.0-7build1_i386.deb
+get http:/repo/pool/main/t/tslib/tsconf_1.0-7build1_all.deb
+get http:/repo/pool/main/u/usbutils/usbutils_0.86-2ubuntu1_i386.deb
+faimon PROGRESS 20
+get http:/repo/pool/main/a/atk1.0/libatk1.0-0_1.30.0-0ubuntu2.1_i386.deb
+get http:/repo/pool/main/c/cairo/libcairo2_1.8.10-2ubuntu1_i386.deb
+get http:/repo/pool/main/g/gtk+2.0/libgtk2.0-0_2.20.1-0ubuntu2.1_i386.deb
+get http:/repo/pool/main/g/gtk+2.0/libgtk2.0-common_2.20.1-0ubuntu2.1_all.deb
+get http:/repo/pool/main/k/kdeutils-trinity/ark-trinity_3.5.13-0ubuntu9+r1258494+pr5%7elucid_i386.deb
+get http:/repo/pool/main/libd/libdatrie/libdatrie1_0.2.2-3_i386.deb
+get http:/repo/pool/main/libf/libffi/libffi5_3.0.9-1_i386.deb
+get http:/repo/pool/main/libi/libid3tag/libid3tag0_0.15.1b-10build2_i386.deb
+get http:/repo/pool/main/libs/libsamplerate/libsamplerate0_0.1.7-3_i386.deb
+get http:/repo/pool/main/libt/libthai/libthai0_0.1.13-1build1_i386.deb
+get http:/repo/pool/main/libt/libthai/libthai-data_0.1.13-1build1_all.deb
+get http:/repo/pool/main/libx/libxcb/libxcb-render0_1.5-2_i386.deb
+get http:/repo/pool/main/p/pango1.0/libpango1.0-0_1.28.0-0ubuntu2.2_i386.deb
+get http:/repo/pool/main/p/pango1.0/libpango1.0-common_1.28.0-0ubuntu2.2_all.deb
+get http:/repo/pool/main/p/pixman/libpixman-1-0_0.16.4-1ubuntu2_i386.deb
+get http:/repo/pool/main/p/pycairo/python-cairo_1.8.8-1_i386.deb
+get http:/repo/pool/main/p/pygobject/python-gobject_2.21.1-0ubuntu3_i386.deb
+get http:/repo/pool/main/p/pygtk/python-gtk2_2.17.0-0ubuntu2_i386.deb
+get http:/repo/pool/main/s/shared-mime-info/shared-mime-info_0.71-1ubuntu2_i386.deb
+get http:/repo/pool/main/x/xcb-util/libxcb-render-util0_0.3.6-1build1_i386.deb
+get http:/repo/pool/universe/a/arandr/arandr_0.1.2-2_all.deb
+get http:/repo/pool/universe/a/audacity/audacity-data_1.3.12-2_all.deb
+get http:/repo/pool/lhm/m/mesa/libglu1-mesa_7.11.2-0%7elhm1_i386.deb
+get http:/repo/pool/main/d/dbus/dbus_1.2.16-2ubuntu4.3_i386.deb
+get http:/repo/pool/main/d/dbus-glib/libdbus-glib-1-2_0.84-1ubuntu0.2_i386.deb
+get http:/repo/pool/main/g/gconf/gconf2-common_2.28.1-0ubuntu1_all.deb
+get http:/repo/pool/main/g/gconf/libgconf2-4_2.28.1-0ubuntu1_i386.deb
+get http:/repo/pool/main/g/gstreamer0.10/libgstreamer0.10-0_0.10.28-1_i386.deb
+get http:/repo/pool/main/j/jack-audio-connection-kit/libjack0_0.118+svn3796-1ubuntu2_i386.deb
+get http:/repo/pool/main/libi/libidl/libidl0_0.8.13-1_i386.deb
+get http:/repo/pool/main/libs/libsndfile/libsndfile1_1.0.21-2ubuntu0.10.04.1_i386.deb
+get http:/repo/pool/main/o/orbit2/liborbit2_2.14.18-0.1_i386.deb
+get http:/repo/pool/universe/s/soundtouch/libsoundtouch1c2_1.3.1-2_i386.deb
+get http:/repo/pool/universe/t/twolame/libtwolame0_0.3.12-1_i386.deb
+get http:/repo/pool/universe/v/vamp-plugin-sdk/libvamp-hostsdk3_2.1-1_i386.deb
+get http:/repo/pool/universe/w/wxwidgets2.8/libwxbase2.8-0_2.8.10.1-0ubuntu1.2_i386.deb
+faimon PROGRESS 21
+get http:/repo/pool/main/g/gst-plugins-base0.10/libgstreamer-plugins-base0.10-0_0.10.28-1_i386.deb
+get http:/repo/pool/universe/a/audacity/audacity_1.3.12-2_i386.deb
+get http:/repo/pool/universe/w/wxwidgets2.8/libwxgtk2.8-0_2.8.10.1-0ubuntu1.2_i386.deb
+get http:/repo/pool/lhm/a/avira-settings/avira-settings_1.0-4_all.deb
+get http:/repo/pool/main/b/binutils/binutils_2.20.1-3ubuntu7.1_i386.deb
+get http:/repo/pool/main/b/blt/blt_2.4z-4.2_i386.deb
+get http:/repo/pool/main/libx/libxss/libxss1_1.2.0-2_i386.deb
+get http:/repo/pool/main/t/tcl8.4/tcl8.4_8.4.19-4_i386.deb
+get http:/repo/pool/main/t/tcl8.5/tcl8.5_8.5.8-2_i386.deb
+get http:/repo/pool/main/t/tk8.4/tk8.4_8.4.19-4_i386.deb
+get http:/repo/pool/main/t/tk8.5/tk8.5_8.5.8-1_i386.deb
+get http:/repo/pool/lhm/l/linux/linux-libc-dev_2.6.32-32.62lhm1_i386.deb
+get http:/repo/pool/main/e/eglibc/libc6-dev_2.11.1-0ubuntu7.8_i386.deb
+get http:/repo/pool/main/e/eglibc/libc-dev-bin_2.11.1-0ubuntu7.8_i386.deb
+get http:/repo/pool/main/g/gcc-4.4/gcc-4.4_4.4.3-4ubuntu5_i386.deb
+get http:/repo/pool/main/g/gcc-4.4/libgomp1_4.4.3-4ubuntu5_i386.deb
+get http:/repo/pool/ff/p/pcsc-lite/libpcsclite1_1.5.5-4%7elhm1_i386.deb
+get http:/repo/pool/main/b/build-essential/build-essential_11.4build1_i386.deb
+get http:/repo/pool/main/b/bzip2/bzip2_1.0.5-4ubuntu0.2_i386.deb
+get http:/repo/pool/main/c/consolekit/consolekit_0.4.1-3ubuntu2_i386.deb
+get http:/repo/pool/main/c/consolekit/libck-connector0_0.4.1-3ubuntu2_i386.deb
+get http:/repo/pool/main/c/cramfs/cramfsprogs_1.1-6build3_i386.deb
+get http:/repo/pool/main/c/cryptsetup/cryptsetup_1.1.0%7erc2-1ubuntu13_i386.deb
+get http:/repo/pool/main/d/dpkg/dpkg-dev_1.15.5.6ubuntu4.5_all.deb
+get http:/repo/pool/main/e/eggdbus/libeggdbus-1-0_0.6-1_i386.deb
+get http:/repo/pool/main/g/gcc-4.4/g++-4.4_4.4.3-4ubuntu5_i386.deb
+get http:/repo/pool/main/g/gcc-4.4/libstdc++6-4.4-dev_4.4.3-4ubuntu5_i386.deb
+get http:/repo/pool/main/g/gcc-defaults/g++_4.4.3-1ubuntu1_i386.deb
+get http:/repo/pool/main/g/gcc-defaults/gcc_4.4.3-1ubuntu1_i386.deb
+get http:/repo/pool/main/libp/libpaper/libpaper-utils_1.1.23+nmu1build1_i386.deb
+get http:/repo/pool/main/p/patch/patch_2.6-2ubuntu1_i386.deb
+get http:/repo/pool/main/p/policykit-1/libpolkit-gobject-1-0_0.96-2ubuntu0.1_i386.deb
+get http:/repo/pool/main/x/xz-utils/liblzma1_4.999.9beta+20091116-1_i386.deb
+get http:/repo/pool/main/x/xz-utils/xz-utils_4.999.9beta+20091116-1_i386.deb
+get http:/repo/pool/universe/c/cabextract/cabextract_1.2-3+lenny1build0.10.04.1_i386.deb
+get http:/repo/pool/universe/c/convmv/convmv_1.12-2_all.deb
+get http:/repo/pool/universe/c/cups-pdf/cups-pdf_2.5.0-17ubuntu1%7elucid1_i386.deb
+get http:/repo/pool/ff/c/ccid/libccid_1.3.11-2%7elhm1_i386.deb
+get http:/repo/pool/ff/c/cyberjack/cyberjack_1.0_all.deb
+get http:/repo/pool/ff/p/pcsc-cyberjack/libifd-cyberjack6_3.99.5final.SP03_i386.deb
+get http:/repo/pool/ff/p/pcsc-lite/pcscd_1.5.5-4%7elhm1_i386.deb
+get http:/repo/pool/main/d/dbus/dbus-x11_1.2.16-2ubuntu4.3_i386.deb
+get http:/repo/pool/main/d/debconf/debconf-utils_1.5.28ubuntu4_all.deb
+get http:/repo/pool/main/d/debhelper/debhelper_7.4.15ubuntu1_all.deb
+get http:/repo/pool/main/d/devscripts/devscripts_2.10.61ubuntu5_i386.deb
+get http:/repo/pool/main/g/gettext/gettext_0.17-8ubuntu3_i386.deb
+get http:/repo/pool/main/h/hal/hal_0.5.14-0ubuntu6_i386.deb
+get http:/repo/pool/main/h/hal-info/hal-info_20091130-1_all.deb
+get http:/repo/pool/main/h/hal/libhal-storage1_0.5.14-0ubuntu6_i386.deb
+get http:/repo/pool/main/h/html2text/html2text_1.3.2a-14build1_i386.deb
+get http:/repo/pool/main/i/intltool-debian/intltool-debian_0.35.0+20060710.1_all.deb
+get http:/repo/pool/main/libc/libcroco/libcroco3_0.6.2-1_i386.deb
+get http:/repo/pool/main/libu/libusb-1.0/libusb-1.0-0_1.0.6-1_i386.deb
+get http:/repo/pool/main/p/po-debconf/po-debconf_1.0.16_all.deb
+faimon PROGRESS 22
+get http:/repo/pool/lhm/d/digikam-trinity/digikam-trinity_3.5.13-0ubuntu9+r1258876+pr3%7elucidlhm2_i386.deb
+get http:/repo/pool/lhm/libg/libgphoto2/libgphoto2-2_2.4.11-3%7elhm1_i386.deb
+get http:/repo/pool/lhm/libg/libgphoto2/libgphoto2-port0_2.4.11-3%7elhm1_i386.deb
+get http:/repo/pool/main/d/dh-make/dh-make_0.50_all.deb
+get http:/repo/pool/main/d/dictionaries-common/dictionaries-common_1.4.0ubuntu2_all.deb
+get http:/repo/pool/main/e/exiv2/libexiv2-6_0.19-1_i386.deb
+get http:/repo/pool/main/libe/libexif/libexif12_0.6.19-1_i386.deb
+get http:/repo/pool/main/libg/libgd2/libgd2-xpm_2.0.36%7erc1%7edfsg-3.1ubuntu1_i386.deb
+get http:/repo/pool/main/libk/libkdcraw-trinity/libkdcraw3-trinity_3.5.13-0ubuntu9+r1254372+pr3%7elucid_i386.deb
+get http:/repo/pool/main/libk/libkexiv2-trinity/libkexiv2-3-trinity_3.5.13-0ubuntu9+r1248408+pr3%7elucid_i386.deb
+get http:/repo/pool/main/libk/libkipi-trinity/libkipi0-trinity_3.5.13-0ubuntu9+r1249829+pr3%7elucid_i386.deb
+get http:/repo/pool/lhm/d/disper/disper_0.3.0%7elhm2_all.deb
+get http:/repo/pool/main/d/dkms/dkms_2.1.1.2-2ubuntu1_all.deb
+get http:/repo/pool/main/d/dpatch/dpatch_2.0.31_all.deb
+get http:/repo/pool/main/d/dpkg/dselect_1.15.5.6ubuntu4.5_i386.deb
+get http:/repo/pool/main/d/dupload/dupload_2.6.6ubuntu1_all.deb
+get http:/repo/pool/main/d/dvd+rw-tools/dvd+rw-tools_7.1-6_i386.deb
+get http:/repo/pool/universe/d/dpkg-awk/dpkg-awk_1.0.3_all.deb
+get http:/repo/pool/universe/d/dpkg-repack/dpkg-repack_1.32_all.deb
+get http:/repo/pool/universe/d/dpkg-sig/dpkg-sig_0.13.1_all.deb
+get http:/repo/pool/universe/libc/libconfig-file-perl/libconfig-file-perl_1.50-2_all.deb
+get http:/repo/pool/lhm/f/fai/fai-client_4.0%7ebeta6-lhm3_all.deb
+get http:/repo/pool/lhm/f/fai-progress/fai-error_3.0.1_i386.deb
+get http:/repo/pool/lhm/f/fai-progress/fai-progress_3.0.1_all.deb
+get http:/repo/pool/main/e/enscript/enscript_1.6.5-1_i386.deb
+get http:/repo/pool/main/e/esound/esound-common_0.2.41-6ubuntu1_all.deb
+get http:/repo/pool/main/e/ethtool/ethtool_6+20091202-1ubuntu1_i386.deb
+get http:/repo/pool/main/f/fakeroot/fakeroot_1.14.4-1ubuntu1_i386.deb
+get http:/repo/pool/main/g/gconf/gconf2_2.28.1-0ubuntu1_i386.deb
+get http:/repo/pool/main/liba/libapt-pkg-perl/libapt-pkg-perl_0.1.24_i386.deb
+get http:/repo/pool/main/libe/libelf/libelfg0_0.8.13-1_i386.deb
+get http:/repo/pool/main/l/launchpad-integration/liblaunchpad-integration1_0.1.35_i386.deb
+get http:/repo/pool/main/n/nautilus/libnautilus-extension1_2.30.1-0ubuntu1.2_i386.deb
+get http:/repo/pool/main/p/prelink/execstack_0.0.20090925-1_i386.deb
+get http:/repo/pool/main/u/unzip/unzip_5.52-10ubuntu2_i386.deb
+get http:/repo/pool/main/z/zip/zip_3.0-2_i386.deb
+get http:/repo/pool/universe/f/fakechroot/fakechroot_2.9-1.1_i386.deb
+get http:/repo/pool/universe/f/fdutils/fdutils_5.5-20060227-4_i386.deb
+get http:/repo/pool/universe/libf/libfile-tail-perl/libfile-tail-perl_0.99.3-3_all.deb
+get http:/repo/pool/universe/p/p7zip/p7zip-full_9.04%7edfsg.1-1_i386.deb
+get http:/repo/pool/lhm/f/file-roller/file-roller_2.30.1.1-1lhm0_i386.deb
+get http:/repo/pool/lhm/f/firefox/firefox_3.6.13+build3+nobinonly-0ubuntu0.10.04.1lhm8_i386.deb
+get http:/repo/pool/lhm/f/firefox/firefox-branding_3.6.13+build3+nobinonly-0ubuntu0.10.04.1lhm8_i386.deb
+get http:/repo/pool/lhm/n/nss/libnss3-1d_3.12.9+ckbi-1.82-0ubuntu0.10.04.3lhm1_i386.deb
+get http:/repo/pool/main/n/nspr/libnspr4-0d_4.8.6-0ubuntu0.10.04.2_i386.deb
+get http:/repo/pool/main/s/startup-notification/libstartup-notification0_0.10-1build1_i386.deb
+get http:/repo/pool/main/x/xcb-util/libxcb-aux0_0.3.6-1build1_i386.deb
+get http:/repo/pool/main/x/xcb-util/libxcb-event1_0.3.6-1build1_i386.deb
+get http:/repo/pool/universe/f/filezilla/filezilla_3.3.1-1ubuntu2_i386.deb
+get http:/repo/pool/universe/f/filezilla/filezilla-common_3.3.1-1ubuntu2_all.deb
+faimon PROGRESS 23
+get http:/repo/pool/lhm/x/xulrunner-1.9/xulrunner-1.9.0_1.9.0.19+nobinonly-0ubuntu0.8.04.1lhm4_i386.deb
+get http:/repo/pool/main/h/hunspell/libhunspell-1.2-0_1.2.8-6ubuntu1_i386.deb
+get http:/repo/pool/lhm/f/firefox-3.0/firefox-3.0_3.0.19+nobinonly-0ubuntu0.8.04.1lhm4_i386.deb
+get http:/repo/pool/lhm/f/firefox-l10n/firefox-l10n-de_3.0.5+debian-1lhm2_all.deb
+get http:/repo/pool/lhm/j/java-common/java-common_0.34lhm2_all.deb
+get http:/repo/pool/lhm/s/sun-java6/sun-java6-bin_6.31-1lhm2_i386.deb
+get http:/repo/pool/universe/f/fping/fping_2.4b2-to-ipv6-16.1_i386.deb
+get http:/repo/pool/lhm/s/sun-java6/sun-java6-jre_6.31-1lhm2_all.deb
+get http:/repo/pool/lhm/s/sun-j2re1.5/sun-j2re1.5_1.5.0+update22-lhm1_i386.deb
+get http:/repo/pool/lhm/s/sun-j2re1.4/sun-j2re1.4_1.4.2+19-akon1_i386.deb
+get http:/repo/pool/main/libc/libcommons-lang-java/libcommons-lang-java_2.4-4_all.deb
+get http:/repo/pool/universe/libj/libjgoodies-forms-java/libjgoodies-forms-java_1.2.0-1_all.deb
+get http:/repo/pool/main/b/bcel/libbcel-java_5.2-6_all.deb
+get http:/repo/pool/main/j/jakarta-log4j/liblog4j1.2-java_1.2.15-9ubuntu2_i386.deb
+get http:/repo/pool/main/libj/libjibx-java/libjibx-java_1.1.6a-0ubuntu2_all.deb
+get http:/repo/pool/main/libr/libregexp-java/libregexp-java_1.5-2_all.deb
+get http:/repo/pool/main/libx/libxpp3-java/libxpp3-java_1.1.4c-1_all.deb
+get http:/repo/pool/main/q/qdox/libqdox-java_1.9.2-1_all.deb
+get http:/repo/pool/universe/libg/libgetopt-java/libgetopt-java_1.0.13-1_all.deb
+get http:/repo/pool/universe/libg/libgnu-regexp-java/libgnu-regexp-java_1.1.4-3.2_all.deb
+get http:/repo/pool/main/libj/libjaxp1.3-java/libjaxp1.3-java_1.3.04-5ubuntu3_i386.deb
+get http:/repo/pool/main/libx/libxalan2-java/libxalan2-java_2.7.1-5ubuntu1_i386.deb
+get http:/repo/pool/main/libx/libxerces2-java/libxerces2-java_2.9.1-4ubuntu1_all.deb
+get http:/repo/pool/universe/f/freemind/freemind_0.9.0%7erc6+dfsg-1ubuntu1_all.deb
+get http:/repo/pool/universe/f/freemind/freemind-doc_0.9.0%7erc6+dfsg-1ubuntu1_all.deb
+get http:/repo/pool/universe/s/simplyhtml/simplyhtml_0.13.1-1_all.deb
+get http:/repo/pool/main/a/avalon-framework/libavalon-framework-java_4.2.0-7_all.deb
+get http:/repo/pool/main/c/commons-io/libcommons-io-java_1.4-2ubuntu1_all.deb
+get http:/repo/pool/main/libb/libbsf-java/libbsf-java_2.4.0-3_all.deb
+get http:/repo/pool/main/libc/libcommons-logging-java/libcommons-logging-java_1.1.1-7_all.deb
+get http:/repo/pool/universe/b/batik/libbatik-java_1.7.ubuntu-4ubuntu1_all.deb
+get http:/repo/pool/universe/j/java-wrappers/java-wrappers_0.1.15_all.deb
+get http:/repo/pool/universe/x/xml-commons-external/libxml-commons-external-java_1.3.05-1_all.deb
+faimon PROGRESS 24
+get http:/repo/pool/lhm/f/ffmpeg-extra/libavcodec-extra-52_0.5.1-1ubuntu1.1+lhm1_i386.deb
+get http:/repo/pool/lhm/f/ffmpeg-extra/libavutil-extra-49_0.5.1-1ubuntu1.1+lhm1_i386.deb
+get http:/repo/pool/main/a/aalib/libaa1_1.4p5-38build1_i386.deb
+get http:/repo/pool/main/g/gamin/gamin_0.1.10-1ubuntu3_i386.deb
+get http:/repo/pool/main/g/gamin/libgamin0_0.1.10-1ubuntu3_i386.deb
+get http:/repo/pool/main/j/jline/libjline-java_0.9.94-5_all.deb
+get http:/repo/pool/main/libg/libgsm/libgsm1_1.0.13-3_i386.deb
+get http:/repo/pool/main/libn/libnotify/libnotify1_0.4.5-1ubuntu4_i386.deb
+get http:/repo/pool/main/libo/liboil/liboil0.3_0.3.16-1ubuntu2_i386.deb
+get http:/repo/pool/main/libt/libtheora/libtheora0_1.1.1+dfsg.1-3_i386.deb
+get http:/repo/pool/main/n/neon27/libneon27-gnutls_0.29.0-1_i386.deb
+get http:/repo/pool/main/r/rhino/rhino_1.7R2-3_all.deb
+get http:/repo/pool/main/s/schroedinger/libschroedinger-1.0-0_1.0.9.is.1.0.8-0ubuntu1_i386.deb
+get http:/repo/pool/main/s/speex/libspeex1_1.2%7erc1-1ubuntu1_i386.deb
+get http:/repo/pool/multiverse/f/faac/libfaac0_1.26-0.1ubuntu2_i386.deb
+get http:/repo/pool/multiverse/l/lame/libmp3lame0_3.98.2+debian-0ubuntu3_i386.deb
+get http:/repo/pool/universe/d/dirac/libdirac-encoder0_1.0.2-2_i386.deb
+get http:/repo/pool/universe/f/faad2/libfaad2_2.7-4_i386.deb
+get http:/repo/pool/universe/f/freemind/freemind-plugins-svg_0.9.0%7erc6+dfsg-1ubuntu1_all.deb
+get http:/repo/pool/universe/libd/libdiscid/libdiscid0_0.2.2-1_i386.deb
+get http:/repo/pool/universe/libm/libmusicbrainz3/libmusicbrainz3-6_3.0.2-2_i386.deb
+get http:/repo/pool/universe/o/opencore-amr/libopencore-amrnb0_0.1.2-1_i386.deb
+get http:/repo/pool/universe/o/opencore-amr/libopencore-amrwb0_0.1.2-1_i386.deb
+get http:/repo/pool/universe/o/openjpeg/libopenjpeg2_1.3+dfsg-4_i386.deb
+get http:/repo/pool/universe/x/x264/libx264-85_0.85.1448+git1a6d32-4_i386.deb
+get http:/repo/pool/universe/x/xvidcore/libxvidcore4_1.2.2+debian-0ubuntu2_i386.deb
+get http:/repo/pool/lhm/f/ffmpeg-extra/libavformat-extra-52_0.5.1-1ubuntu1.1+lhm1_i386.deb
+get http:/repo/pool/lhm/f/ffmpeg-extra/libpostproc-extra-51_0.5.1-1ubuntu1.1+lhm1_i386.deb
+get http:/repo/pool/lhm/f/ffmpeg-extra/libswscale-extra-0_0.5.1-1ubuntu1.1+lhm1_i386.deb
+get http:/repo/pool/main/e/enca/libenca0_1.12-1_i386.deb
+get http:/repo/pool/main/e/esound/libesd0_0.2.41-6ubuntu1_i386.deb
+get http:/repo/pool/main/g/giflib/libgif4_4.1.6-9_i386.deb
+get http:/repo/pool/main/libc/libcaca/libcaca0_0.99.beta16-3_i386.deb
+get http:/repo/pool/main/libm/libmpcdec/libmpcdec3_1.2.2-2.1ubuntu1_i386.deb
+get http:/repo/pool/main/libs/libsdl1.2/libsdl1.2debian_1.2.14-4ubuntu1.1_i386.deb
+get http:/repo/pool/main/libs/libsdl1.2/libsdl1.2debian-alsa_1.2.14-4ubuntu1.1_i386.deb
+get http:/repo/pool/main/libx/libx86/libx86-1_1.1+ds1-6_i386.deb
+get http:/repo/pool/main/libx/libxvmc/libxvmc1_1.0.5-1ubuntu1_i386.deb
+get http:/repo/pool/main/l/lirc/liblircclient0_0.8.6-0ubuntu4.2_i386.deb
+get http:/repo/pool/main/l/lzo2/liblzo2-2_2.03-2_i386.deb
+get http:/repo/pool/main/p/pulseaudio/libpulse0_0.9.22%7e0.9.21+stable-queue-32-g8478-0ubuntu14_i386.deb
+get http:/repo/pool/main/s/samba/libsmbclient_3.4.7%7edfsg-1ubuntu3.8_i386.deb
+get http:/repo/pool/main/s/samba/libwbclient0_3.4.7%7edfsg-1ubuntu3.8_i386.deb
+get http:/repo/pool/main/t/talloc/libtalloc2_2.0.1-1_i386.deb
+get http:/repo/pool/multiverse/m/mplayer/mplayer_1.0%7erc3+svn20090426-1ubuntu16.1_i386.deb
+get http:/repo/pool/universe/o/openal-soft/libopenal1_1.12.854-0ubuntu1%7elucid1_i386.deb
+get http:/repo/pool/universe/s/svgalib/libsvga1_1.4.3-29_i386.deb
+get http:/repo/pool/lhm/g/gecko-mediaplayer/gecko-mediaplayer_1.0.0-0ubuntu2%7elhm1_i386.deb
+get http:/repo/pool/lhm/g/gnome-mplayer/gnome-mplayer_1.0.2-0ubuntu1%7elhm1_i386.deb
+get http:/repo/pool/main/b/babl/libbabl-0.0-0_0.0.22-1build1_i386.deb
+get http:/repo/pool/main/e/enchant/libenchant1c2a_1.6.0-0ubuntu1_i386.deb
+get http:/repo/pool/main/g/gegl/libgegl-0.0-0_0.0.22-0ubuntu4_i386.deb
+get http:/repo/pool/main/g/ghostscript/ghostscript-x_8.71.dfsg.1-0ubuntu5.4_i386.deb
+get http:/repo/pool/main/g/gimp/gimp-data_2.6.8-2ubuntu1.4_all.deb
+get http:/repo/pool/main/g/gimp/libgimp2.0_2.6.8-2ubuntu1.4_i386.deb
+get http:/repo/pool/main/g/gtk+2.0/libgail18_2.20.1-0ubuntu2.1_i386.deb
+get http:/repo/pool/main/i/icu/libicu42_4.2.1-3ubuntu0.10.04.1_i386.deb
+get http:/repo/pool/main/libg/libgsf/libgsf-1-114_1.14.16-1ubuntu1_i386.deb
+get http:/repo/pool/main/libg/libgsf/libgsf-1-common_1.14.16-1ubuntu1_all.deb
+get http:/repo/pool/main/libr/librsvg/librsvg2-2_2.26.3-0ubuntu1.1_i386.deb
+get http:/repo/pool/main/p/poppler/libpoppler-glib4_0.12.4-0ubuntu5.2_i386.deb
+faimon PROGRESS 25
+get http:/repo/pool/main/g/gimp/gimp_2.6.8-2ubuntu1.4_i386.deb
+get http:/repo/pool/main/libs/libsoup2.4/libsoup2.4-1_2.30.2-0ubuntu0.2_i386.deb
+get http:/repo/pool/main/libw/libwmf/libwmf0.2-7_0.2.8.4-6.1ubuntu2_i386.deb
+get http:/repo/pool/main/w/webkit/libwebkit-1.0-2_1.2.7-0ubuntu0.10.04.1_i386.deb
+get http:/repo/pool/main/w/webkit/libwebkit-1.0-common_1.2.7-0ubuntu0.10.04.1_all.deb
+get http:/repo/pool/main/d/dcraw/dcraw_8.86-1build1_i386.deb
+get http:/repo/pool/universe/g/gimp-data-extras/gimp-data-extras_2.0.1-3_all.deb
+get http:/repo/pool/universe/g/gimp-dcraw/gimp-dcraw_1.31-1.1_i386.deb
+get http:/repo/pool/universe/g/gimp-gap/gimp-gap_2.6.0+dfsg-1build1_i386.deb
+get http:/repo/pool/main/g/gimp-help/gimp-help-common_2.4.1-2_all.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kdebase-data-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_all.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/libkonq4-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kicker-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kcontrol-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kdebase-kio-plugins-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kdebase-trinity-bin_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kdesktop-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/main/libr/libraw1394/libraw1394-11_2.0.4-1ubuntu2_i386.deb
+get http:/repo/pool/main/x/xdg-user-dirs/xdg-user-dirs_0.12-0ubuntu2_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kfind-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/konqueror-nsplugins-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/konqueror-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/s/sane-backends/libsane_1.0.21-2ubuntu2%7elhm2_i386.deb
+get http:/repo/pool/main/g/gimp-help/gimp-help-de_2.4.1-2_all.deb
+get http:/repo/pool/main/libi/libieee1284/libieee1284-3_0.2.11-5ubuntu3_i386.deb
+get http:/repo/pool/main/libv/libv4l/libv4l-0_0.6.4-1ubuntu1_i386.deb
+get http:/repo/pool/main/g/gnome-mime-data/gnome-mime-data_2.18.0-1_all.deb
+get http:/repo/pool/main/g/gnupg2/gnupg2_2.0.14-1ubuntu1.2_i386.deb
+get http:/repo/pool/main/g/gnupg2/gnupg-agent_2.0.14-1ubuntu1.2_i386.deb
+get http:/repo/pool/main/i/io-stringy/libio-stringy-perl_2.110-4_all.deb
+get http:/repo/pool/main/libc/libconfig-inifiles-perl/libconfig-inifiles-perl_2.52-1_all.deb
+get http:/repo/pool/main/libc/libconvert-binhex-perl/libconvert-binhex-perl_1.119+pristine-3_all.deb
+get http:/repo/pool/main/libd/libdbi-perl/libdbi-perl_1.609-1build1_i386.deb
+get http:/repo/pool/main/libk/libksba/libksba8_1.0.7-2_i386.deb
+get http:/repo/pool/main/libn/libnet-daemon-perl/libnet-daemon-perl_0.43-1_all.deb
+get http:/repo/pool/main/libp/libplrpc-perl/libplrpc-perl_0.2020-2_all.deb
+get http:/repo/pool/main/libx/libxml-simple-perl/libxml-simple-perl_2.18-3_all.deb
+get http:/repo/pool/main/m/mime-tools/libmime-tools-perl_5.427-2_all.deb
+get http:/repo/pool/main/p/pinentry/pinentry-gtk2_0.7.6-1_i386.deb
+get http:/repo/pool/main/p/pth/libpth20_2.0.7-14_i386.deb
+get http:/repo/pool/universe/libc/libcrypt-rijndael-perl/libcrypt-rijndael-perl_1.08-1_i386.deb
+get http:/repo/pool/universe/libd/libdata-dumper-simple-perl/libdata-dumper-simple-perl_0.11-4_all.deb
+get http:/repo/pool/universe/m/mime-tools/libmime-perl_5.427-2_all.deb
+get http:/repo/pool/universe/q/quiteinsanegimpplugin/gimp2.0-quiteinsane_0.3-9_i386.deb
+faimon PROGRESS 26
+get http:/repo/pool/main/libc/libconvert-asn1-perl/libconvert-asn1-perl_0.22-1_all.deb
+get http:/repo/pool/main/libd/libdbd-sqlite3-perl/libdbd-sqlite3-perl_1.29-1_i386.deb
+get http:/repo/pool/main/libd/libdigest-hmac-perl-dfsg/libdigest-hmac-perl_1.01-7_all.deb
+get http:/repo/pool/main/libd/libdigest-sha1-perl/libdigest-sha1-perl_2.12-1build1_i386.deb
+get http:/repo/pool/main/libl/liblist-moreutils-perl/liblist-moreutils-perl_0.25%7e02-1_i386.deb
+get http:/repo/pool/main/libn/libnetaddr-ip-perl/libnetaddr-ip-perl_4.024+dfsg-1build1_i386.deb
+get http:/repo/pool/main/libn/libnet-dns-perl/libnet-dns-perl_0.65-1build1_i386.deb
+get http:/repo/pool/main/libn/libnet-ip-perl/libnet-ip-perl_1.25-2_all.deb
+get http:/repo/pool/main/libn/libnet-ldap-perl/libnet-ldap-perl_0.39-1ubuntu1_all.deb
+get http:/repo/pool/main/libw/libwww-perl/libwww-perl_5.834-1ubuntu0.1_all.deb
+get http:/repo/pool/universe/libc/libclass-singleton-perl/libclass-singleton-perl_1.4-1_all.deb
+get http:/repo/pool/universe/libd/libdatetime-locale-perl/libdatetime-locale-perl_0.44-1_all.deb
+get http:/repo/pool/universe/libd/libdatetime-perl/libdatetime-perl_0.5200-1_i386.deb
+get http:/repo/pool/universe/libd/libdatetime-timezone-perl/libdatetime-timezone-perl_1.10-1+2010b_all.deb
+get http:/repo/pool/universe/libf/libfilter-perl/libfilter-perl_1.37-3_i386.deb
+get http:/repo/pool/universe/libn/libnet-arp-perl/libnet-arp-perl_1.0.4-1_i386.deb
+get http:/repo/pool/universe/libn/libnet-mac-vendor-perl/libnet-mac-vendor-perl_1.18-2_all.deb
+get http:/repo/pool/universe/libn/libnetpacket-perl/libnetpacket-perl_0.41.1-1_all.deb
+get http:/repo/pool/universe/libn/libnet-pcap-perl/libnet-pcap-perl_0.16-2_i386.deb
+get http:/repo/pool/universe/libp/libparams-validate-perl/libparams-validate-perl_0.93-1_i386.deb
+get http:/repo/pool/universe/libp/libpoe-component-pcap-perl/libpoe-component-pcap-perl_0.04-1_all.deb
+get http:/repo/pool/universe/libp/libpoe-perl/libpoe-perl_1.2840-1_all.deb
+get http:/repo/pool/lhm/g/gosa-si/gosa-si-client_2.6.4+svn21170-1plophos1_i386.deb
+get http:/repo/pool/lhm/g/gosa-si/gosa-si-common_2.6.4+svn21170-1plophos1_i386.deb
+get http:/repo/pool/lhm/g/goto-common/goto-common_2.5.27plophos3_i386.deb
+get http:/repo/pool/lhm/g/goto-fai/goto-fai_2.5.80_i386.deb
+get http:/repo/pool/lhm/k/kprogress/kprogress_1.0-3plophos1_i386.deb
+get http:/repo/pool/lhm/libp/libpam-storepw/libpam-storepw_0.1-0lhm3_i386.deb
+get http:/repo/pool/lhm/l/lhm-perl-scripts/lhm-perl-scripts_0.27_all.deb
+get http:/repo/pool/lhm/l/lhm-perl-scripts/libgosa-perl_0.27_all.deb
+get http:/repo/pool/lhm/m/mime-codecs-compat/mime-codecs-compat_0.3-akon1_all.deb
+get http:/repo/pool/lhm/o/openldap/ldap-utils_2.4.21-0ubuntu5.7lhm1_i386.deb
+get http:/repo/pool/lhm/x/xdialog/xdialog_2.3.1-2lhm2_i386.deb
+get http:/repo/pool/main/libm/libmldbm-perl/libmldbm-perl_2.01-3_all.deb
+get http:/repo/pool/main/libt/libtie-ixhash-perl/libtie-ixhash-perl_1.21-2_all.deb
+get http:/repo/pool/main/r/recode/librecode0_3.6-17_i386.deb
+get http:/repo/pool/main/r/recode/recode_3.6-17_i386.deb
+get http:/repo/pool/main/r/rsync/rsync_3.0.7-1ubuntu1.1_i386.deb
+get http:/repo/pool/main/s/samba/samba-common_3.4.7%7edfsg-1ubuntu3.8_all.deb
+get http:/repo/pool/main/s/samba/smbclient_3.4.7%7edfsg-1ubuntu3.8_i386.deb
+get http:/repo/pool/universe/h/hwinfo/hwinfo_16.0-2_i386.deb
+get http:/repo/pool/universe/h/hwinfo/libhd16_16.0-2_i386.deb
+get http:/repo/pool/universe/libj/libjson-perl/libjson-perl_2.17-1_all.deb
+get http:/repo/pool/universe/libj/libjson-rpc-perl/libjson-rpc-perl_0.96-1_all.deb
+get http:/repo/pool/universe/libx/libxml-quote-perl/libxml-quote-perl_1.02-1_i386.deb
+faimon PROGRESS 27
+get http:/repo/pool/main/p/python-ldap/python-ldap_2.3.10-1ubuntu1_i386.deb
+get http:/repo/pool/main/p/python-trinity-trinity/python-trinity-trinity_3.5.13-0ubuntu9+r1258860+pr5%7elucid_i386.deb
+get http:/repo/pool/main/s/sip4-qt3/python-sip_4.10.1-0ubuntu1_i386.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/python-kde3-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/universe/libs/libstring-random-perl/libstring-random-perl_0.22-3_all.deb
+get http:/repo/pool/universe/libs/libsys-utmp-perl/libsys-utmp-perl_1.6-4build1_i386.deb
+get http:/repo/pool/universe/p/python-qt3/python-qt3_3.18.1-4ubuntu1_i386.deb
+get http:/repo/pool/lhm/e/ext2resize/ext2resize_1.1.19-9lhm1_i386.deb
+get http:/repo/pool/lhm/g/goto-agents/goto-agents_2.6-272_all.deb
+get http:/repo/pool/lhm/libp/libproxy/libproxy0_0.3.1-2ubuntu5%7elhm1_i386.deb
+get http:/repo/pool/lhm/l/lhm-schema/lhm-schema_1.1-1lhm1plophos1_i386.deb
+get http:/repo/pool/lhm/p/profilsync/profilsync_12.5.22_all.deb
+get http:/repo/pool/lhm/p/ptc-lhm/ptc-lhm_1.1-lhm14plophos1_all.deb
+get http:/repo/pool/lhm/y/yastbrowser/yastbrowser_2.18.0-1_all.deb
+get http:/repo/pool/main/d/dbus-python/python-dbus_0.83.0-1ubuntu3_i386.deb
+get http:/repo/pool/main/g/grub2/grub-common_1.98-1ubuntu13_i386.deb
+get http:/repo/pool/main/g/grub/grub_0.97-29ubuntu60.10.04.2_i386.deb
+get http:/repo/pool/main/g/gst-plugins-base0.10/gstreamer0.10-alsa_0.10.28-1_i386.deb
+get http:/repo/pool/main/g/gst-plugins-base0.10/gstreamer0.10-plugins-base_0.10.28-1_i386.deb
+get http:/repo/pool/main/g/gst-plugins-good0.10/gstreamer0.10-plugins-good_0.10.21-1ubuntu3_i386.deb
+get http:/repo/pool/main/liba/libavc1394/libavc1394-0_0.5.3-1build4_i386.deb
+get http:/repo/pool/main/libc/libcdio/libcdio10_0.81-4_i386.deb
+get http:/repo/pool/main/libd/libdv/libdv4_1.0.0-2ubuntu2_i386.deb
+get http:/repo/pool/main/libg/libgnome-keyring/libgnome-keyring0_2.30.1-0ubuntu1_i386.deb
+get http:/repo/pool/main/libi/libiec61883/libiec61883-0_1.2.0-0.1build1_i386.deb
+get http:/repo/pool/main/libs/libshout/libshout3_2.2.2-5ubuntu1_i386.deb
+get http:/repo/pool/main/libs/libsoup2.4/libsoup-gnome2.4-1_2.30.2-0ubuntu0.2_i386.deb
+get http:/repo/pool/main/libv/libvisual/libvisual-0.4-0_0.4.0-2.1+ubuntu2_i386.deb
+get http:/repo/pool/main/liby/libyaml-perl/libyaml-perl_0.71-1_all.deb
+get http:/repo/pool/main/liby/libyaml-syck-perl/libyaml-syck-perl_1.07-1build1_i386.deb
+get http:/repo/pool/main/p/pyxdg/python-xdg_0.18-1ubuntu2_all.deb
+get http:/repo/pool/main/u/udev/libgudev-1.0-0_151-12.3_i386.deb
+get http:/repo/pool/main/w/wavpack/libwavpack1_4.60.1-1_i386.deb
+get http:/repo/pool/main/x/xdg-utils/xdg-utils_1.0.2-6.1ubuntu3.2_all.deb
+get http:/repo/pool/universe/a/a52dec/liba52-0.7.4_0.7.4-13ubuntu1_i386.deb
+get http:/repo/pool/universe/g/gstreamer0.10-ffmpeg/gstreamer0.10-ffmpeg_0.10.10-1_i386.deb
+get http:/repo/pool/universe/m/mpeg2dec/libmpeg2-4_0.4.1-3_i386.deb
+get http:/repo/pool/universe/p/pdnsd/pdnsd_1.2.7-par-1.1_i386.deb
+get http:/repo/pool/universe/p/python-gudev/python-gudev_147+20100209-0ubuntu2_i386.deb
+get http:/repo/pool/universe/r/resolvconf/resolvconf_1.45ubuntu1_all.deb
+get http:/repo/pool/universe/x/xulrunner-1.9.2/xulrunner-1.9_1.9.2.24+build2+nobinonly-0ubuntu0.10.04.1_all.deb
+get http:/repo/pool/lhm/g/gthumb/gthumb_2.13.1-2%7elhm1_i386.deb
+get http:/repo/pool/lhm/g/gthumb/gthumb-data_2.13.1-2%7elhm1_all.deb
+get http:/repo/pool/main/g/gst-plugins-base0.10/gstreamer0.10-x_0.10.28-1_i386.deb
+get http:/repo/pool/main/g/gtk2-engines/gtk2-engines_2.20.0-0ubuntu1_i386.deb
+get http:/repo/pool/main/h/hwdata/hwdata_0.225-1ubuntu1_all.deb
+get http:/repo/pool/main/libu/libunique/libunique-1.0-0_1.1.6-1ubuntu2_i386.deb
+get http:/repo/pool/main/p/python2.6/python2.6-dev_2.6.5-1ubuntu6_i386.deb
+get http:/repo/pool/universe/g/gst-plugins-ugly0.10/gstreamer0.10-plugins-ugly_0.10.14-1_i386.deb
+get http:/repo/pool/universe/libs/libsidplay/libsidplay1_1.36.59-5_i386.deb
+faimon PROGRESS 28
+get http:/repo/pool/lhm/h/hourglass/hourglass_0.7.2-lhm4_i386.deb
+get http:/repo/pool/main/h/hal-trinity/hal-trinity_0.5.14-0ubuntu2_i386.deb
+get http:/repo/pool/main/h/hplip/hpijs_3.10.2-2ubuntu2.2_i386.deb
+get http:/repo/pool/main/h/hplip/libhpmud0_3.10.2-2ubuntu2.2_i386.deb
+get http:/repo/pool/main/k/kde-guidance-trinity/guidance-backends-trinity_3.5.13-0ubuntu9+r1249345+pr7%7elucid_i386.deb
+get http:/repo/pool/main/l/lm-sensors-3/libsensors4_3.1.2-2_i386.deb
+get http:/repo/pool/main/n/net-snmp/libsnmp15_5.4.2.1%7edfsg0ubuntu1-0ubuntu2.1_i386.deb
+get http:/repo/pool/main/n/net-snmp/libsnmp-base_5.4.2.1%7edfsg0ubuntu1-0ubuntu2.1_all.deb
+get http:/repo/pool/main/p/python-defaults/python-dev_2.6.5-0ubuntu1_all.deb
+get http:/repo/pool/multiverse/i/icc-profiles/icc-profiles_1.0.1-4_all.deb
+get http:/repo/pool/lhm/i/infomux/infomux_0.2lhm8_i386.deb
+get http:/repo/pool/main/a/avahi/libavahi-glib1_0.6.25-1ubuntu6.2_i386.deb
+get http:/repo/pool/main/c/cairomm/libcairomm-1.0-1_1.8.4-0ubuntu1_i386.deb
+get http:/repo/pool/main/g/glibmm2.4/libglibmm-2.4-1c2a_2.24.2-0ubuntu1_i386.deb
+get http:/repo/pool/main/g/gnome-vfs/libgnomevfs2-0_2.24.2-1ubuntu2_i386.deb
+get http:/repo/pool/main/g/gnome-vfs/libgnomevfs2-common_2.24.2-1ubuntu2_all.deb
+get http:/repo/pool/main/g/gsl/libgsl0ldbl_1.13+dfsg-1_i386.deb
+get http:/repo/pool/main/g/gtkmm2.4/libgtkmm-2.4-1c2a_2.20.3-0ubuntu1_i386.deb
+get http:/repo/pool/main/g/gtkspell/libgtkspell0_2.0.16-1_i386.deb
+get http:/repo/pool/main/i/imagemagick/imagemagick_6.5.7.8-1ubuntu1.1_i386.deb
+get http:/repo/pool/main/i/imagemagick/libmagick++2_6.5.7.8-1ubuntu1.1_i386.deb
+get http:/repo/pool/main/i/imagemagick/libmagickcore2_6.5.7.8-1ubuntu1.1_i386.deb
+get http:/repo/pool/main/i/imagemagick/libmagickwand2_6.5.7.8-1ubuntu1.1_i386.deb
+get http:/repo/pool/main/i/inkscape/inkscape_0.47.0-2ubuntu2_i386.deb
+get http:/repo/pool/main/libd/libdaemon/libdaemon0_0.14-2_i386.deb
+get http:/repo/pool/main/libw/libwpd/libwpd8c2a_0.8.14-1build1_i386.deb
+get http:/repo/pool/main/libw/libwpg/libwpg-0.1-1_0.1.3-1build1_i386.deb
+get http:/repo/pool/main/p/pangomm/libpangomm-1.4-1_2.26.2-0ubuntu1_i386.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kdebase-kde3-bin_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/universe/i/ifplugd/ifplugd_0.28-15ubuntu1_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-core01_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/openoffice.org-ure/openoffice.org-ure_1.6.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/t/ttf-opensymbol-lhm/ttf-opensymbol-lhm_1.21-lhm1_all.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-core02_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-core03_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-core04_3.2.1-19+lhm9_i386.deb
+faimon PROGRESS 29
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-core05_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-core06_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-core07_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-images_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/ff/j/javacomm/javacomm_4.4L-2plophos3_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kappfinder-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kate-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdegraphics-trinity/kamera-trinity_3.5.13-0ubuntu9+r1258283+pr5%7elucidlhm1_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-writer_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/openoffice.org3_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/openoffice.org3-writer_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-virtual/openoffice.org-writer_3.2.1-lhm2_all.deb
+get http:/repo/pool/main/k/kdegames-trinity/libkdegames1-trinity_3.5.13-0ubuntu9+r1258286+pr4%7elucid_i386.deb
+get http:/repo/pool/main/k/kdegames-trinity/kbounce-trinity_3.5.13-0ubuntu9+r1258286+pr4%7elucid_i386.deb
+get http:/repo/pool/main/k/kde-guidance-trinity/kde-guidance-trinity_3.5.13-0ubuntu9+r1249345+pr7%7elucid_i386.deb
+get http:/repo/pool/main/k/kde-i18n-trinity/kde-i18n-de-trinity_3.5.13-0ubuntu9+r1181027+pr2%7elucid.lhm2_all.deb
+get http:/repo/pool/main/k/kdeutils-trinity/kcalc-trinity_3.5.13-0ubuntu9+r1258494+pr5%7elucid_i386.deb
+get http:/repo/pool/main/k/kdeutils-trinity/kcharselect-trinity_3.5.13-0ubuntu9+r1258494+pr5%7elucid_i386.deb
+get http:/repo/pool/main/p/pykdeextensions-trinity/libpythonize0-trinity_3.5.13-0ubuntu9+r1248408+pr3%7elucid_i386.deb
+get http:/repo/pool/main/p/pykdeextensions-trinity/pykdeextensions-trinity_3.5.13-0ubuntu9+r1248408+pr3%7elucid_all.deb
+get http:/repo/pool/main/k/kdeartwork-trinity/kdeartwork-theme-icon-trinity_3.5.13-0ubuntu9+r1260418+pr14%7elucid_all.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kdepasswd-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kdeprint-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/khelpcenter-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/klipper-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kmenuedit-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/konsole-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kpager-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kpersonalizer-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/ksmserver-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/ksplash-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/ksysguardd-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/ksysguard-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/ktip-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kwin-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/main/k/kdeartwork-trinity/kdeartwork-theme-window-trinity_3.5.13-0ubuntu9+r1260418+pr14%7elucid_i386.deb
+get http:/repo/pool/main/p/psutils/psutils_1.17-27_i386.deb
+get http:/repo/pool/universe/p/poster/poster_20050907-1_i386.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kdebase-runtime-data-common-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_all.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kdebase-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_all.deb
+get http:/repo/pool/lhm/k/kdebase-trinity/kdm-trinity_3.5.13-0ubuntu9+r1261450+pr23%7elucidlhm9_i386.deb
+get http:/repo/pool/lhm/k/kdegraphics-trinity/kfaxview-trinity_3.5.13-0ubuntu9+r1258283+pr5%7elucidlhm1_i386.deb
+get http:/repo/pool/lhm/k/kdegraphics-trinity/kghostview-trinity_3.5.13-0ubuntu9+r1258283+pr5%7elucidlhm1_i386.deb
+get http:/repo/pool/lhm/k/kdegraphics-trinity/kviewshell-trinity_3.5.13-0ubuntu9+r1258283+pr5%7elucidlhm1_i386.deb
+get http:/repo/pool/main/g/ghostscript/gs_8.71.dfsg.1-0ubuntu5.4_all.deb
+get http:/repo/pool/main/k/kdegames-trinity/kdegames-card-data-trinity_3.5.13-0ubuntu9+r1258286+pr4%7elucid_all.deb
+get http:/repo/pool/main/k/kdelibs-trinity/kdelibs-trinity_3.5.13-0ubuntu9+r1260477+pr16%7elucid_all.deb
+get http:/repo/pool/main/k/kdemultimedia-trinity/kdemultimedia-kio-plugins-trinity_3.5.13-0ubuntu9+r1258501+pr5%7elucid_i386.deb
+get http:/repo/pool/main/k/kdemultimedia-trinity/libkcddb1-trinity_3.5.13-0ubuntu9+r1258501+pr5%7elucid_i386.deb
+get http:/repo/pool/main/k/kdenetwork-trinity/kget-trinity_3.5.13-0ubuntu9+r1260223+pr7%7elucid_i386.deb
+get http:/repo/pool/main/k/kdeutils-trinity/kedit-trinity_3.5.13-0ubuntu9+r1258494+pr5%7elucid_i386.deb
+get http:/repo/pool/main/k/kdeutils-trinity/kfloppy-trinity_3.5.13-0ubuntu9+r1258494+pr5%7elucid_i386.deb
+get http:/repo/pool/main/k/kdeutils-trinity/khexedit-trinity_3.5.13-0ubuntu9+r1258494+pr5%7elucid_i386.deb
+get http:/repo/pool/main/libg/libgpod/libgpod4-nogtk_0.7.93-0ubuntu1_i386.deb
+get http:/repo/pool/main/libi/libimobiledevice/libimobiledevice0_0.9.7-1ubuntu1.2_i386.deb
+get http:/repo/pool/main/libp/libplist/libplist1_1.1-1ubuntu1_i386.deb
+get http:/repo/pool/main/u/usbmuxd/libusbmuxd1_1.0.2-1ubuntu2_i386.deb
+get http:/repo/pool/main/u/usbmuxd/usbmuxd_1.0.2-1ubuntu2_i386.deb
+get http:/repo/pool/universe/x/xcalib/xcalib_0.8.dfsg1-2_i386.deb
+get http:/repo/pool/main/k/kdeaccessibility-trinity/kmag-trinity_3.5.13-0ubuntu9+r1258652+pr4%7elucid_i386.deb
+get http:/repo/pool/main/k/kipi-plugins-trinity/kipi-plugins-trinity_3.5.13-0ubuntu9+r1254372+pr4%7elucid_i386.deb
+get http:/repo/pool/main/k/koffice-trinity/kivio-data-trinity_3.5.13-0ubuntu9+r1260139+pr7%7elucid_all.deb
+get http:/repo/pool/main/k/koffice-trinity/kivio-trinity_3.5.13-0ubuntu9+r1260139+pr7%7elucid_i386.deb
+get http:/repo/pool/main/k/koffice-trinity/koffice-data-trinity_3.5.13-0ubuntu9+r1260139+pr7%7elucid_all.deb
+get http:/repo/pool/main/k/koffice-trinity/koffice-libs-trinity_3.5.13-0ubuntu9+r1260139+pr7%7elucid_i386.deb
+get http:/repo/pool/main/r/ruby1.8/libruby1.8_1.8.7.249-2_i386.deb
+get http:/repo/pool/lhm/k/kdegraphics-trinity/kolourpaint-trinity_3.5.13-0ubuntu9+r1258283+pr5%7elucidlhm1_i386.deb
+get http:/repo/pool/lhm/k/koffice-l10n/koffice-i18n-de_1.6.3-1ubuntu1.1-lhm2_all.deb
+get http:/repo/pool/main/k/kdegames-trinity/kmines-trinity_3.5.13-0ubuntu9+r1258286+pr4%7elucid_i386.deb
+get http:/repo/pool/main/k/kdemultimedia-trinity/kmix-trinity_3.5.13-0ubuntu9+r1258501+pr5%7elucid_i386.deb
+get http:/repo/pool/main/k/kdepim-trinity/knotes-trinity_3.5.13-0ubuntu9+r1258263+pr11%7elucid_i386.deb
+get http:/repo/pool/main/k/kmplayer-trinity/kmplayer-base-trinity_3.5.13-0ubuntu9+r1258263+pr4%7elucid_i386.deb
+get http:/repo/pool/main/k/kmplayer-trinity/kmplayer-konq-plugins-trinity_3.5.13-0ubuntu9+r1258263+pr4%7elucid_i386.deb
+get http:/repo/pool/main/k/kmplayer-trinity/kmplayer-trinity_3.5.13-0ubuntu9+r1258263+pr4%7elucid_i386.deb
+get http:/repo/pool/main/k/knetstats-trinity/knetstats-trinity_3.5.13-0ubuntu9+r1258263+pr3%7elucid_i386.deb
+get http:/repo/pool/main/libm/libmodplug/libmodplug0c2_0.8.7-1ubuntu0.3_i386.deb
+get http:/repo/pool/main/libx/libxcb/libxcb-shape0_1.5-2_i386.deb
+get http:/repo/pool/main/libx/libxcb/libxcb-shm0_1.5-2_i386.deb
+get http:/repo/pool/main/libx/libxcb/libxcb-xv0_1.5-2_i386.deb
+get http:/repo/pool/main/x/xine-lib/libxine1_1.1.17-1ubuntu3_i386.deb
+get http:/repo/pool/main/x/xine-lib/libxine1-bin_1.1.17-1ubuntu3_i386.deb
+get http:/repo/pool/main/x/xine-lib/libxine1-console_1.1.17-1ubuntu3_i386.deb
+get http:/repo/pool/main/x/xine-lib/libxine1-misc-plugins_1.1.17-1ubuntu3_i386.deb
+get http:/repo/pool/main/x/xine-lib/libxine1-x_1.1.17-1ubuntu3_i386.deb
+faimon PROGRESS 30
+get http:/repo/pool/ff/k/kompozer-i18n-de/kompozer-i18n-de_0.8%7eb3-0lhm4_i386.deb
+get http:/repo/pool/ff/k/kompozer/kompozer_0.8%7eb3.dfsg.1-0.1%7elhm5_i386.deb
+get http:/repo/pool/ff/k/kompozer/kompozer-data_0.8%7eb3.dfsg.1-0.1%7elhm5_all.deb
+get http:/repo/pool/lhm/k/kdegraphics-trinity/kooka-trinity_3.5.13-0ubuntu9+r1258283+pr5%7elucidlhm1_i386.deb
+get http:/repo/pool/lhm/k/kdegraphics-trinity/libkscan1-trinity_3.5.13-0ubuntu9+r1258283+pr5%7elucidlhm1_i386.deb
+get http:/repo/pool/lhm/k/konch/konch_1.00-0lhm4_i386.deb
+get http:/repo/pool/main/k/kdegames-trinity/kpat-trinity_3.5.13-0ubuntu9+r1258286+pr4%7elucid_i386.deb
+get http:/repo/pool/lhm/f/ffmpeg-extra/libavcodec-unstripped-52_0.5.1-1ubuntu1.1+lhm1_i386.deb
+get http:/repo/pool/lhm/f/ffmpeg-extra/libavdevice-extra-52_0.5.1-1ubuntu1.1+lhm1_i386.deb
+get http:/repo/pool/lhm/f/ffmpeg-extra/libavdevice-unstripped-52_0.5.1-1ubuntu1.1+lhm1_i386.deb
+get http:/repo/pool/lhm/f/ffmpeg-extra/libavfilter-extra-0_0.5.1-1ubuntu1.1+lhm1_i386.deb
+get http:/repo/pool/lhm/f/ffmpeg-extra/libavfilter-unstripped-0_0.5.1-1ubuntu1.1+lhm1_i386.deb
+get http:/repo/pool/lhm/f/ffmpeg-extra/libavformat-unstripped-52_0.5.1-1ubuntu1.1+lhm1_i386.deb
+get http:/repo/pool/lhm/f/ffmpeg-extra/libavutil-unstripped-49_0.5.1-1ubuntu1.1+lhm1_i386.deb
+get http:/repo/pool/lhm/k/kdegraphics-trinity/ksnapshot-trinity_3.5.13-0ubuntu9+r1258283+pr5%7elucidlhm1_i386.deb
+get http:/repo/pool/lhm/k/kdegraphics-trinity/ksvg-trinity_3.5.13-0ubuntu9+r1258283+pr5%7elucidlhm1_i386.deb
+get http:/repo/pool/lhm/k/kdegraphics-trinity/kview-trinity_3.5.13-0ubuntu9+r1258283+pr5%7elucidlhm1_i386.deb
+get http:/repo/pool/main/a/apr/libapr1_1.3.8-1ubuntu0.3_i386.deb
+get http:/repo/pool/main/a/apr-util/libaprutil1_1.3.9+dfsg-3ubuntu0.10.04.1_i386.deb
+get http:/repo/pool/main/b/backport-util-concurrent/libbackport-util-concurrent-java_3.1-2ubuntu2_all.deb
+get http:/repo/pool/main/b/bluez/libbluetooth3_4.60-0ubuntu8_i386.deb
+get http:/repo/pool/main/j/jaxme/libjaxme-java_0.5.2+dfsg-3_all.deb
+get http:/repo/pool/main/k/kdeartwork-trinity/kscreensaver-trinity_3.5.13-0ubuntu9+r1260418+pr14%7elucid_i386.deb
+get http:/repo/pool/main/k/kdegames-trinity/ksame-trinity_3.5.13-0ubuntu9+r1258286+pr4%7elucid_i386.deb
+get http:/repo/pool/main/k/kdegames-trinity/ksnake-trinity_3.5.13-0ubuntu9+r1258286+pr4%7elucid_i386.deb
+get http:/repo/pool/main/k/kdemultimedia-trinity/kscd-trinity_3.5.13-0ubuntu9+r1258501+pr5%7elucid_i386.deb
+get http:/repo/pool/main/k/kdenetwork-trinity/kppp-trinity_3.5.13-0ubuntu9+r1260223+pr7%7elucid_i386.deb
+get http:/repo/pool/main/k/kdenetwork-trinity/krdc-trinity_3.5.13-0ubuntu9+r1260223+pr7%7elucid_i386.deb
+get http:/repo/pool/main/k/kdenetwork-trinity/krfb-trinity_3.5.13-0ubuntu9+r1260223+pr7%7elucid_i386.deb
+get http:/repo/pool/main/k/kdetoys-trinity/kteatime-trinity_3.5.13-0ubuntu9+r1259976+pr4%7elucid_i386.deb
+get http:/repo/pool/main/k/ksplash-engine-moodin-trinity/ksplash-engine-moodin-trinity_3.5.13-0ubuntu9+r1248408+pr3%7elucid_i386.deb
+get http:/repo/pool/main/k/kvkbd-trinity/kvkbd-trinity_3.5.13-0ubuntu9+r1258263+pr3%7elucid_i386.deb
+get http:/repo/pool/main/libc/libcommons-codec-java/libcommons-codec-java_1.4-2_all.deb
+get http:/repo/pool/main/libd/libdc1394-22/libdc1394-22_2.1.2-2_i386.deb
+get http:/repo/pool/main/libj/libjaxen-java/libjaxen-java_1.1.2-1_all.deb
+get http:/repo/pool/universe/libc/libcddb/libcddb2_1.3.2-0ubuntu1_i386.deb
+get http:/repo/pool/universe/l/language-env/language-env_0.69build1_all.deb
+faimon PROGRESS 31
+get http:/repo/pool/lhm/libd/libdvdcss/libdvdcss2_1.2.10-0.3medibuntu1.1_i386.deb
+get http:/repo/pool/lhm/l/llvm-2.9/libllvm2.9_2.9+dfsg-3ubuntu2%7elhm1_i386.deb
+get http:/repo/pool/lhm/m/mesa/libgl1-mesa-dri_7.11.2-0%7elhm1_i386.deb
+get http:/repo/pool/main/d/dom4j/libdom4j-java_1.6.1+dfsg.2-2ubuntu2_all.deb
+get http:/repo/pool/main/f/fftw3/libfftw3-3_3.2.2-1_i386.deb
+get http:/repo/pool/main/f/fltk1.1/libfltk1.1_1.1.10-2_i386.deb
+get http:/repo/pool/main/libx/libxpp2-java/libxpp2-java_2.1.10-6_all.deb
+get http:/repo/pool/universe/libd/libdvbpsi5/libdvbpsi5_0.1.6-1_i386.deb
+get http:/repo/pool/universe/libd/libdvdnav/libdvdnav4_4.1.3-6_i386.deb
+get http:/repo/pool/universe/libe/libebml/libebml0_0.7.7-3.1_i386.deb
+get http:/repo/pool/lhm/f/ffmpeg-extra/libpostproc-unstripped-51_0.5.1-1ubuntu1.1+lhm1_i386.deb
+get http:/repo/pool/lhm/libk/libkexif-trinity/libkexif1-trinity_0.2.5-2build1lhm2_i386.deb
+get http:/repo/pool/lhm/p/pilot-link/libpisock9_0.12.4-7ubuntu1lhm2_i386.deb
+get http:/repo/pool/main/g/gtk+2.0/libgtk2.0-bin_2.20.1-0ubuntu2.1_all.deb
+get http:/repo/pool/main/libj/libjpeg6b/libjpeg-progs_7+really6b-15ubuntu1_i386.deb
+get http:/repo/pool/main/libm/libmtp/libmtp8_1.0.2-1ubuntu1_i386.deb
+get http:/repo/pool/main/libn/libnss-db/libnss-db_2.2.3pre1-3.1ubuntu4_i386.deb
+get http:/repo/pool/main/libo/libofa/libofa0_0.9.3-3.1_i386.deb
+get http:/repo/pool/main/l/linux-ntfs/libntfs10_2.0.0-1ubuntu4_i386.deb
+get http:/repo/pool/main/l/lua5.1/liblua5.1-0_5.1.4-5_i386.deb
+get http:/repo/pool/main/n/netpbm-free/libnetpbm10_10.0-12.1ubuntu1_i386.deb
+get http:/repo/pool/main/q/qt4-x11/libqt4-network_4.6.2-0ubuntu5.3_i386.deb
+get http:/repo/pool/main/q/qt4-x11/libqt4-xml_4.6.2-0ubuntu5.3_i386.deb
+get http:/repo/pool/main/q/qt4-x11/libqtcore4_4.6.2-0ubuntu5.3_i386.deb
+get http:/repo/pool/main/q/qt4-x11/libqtgui4_4.6.2-0ubuntu5.3_i386.deb
+get http:/repo/pool/universe/libc/libcdio/libiso9660-7_0.81-4_i386.deb
+get http:/repo/pool/universe/libi/libitext-java/libitext-java_2.1.7-1_all.deb
+get http:/repo/pool/universe/libj/libjgoodies-looks-java/libjgoodies-looks-java_2.3.1-1_all.deb
+get http:/repo/pool/universe/libk/libkate/libkate1_0.3.7-3_i386.deb
+get http:/repo/pool/universe/libm/libmatroska/libmatroska0_0.8.1-1.1_i386.deb
+get http:/repo/pool/universe/libm/libmikmod/libmikmod2_3.1.11-a-6.1ubuntu0.1_i386.deb
+get http:/repo/pool/universe/p/policykit/libpolkit2_0.9-4ubuntu2_i386.deb
+get http:/repo/pool/universe/p/policykit/libpolkit-dbus2_0.9-4ubuntu2_i386.deb
+get http:/repo/pool/universe/p/policykit/libpolkit-grant2_0.9-4ubuntu2_i386.deb
+faimon PROGRESS 32
+get http:/repo/pool/lhm/f/ffmpeg-extra/libswscale-unstripped-0_0.5.1-1ubuntu1.1+lhm1_i386.deb
+get http:/repo/pool/lhm/s/subversion/libsvn1_1.6.12dfsg-1%7elhm1plophos1_i386.deb
+get http:/repo/pool/lhm/v/vlc/vlc-data_1.1.4-1ubuntu1.6%7elhm1_all.deb
+get http:/repo/pool/main/libt/libtunepimp/libtunepimp5_0.5.3-7.3ubuntu1_i386.deb
+get http:/repo/pool/universe/libt/libtar/libtar_1.2.11-6_i386.deb
+get http:/repo/pool/universe/libt/libtunepimp/libtunepimp5-mp3_0.5.3-7.3ubuntu1_i386.deb
+get http:/repo/pool/universe/s/sdlgfx/libsdl-gfx1.2-4_2.0.20-1_i386.deb
+get http:/repo/pool/universe/s/sdl-image1.2/libsdl-image1.2_1.2.10-1_i386.deb
+get http:/repo/pool/universe/s/sdl-mixer1.2/libsdl-mixer1.2_1.2.8-6build1_i386.deb
+get http:/repo/pool/universe/s/sdl-net1.2/libsdl-net1.2_1.2.7-2_i386.deb
+get http:/repo/pool/universe/s/sdlpango/libsdl-pango1_0.1.2-4_i386.deb
+get http:/repo/pool/universe/s/sdlperl/libsdl-perl_2.2.5-1_i386.deb
+get http:/repo/pool/universe/s/sdl-ttf2.0/libsdl-ttf2.0-0_2.0.9-1build1_i386.deb
+get http:/repo/pool/universe/s/smpeg/libsmpeg0_0.4.5+cvs20030824-2.2_i386.deb
+get http:/repo/pool/universe/v/vcdimager/libvcdinfo0_0.7.23-4ubuntu2_i386.deb
+get http:/repo/pool/lhm/l/limux-default-settings/limux-default-settings_4.1-lhm34_all.deb
+get http:/repo/pool/lhm/l/limux-wallpapers/limux-wallpapers_1.0-lhm1_all.deb
+get http:/repo/pool/lhm/v/vlc/libvlc5_1.1.4-1ubuntu1.6%7elhm1_i386.deb
+get http:/repo/pool/lhm/v/vlc/libvlccore4_1.1.4-1ubuntu1.6%7elhm1_i386.deb
+get http:/repo/pool/main/libv/libvncserver/libvncserver0_0.9.7-2_i386.deb
+get http:/repo/pool/main/libx/libx11/libx11-xcb1_1.3.2-1ubuntu3_i386.deb
+get http:/repo/pool/main/libx/libxcb/libxcb-dri2-0_1.5-2_i386.deb
+get http:/repo/pool/main/libx/libxcb/libxcb-randr0_1.5-2_i386.deb
+get http:/repo/pool/main/libx/libxfont/libxfont1_1.4.1-1ubuntu0.1_i386.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/ksplash-engine-moodin-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/x/xine-lib/libxine1-ffmpeg_1.1.17-1ubuntu3_i386.deb
+get http:/repo/pool/lhm/l/linux-firmware/linux-firmware_1.34.13+lhm1_all.deb
+get http:/repo/pool/lhm/l/linux-lts-backport-oneiric/linux-headers-3.0.0-16_3.0.0-16.29%7elucid1lhm1_all.deb
+get http:/repo/pool/lhm/l/linux-lts-backport-oneiric/linux-headers-3.0.0-16-generic_3.0.0-16.29%7elucid1lhm1_i386.deb
+get http:/repo/pool/lhm/l/linux-meta/linux-headers-generic_3.0.0.16.29-lhm1_i386.deb
+get http:/repo/pool/lhm/l/linux-meta/linux-image-generic_3.0.0.16.29-lhm1_i386.deb
+get http:/repo/pool/lhm/m/mc/mc_4.8.2-2%7elhm1_i386.deb
+get http:/repo/pool/lhm/m/mc/mc-data_4.8.2-2%7elhm1_all.deb
+get http:/repo/pool/main/n/netpbm-free/netpbm_10.0-12.1ubuntu1_i386.deb
+get http:/repo/pool/universe/i/igerman98/myspell-de-at_20091006-3ubuntu1_all.deb
+get http:/repo/pool/universe/i/igerman98/myspell-de-de_20091006-3ubuntu1_all.deb
+get http:/repo/pool/universe/m/manpages-de/manpages-de_0.5-4.1ubuntu1_all.deb
+get http:/repo/pool/universe/m/menu-xdg/menu-xdg_0.5_all.deb
+get http:/repo/pool/universe/m/mpack/mpack_1.6-6_i386.deb
+get http:/repo/pool/universe/n/ncompress/ncompress_4.2.4.2-3_i386.deb
+get http:/repo/pool/lhm/n/nvidia-graphics-drivers/nvidia-current_285.05.09-0ubuntu1%7elhm1_i386.deb
+get http:/repo/pool/universe/e/eglibc/nscd_2.11.1-0ubuntu7.8_i386.deb
+faimon PROGRESS 33
+get http:/repo/pool/lhm/n/nvidia-settings/nvidia-settings_285.05.09-0ubuntu1%7elhm3_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-base_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-calc_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-de_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-de-base_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-de-calc_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-de-draw_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-de-help_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-de-impress_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-de-math_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-de-res_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-de-writer_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-draw_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-gnome-integration_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-graphicfilter_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-impress_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-kde-integration_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-math_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-ooolinguistic_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/ooobasis3.2-xsltfilter_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/openoffice.org3-base_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/openoffice.org3-calc_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/openoffice.org3-de_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/openoffice.org3-dict-de-de_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/openoffice.org3-draw_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/openoffice.org3-impress_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/openoffice.org3-math_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-virtual/ooobasis3.2-javafilter_3.2.1-lhm1_all.deb
+get http:/repo/pool/lhm/o/ooo-virtual/openoffice.org-base_3.2.1-lhm2_all.deb
+get http:/repo/pool/lhm/o/ooo-virtual/openoffice.org-calc_3.2.1-lhm2_all.deb
+get http:/repo/pool/lhm/o/ooo-virtual/openoffice.org-de_3.2.1-lhm2_all.deb
+get http:/repo/pool/lhm/o/ooo-virtual/openoffice.org-draw_3.2.1-lhm2_all.deb
+get http:/repo/pool/lhm/o/ooo-virtual/openoffice.org-impress_3.2.1-lhm2_all.deb
+get http:/repo/pool/lhm/o/ooo-virtual/openoffice.org-math_3.2.1-lhm2_all.deb
+get http:/repo/pool/lhm/o/openoffice.org-debian-menus/openoffice.org-debian-menus_3.2-9505+lhm9_all.deb
+get http:/repo/pool/lhm/o/openoffice.org-lhmconfig/openoffice.org-lhmconfig_6.3.0-lhm2_all.deb
+get http:/repo/pool/lhm/o/openoffice.org-makro-042-seite-drucken/openoffice.org-makro-042-seite-drucken_080228-lhm1_all.deb
+get http:/repo/pool/lhm/o/openoffice.org-makro-061-dateiname-einfuegen/openoffice.org-makro-061-dateiname-einfuegen_081117-lhm1_all.deb
+get http:/repo/pool/lhm/o/openoffice.org-makro-disable-firststart-wzd/openoffice.org-makro-disable-firststart-wzd_1.1-lhm1_all.deb
+get http:/repo/pool/lhm/w/wollmux/openoffice.org-wollmux_11.10b-0lhm1_all.deb
+get http:/repo/pool/lhm/o/ooo-orig/openoffice.org3-dict-en_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/openoffice.org3-dict-es_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/ooo-orig/openoffice.org3-dict-fr_3.2.1-19+lhm9_i386.deb
+get http:/repo/pool/lhm/o/oraclecalendar/oraclecalendar_10.1.2.3-lhm4_i386.deb
+get http:/repo/pool/main/o/openssh/openssh-server_5.3p1-3ubuntu7_i386.deb
+get http:/repo/pool/lhm/p/palmsynchro/palmsynchro_1.0lhm5_all.deb
+get http:/repo/pool/lhm/p/pdasync/pdasync_0.1lhm9_i386.deb
+get http:/repo/pool/lhm/p/pdfsam/pdfsam_2.2.1e-3_all.deb
+get http:/repo/pool/lhm/p/pilot-link/pilot-link_0.12.4-7ubuntu1lhm2_i386.deb
+get http:/repo/pool/universe/p/p7zip/p7zip_9.04%7edfsg.1-1_i386.deb
+faimon PROGRESS 34
+get http:/repo/pool/main/p/perl/perl-doc_5.10.1-8ubuntu2.1_all.deb
+get http:/repo/pool/ff/q/qtsdc97/qtsdc97_1.0.0.88-1_i386.deb
+get http:/repo/pool/lhm/l/limux-default-settings/plymouth-theme-limux_4.1-lhm34_all.deb
+get http:/repo/pool/lhm/p/pmount/pmount_0.9.23-2%7elhm1_i386.deb
+get http:/repo/pool/main/d/defoma/psfontmgr_0.11.10-4ubuntu1_all.deb
+get http:/repo/pool/main/p/plymouth/plymouth-label_0.8.2-2ubuntu2.2_i386.deb
+get http:/repo/pool/main/p/pnm2ppa/pnm2ppa_1.13-0ubuntu1_i386.deb
+get http:/repo/pool/main/p/python-stdlib-extensions/python-tk_2.6.5-0ubuntu2_i386.deb
+get http:/repo/pool/universe/p/policykit/policykit_0.9-4ubuntu2_i386.deb
+get http:/repo/pool/universe/p/prelink/prelink_0.0.20090925-1_i386.deb
+get http:/repo/pool/universe/p/putty/putty_0.60+2009-11-22-1_i386.deb
+get http:/repo/pool/universe/p/putty/putty-tools_0.60+2009-11-22-1_i386.deb
+get http:/repo/pool/universe/w/wxwidgets2.8/python-wxgtk2.8_2.8.10.1-0ubuntu1.2_i386.deb
+get http:/repo/pool/universe/w/wxwidgets2.8/python-wxversion_2.8.10.1-0ubuntu1.2_all.deb
+get http:/repo/pool/ff/s/sapguilhm-7.20rev7/sapguilhm-7.20rev7_7.20rev7-lhm3_i386.deb
+get http:/repo/pool/main/r/rdesktop/rdesktop_1.6.0-2ubuntu3.1_i386.deb
+get http:/repo/pool/multiverse/r/rar/rar_3.9.b2-1_i386.deb
+get http:/repo/pool/universe/s/scribus-ng/scribus-ng_1.3.5.dfsg+svn20091216-3_i386.deb
+get http:/repo/pool/universe/s/scribus-ng-doc/scribus-ng-doc_1.3.5.dfsg%7esvn20091216-1_all.deb
+get http:/repo/pool/lhm/d/digikam-trinity/showfoto-trinity_3.5.13-0ubuntu9+r1258876+pr3%7elucidlhm2_i386.deb
+get http:/repo/pool/lhm/s/showimg-trinity/showimg-trinity_0.9.5-1.1ubuntu2lhm4_i386.deb
+get http:/repo/pool/lhm/s/subversion/subversion_1.6.12dfsg-1%7elhm1plophos1_i386.deb
+get http:/repo/pool/lhm/s/sun-java6/sun-java6-plugin_6.31-1lhm2_i386.deb
+get http:/repo/pool/main/o/openssh/ssh_5.3p1-3ubuntu7_all.deb
+get http:/repo/pool/main/s/samba/smbfs_3.4.7%7edfsg-1ubuntu3.8_i386.deb
+get http:/repo/pool/main/s/sharutils/sharutils_4.6.3-4_i386.deb
+get http:/repo/pool/main/t/tcltk-defaults/tcl_8.4.16-2_all.deb
+get http:/repo/pool/universe/t/testdisk/testdisk_6.11-1_i386.deb
+get http:/repo/pool/lhm/t/thunderbird/thunderbird_3.1.19+build1+nobinonly-0ubuntu0.10.04.1lhm2_i386.deb
+get http:/repo/pool/lhm/m/mozilla-import-export-tools/thunderbird-import-export-tools_2.4.1-0lhm1_all.deb
+get http:/repo/pool/lhm/m/msttcorefonts/ttf-mscorefonts-installer_3.2ubuntu2-lhm1_all.deb
+get http:/repo/pool/lhm/t/ttf-barcode-code128/ttf-barcode-code128_0.1-0lhm3_i386.deb
+get http:/repo/pool/main/t/tcltk-defaults/tk_8.4.16-2_all.deb
+get http:/repo/pool/main/t/thunderbird-locales/thunderbird-locale-de_3.1.7ubuntu0.10.04.1_all.deb
+get http:/repo/pool/main/t/traceroute/traceroute_2.0.13-2_i386.deb
+get http:/repo/pool/main/t/transfig/transfig_3.2.5.a-2.1_i386.deb
+get http:/repo/pool/main/v/vim/vim-runtime_7.2.330-1ubuntu3_all.deb
+get http:/repo/pool/main/x/xfonts-encodings/xfonts-encodings_1.0.3-1_all.deb
+get http:/repo/pool/main/x/xfonts-utils/xfonts-utils_7.5+2_i386.deb
+get http:/repo/pool/multiverse/u/unrar-nonfree/unrar_3.9.3-1_i386.deb
+get http:/repo/pool/universe/t/ttf-ocr-a/ttf-ocr-a_1.0-2_all.deb
+get http:/repo/pool/ff/w/wine-1.1.8/wine-1.1.8_1.1.8-lhm3_i386.deb
+get http:/repo/pool/ff/w/winestart/winestart_0.2.3-lhm6_i386.deb
+get http:/repo/pool/lhm/v/vlc/vlc_1.1.4-1ubuntu1.6%7elhm1_i386.deb
+get http:/repo/pool/lhm/v/vlc/vlc-nox_1.1.4-1ubuntu1.6%7elhm1_i386.deb
+get http:/repo/pool/main/v/vim/vim_7.2.330-1ubuntu3_i386.deb
+get http:/repo/pool/main/x/xcb-util/libxcb-keysyms1_0.3.6-1build1_i386.deb
+get http:/repo/pool/universe/liba/libass/libass4_0.9.9-0ubuntu1_i386.deb
+get http:/repo/pool/universe/libd/libdca/libdca0_0.0.5-3_i386.deb
+get http:/repo/pool/universe/libu/libupnp/libupnp3_1.6.6-4_i386.deb
+faimon PROGRESS 35
+get http:/repo/pool/ff/v/voloview/voloview_3.0-lhm6_i386.deb
+get http:/repo/pool/lhm/w/w32codecs/w32codecs_20110131-0.1medibuntu1_i386.deb
+get http:/repo/pool/lhm/w/wollmux/wollmux_11.10b-0lhm1_all.deb
+get http:/repo/pool/lhm/w/wollmux/wollmuxbar_11.10b-0lhm1_all.deb
+get http:/repo/pool/main/w/whois/whois_5.0.0ubuntu3_i386.deb
+get http:/repo/pool/main/x/x-ttcidfont-conf/x-ttcidfont-conf_32_all.deb
+get http:/repo/pool/universe/w/wmctrl/wmctrl_1.07-6_i386.deb
+get http:/repo/pool/universe/x/x11vnc/x11vnc_0.9.9-1_i386.deb
+get http:/repo/pool/universe/x/xbacklight/xbacklight_1.1.1-1_i386.deb
+get http:/repo/pool/main/x/xbitmaps/xbitmaps_1.1.0-1_all.deb
+get http:/repo/pool/main/x/xfonts-100dpi/xfonts-100dpi_1.0.1_all.deb
+get http:/repo/pool/main/x/xfonts-75dpi/xfonts-75dpi_1.0.1_all.deb
+get http:/repo/pool/universe/x/xfonts-100dpi/xfonts-100dpi-transcoded_1.0.1_all.deb
+get http:/repo/pool/universe/x/xfonts-75dpi/xfonts-75dpi-transcoded_1.0.1_all.deb
+get http:/repo/pool/main/x/xfonts-base/xfonts-base_1.0.1_all.deb
+get http:/repo/pool/main/x/xfonts-scalable/xfonts-scalable_1.0.1-1_all.deb
+get http:/repo/pool/main/x/xinput/xinput_1.5.0-2ubuntu1_i386.deb
+get http:/repo/pool/main/x/xorg-server/xserver-common_1.7.6-2ubuntu7.10_all.deb
+get http:/repo/pool/main/x/xorg-server/xserver-xorg-core_1.7.6-2ubuntu7.10_i386.deb
+get http:/repo/pool/universe/x/xfs/xfs_1.0.8-6_i386.deb
+get http:/repo/pool/universe/x/xpp/xpp_1.5-cvs20050828-1ubuntu3_i386.deb
+get http:/repo/pool/universe/x/xsane/xsane_0.996-2ubuntu3_i386.deb
+get http:/repo/pool/universe/x/xsane/xsane-common_0.996-2ubuntu3_all.deb
+get http:/repo/pool/lhm/f/fglrx-installer/fglrx_8.881-0ubuntu4.1%7elhm1_i386.deb
+get http:/repo/pool/lhm/x/xserver-xorg-video-ati/xserver-xorg-video-ati_6.14.99%7egit20111219.aacbd629-0ubuntu2%7elhm2_i386.deb
+get http:/repo/pool/lhm/x/xserver-xorg-video-ati/xserver-xorg-video-radeon_6.14.99%7egit20111219.aacbd629-0ubuntu2%7elhm2_i386.deb
+get http:/repo/pool/lhm/x/xserver-xorg-video-intel/xserver-xorg-video-intel_2.17.0-1%7elhm1_i386.deb
+get http:/repo/pool/lhm/x/xserver-xorg-video-nouveau/xserver-xorg-video-nouveau_0.0.16+git20110411+8378443-1%7elhm1_i386.deb
+get http:/repo/pool/main/x/xorg/xserver-xorg-video-all_7.5+5ubuntu1.1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-apm/xserver-xorg-video-apm_1.2.2-1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-ark/xserver-xorg-video-ark_0.7.2-1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-chips/xserver-xorg-video-chips_1.2.2-1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-cirrus/xserver-xorg-video-cirrus_1.3.2-1ubuntu1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-fbdev/xserver-xorg-video-fbdev_0.4.1-1ubuntu1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-geode/xserver-xorg-video-geode_2.11.11-1%7elucid1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-i128/xserver-xorg-video-i128_1.3.3-1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-i740/xserver-xorg-video-i740_1.3.2-1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-mach64/xserver-xorg-video-mach64_6.8.2-2_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-mga/xserver-xorg-video-mga_1.4.11.dfsg-2ubuntu1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-neomagic/xserver-xorg-video-neomagic_1.2.4-2_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-nv/xserver-xorg-video-nv_2.1.15-1ubuntu3_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-openchrome/xserver-xorg-video-openchrome_0.2.904+svn827-1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-r128/xserver-xorg-video-r128_6.8.1-2ubuntu1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-rendition/xserver-xorg-video-rendition_4.2.3-1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-s3virge/xserver-xorg-video-s3virge_1.10.4-1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-s3/xserver-xorg-video-s3_0.6.3-1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-savage/xserver-xorg-video-savage_2.3.1-1ubuntu1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-siliconmotion/xserver-xorg-video-siliconmotion_1.7.3-1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-sisusb/xserver-xorg-video-sisusb_0.9.3-1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-sis/xserver-xorg-video-sis_0.10.2-2_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-tdfx/xserver-xorg-video-tdfx_1.4.3-1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-trident/xserver-xorg-video-trident_1.3.3-1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-tseng/xserver-xorg-video-tseng_1.2.3-1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-v4l/xserver-xorg-video-v4l_0.2.0-4_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-vesa/xserver-xorg-video-vesa_2.3.0-1ubuntu1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-vmware/xserver-xorg-video-vmware_10.16.9-1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-video-voodoo/xserver-xorg-video-voodoo_1.2.3-1_i386.deb
+faimon PROGRESS 36
+get http:/repo/pool/ff/m/mozilla-fabasoft/xul-ext-fabasoft_9.2.5.88-ff3.6lhm1_all.deb
+get http:/repo/pool/ff/t/thunderbird-fabasoft/xul-ext-fabasoft-tb3_9.2.5.66-tb3lhm1_all.deb
+get http:/repo/pool/lhm/a/adobereader-deu/adobereader-deu_9.4.2-0lhm5_i386.deb
+get http:/repo/pool/lhm/m/mailboxalert/xul-ext-mailboxalert_0.13.2-2lhm2_all.deb
+get http:/repo/pool/lhm/m/mozilla-profileswitch/xul-ext-profileswitch_1.2.1-0lhm3_all.deb
+get http:/repo/pool/main/x/xf86-input-wacom/xserver-xorg-input-wacom_0.10.5-0ubuntu4_i386.deb
+get http:/repo/pool/main/x/xorg/xserver-xorg_7.5+5ubuntu1.1_i386.deb
+get http:/repo/pool/main/x/xorg/xserver-xorg-input-all_7.5+5ubuntu1.1_i386.deb
+get http:/repo/pool/main/x/xorg/xutils_7.5+5ubuntu1.1_all.deb
+get http:/repo/pool/main/x/xserver-xorg-input-evdev/xserver-xorg-input-evdev_2.3.2-5ubuntu1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-input-mouse/xserver-xorg-input-mouse_1.5.0-1_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-input-synaptics/xserver-xorg-input-synaptics_1.2.2-1ubuntu4_i386.deb
+get http:/repo/pool/main/x/xserver-xorg-input-vmmouse/xserver-xorg-input-vmmouse_12.6.5-4ubuntu2_i386.deb
+get http:/repo/pool/main/x/xterm/xterm_256-1ubuntu1_i386.deb
+get http:/repo/pool/universe/z/zoo/zoo_2.10-21_i386.deb
+get http:/repo/pool/ff/d/dbvis6/dbvis6_6.0.9-1lhm3_i386.deb
+get http:/repo/pool/lhm/a/autorandr/autorandr_20110411-13_i386.deb
+get http:/repo/pool/lhm/c/cups/cups-bsd_1.4.6-5ubuntu1%7elhm5_i386.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/akregator-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/ark-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/universe/c/cups/cupsys_1.4.3-1ubuntu1.5_all.deb
+get http:/repo/pool/universe/c/cups/cupsys-bsd_1.4.3-1ubuntu1.5_all.deb
+get http:/repo/pool/universe/c/cups/cupsys-client_1.4.3-1ubuntu1.5_all.deb
+get http:/repo/pool/lhm/f/fglrx-installer/fglrx-amdcccle_8.881-0ubuntu4.1%7elhm1_i386.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/digikam-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/universe/c/console-common/dh-consoledata_0.7.85_all.deb
+get http:/repo/pool/universe/f/fb-music-high/fb-music-high_0.1.2_all.deb
+get http:/repo/pool/lhm/f/flashplayer11/flashplayer11_11.2r202lhm1_i386.deb
+get http:/repo/pool/universe/f/frozen-bubble/frozen-bubble-data_2.2.0-1ubuntu1_all.deb
+get http:/repo/pool/lhm/k/kdelhm-kde3/kdelhm-kde3_0.1-4_i386.deb
+get http:/repo/pool/lhm/libp/libpam-ccreds/libpam-ccreds_10-2lhm3_i386.deb
+get http:/repo/pool/lhm/m/machmichschoen/machmichschoen_12.2.3_i386.deb
+get http:/repo/pool/lhm/n/ncpfs/libncp_2.2.6-7lhm1_i386.deb
+get http:/repo/pool/lhm/n/ncpfs/libpam-ncp_2.2.6-7lhm1_i386.deb
+get http:/repo/pool/lhm/n/ncpfs/ncpfs_2.2.6-7lhm1_i386.deb
+get http:/repo/pool/lhm/o/ooo-java/ooo-java_1.6.0u20-6_i386.deb
+get http:/repo/pool/lhm/p/pilot-link/libpda-pilot-perl_0.12.4-7ubuntu1lhm2_i386.deb
+get http:/repo/pool/main/g/ghostscript/gs-common_8.71.dfsg.1-0ubuntu5.4_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kamera-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kate-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kbounce-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kcalc-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kcharselect-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kcontrol-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kdeartwork-theme-icon-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kdeartwork-theme-window-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kdebase-data-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kdebase-kio-plugins-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kdegames-card-data-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kde-guidance-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kde-i18n-de-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kdelibs-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kdemultimedia-kio-plugins-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kdeprint-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kdesktop-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kdm-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kedit-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kfaxview-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kfind-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kfloppy-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kget-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kghostview-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/khelpcenter-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/khexedit-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kicker-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kipi-plugins-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kivio-data-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kivio-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/klipper-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kmag-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kmines-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kmix-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kmplayer-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kmplayer-konq-plugins-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/knetstats-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/knotes-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kolourpaint-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/konqueror-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/konsole-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kooka-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kpat-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kppp-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/krdc-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/krfb-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/ksame-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kscd-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kscreensaver-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/ksmserver-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/ksnake-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/ksnapshot-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/ksplash-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/ksvg-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/ksysguard-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kteatime-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kview-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kvkbd-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/kwin-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/libkipi0-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/universe/f/frozen-bubble/frozen-bubble_2.2.0-1ubuntu1_i386.deb
+get http:/repo/pool/universe/g/ghostscript/gs-gpl_8.71.dfsg.1-0ubuntu5.4_all.deb
+faimon PROGRESS 37
+faimon PROGRESS 38
+get http:/repo/pool/lhm/o/openclipart/openclipart_0.18+lhm-r2plophos1_all.deb
+get http:/repo/pool/lhm/o/openproj/openproj_1.4-2lhm5_all.deb
+get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/showfoto-kde3_3.5.13-0ubuntu3_all.deb
+get http:/repo/pool/universe/v/vpnc/vpnc_0.5.3r449-2_i386.deb
+
+timeout 10 Timeouts
+
+faimon PROGRESS 39
+sleep 14
+faimon PROGRESS 40
+sleep 17
+faimon PROGRESS 41
+sleep 56
+faimon PROGRESS 42
+sleep 15
+faimon PROGRESS 43
+sleep 13
+faimon PROGRESS 44
+sleep 19
+faimon PROGRESS 45
+sleep 17
+faimon PROGRESS 46
+sleep 34
+faimon PROGRESS 47
+sleep 17
+faimon PROGRESS 48
+sleep 28
+faimon PROGRESS 49
+sleep 16
+faimon PROGRESS 50
+sleep 18
+faimon PROGRESS 51
+sleep 45
+faimon PROGRESS 52
+sleep 25
+faimon PROGRESS 53
+sleep 21
+faimon PROGRESS 54
+sleep 19
+faimon PROGRESS 55
+sleep 53
+faimon PROGRESS 56
+sleep 38
+faimon PROGRESS 57
+sleep 68
+faimon PROGRESS 58
+sleep 34
+faimon PROGRESS 59
+sleep 26
+faimon PROGRESS 60
+sleep 45
+faimon PROGRESS 61
+sleep 30
+faimon PROGRESS 62
+sleep 39
+faimon PROGRESS 63
+sleep 136
+faimon PROGRESS 64
+sleep 164
+faimon PROGRESS 65
+sleep 8
+faimon PROGRESS 66
+sleep 16
+faimon PROGRESS 67
+sleep 7
+faimon PROGRESS 68
+sleep 4
+faimon PROGRESS 69
+sleep 3
+faimon PROGRESS 70
+sleep 5
+faimon PROGRESS 71
+sleep 7
+faimon PROGRESS 72
+sleep 11
+faimon PROGRESS 73
+sleep 2
+faimon PROGRESS 74
+sleep 78
+faimon PROGRESS 75
+sleep 20
+faimon PROGRESS 76
+sleep 45
+faimon PROGRESS 77
+sleep 106
+faimon PROGRESS 78
+sleep 9
+faimon PROGRESS 79
+sleep 2
+faimon PROGRESS 80
+sleep 2
+faimon PROGRESS 81
+sleep 82
+faimon PROGRESS 82
+sleep 169
+faimon HOOK error.DEFAULT
+sleep 1
+faimon HOOK error.LAST
+faimon TASKBEGIN error
+faimon TASKERROR instsoft 421 warn:install_packages: packages missing
+faimon TASKEND error 421
+faimon TASKEND instsoft 421
+faimon HOOK configure.basismodul
+sleep 1
+faimon TASKBEGIN configure
+sleep 1
+faimon PROGRESS 83
+faimon PROGRESS 84
+sleep 1
+faimon PROGRESS 85
+sleep 3
+faimon PROGRESS 86
+sleep 22
+faimon PROGRESS 87
+faimon PROGRESS 88
+sleep 1
+faimon PROGRESS 89
+sleep 4
+faimon PROGRESS 90
+sleep 2
+faimon PROGRESS 91
+sleep 1
+faimon PROGRESS 92
+faimon PROGRESS 93
+sleep 1
+faimon PROGRESS 94
+sleep 1
+faimon PROGRESS 95
+sleep 5
+faimon PROGRESS 96
+sleep 28
+faimon TASKEND configure 0
+faimon TASKBEGIN tests
+faimon TASKEND tests 0
+faimon TASKBEGIN finish
+sleep 2
+faimon PROGRESS 97
+sleep 5
+faimon TASKEND finish 0
+faimon TASKBEGIN chboot
+faimon TASKEND chboot 0
+faimon HOOK savelog.LAST.source
+faimon TASKBEGIN savelog
+
+timeout 240 Failed log file transfers
+save_fai_log install 20 1000
+timeout 10 Timeouts
+
+faimon TASKEND savelog 0
+faimon TASKEND install 0
+faimon HOOK faiend.LAST
+faimon PROGRESS 100
+sleep 10
+faimon TASKBEGIN faiend
+faimon TASKEND faiend 0
+faimon TASKEND poweroff 0
+
+print Successful tests
+
+timein
+print Tests completed
