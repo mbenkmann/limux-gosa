@@ -17,13 +17,13 @@ print WOLs received
 sleep 36
 
 timeout 10 TFTP failure getting pxelinux.0
-url tftp:/pxelinux.0
+get tftp:/pxelinux.0
 timeout 10 TFTP failure getting pxelinux.cfg
-url tftp:/pxelinux.cfg/${hwaddress}
+get tftp:/pxelinux.cfg/${hwaddress}
 timeout 10 TFTP failure getting vmlinuz-install
-url tftp:/vmlinuz-install
+get tftp:/vmlinuz-install
 timeout 10 TFTP failure getting initrd.img-install
-url tftp:/initrd.img-install
+get tftp:/initrd.img-install
 
 sleep 7
 
