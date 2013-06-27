@@ -232,6 +232,11 @@ Commands:
   
   here_i_am
     Sends a here_i_am message to the server.
+  
+  save_fai_log <type> <num_files> <total_kbytes>
+    Sends a CLMSG_save_fai_log message to the server containing
+    a count of <num_files> files that sum up to <total_kbytes> * 1000 bytes.
+    The <type> is either "install" or "softupdate".
 `
 
 type command struct {
@@ -279,6 +284,7 @@ var COMMANDS = map[string]command{"":{true,false,execUnknown},
                                   "get":{true,false,execGet},
                                   "faimon":{true,true,execFaimon},
                                   "here_i_am":{true,false,execHereIAm},
+                                  "save_fai_log":{true,false,execSaveFaiLog},
                                   }
 
 type clientTime struct {
@@ -774,6 +780,69 @@ func execHereIAm(clients *[]int, args []string) {
         
         if err != nil {
           util.Log(0, "ERROR! Could not send here_i_am: %v", err)
+          monitor.print(d.ID, d.TimeoutMessage...)
+          d.Skipping = true
+        }
+      }
+    })
+  }
+}
+
+func execSaveFaiLog(clients *[]int, args []string) {
+  if len(args) != 4 {
+    util.Log(0, "ERROR! \"save_fai_log\" takes 3 arguments (illegal command: %v)", args)
+    return
+  }
+  
+  count, err := strconv.Atoi(args[2])
+  if err != nil || count <= 0{
+    util.Log(0, "ERROR! Error parsing file count in command %v: %v", args, err)
+    return
+  }
+  
+  total, err := strconv.Atoi(args[3])
+  if err != nil || total < 1 {
+    util.Log(0, "ERROR! Error parsing total log size in command %v: %v", args, err)
+    return
+  }
+  
+  total *= 1000
+  
+  for _, i := range *clients {
+    QueueAction(i,func(d *demon){
+      if !d.Skipping {
+        sfl := xml.NewHash("xml","header","CLMSG_save_fai_log")
+        sfl.Add("macaddress",d.LDAPData.Text("macaddress"))
+        sfl.Add("source", d.ListenAddress)
+        sfl.Add("target", config.ServerSourceAddress)
+        sfl.Add("fai_action", args[1])
+        
+        fsize := total/count
+        icags := (fsize+2)/3
+        line_b := make([]byte, icags*4)
+        for i := 0; i < len(line_b); i+=4 {
+          line_b[i] = 'I'
+          line_b[i+1] = 'C'
+          line_b[i+2] = 'A'
+          line_b[i+3] = 'g'
+        }
+        line := string(line_b)
+        
+        data := sfl.Add("CLMSG_save_fai_log")
+        for i := 0; i < count; i++ {
+          data.AppendString(fmt.Sprintf("log_file:%d:",i))
+          data.AppendString(line)
+          data.AppendString("\n")
+        }
+        
+        conn, err := net.Dial("tcp", config.ServerSourceAddress)
+        if err == nil {
+          defer conn.Close()
+          err = util.SendLn(conn, message.GosaEncrypt(sfl.String(), DEMONS[d.ID]), d.Timeout)
+        }
+        
+        if err != nil {
+          util.Log(0, "ERROR! Could not send save_fai_log: %v", err)
           monitor.print(d.ID, d.TimeoutMessage...)
           d.Skipping = true
         }
