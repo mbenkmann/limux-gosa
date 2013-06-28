@@ -181,12 +181,18 @@ Commands:
     will be used. Otherwise the most recent "for" command determines the
     clients.
   
+  boot
+    Starts the client's listener.
+  
+  halt
+    Shuts down the client's listener.
+  
   wait <EVENT>
     If the client has received <EVENT> since the last call to "clear",
     "wait" succeeds immediately. Otherwise makes the client wait until it
     receives <EVENT>. In either case <EVENT> is removed from the event queue.
     Use "timeout" if you want to limit the waiting time.
-    The following <EVENT>s are supported: 
+    The following <EVENT>s are supported:
       "wol" (Wake-On-LAN)
       "foo" for every server->client XML message with <header>foo</header>.
   
@@ -253,6 +259,7 @@ type demon struct {
   LDAPData *xml.Hash
   Env map[string]string
   ListenAddress string
+  Listener *net.TCPListener
 }
 
 func (d *demon) expandArgs(args []string) []string {
@@ -285,6 +292,8 @@ var COMMANDS = map[string]command{"":{true,false,execUnknown},
                                   "faimon":{true,true,execFaimon},
                                   "here_i_am":{true,false,execHereIAm},
                                   "save_fai_log":{true,false,execSaveFaiLog},
+                                  "boot":{true,false,execBoot},
+                                  "halt":{true,false,execHalt},
                                   }
 
 type clientTime struct {
@@ -1197,6 +1206,65 @@ func execJob(clients *[]int, args []string) {
   }
 }
 
+func execHalt(clients *[]int, args []string) {
+  if len(args) != 1 {
+    util.Log(0, "ERROR! Command \"halt\" takes no arguments (illegal command: %v)", args)
+    return
+  }
+  
+  for _, i := range *clients {
+    QueueAction(i,func(d *demon){
+      if !d.Skipping {
+        if d.Listener != nil { d.Listener.Close() }
+      }
+    })
+  }
+}
+
+func execBoot(clients *[]int, args []string) {
+  if len(args) != 1 {
+    util.Log(0, "ERROR! Command \"boot\" takes no arguments (illegal command: %v)", args)
+    return
+  }
+  
+  for _, i := range *clients {
+    QueueAction(i,func(d *demon){
+      if !d.Skipping {
+        if d.Listener != nil { d.Listener.Close() }
+        
+        addrs := []string{}
+        // try to re-use old port if there is one
+        if d.ListenAddress != "" { addrs = append(addrs, d.ListenAddress) }
+        addrs = append(addrs, ":0")
+
+        port := 0        
+        var listener *net.TCPListener
+        for _, addr := range addrs {
+          tcp_addr, err := net.ResolveTCPAddr("tcp4", addr)
+          if err != nil {
+            util.Log(0, "ERROR! ResolveTCPAddr: %v", err)
+          } else {
+            listener, err = net.ListenTCP("tcp4", tcp_addr)
+            if err != nil {
+              util.Log(0, "ERROR! ListenTCP: %v", err)
+            } else {
+              port = listener.Addr().(*net.TCPAddr).Port
+              break
+            }
+          }
+        }
+        
+        d.ListenAddress = fmt.Sprintf("%v:%v", config.IP, port)
+        util.Log(1, "INFO! %v listening on %v", DEMONS[d.ID], d.ListenAddress)
+        d.Listener = listener
+        go clientListener(d.Listener, d.ID)
+
+      }
+    })
+  }
+}
+
+
 func execGet(clients *[]int, args []string) {
   if len(args) != 2 {
     util.Log(0, "ERROR! Command \"get\" takes 1 argument (illegal command: %v)", args)
@@ -1747,7 +1815,14 @@ func clientListener(listener *net.TCPListener, id int) {
   for {
     conn, err := listener.Accept()
     if err != nil { 
-      util.Log(0, "ERROR! Client listener for %v stopped: %v", DEMONS[id], err)
+      suppress := false
+      if e, ok := err.(*net.OpError); ok {
+        if e.Err.Error() == "use of closed network connection" {
+          util.Log(1, "INFO! Client listener for %v stopped", DEMONS[id])
+          suppress = true
+        }
+      }
+      if !suppress { util.Log(0, "ERROR! Client listener for %v stopped: %v", DEMONS[id], err) }
       return 
     }
     
@@ -1763,8 +1838,10 @@ func clientConnection(conn net.Conn, id int) {
     return
   }
   
+  if len(data) == 0 { return } // no message, e.g. test connection by clmsg_progress.go:processing_finished_watcher()
+  
   m := message.GosaDecrypt(string(data), DEMONS[id])
-  util.Log(2, "DEBUG! Message for %v: %v", DEMONS[id], m)
+  util.Log(2, "DEBUG! Message from %v for %v: %v", conn.RemoteAddr(), DEMONS[id], m)
   i1 := strings.Index(m, "<header>")
   i2 := strings.Index(m, "</header>")
   if i1 >= 0 && i2 >= 0 { 
@@ -1774,7 +1851,12 @@ func clientConnection(conn net.Conn, id int) {
   }
 }
 
+var queueActionMutex sync.Mutex
 func QueueAction(id int, f func(*demon)){
+  // Protect against concurrent calls (which might result in clients started twice)
+  queueActionMutex.Lock()
+  defer queueActionMutex.Unlock()
+  
   if !Running[id] {
     /********************  client loop ***************************/
     go func(id int) {
@@ -1790,6 +1872,8 @@ func QueueAction(id int, f func(*demon)){
         self.LDAPData.Add("objectclass","GOhard")
         self.LDAPData.Add("objectclass","gotoWorkstation")
         self.LDAPData.Add("objectclass","top")
+        self.LDAPData.Add("gotoldapserver","1:ldap:%v/%v", config.LDAPURI, config.LDAPBase)
+        self.LDAPData.Add("gotontpserver","pool.ntp.org")
       
         if config.UnitTag != "" {
           self.LDAPData.Add("objectclass", "gosaAdministrativeUnitTag")
@@ -1800,23 +1884,6 @@ func QueueAction(id int, f func(*demon)){
       self.Env = map[string]string{"hwaddress":fmt.Sprintf("01-ab-cd-ef-00-%02x-%02x",id >> 8, id&0xff),
                                    "cn":self.LDAPData.Text("cn")}
       
-      port := 0
-      var listener *net.TCPListener
-      tcp_addr, err := net.ResolveTCPAddr("tcp4", ":0")
-      if err != nil {
-        util.Log(0, "ERROR! ResolveTCPAddr: %v", err)
-      } else {
-        listener, err = net.ListenTCP("tcp4", tcp_addr)
-        if err != nil {
-          util.Log(0, "ERROR! ListenTCP: %v", err)
-        } else {
-          port = listener.Addr().(*net.TCPAddr).Port
-        }
-      }
-      
-      self.ListenAddress = fmt.Sprintf("%v:%v", config.IP, port)
-      util.Log(2, "DEBUG! %v listening on %v", DEMONS[id], self.ListenAddress)
-      go clientListener(listener, id)
       
       for {
         cmd := queues[id].Next().(func(*demon))
