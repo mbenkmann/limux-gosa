@@ -124,6 +124,10 @@ Commands:
     Does not trigger timeout even if sleep duration is
     longer than timeout duration.
   
+  speed <factor>
+    All "sleep" durations are divided by <factor>.
+    This is a global setting that affects all sleeps not yet executed.
+  
   timeout <duration> [ <word> ... ]
     If any command that waits for a message targetting a selected client
     does not receive that message within the specified duration (in seconds),
@@ -294,6 +298,7 @@ var COMMANDS = map[string]command{"":{true,false,execUnknown},
                                   "save_fai_log":{true,false,execSaveFaiLog},
                                   "boot":{true,false,execBoot},
                                   "halt":{true,false,execHalt},
+                                  "speed":{true,false,execSpeed},
                                   }
 
 type clientTime struct {
@@ -405,6 +410,8 @@ var InitialLDAPData = map[int]*xml.Hash{}
 
 var Running = map[int]bool{}
 
+var Speed = 1
+
 func main() {
   // This is NOT config.ReadArgs() !!
   ReadArgs(os.Args[1:])
@@ -428,6 +435,7 @@ func main() {
   config.Timeout = 20*time.Second
   
   LegionWorkstationsDN = "ou=workstations,ou=systems,"+LDAPLegionDN()
+  EnsureLegionWorkstationsExist()
   ExistsMutex.Lock()
   for _, i := range LDAPLegionIDs() { ExistsInLDAP[i] = true }
   ExistsMutex.Unlock()
@@ -729,9 +737,9 @@ func handle_ldif(clients *[]int, ldif io.Reader) {
 // NOTE: This function updates clients if necessary (e.g. command "for")
 func handle_command(cmd command, clients *[]int, args []string) {
   if len(*clients) <= 10 {
-    util.Log(2, "DEBUG! Executing command %v for clients %v", args, *clients)
+    util.Log(2, "DEBUG! Command %v for clients %v", args, *clients)
   } else {
-    util.Log(2, "DEBUG! Executing command %v for %v clients", args, len(*clients))
+    util.Log(2, "DEBUG! Command %v for %v clients", args, len(*clients))
   }
 
 /*
@@ -936,12 +944,37 @@ func execSleep(clients *[]int, args []string) {
   for _, i := range *clients {
     QueueAction(i,func(d *demon){
       if !d.Skipping {
-        time.Sleep(time.Duration(sleep)*time.Second)
+        time.Sleep(time.Duration(sleep)*time.Second/time.Duration(Speed))
       }
     })
   }
 }
 
+func execSpeed(clients *[]int, args []string) {
+  if len(args) > 2 {
+    util.Log(0, "ERROR! Too many arguments to command %v", args)
+    return
+  }
+  speed_str := ""
+  if len(args) == 2 { speed_str = args[1] }
+  if speed_str == "" {
+    util.Log(0, "ERROR! First argument of \"speed\" must be an integer in command %v", args)
+    return
+  }
+  
+  speed,err := strconv.Atoi(speed_str)
+  if err != nil {
+    util.Log(0, "ERROR! Error parsing duration in command %v: %v", args, err)
+    return
+  }
+  
+  if speed < 1 {
+    util.Log(0, "ERROR! Speed factor must be >0 in command %v", args)
+    return
+  }
+  
+  Speed = speed
+}
 
 func execTimeout(clients *[]int, args []string) {
   timeout_str := args[1]
@@ -1644,6 +1677,34 @@ func LDAPLegionInitAllClients() {
   }
 }
 
+func EnsureLegionWorkstationsExist() {
+  ldif := fmt.Sprintf(`
+dn:: %s
+changetype: add
+ou: systems
+objectClass: organizationalUnit
+`,
+util.Base64EncodeString(strings.SplitN(LegionWorkstationsDN,",",2)[1]),
+)
+  out, err := ldapModify(ldif).CombinedOutput()
+  if err != nil {
+    util.Log(2, "DEBUG! %v (%v)",err, string(out))
+  }
+  
+  ldif = fmt.Sprintf(`
+dn:: %s
+changetype: add
+ou: workstations
+objectClass: organizationalUnit
+`,
+util.Base64EncodeString(LegionWorkstationsDN),
+)
+  out, err = ldapModify(ldif).CombinedOutput()
+  if err != nil {
+    util.Log(0, "DEBUG! %v (%v)",err, string(out))
+  }
+}
+
 func ldapSearch(query string, attr... string) *exec.Cmd {
   return ldapSearchBase(config.LDAPBase, query, attr...)
 }
@@ -1655,6 +1716,16 @@ func ldapSearchBase(base string, query string, attr... string) *exec.Cmd {
   args = append(args, attr...)
   util.Log(2, "DEBUG! ldapsearch %v",args)
   return exec.Command("ldapsearch", args...)
+}
+
+func ldapModify(ldif string) *exec.Cmd {
+  args := []string{"-x", "-H", config.LDAPURI}
+  args = append(args,"-D",config.LDAPAdmin,"-y",config.LDAPAdminPasswordFile)
+  util.Log(2, "DEBUG! ldapmodify %v (LDIF:\n%v)",args, ldif)
+  cmd := exec.Command("ldapmodify", args...)
+  bufstr := bytes.NewBufferString(ldif)
+  cmd.Stdin = bufstr
+  return cmd
 }
 
 // Sends a GOSA message to the server being tested and
