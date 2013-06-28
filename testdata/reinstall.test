@@ -1,14 +1,17 @@
 server vts-susi
+speed 10
 
 for all banish
 
-for 0
+for 0 1 2
 
 summon
 print Tests running
 
 clear
 job reinstall 10
+
+sleep 10
 
 timeout 20 WOL failures
 wait wol
@@ -24,13 +27,17 @@ timeout 10 TFTP failure getting vmlinuz-install
 get tftp:/vmlinuz-install
 timeout 10 TFTP failure getting initrd.img-install
 get tftp:/initrd.img-install
+print PXE boot done
 
 sleep 7
+boot
+print Booted
 
 timeout 10 Registration failed
 here_i_am
 wait registered
 wait new_ldap_config
+print Registered at server
 
 timeout 10 Timeouts
 
@@ -69,6 +76,8 @@ faimon HOOK extrbase.LAST.source
 faimon TASKBEGIN extrbase
 faimon PROGRESS 3
 sleep 2
+
+print Partitioning done
 
 timeout 60 Failed downloads
 
@@ -253,6 +262,9 @@ get http:/repo/pool/main/x/xapian-core/libxapian15_1.0.18-1_i386.deb
 get http:/repo/pool/main/x/xfonts-terminus/console-terminus_4.30-2_all.deb
 get http:/repo/pool/main/x/xkeyboard-config/xkb-data_1.8-1ubuntu8.1~10.04.1_all.deb
 get http:/repo/pool/main/z/zlib/zlib1g_1.2.3.3.dfsg-15ubuntu1_i386.deb
+
+print Base packages downloading done
+
 faimon PROGRESS 6
 sleep 19
 faimon PROGRESS 8
@@ -273,6 +285,9 @@ get http:/repo/pool/lhm/r/rtmpdump/librtmp0_2.3-2ubuntu1%7elhm1_i386.deb
 faimon TASKEND repository 0
 faimon HOOK updatebase.basismodul
 faimon HOOK updatebase.LAST
+
+print Base system ready for updating
+
 sleep 1
 faimon PROGRESS 16
 faimon TASKBEGIN updatebase
@@ -290,6 +305,9 @@ get http:/repo/dists/plophos/4.1.0/restricted/binary-i386/Packages.gz
 get http:/repo/dists/plophos/4.1.0/restricted/binary-i386/Packages.lzma
 get http:/repo/dists/plophos/4.1.0/universe/binary-i386/Packages.gz
 get http:/repo/dists/plophos/4.1.0/universe/binary-i386/Packages.lzma
+
+print Downloading packages started
+
 faimon TASKEND updatebase 0
 faimon HOOK instsoft.basismodul
 faimon HOOK instsoft.LAST
@@ -1419,6 +1437,8 @@ get http:/repo/pool/lhm/o/openproj/openproj_1.4-2lhm5_all.deb
 get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/showfoto-kde3_3.5.13-0ubuntu3_all.deb
 get http:/repo/pool/universe/v/vpnc/vpnc_0.5.3r449-2_i386.deb
 
+print Downloading packages finished
+
 timeout 10 Timeouts
 
 faimon PROGRESS 39
@@ -1574,4 +1594,5 @@ faimon TASKEND poweroff 0
 print Successful tests
 
 timein
+halt
 print Tests completed
