@@ -3786,6 +3786,7 @@ msgid "Your currently selected PPD file '%s' doesn't exist."
 msgstr "Die momentan gewählte PPD-Datei '%s' wurde nicht gefunden."
 
 #: admin/systems/goto/class_printGeneric.inc:600
+#: admin/systems/ppd/class_printerPPDDialog.inc:493
 msgid "Not defined"
 msgstr "Nicht definiert"
 
