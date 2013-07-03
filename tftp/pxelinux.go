@@ -67,8 +67,8 @@ func ListenAndServe(listen_address string, files map[string]string, pxelinux_hoo
       util.Log(0, "ERROR! ReadFromUDP(): %v", err)
       continue
     }
-    
-    go util.WithPanicHandler(func(){handleConnection(return_addr, readbuf[:n], files, pxelinux_hook)})
+
+    go util.WithPanicHandler(func(){handleConnection(return_addr, string(readbuf[:n]), files, pxelinux_hook)})
     
   }
 }
@@ -220,7 +220,7 @@ func sendAndWaitForAck(udp_conn *net.UDPConn, peer_addr *net.UDPAddr, sendbuf []
   return false
 }
 
-func handleConnection(peer_addr *net.UDPAddr, payload []byte, files map[string]string, pxelinux_hook string) {
+func handleConnection(peer_addr *net.UDPAddr, payload string, files map[string]string, pxelinux_hook string) {
   udp_conn, err := net.DialUDP("udp", nil, peer_addr)
   if err != nil {
     util.Log(0, "ERROR! DialUDP(): %v", err)
@@ -230,7 +230,7 @@ func handleConnection(peer_addr *net.UDPAddr, payload []byte, files map[string]s
   
   request := []string{}
   if len(payload) > 2 { 
-    request = strings.SplitN(string(payload[2:]), "\000", -1)
+    request = strings.SplitN(payload[2:], "\000", -1)
   }
   
   if len(payload) < 6 || payload[0] != 0 || payload[1] != 1 || 
@@ -239,7 +239,7 @@ func handleConnection(peer_addr *net.UDPAddr, payload []byte, files map[string]s
      request[0] == "" || request[0][0] == '.' || request[0][len(request[0])-1] == '/' {
     
     if len(payload) > 256 { payload = payload[0:256] }
-    emsg := fmt.Sprintf("ERROR! TFTP initial request from %v not understood: %#v", peer_addr, string(payload))
+    emsg := fmt.Sprintf("ERROR! TFTP initial request from %v not understood: %#v", peer_addr, payload)
     sendError(udp_conn, peer_addr, 4, emsg) // 4 => illegal TFTP operation
     return
   }
