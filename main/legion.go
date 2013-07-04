@@ -24,6 +24,8 @@ import (
           "fmt"
           "net"
           "net/http"
+          "hash"
+          "sort"
           "sync"
           "time"
           "bytes"
@@ -31,6 +33,7 @@ import (
           "strings"
           "strconv"
           "syscall"
+          "crypto/md5"
           
           "../db"
           "../xml"
@@ -118,6 +121,17 @@ Commands:
     be added storing the id of the printing client and the timestamp.
     IOW, a database is kept of who wrote what when. The program will output
     this information in aggregated form whenever it changes.
+    The string to be printed may include references to stopwatch values
+    (see "stopwatch" command) of this format:
+      ${stopwatch <id> <aggregate> <field>}
+    where <id> is the id used in the "stopwatch" command,
+    <aggregate> is "average", "median" or "sum",
+    <field> may be
+       "runtime" to refer to the total time the stopwatch was running
+       "B", "kB", "MB", "GB", "kiB", "MiB", "GiB" to refer to the amount
+         of data transferred while the stopwatch was running.
+       "B/s", "kB/s", "MB/s", "GB/s", "kiB/s", "MiB/s", "GiB/s"
+         to refer to the transfer speed while the stopwatch was running.
   
   sleep <duration>
     Does nothing for the requested duration (in seconds). 
@@ -247,12 +261,50 @@ Commands:
     Sends a CLMSG_save_fai_log message to the server containing
     a count of <num_files> files that sum up to <total_kbytes> * 1000 bytes.
     The <type> is either "install" or "softupdate".
+  
+  stopwatch <id> start
+    starts the stopwatch identified by <id>. The stopwatch is created if <id>
+    has not yet been used.
+  
+  stopwatch <id> stop
+    stops the stopwatch identified by <id>. The "stopwatch ... start" command
+    can be used to restart the stopwatch. In that case it will continue counting
+    where it left off.
 `
 
 type command struct {
   Needs_following_whitespace bool
   Extends_to_end_of_line bool
   Exec func(*[]int, []string)
+}
+
+type stopwatch struct{
+  Running bool
+  Name string
+  Start time.Time
+  Runtime time.Duration
+  GotBytes int64
+  GotTime time.Duration
+}
+
+func (s *stopwatch) GetField(f string) int64 {
+  runtime := s.Runtime
+  if s.Running { runtime += time.Now().Sub(s.Start) }
+  if f == "runtime" { return int64(runtime/time.Second) }
+  var bytes int64 = -1
+  if strings.HasPrefix(f,"B") { bytes = s.GotBytes }
+  if strings.HasPrefix(f,"kB") { bytes = (s.GotBytes+500)/1000 }
+  if strings.HasPrefix(f,"MB") { bytes = (s.GotBytes+500000)/1000000 }
+  if strings.HasPrefix(f,"GB") { bytes = (s.GotBytes+500000000)/1000000000 }
+  if strings.HasPrefix(f,"kiB") { bytes = (s.GotBytes+512)/1024 }
+  if strings.HasPrefix(f,"MiB") { bytes = (s.GotBytes+(512*1024))/(1024*1024) }
+  if strings.HasPrefix(f,"GiB") { bytes = (s.GotBytes+(512*1024*1024))/(1024*1024*1024) }
+  if strings.HasSuffix(f,"/s") { 
+    t := s.GotTime / time.Millisecond
+    if t == 0 { t = 1 }
+    bytes = (bytes*1000)/int64(t)
+  }
+  return bytes
 }
 
 type demon struct {
@@ -264,6 +316,7 @@ type demon struct {
   Env map[string]string
   ListenAddress string
   Listener *net.TCPListener
+  Stopwatches []stopwatch
 }
 
 func (d *demon) expandArgs(args []string) []string {
@@ -299,16 +352,63 @@ var COMMANDS = map[string]command{"":{true,false,execUnknown},
                                   "boot":{true,false,execBoot},
                                   "halt":{true,false,execHalt},
                                   "speed":{true,false,execSpeed},
+                                  "stopwatch":{true,false,execStopwatch},
                                   }
 
 type clientTime struct {
   ID int
   Timestamp time.Time
+  Stopwatches []stopwatch // copy of all stopwatches of client ID at time Timestamp
 }
 
 type printBufferEntry struct {
   Line string
   Ticks deque.Deque
+}
+
+var stopwatch_re = regexp.MustCompile("\\$\\{stopwatch [^}]+\\}")
+
+type IntSlice []int64
+func (p IntSlice) Len() int           { return len(p) }
+func (p IntSlice) Less(i, j int) bool { return p[i] < p[j] }
+func (p IntSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+func (p *printBufferEntry) expandedLine() string {
+  return stopwatch_re.ReplaceAllStringFunc(p.Line, func(v string)string{
+    words := strings.Fields(v[12:len(v)-1])
+    if len(words) != 3 { return "3 arguments expected" }
+    stopwatch_id, aggregate, field_id := words[0], words[1], words[2]
+    var fields IntSlice = []int64{}
+    for i := 0; i < p.Ticks.Count(); i++ {
+      sw := p.Ticks.At(i).(*clientTime).Stopwatches
+      for k := range sw {
+        if sw[k].Name == stopwatch_id {
+          if d := sw[k].GetField(field_id); d >= 0 {
+            fields = append(fields, d)
+          }
+        }
+      }
+    }
+    
+    if len(fields) == 0 { fields = []int64{0} }
+    
+    sort.Sort(fields)
+    var value int64
+    for _, f := range fields { value += f }
+    
+    if aggregate == "average" {
+      value /= int64(len(fields))
+    } else if aggregate == "median" {
+      value = fields[len(fields)/2]
+    } else if aggregate == "sum" {
+      // value is sum
+    } else return "unknown aggregate: \"" + aggregate + "\""
+    
+    unit := "s"
+    if field_id != "runtime" { unit = field_id }
+    
+    return fmt.Sprintf("%d%s",value,unit)
+  })
 }
 
 type printBuffer struct {
@@ -318,12 +418,20 @@ type printBuffer struct {
   HaveNewTickForExistingLine bool
 }
 
-func (p *printBuffer) print(id int, args... string) {
+func (p *printBuffer) print(d *demon, args... string) {
   line := strings.Join(args," ")
-  tick := &clientTime{ID:id, Timestamp:time.Now()}
+  stopwatches_copy := make([]stopwatch,len(d.Stopwatches))
+  for i := range d.Stopwatches { 
+    stopwatches_copy[i] = d.Stopwatches[i]
+    if stopwatches_copy[i].Running {
+      stopwatches_copy[i].Running = false
+      stopwatches_copy[i].Runtime += time.Since(stopwatches_copy[i].Start)
+    }
+  }
+  tick := &clientTime{ID:d.ID, Timestamp:time.Now(), Stopwatches:stopwatches_copy}
   p.Mutex.Lock()
   defer p.Mutex.Unlock()
-  util.Log(2, "DEBUG! Printing %v: %v", id, args)
+  util.Log(2, "DEBUG! Printing %v: %v", d.ID, args)
   for i:=0; i < p.Entries.Count(); i++ {
     if p.Entries.At(i).(*printBufferEntry).Line == line {
       p.Entries.At(i).(*printBufferEntry).Ticks.Push(tick)
@@ -352,7 +460,7 @@ func (p *printBuffer) getNew(countOnly bool) string {
   buf := new(bytes.Buffer)
   for i:=1; i <= p.NewLines; i++ {
     ent := p.Entries.Peek(p.NewLines-i).(*printBufferEntry)
-    fmt.Fprintf(buf,"%v: ",ent.Line)
+    fmt.Fprintf(buf,"%v: ",ent.expandedLine())
     if countOnly { fmt.Fprintf(buf, "%v", ent.Ticks.Count()) } else {
       for k := 0; k < ent.Ticks.Count(); k++ {
         tick := ent.Ticks.At(k).(*clientTime)
@@ -373,7 +481,7 @@ func (p *printBuffer) getAll(countOnly bool) string {
   buf := new(bytes.Buffer)
   for i:=0; i < p.Entries.Count(); i++ {
     ent := p.Entries.At(i).(*printBufferEntry)
-    fmt.Fprintf(buf,"%v: ",ent.Line)
+    fmt.Fprintf(buf,"%v: ",ent.expandedLine())
     if countOnly { fmt.Fprintf(buf, "%v", ent.Ticks.Count()) } else {
       for k := 0; k < ent.Ticks.Count(); k++ {
         tick := ent.Ticks.At(k).(*clientTime)
@@ -769,7 +877,7 @@ func execPrint(clients *[]int, args []string) {
     QueueAction(i,func(d *demon){
       if !d.Skipping {
         args := d.expandArgs(args)
-        monitor.print(d.ID, args...)
+        monitor.print(d, args...)
       }
     })
   }
@@ -797,7 +905,7 @@ func execHereIAm(clients *[]int, args []string) {
         
         if err != nil {
           util.Log(0, "ERROR! Could not send here_i_am: %v", err)
-          monitor.print(d.ID, d.TimeoutMessage...)
+          monitor.print(d, d.TimeoutMessage...)
           d.Skipping = true
         }
       }
@@ -860,7 +968,7 @@ func execSaveFaiLog(clients *[]int, args []string) {
         
         if err != nil {
           util.Log(0, "ERROR! Could not send save_fai_log: %v", err)
-          monitor.print(d.ID, d.TimeoutMessage...)
+          monitor.print(d, d.TimeoutMessage...)
           d.Skipping = true
         }
       }
@@ -914,7 +1022,7 @@ func execFaimon(clients *[]int, args []string) {
         if err != nil {
           util.Log(0, "WARNING! Could not send message to %v: %v", clmsg_target, err)
           if do_timeout {
-            monitor.print(d.ID, d.TimeoutMessage...)
+            monitor.print(d, d.TimeoutMessage...)
             d.Skipping = true
             return
           }
@@ -1069,7 +1177,7 @@ func execWait(clients *[]int, args []string) {
             }
           } else {
             util.Log(0, "WARNING! Client %v timeout while waiting for event \"%v\"", DEMONS[d.ID], event)
-            monitor.print(d.ID, d.TimeoutMessage...)
+            monitor.print(d, d.TimeoutMessage...)
             d.Skipping = true
             return
           }
@@ -1272,6 +1380,7 @@ func execBoot(clients *[]int, args []string) {
 
         port := 0        
         var listener *net.TCPListener
+    retry:
         for _, addr := range addrs {
           tcp_addr, err := net.ResolveTCPAddr("tcp4", addr)
           if err != nil {
@@ -1287,6 +1396,9 @@ func execBoot(clients *[]int, args []string) {
           }
         }
         
+        // do not use the standard ports
+        if port == 20081 || port == 20083 { goto retry }
+        
         d.ListenAddress = fmt.Sprintf("%v:%v", config.IP, port)
         util.Log(1, "INFO! %v listening on %v", DEMONS[d.ID], d.ListenAddress)
         d.Listener = listener
@@ -1297,6 +1409,70 @@ func execBoot(clients *[]int, args []string) {
   }
 }
 
+func execStopwatch(clients *[]int, args []string) {
+  if len(args) != 3 {
+    util.Log(0, "ERROR! Command \"stopwatch\" takes 2 arguments (illegal command: %v)", args)
+    return
+  }
+  
+  if args[2] != "start" && args[2] != "stop" {
+    util.Log(0, "ERROR! 2nd argument of command \"stopwatch\" must be \"start\" or \"stop\" (illegal command: %v)", args)
+    return
+  }
+  
+  running := (args[2] == "start")
+  stopwatch_id := args[1]
+  
+  for _, i := range *clients {
+    QueueAction(i,func(d *demon){
+      if !d.Skipping {
+        for i := range d.Stopwatches {
+          if d.Stopwatches[i].Name == stopwatch_id {
+            if d.Stopwatches[i].Running != running {
+              d.Stopwatches[i].Running = running
+              if running { 
+                d.Stopwatches[i].Start = time.Now() 
+              } else {
+                d.Stopwatches[i].Runtime += time.Since(d.Stopwatches[i].Start)
+              }
+            }
+            return
+          }
+        }
+
+        // if no stopwatch with that id exists, add one
+        d.Stopwatches = append(d.Stopwatches, stopwatch{Running:running, Name:stopwatch_id, Start:time.Now()})
+      }
+    })
+  }
+}
+
+type md5summer struct {
+  md5 hash.Hash
+  count int64
+}
+
+func (m *md5summer) Write(b []byte) (int, error) { 
+  n, err := m.md5.Write(b)
+  m.count += int64(n)
+  return n,err
+}
+
+func (m *md5summer) Reset() {
+  m.md5 = md5.New()
+  m.count = 0
+}
+
+func (m *md5summer) BlockSize() int { return m.md5.BlockSize() }
+func (m *md5summer) Size() int { return m.md5.Size() }
+func (m *md5summer) Sum(in []byte) []byte { return m.md5.Sum(in) }
+func (m *md5summer) NumBytesWritten() int64 { return m.count }
+
+func MD5Summer() *md5summer {
+  m := new(md5summer)
+  m.Reset()
+  return m
+}
 
 func execGet(clients *[]int, args []string) {
   if len(args) != 2 {
@@ -1337,27 +1513,35 @@ func execGet(clients *[]int, args []string) {
         url := d.expandArg(url)
         util.Log(1,"INFO! Client %v: Getting \"%v:%v\" from server %v", DEMONS[d.ID], proto, url, host)
         
-        var data []byte
+        md5sum := MD5Summer()
+        start := time.Now()
         var err error
         if proto == "tftp" {
-          data, err = tftp.Get(host, url, d.Timeout)
+          err = tftp.Get(host, url, md5sum, d.Timeout)
         } else { // proto == "http"
-          data, err = httpGet(host, url, d.Timeout)
+          err = httpGet(host, url, md5sum, d.Timeout)
+        }
+        
+        for i := range d.Stopwatches {
+          if d.Stopwatches[i].Running {
+            d.Stopwatches[i].GotBytes += md5sum.NumBytesWritten()
+            d.Stopwatches[i].GotTime += time.Since(start)
+          }
         }
           
         if err != nil {
           util.Log(0, "WARNING! Client %v: Error \"%v\" while getting \"%v\" from server %v", DEMONS[d.ID], err, url, host)
-          monitor.print(d.ID, d.TimeoutMessage...)
+          monitor.print(d, d.TimeoutMessage...)
           d.Skipping = true
         } else {
-          util.Log(1,"INFO! %v received %d bytes with md5sum %v\n", DEMONS[d.ID], len(data), util.Md5sum(string(data)))
+          util.Log(1,"INFO! %v received %v bytes with md5sum %x\n", DEMONS[d.ID], md5sum.NumBytesWritten(), md5sum.Sum(nil))
         }
       }
     })
   }
 }
 
-func httpGet(host, path string, timeout time.Duration) ([]byte, error) {
+func httpGet(host, path string, w io.Writer, timeout time.Duration) error {
   c := make(chan []byte)
   var eresult error = nil
   
@@ -1397,21 +1581,20 @@ func httpGet(host, path string, timeout time.Duration) ([]byte, error) {
   
   if timeout == 0 { timeout = 1000*24*60*60*time.Second }
   
-  buf := []byte{}
-  
   for {
     tim := time.NewTimer(timeout)
     select {
       case sl := <- c:  
                        tim.Stop()
-                       if sl == nil { return buf, eresult }
-                       buf = append(buf, sl...)
+                       if sl == nil { return eresult }
+                       _, err := util.WriteAll(w, sl)
+                       if err != nil { return err }
       case _ = <- tim.C:
-                       return buf, fmt.Errorf("Timeout")
+                       return fmt.Errorf("Timeout")
     }
   }
   
-  return []byte{},nil // never reached
+  return nil // never reached
 }
 
 // Understands the following formats:
@@ -1461,7 +1644,7 @@ func parseClient(client string) int {
   return -1
 }
 
-var env_re = regexp.MustCompile("\\$\\{[^}]+\\}")
+var env_re = regexp.MustCompile("\\$\\{[^} ]+\\}")
 
 func replaceEnvironmentVariables(s string) string {
   return env_re.ReplaceAllStringFunc(s, func(v string)string{
