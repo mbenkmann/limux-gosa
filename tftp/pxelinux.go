@@ -68,7 +68,11 @@ func ListenAndServe(listen_address string, files map[string]string, pxelinux_hoo
       continue
     }
 
-    go util.WithPanicHandler(func(){handleConnection(return_addr, string(readbuf[:n]), files, pxelinux_hook)})
+    // Make a copy of the buffer BEFORE starting the goroutine to prevent subsequent requests from
+    // overwriting the buffer.
+    payload := string(readbuf[:n])
+    
+    go util.WithPanicHandler(func(){handleConnection(return_addr, payload, files, pxelinux_hook)})
     
   }
 }
