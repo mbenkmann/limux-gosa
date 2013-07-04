@@ -56,11 +56,16 @@ var attributeNameRegexp = regexp.MustCompile("^[a-zA-Z]+$")
 func SystemPlainnameForMAC(macaddress string) string {
   name := "none"
   
-  // if we have an IP for the client, try reverse DNS
+  // if we have an IP for the client, try reverse DNS, unless the client is
+  // running on a non-standard port (test client)
   client := ClientWithMAC(macaddress)
   if client != nil {
-    ip := strings.SplitN(client.Text("client"),":",2)[0]
-    name = SystemNameForIPAddress(ip)
+    ipport := strings.SplitN(client.Text("client"),":",2)
+    ip := ipport[0]
+    port := ipport[1]
+    if port == config.ClientPort {
+      name = SystemNameForIPAddress(ip)
+    }
   }
   
   // if DNS failed (probably because we don't know the client), try LDAP
