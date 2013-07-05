@@ -186,6 +186,7 @@ func ProcessXMLMessage(xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply *
     case "CLMSG_LOGIN":         clmsg_login(xml)
     case "CLMSG_LOGOUT":        clmsg_logout(xml)
     case "CLMSG_PROGRESS":      clmsg_progress(xml)
+    case "CLMSG_TASKDIE":       clmsg_taskdie(xml)
     case "CLMSG_GOTOACTIVATION":clmsg_gotoactivation(xml)
     case "new_ldap_config",
          "new_ntp_config":      new_foo_config(xml)

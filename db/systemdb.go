@@ -357,6 +357,11 @@ func SystemGetState(macaddress string, attrname string) string {
   return system.Text(attrname)
 }
 
+// Sets the selected system's faistate and removes all running install and update
+// jobs affecting the system.
+//
+// ATTENTION! This function takes a while to complete because it tries multiple
+// times if necessary and verifies that the faistate has actually been set.
 func SystemForceFAIState(macaddress, faistate string) {
   util.Log(1, "INFO! Forcing faiState for %v to %v", macaddress, faistate)
   
