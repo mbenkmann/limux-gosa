@@ -135,9 +135,11 @@ clean:
 	rm -f debian/files
 	rm -rf dist/
 
+DEBVERSION := \$(shell dpkg-parsechangelog | sed -n -e 's/^Version: //p')
+
 build:
 	umask 022
-	sed -i 's/^const.*Version.*=.*/const Version = \"${debversion}\"/' config/version.go
+	sed -i 's/^const.*Version.*=.*/const Version = \"\$(DEBVERSION)\"/' config/version.go
 	go build main/go-susi.go
 	go build main/sibridge.go
 	go build main/encrypt.go
@@ -160,7 +162,7 @@ build:
 	ln -snf ../lib/go-susi/gosa-si-server dist/usr/sbin/go-susi
 	cp sibridge dist/usr/sbin/
 	-cp logrotate-gosa-si-server dist/etc/logrotate.d/gosa-si-server
-	echo >debian/files go-susi_${debversion}_\$(DEB_BUILD_ARCH).deb $section $priority
+	echo >debian/files go-susi_\$(DEBVERSION)_\$(DEB_BUILD_ARCH).deb $section $priority
 
 binary-arch:
         echo ====== binary-arch =========
