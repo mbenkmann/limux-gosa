@@ -23,6 +23,7 @@ package db
 import (
          "fmt"
          "net"
+         "time"
          "bytes"
          "regexp"
          "strings"
@@ -355,6 +356,43 @@ func SystemGetState(macaddress string, attrname string) string {
   
   return system.Text(attrname)
 }
+
+func SystemForceFAIState(macaddress, faistate string) {
+  util.Log(1, "INFO! Forcing faiState for %v to %v", macaddress, faistate)
+  
+  // retry for 30s
+  endtime := time.Now().Add(30*time.Second)
+  
+  for ; time.Now().Before(endtime);  {
+    SystemSetState(macaddress, "faiState", faistate)
+    
+    // remove softupdate and install jobs ...
+    job_types_to_kill := xml.FilterOr(
+                         []xml.HashFilter{xml.FilterSimple("headertag","trigger_action_reinstall"),
+                                          xml.FilterSimple("headertag","trigger_action_update")})
+    // ... that are already happening or scheduled within the next 5 minutes ...
+    timeframe := xml.FilterRel("timestamp", util.MakeTimestamp(time.Now().Add(5*time.Minute)),-1,0)
+    // ... that affect the machine for which we force the faistate
+    target := xml.FilterSimple("macaddress", macaddress)
+    filter := xml.FilterAnd([]xml.HashFilter{ job_types_to_kill,
+                                                  timeframe,
+                                                  target })
+    JobsRemove(filter)
+    
+    // Wait a little and see if the jobs are gone
+    time.Sleep(3*time.Second)
+    if JobsQuery(filter).FirstChild() == nil { // if all jobs are gone
+      // set state again just in case the job removal raced with something that set faistate
+      SystemSetState(macaddress, "faiState", faistate)
+      return // we're done
+    } // else if some jobs remained
+    
+    util.Log(2, "DEBUG! ForceFAIState(%v, %v): Some install/softupdate jobs remain => Retrying", macaddress, faistate)
+  }
+  
+  util.Log(0, "ERROR! ForceFAIState(%v, %v): Some install/softupdate jobs could not be removed.", macaddress, faistate)
+}
+
 
 // Returns the complete data available for the system identified by the given 
 // macaddress. If an error occurs or the system is not found, 

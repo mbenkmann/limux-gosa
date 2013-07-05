@@ -26,7 +26,7 @@ func FAIReboot(job *xml.Hash) {
     if len(dnparts) > 1 && dnparts[1] == "ou=incoming" { delete_system = true }
   }
   
-  ForceFAIState(macaddress, faistate)
+  db.SystemForceFAIState(macaddress, faistate)
   
   if delete_system { 
     util.Log(1, "INFO! System %v is in ou=incoming => Deleting LDAP entry", macaddress)
