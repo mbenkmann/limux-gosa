@@ -1,12 +1,11 @@
 server vts-susi
 speed 10
 
-for all banish
-
 for 0 1 2
 
 summon
 print Tests running
+stopwatch total start
 
 clear
 job reinstall 10
@@ -80,6 +79,8 @@ sleep 2
 print Partitioning done
 
 timeout 60 Failed downloads
+
+stopwatch pkg start
 
 get http:/repo/dists/plophos/4.1.0/lhm/binary-i386/Packages.bz2
 get http:/repo/dists/plophos/4.1.0/Release
@@ -1437,7 +1438,9 @@ get http:/repo/pool/lhm/o/openproj/openproj_1.4-2lhm5_all.deb
 get http:/repo/pool/main/u/ubuntu-trinity-rename-meta/showfoto-kde3_3.5.13-0ubuntu3_all.deb
 get http:/repo/pool/universe/v/vpnc/vpnc_0.5.3r449-2_i386.deb
 
-print Downloading packages finished
+# NOTE!! We use ${stopwatch pkg median MB} and not ${stopwatch pkg sum MB} because if we used
+# "sum" we would get (number of clients)x(combined size of all packages).
+print Downloading packages finished (total: ${stopwatch pkg median MB} median speed: ${stopwatch pkg median MB/s})
 
 timeout 10 Timeouts
 
@@ -1595,4 +1598,5 @@ print Successful tests
 
 timein
 halt
-print Tests completed
+print Tests completed (median running time: ${stopwatch total median runtime})
+banish
