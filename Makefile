@@ -1,10 +1,10 @@
-BINARIES=run-tests go-susi encrypt decrypt sibridge
+BINARIES=run-tests go-susi encrypt decrypt sibridge legion
 
 susi:
 	main/makeversion
 	go build main/go-susi.go
 
-all: strip man
+all: build man
 
 build:
 	main/makeversion
@@ -13,8 +13,10 @@ build:
 	go build main/encrypt.go
 	go build main/decrypt.go
 	go build main/sibridge.go
+	go build main/legion.go
 	ln -snf go-susi gosa-si-server
 
+# strip is not included in "all" because this may break Go 1.1 binaries (at least on ARM)
 strip: build
 	strip $(BINARIES)
 
