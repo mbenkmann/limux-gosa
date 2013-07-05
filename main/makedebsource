@@ -7,21 +7,30 @@ test -z "$revision" && exit 1
 section=lhm/utils
 priority=optional
 timestamp="$(LC_ALL=C date -R)"
-debversion=${version}-1
+debversion=${version}-msb1
 
 test -d deb/ && { echo "deb/ already exists!" ; exit 1 ; }
 mkdir deb || exit 1
 make doc || exit 1
 make man || exit 1
 hg archive -t tar -p go-susi-$version deb/go-susi_$version.orig.tar
-mkdir -p deb/go-susi-$version/doc
+mkdir -p deb/go-susi-$version/{doc,config}
 cp doc/go-susi-manual.pdf deb/go-susi-$version/doc/go-susi-$version-manual.pdf
 cp doc/go-susi-manual.odt deb/go-susi-$version/doc/go-susi-$version-manual.odt
 cp doc/go-susi-manual.xhtml deb/go-susi-$version/doc/go-susi-$version-manual.xhtml
 cp doc/*.5 doc/*.1 deb/go-susi-$version/doc/
+cp config/version.go deb/go-susi-$version/config/
 cd deb || exit 1
+
+# Replace outdated documentation files in archive with current versions.
+# Of course it would be better to keep the documentation in the hg repo up-to-date,
+# but I don't want to enable the CI server to do automated checkins into the repository.
 tar --delete --file=go-susi_$version.orig.tar go-susi-$version/doc/go-susi-manual.{pdf,xhtml,odt}
-tar rf go-susi_$version.orig.tar go-susi-$version/doc
+tar --append --file=go-susi_$version.orig.tar go-susi-$version/doc
+
+# Add version.go to the archive.
+tar --append --file=go-susi_$version.orig.tar go-susi-$version/config/version.go
+
 gzip -9 go-susi_$version.orig.tar
 
 
@@ -52,14 +61,6 @@ Suggests: gosa, tidy
 Description: Support infrastructure daemon for GOsa
  A stable and fast replacement for gosa-si-server, the
  support infrastructure daemon required by GOsa 2.7.
-"
-
-
-echo >config/version.go "package config
-
-const Version = \"$version\"
-const Revision = \"$revision\"
-
 "
 
 # do not create server.conf. It is created by dhclient-exit-hook from
@@ -136,6 +137,7 @@ clean:
 
 build:
 	umask 022
+	sed -i 's/^const.*Version.*=.*/const Version = \"${debversion}\"/' config/version.go
 	go build main/go-susi.go
 	go build main/sibridge.go
 	go build main/encrypt.go
