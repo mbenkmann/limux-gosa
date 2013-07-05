@@ -83,7 +83,7 @@ func main() {
   
   if config.PrintVersion {
     fmt.Printf(`go-susi %v (revision %v)
-Copyright (c) 2012 Matthias S. Benkmann
+Copyright (c) 2013 Matthias S. Benkmann
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
