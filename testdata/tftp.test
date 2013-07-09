@@ -1,0 +1,16 @@
+server vts-susi
+
+for 0-3
+print Tests running
+stopwatch pkg start
+
+timeout 10 TFTP failure getting pxelinux.0
+get tftp:/pxelinux.0
+timeout 10 TFTP failure getting pxelinux.cfg
+get tftp:/pxelinux.cfg/${hwaddress}
+timeout 10 TFTP failure getting vmlinuz-install
+get tftp:/vmlinuz-install
+timeout 10 TFTP failure getting initrd.img-install
+get tftp:/initrd.img-install
+print TFTP download done (total: ${stopwatch pkg median MB} median speed: ${stopwatch pkg median MB/s}))
+
