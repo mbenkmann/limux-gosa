@@ -200,7 +200,7 @@ func sendAndWaitForAck(udp_conn *net.UDPConn, peer_addr *net.UDPAddr, sendbuf []
       if err != nil { 
         e,ok := err.(*net.OpError)
         if !ok || !e.Timeout() {
-          util.Log(0, "ERROR! TFTP Error while waiting for ACK from %v (local address: %v): %v", udp_conn.RemoteAddr(), udp_conn.LocalAddr(), err)
+          util.Log(0, "ERROR! TFTP ReadFromUDP() failed while waiting for ACK from %v (local address: %v): %v", udp_conn.RemoteAddr(), udp_conn.LocalAddr(), err)
           break outer // retries make no sense => bail out
         } else {
           //util.Log(2, "DEBUG! TFTP timeout => resend %#v", sendbuf)
@@ -221,7 +221,7 @@ func sendAndWaitForAck(udp_conn *net.UDPConn, peer_addr *net.UDPAddr, sendbuf []
           return true
         } else {
           if readbuf[0] == 0 && readbuf[1] == 5 { // error
-            util.Log(2, "DEBUG! TFTP ERROR received while waiting for ACK from %v: %v", peer_addr, string(readbuf[4:n]))
+            util.Log(0, "ERROR! TFTP ERROR received while waiting for ACK from %v: %v", peer_addr, string(readbuf[4:n]))
             break outer // retries make no sense => bail out
           } else {
             // if we sent DATA but the ACK is not for the block we sent,
@@ -230,11 +230,17 @@ func sendAndWaitForAck(udp_conn *net.UDPConn, peer_addr *net.UDPAddr, sendbuf []
             // since the dup counter is only for reporting, we don't care.
             if sendbuf[1] == 3 && (readbuf[2] != sendbuf[2] || readbuf[3] != sendbuf[3]) {
               *dups++
-              //util.Log(2, "DEBUG! TFTP duplicate ACK received: %#v => resend %#v", string(readbuf[0:n]), sendbuf)
+              //util.Log(2, "DEBUG! TFTP duplicate ACK received: %#v => Ignored", string(readbuf[0:n]))
+              
+              // ONLY "continue", NOT "continue outer", i.e. DUPs DO NOT CAUSE A RESEND.
+              // THIS PREVENTS http://en.wikipedia.org/wiki/Sorcerer's_Apprentice_Syndrome
+              // When timeout happens, it will cause a resend.
+              continue
             } else {
-              util.Log(2, "DEBUG! TFTP waiting for ACK but received: %#v", string(readbuf[0:n]))
+              emsg := fmt.Sprintf("ERROR! TFTP server waiting for ACK from %v but got: %#v",peer_addr, string(readbuf[0:n]))
+              sendError(udp_conn, from, 0, emsg) // 0 => Unspecified error
+              break outer // retries make no sense => bail out
             }
-            continue outer // resend
           }
         }
     }

@@ -438,7 +438,7 @@ func run_tftp_tests() {
       for {
         sz := len(cmp) - start
         if sz > blocksize { sz = blocksize }
-        conn.SetReadDeadline(time.Now().Add(200*time.Millisecond))
+        conn.SetReadDeadline(time.Now().Add(1*time.Second))
         n, remote_addr, err := conn.ReadFromUDP(buf)
         check(err,nil)
         if !check(n > 4, true) { break }
@@ -462,8 +462,8 @@ func run_tftp_tests() {
           check(string(buf[4:n]), string(cmp[start:start+sz]))
         }
         
-        // every 2nd block we pretend that we didn't get DATA and request a
-        // resend by ACKing the previous block id again.
+        // every 2nd block we pretend that we didn't get DATA and resend
+        // ACK with the previous block id.
         test_dup = !test_dup
         if test_dup {
           _, err = conn.WriteToUDP([]byte{0,4,0,byte(blockid-1)}, remote_addr)
