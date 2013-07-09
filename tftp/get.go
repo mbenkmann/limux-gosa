@@ -29,7 +29,7 @@ import (
 var too_short = fmt.Errorf("Received TFTP packet shorter than 4 bytes")
 
 const min_wait_retry = 100*time.Millisecond
-const max_wait_retry = 1000*time.Millisecond
+const max_wait_retry = 200*time.Millisecond
 
 // Sends to_write via udp_conn to remote_addr, then reads from udp_conn into read_buf 
 // and returns the number of bytes read and the UDP address from which they were received.
