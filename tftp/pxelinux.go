@@ -29,6 +29,7 @@ import (
          "fmt"
          "net"
          "math/rand"
+         "sync"
          "time"
          "strconv"
          "strings"
@@ -78,70 +79,161 @@ func ListenAndServe(listen_address string, files map[string]string, pxelinux_hoo
   }
 }
 
+type cacheEntry interface {
+  Bytes() []byte
+  Release()
+}
+
+type bufCacheEntry struct {
+  Data bytes.Buffer
+  Mutex sync.Mutex
+  LoadCount int
+  Err error
+  Afterlifetime time.Duration
+}
+
+func (f *bufCacheEntry) Release() {
+  f.Mutex.Lock()
+  defer f.Mutex.Unlock()
+  
+  // If there are still multiple users left, decrease loadCount immediately
+  if f.LoadCount > 1 { f.LoadCount-- } else {
+    // If this Release() call is by the last remaining user,
+    // hold on to the data for a while longer in case a new
+    // user pops up.
+    go func() {
+      time.Sleep(f.Afterlifetime)
+      f.Mutex.Lock()
+      defer f.Mutex.Unlock()
+      f.LoadCount--
+      if f.LoadCount == 0 { f.Data.Reset(); f.Err = nil; }
+    }()
+  }
+}
+
+func (f *bufCacheEntry) Bytes() []byte {
+  f.Mutex.Lock()
+  defer f.Mutex.Unlock()
+  data := f.Data.Bytes()
+  return data
+}
+
+var cache = map[string]*bufCacheEntry{}
+var cacheMutex sync.Mutex
+
 var pxelinux_cfg_mac_regexp = regexp.MustCompile("^pxelinux.cfg/01-[0-9a-f]{2}(-[0-9a-f]{2}){5}$")
 
 // Returns the data for the request "name" either from a mapping files[name]
 // gives the real filesystem path, or by generating data using pxelinux_hook.
-func getFile(name string, files map[string]string, pxelinux_hook string) (*bytes.Buffer,error) {
-  var data = new(bytes.Buffer)
+//
+// ATTENTION! Do not forget to call Release() on the returned cacheEntry when you're
+// done using it.
+func getFile(name string, files map[string]string, pxelinux_hook string) (cacheEntry,error) {
+  cacheMutex.Lock()
+  defer cacheMutex.Unlock()
+  
   if fpath, found := files[name]; found {
     util.Log(1, "INFO! TFTP mapping \"%v\" => \"%v\"", name, fpath)
-    f, err := os.Open(fpath) 
-    if err != nil { return data, err }
-    defer f.Close()
     
-    buffy := make([]byte,65536)
-    for {
-      n, err := f.Read(buffy)
-      data.Write(buffy[0:n])
-      if err == io.EOF { break }
-      if err != nil { 
-        data.Reset()
-        return data, err 
-      }
-      if n == 0 {
-        util.Log(0, "WARNING! Read returned 0 bytes but no error. Assuming EOF")
-        break
+    // We use fpath as cache key because multiple names may map to
+    // the same fpath and we want to avoid caching the same file
+    // multiple times. Additionally this reduces the danger of
+    // having a collision with the MAC keys used by the other branch.
+    // Usually a MAC is not a valid path because it would be a relative
+    // path relative to go-susi's working directory which makes little sense.
+    entry, have_entry := cache[fpath]
+    if !have_entry {
+      entry = &bufCacheEntry{Afterlifetime: 60 * time.Second}
+      cache[fpath] = entry
+    }
+    
+    entry.Mutex.Lock()
+    defer entry.Mutex.Unlock()
+    
+    if entry.LoadCount == 0 {
+      file, err := os.Open(fpath) 
+      entry.Err = err
+      if err == nil {
+        defer file.Close()
+        
+        buffy := make([]byte,65536)
+        for {
+          n, err := file.Read(buffy)
+          entry.Data.Write(buffy[0:n])
+          if err == io.EOF { break }
+          if err != nil { 
+            entry.Data.Reset()
+            entry.Err = err
+          }
+          if n == 0 {
+            util.Log(0, "WARNING! Read returned 0 bytes but no error. Assuming EOF")
+            break
+          }
+        }
       }
     }
-    return data, nil
+    
+    entry.LoadCount++
+    
+    return entry, entry.Err
     
   } else if pxelinux_cfg_mac_regexp.MatchString(name) {
     mac := strings.Replace(name[16:],"-",":",-1)
     
-    util.Log(1, "INFO! TFTP: Calling %v to generate pxelinux.cfg for %v", pxelinux_hook, mac)
-    
-    env := []string{}
-    sys, err := db.SystemGetAllDataForMAC(mac, true)
-    
-    if err != nil {
-      util.Log(0, "ERROR! TFTP: %v", err)
-      // Don't abort. The hook will generate a default config.
-      env = append(env,"macaddress="+mac)
-    } else {
-      // Add environment variables with system's data for the hook
-      for _, tag := range sys.Subtags() {
-        env = append(env, tag+"="+strings.Join(sys.Get(tag),"\n"))
-      }
+    entry, have_entry := cache[mac]
+    if !have_entry {
+      entry = new(bufCacheEntry)
+      cache[mac] = entry
+      // We need a few seconds afterlife to deal with multiple requests in
+      // short succession by the same loader due to delayed UDP packets.
+      entry.Afterlifetime = 5 * time.Second
     }
     
-    cmd := exec.Command(pxelinux_hook)
-    cmd.Env = append(env, os.Environ()...)
-    var errbuf bytes.Buffer
-    defer errbuf.Reset()
-    cmd.Stdout = data
-    cmd.Stderr = &errbuf
-    err = cmd.Run()
-    if err != nil {
-      util.Log(0, "ERROR! TFTP: error executing %v: %v (%v)", pxelinux_hook, err, errbuf.String())
-      return data, err
-     }
-     
-     util.Log(1, "INFO! TFTP: Generated %v:\n%v", name, data.String())
-     return data,err
+    entry.Mutex.Lock()
+    defer entry.Mutex.Unlock()
+    
+    if entry.LoadCount == 0 {
+      util.Log(1, "INFO! TFTP: Calling %v to generate pxelinux.cfg for %v", pxelinux_hook, mac)
+    
+      env := []string{}
+      sys, err := db.SystemGetAllDataForMAC(mac, true)
+      
+      if err != nil {
+        util.Log(0, "ERROR! TFTP: %v", err)
+        // Don't abort. The hook will generate a default config.
+        env = append(env,"macaddress="+mac)
+      } else {
+        // Add environment variables with system's data for the hook
+        for _, tag := range sys.Subtags() {
+          env = append(env, tag+"="+strings.Join(sys.Get(tag),"\n"))
+        }
+      }
+      
+      cmd := exec.Command(pxelinux_hook)
+      cmd.Env = append(env, os.Environ()...)
+      var errbuf bytes.Buffer
+      defer errbuf.Reset()
+      cmd.Stdout = &entry.Data
+      cmd.Stderr = &errbuf
+      err = cmd.Run()
+      if err != nil {
+        util.Log(0, "ERROR! TFTP: error executing %v: %v (%v)", pxelinux_hook, err, errbuf.String())
+        entry.Err = err
+      } else {
+        util.Log(1, "INFO! TFTP: Generated %v:\n%v", name, entry.Data.String())
+      }
+    } else {
+      util.Log(1, "INFO! TFTP: Serving pxelinux.cfg for %v from cache", mac)
+    }
+    
+    entry.LoadCount++
+    
+    return entry, entry.Err
+
   }
   
-  return data, fmt.Errorf("TFTP not configured to serve file \"%v\"", name)
+  errentry := &bufCacheEntry{LoadCount:1000, Err:fmt.Errorf("TFTP not configured to serve file \"%v\"", name)}
+  return errentry, errentry.Err
 }
 
 // Sends a TFTP ERROR to addr with the given error code and error message emsg.
@@ -283,7 +375,7 @@ func handleConnection(peer_addr *net.UDPAddr, payload string, files map[string]s
   util.Log(1, "INFO! TFTP read: %v requests %v with options %v", peer_addr, request[0], options)
   
   filedata, err := getFile(request[0], files, pxelinux_hook)
-  defer filedata.Reset()
+  defer filedata.Release()
   if err != nil {
     emsg := fmt.Sprintf("ERROR! TFTP read error: %v", err)
     sendError(udp_conn, peer_addr, 1, emsg) // 1 => File not found
