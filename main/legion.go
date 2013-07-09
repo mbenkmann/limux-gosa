@@ -125,7 +125,7 @@ Commands:
     (see "stopwatch" command) of this format:
       ${stopwatch <id> <aggregate> <field>}
     where <id> is the id used in the "stopwatch" command,
-    <aggregate> is "average", "median" or "sum",
+    <aggregate> is "min", "max", "average", "median" or "sum",
     <field> may be
        "runtime" to refer to the total time the stopwatch was running
        "B", "kB", "MB", "GB", "kiB", "MiB", "GiB" to refer to the amount
@@ -400,6 +400,10 @@ func (p *printBufferEntry) expandedLine() string {
       value /= int64(len(fields))
     } else if aggregate == "median" {
       value = fields[len(fields)/2]
+    } else if aggregate == "min" {
+      value = fields[0]
+    } else if aggregate == "max" {
+      value = fields[len(fields)-1]
     } else if aggregate == "sum" {
       // value is sum
     } else return "unknown aggregate: \"" + aggregate + "\""
