@@ -1,16 +1,29 @@
 server vts-susi
 
-for 0-3
+for 0-30
 print Tests running
 stopwatch pkg start
 
-timeout 10 TFTP failure getting pxelinux.0
+timeout 5 TFTP failure getting pxelinux.0
+print Downloading pxelinux.0
 get tftp:/pxelinux.0
-timeout 10 TFTP failure getting pxelinux.cfg
-get tftp:/pxelinux.cfg/${hwaddress}
-timeout 10 TFTP failure getting vmlinuz-install
-get tftp:/vmlinuz-install
-timeout 10 TFTP failure getting initrd.img-install
-get tftp:/initrd.img-install
-print TFTP download done (total: ${stopwatch pkg median MB} median speed: ${stopwatch pkg median MB/s}))
 
+# Disabled because tvc ldap is lame
+#timeout 5 TFTP failure getting pxelinux.cfg
+#print Downloading pxelinux.cfg/01-<MAC>
+#get tftp:/pxelinux.cfg/${hwaddress}
+
+timeout 5 TFTP failure getting vmlinuz-install
+print Downloading vmlinuz-install
+get tftp:/vmlinuz-install
+
+timeout 5 TFTP failure getting initrd.img-install
+print Downloading initrd.img-install
+get tftp:/initrd.img-install
+
+stopwatch pkg stop
+print TFTP download done (Each client download ${stopwatch pkg median kB} with median speed ${stopwatch pkg median kB/s})
+print Test running time: Min: ${stopwatch pkg min runtime}  Max: ${stopwatch pkg max runtime}  Avg: ${stopwatch pkg average runtime}  Median: ${stopwatch pkg median runtime}
+
+timein
+print Tests done
