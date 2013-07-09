@@ -22,7 +22,6 @@ import (
          "net"
          "time"
          "strings"
-         "strconv"
          
          "../util"
        )
@@ -101,24 +100,12 @@ func Get(host, path string, w io.Writer, timeout time.Duration) error {
   defer udp_conn.Close()
   local_addr = udp_conn.LocalAddr().(*net.UDPAddr)
   
-  n, remote_addr, err := writeReadUDP(udp_conn,remote_addr,[]byte("\000\001"+path+"\000octet\000tsize\0000\000"),buf,min_wait_retry, max_wait_retry,timeout)
+  n, remote_addr, err := writeReadUDP(udp_conn,remote_addr,[]byte("\000\001"+path+"\000octet\000"),buf,min_wait_retry, max_wait_retry,timeout)
   if err != nil { return err }
   
   raddr := remote_addr
   
   ack := []byte{0,4,0,0}
-  
-  for buf[0] == 0 && buf[1] == 6 { //OACK
-    parts := strings.Split(string(buf[2:n]),"\000")
-    err = fmt.Errorf("TFTP OACK invalid: %#v", string(buf[0:n]))
-    if len(parts) != 3 || parts[0] != "tsize" { return err }
-    tsize, err := strconv.Atoi(parts[1])
-    if err != nil || tsize < 0 { return err }
-    buf = make([]byte, tsize+blocksize) // +blocksize to have at least size for a whole block (because an error block may be longer than tsize)
-    
-    n, raddr, err = writeReadUDP(udp_conn,remote_addr,ack,buf,min_wait_retry, max_wait_retry,timeout)
-    if err != nil { return err }
-  }
   
   blockid := 1
   
