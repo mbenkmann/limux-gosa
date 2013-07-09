@@ -28,6 +28,7 @@ import (
          "os/exec"
          "fmt"
          "net"
+         "math/rand"
          "time"
          "strconv"
          "strings"
@@ -156,24 +157,26 @@ func sendError(udp_conn *net.UDPConn, addr *net.UDPAddr, code byte, emsg string)
   udp_conn.Write(sendbuf)
 }
 
-const num_tries = 3
-const timeout = 3
+const total_timeout = 3 * time.Second
 
 // Sends the data in sendbuf to peer_addr (with possible resends) and waits for
 // an ACK with the correct block id, if sendbuf contains a DATA message.
 // Returns true if the sending was successful and the ACK was received.
-func sendAndWaitForAck(udp_conn *net.UDPConn, peer_addr *net.UDPAddr, sendbuf []byte) bool {
+func sendAndWaitForAck(udp_conn *net.UDPConn, peer_addr *net.UDPAddr, sendbuf []byte, retransmissions, dups, strays *int) bool {
   // absolute deadline when this function will return false
-  deadline := time.Now().Add(num_tries * timeout * time.Second)
+  deadline := time.Now().Add(total_timeout)
 
   readbuf := make([]byte, 4096)
+  
+  *retransmissions-- // to counter the ++ being done at the start of the loop
   
   outer:
   for {
     // re/send
+    *retransmissions++
     n,err := udp_conn.Write(sendbuf)
     if err != nil { 
-      util.Log(0, "ERROR! Write(): %v", err)
+      util.Log(0, "ERROR! TFTP error in Write(): %v", err)
       break
     }
     if n != len(sendbuf) {
@@ -187,18 +190,26 @@ func sendAndWaitForAck(udp_conn *net.UDPConn, peer_addr *net.UDPAddr, sendbuf []
       if time.Now().After(deadline) { break outer}
       
       // set deadline for next read
-      udp_conn.SetReadDeadline(time.Now().Add(timeout * time.Second))
+      timo := time.Duration(rand.Int63n(int64(max_wait_retry-min_wait_retry))) + min_wait_retry
+      endtime2 := time.Now().Add(timo)
+      if endtime2.After(deadline) { endtime2 = deadline }
+      udp_conn.SetReadDeadline(endtime2)
      
       n, from, err := udp_conn.ReadFromUDP(readbuf)
       
       if err != nil { 
-        if e,ok := err.(*net.OpError); !ok || !e.Timeout() {
-          util.Log(0, "ERROR! ReadFromUDP(): %v", err)
+        e,ok := err.(*net.OpError)
+        if !ok || !e.Timeout() {
+          util.Log(0, "ERROR! TFTP Error while waiting for ACK from %v (local address: %v): %v", udp_conn.RemoteAddr(), udp_conn.LocalAddr(), err)
+          break outer // retries make no sense => bail out
+        } else {
+          //util.Log(2, "DEBUG! TFTP timeout => resend %#v", sendbuf)
+          continue outer // resend
         }
-        continue 
       }
       if from.Port != peer_addr.Port {
-        emsg := fmt.Sprintf("ERROR! UDP packet from incorrect source: %v instead of %v", from.Port, peer_addr.Port)
+        *strays++
+        emsg := fmt.Sprintf("WARNING! TFTP server got UDP packet from incorrect source: %v instead of %v", from.Port, peer_addr.Port)
         sendError(udp_conn, from, 5, emsg) // 5 => Unknown transfer ID
         continue // This error is not fatal since it doesn't affect our peer
       }
@@ -213,18 +224,32 @@ func sendAndWaitForAck(udp_conn *net.UDPConn, peer_addr *net.UDPAddr, sendbuf []
             util.Log(2, "DEBUG! TFTP ERROR received while waiting for ACK from %v: %v", peer_addr, string(readbuf[4:n]))
             break outer // retries make no sense => bail out
           } else {
-            util.Log(2, "DEBUG! TFTP waiting for ACK but received: %#v", string(readbuf[0:n]))
+            // if we sent DATA but the ACK is not for the block we sent,
+            // increase dup counter. If we wanted to be anal we would need to check
+            // if the block id is one less for it to be an actual dup, but
+            // since the dup counter is only for reporting, we don't care.
+            if sendbuf[1] == 3 && (readbuf[2] != sendbuf[2] || readbuf[3] != sendbuf[3]) {
+              *dups++
+              //util.Log(2, "DEBUG! TFTP duplicate ACK received: %#v => resend %#v", string(readbuf[0:n]), sendbuf)
+            } else {
+              util.Log(2, "DEBUG! TFTP waiting for ACK but received: %#v", string(readbuf[0:n]))
+            }
+            continue outer // resend
           }
         }
     }
   }
   
-  util.Log(0, "ERROR! TFTP send not acknowledged by %v", peer_addr)
+  util.Log(0, "ERROR! TFTP send not acknowledged by %v (retransmissions: %v, dups: %v, strays: %v)", peer_addr, *retransmissions, *dups, *strays)
   
   return false
 }
 
 func handleConnection(peer_addr *net.UDPAddr, payload string, files map[string]string, pxelinux_hook string) {
+  retransmissions := 0
+  dups := 0
+  strays := 0
+  
   udp_conn, err := net.DialUDP("udp", nil, peer_addr)
   if err != nil {
     util.Log(0, "ERROR! DialUDP(): %v", err)
@@ -291,7 +316,7 @@ func handleConnection(peer_addr *net.UDPAddr, payload string, files map[string]s
     copy(sendbuf[2:], opts)
     sendbuf[len(sendbuf)-1] = 0 // 0-terminator
     util.Log(2, "DEBUG! TFTP: Sending OACK to %v for options %v", peer_addr, oack)
-    if !sendAndWaitForAck(udp_conn, peer_addr, sendbuf) { return }
+    if !sendAndWaitForAck(udp_conn, peer_addr, sendbuf, &retransmissions, &dups, &strays) { return }
   }
   
   
@@ -309,11 +334,11 @@ func handleConnection(peer_addr *net.UDPAddr, payload string, files map[string]s
     sendbuf[2] = byte(blockid >> 8)
     sendbuf[3] = byte(blockid & 0xff)
     copy(sendbuf[4:],data[start:start+sz])
-    if !sendAndWaitForAck(udp_conn, peer_addr, sendbuf[0:sz+4]) { return }
+    if !sendAndWaitForAck(udp_conn, peer_addr, sendbuf[0:sz+4], &retransmissions, &dups, &strays) { return }
     start += sz
     blockid++    
     if sz < blocksize { break }
   }
   
-  util.Log(1, "INFO! TFTP successfully sent %v to %v", request[0], peer_addr)
+  util.Log(1, "INFO! TFTP successfully sent %v to %v (retransmissions: %v, dups: %v, strays:%v)", request[0], peer_addr, retransmissions, dups, strays)
 }
