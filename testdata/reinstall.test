@@ -1440,7 +1440,7 @@ get http:/repo/pool/universe/v/vpnc/vpnc_0.5.3r449-2_i386.deb
 
 # NOTE!! We use ${stopwatch pkg median MB} and not ${stopwatch pkg sum MB} because if we used
 # "sum" we would get (number of clients)x(combined size of all packages).
-print Downloading packages finished (total: ${stopwatch pkg median MB} median speed: ${stopwatch pkg median MB/s})
+print Downloading packages finished (per client data: ${stopwatch pkg max MB} median speed: ${stopwatch pkg median kB/s})
 
 timeout 10 Timeouts
 
@@ -1598,5 +1598,5 @@ print Successful tests
 
 timein
 halt
-print Tests completed (median running time: ${stopwatch total median runtime})
+print Tests completed (Running time Min: ${stopwatch total min runtime}  Max: ${stopwatch total max runtime} Average: ${stopwatch total average runtime} Median: ${stopwatch total median runtime})
 banish
