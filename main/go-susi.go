@@ -32,7 +32,6 @@ import (
           "os/signal"
           "fmt"
           "net"
-          "log"
           "path"
           "time"
           "strings"
@@ -124,9 +123,9 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
     // Do not exit. We can go on without logging to a file.
   
   } else {
-    // Send log output to both stderr AND the log file
     logfile.Close() // will be re-opened on the first write
-    util.Logger = log.New(io.MultiWriter( os.Stderr, util.LogFile(logfile.Name())), "",0)
+    // Add file to loggers list. os.Stderr is on it by default.
+    util.LoggerAdd(util.LogFile(logfile.Name()))
   }
   util.LogLevel = config.LogLevel
   
