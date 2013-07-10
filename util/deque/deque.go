@@ -787,7 +787,7 @@ func (self *Deque) Put(idx int, item interface{}) interface{} {
 // all their elements in order to the Deque's current list of elements.
 // It is permissible to
 // pass the Deque itself as an argument and it is permissible to pass the same
-// Deque or slice multiple times. All Deques involed will be locked
+// Deque or slice multiple times. All Deques involved will be locked
 // for the call, so if the same Deque is listed multiple times as argument, it
 // is not possible that the resulting list contains different states of the
 // same Deque even in the presence of concurrent modifications.
