@@ -1596,6 +1596,9 @@ faimon TASKBEGIN faiend
 faimon TASKEND faiend 0
 faimon TASKEND poweroff 0
 
+timeout 0 FAIstate not set to "localboot"
+check faistate ^localboot$
+
 print Successful tests
 
 timein
