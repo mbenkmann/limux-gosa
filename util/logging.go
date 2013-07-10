@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2012 Matthias S. Benkmann
+Copyright (c) 2013 Matthias S. Benkmann
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -22,19 +22,97 @@ package util
 import (
          "io"
          "os"
-         "log"
          "fmt"
          "time"
+         "sync/atomic"
+         
+         "../util/deque"
+         "../bytes"
        )
 
-// The *log.Logger used by util.Log(). By default it simply prints logged
-// messages to Stderr without adding any kind of prefix, time, etc.
-var Logger = log.New(os.Stderr, "", 0)
+// The loggers used by util.Log(). 
+var loggers deque.Deque
+func init() { LoggerAdd(os.Stderr) }
+
+// When the length of the backlog is N times the Backlog factor, 
+// the LogLevel is reduced by N.
+var BacklogFactor = 100
+
+// ATOMIC counter for messages suppressed due to BacklogFactor
+var missingMessages int32
+
+// logEntry objects are appended via Push() and the worker goroutine processes entries
+// starting At(0). If a log entry is suppressed due to the automatic log rate limitting,
+// a nil is queued, so that it is at least recorded that there was supposed to be an
+// entry.
+var backlog deque.Deque
+
+type logEntry struct {
+  Timestamp time.Time
+  Format string
+  Args []interface{}
+}
+
+type Flushable interface {
+  Flush() error
+}
+
+type Syncable interface {
+  Sync() error
+}
 
 // Only messages with a level <= this number will be printed.
 var LogLevel = 0
 
-// Outputs a message to util.Logger formatted as with fmt.Printf().
+// Adds w to the beginning of the list of loggers. Note that any logger that blocks
+// during Write() will prevent loggers later in the list from receiving data.
+// No checking is done to see if w is already in the list.
+// If w == nil, nothing happens.
+//
+// The most efficient loggers are those that buffer data and support a Flush() or Sync()
+// operation (e.g. os.File or bufio.Writer). The background task that writes to
+// the loggers will call Flush()/Sync() whenever there is no backlog, so
+// even if the logger has a large buffer, data will only be delayed if there is
+// a backlog of messages.
+func LoggerAdd(w io.Writer) {
+  if w != nil { loggers.Insert(w) }
+}
+
+// Removes all loggers from the queue that are == to w (if any).
+// If w == nil, nothing happens.
+func LoggerRemove(w io.Writer) {
+  if w != nil { loggers.Remove(w) }
+}
+
+// Returns the number of currently active loggers (not counting those
+// suspended by LoggersSuspend())
+func LoggersCount() int {
+  count := 0
+  for ; loggers.At(count) != nil; count++ {}
+  return count
+}
+
+// Disables all loggers currently in the list of loggers until
+// LoggersRestore() is called. Loggers added later via LoggerAdd() are
+// unaffected, so this call can be used to temporarily switch to
+// a different set of loggers.
+// Multiple LoggersSuspend()/LoggersRestore() pairs may be nested.
+func LoggersSuspend() {
+  loggers.Insert(nil)
+}
+
+// Restores the loggers list at the most recent LoggersSuspend() call.
+// Loggers that were deactivated by LoggersSuspend() are reactivated and
+// all loggers added after that call are removed.
+//
+// ATTENTION! If this function is called without LoggersSuspend() having
+// been called first, all loggers will be removed.
+func LoggersRestore() {
+  for loggers.RemoveAt(0) != nil {}
+}
+
+// Outputs a message to all loggers added by LoggerAdd() formatted as
+// by fmt.Printf().
 // The level parameter assigns an importance to the message, where 0
 // is the most important (such as fatal errors) and increasing numbers
 // mark messages of lesser importance. The idea is that a message of 
@@ -47,13 +125,106 @@ var LogLevel = 0
 // developers. There is usually no need for higher levels.
 func Log(level int, format string, args ...interface{}) {
   if (level > LogLevel) { return }
-  t := time.Now()
-  message := fmt.Sprintf(format, args...)
-  output := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d %v",
-      t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), message)
-  Logger.Println(output)
-  if time.Since(t) > 1*time.Second {
-    Logger.Println("WARNING! Logger delayed for more than 1s")
+  level_reduce := backlog.Count()/BacklogFactor
+  
+  if level > (LogLevel - level_reduce) { 
+    atomic.AddInt32(&missingMessages, 1)
+    return 
+  }
+  
+  entry := logEntry{Timestamp:time.Now(), Format:format, Args:make([]interface{},len(args))}
+  
+  for i := range args {
+    switch arg := args[i].(type) {
+      case string, // for known pass-by-value types, store them directly
+           int,uint,uintptr,int8, uint8, int16, uint16, int32, uint32, int64, uint64,
+           float32, float64, complex64, complex128,
+           time.Time, time.Duration:
+           // WARNING! DO NOT ADD []byte or other slices to this case, because
+           // the actual logging is done in the background so that the data
+           // in the array underlying the slice may have changed when the slice
+           // is eventually logged.
+        entry.Args[i] = arg
+      case io.WriterTo: // special case for *xml.Hash, because it's more efficient to use WriteTo()
+        buf := new(bytes.Buffer)
+        _, err := arg.WriteTo(buf)
+        if err != nil {
+          buf.Reset()
+          entry.Args[i] = fmt.Sprintf("%v", arg)
+        } else {
+          entry.Args[i] = buf
+        }
+      default: // for unknown types, transform them to a string with %v format
+        entry.Args[i] = fmt.Sprintf("%v", arg)
+    }
+  }
+  
+  backlog.Push(entry)
+}
+
+// infinite loop that processes backlog and writes it to all loggers.
+func writeLogsLoop() {
+  for {
+    if backlog.IsEmpty() { 
+      m := atomic.LoadInt32(&missingMessages)
+      if m > 0 {
+        writeLogEntry(logEntry{Timestamp:time.Now(), Format:"%d %s", Args:[]interface{}{m,"missing message(s)"}})
+        atomic.AddInt32(&missingMessages, -m)
+      }
+      flushLogs() 
+    }
+    
+    writeLogEntry(backlog.Next().(logEntry))
+  } 
+}
+func init() { go writeLogsLoop() }
+
+// Writes entry to all loggers.
+func writeLogEntry(entry logEntry) {
+  buf := new(bytes.Buffer)
+  defer buf.Reset()
+  
+  t := entry.Timestamp
+  fmt.Fprintf(buf, "%d-%02d-%02d %02d:%02d:%02d ",
+      t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
+  
+  fmt.Fprintf(buf, entry.Format, entry.Args...)
+  
+  // free all buffers created by Log()
+  for i := range entry.Args {
+    if b, isbuf := entry.Args[i].(*bytes.Buffer); isbuf {
+      b.Reset()
+    }
+  }
+  
+  buf.WriteByte('\n')
+  writeToAllLogs(buf.Bytes())
+}
+
+// Writes data to all elements of loggers up to the first nil entry (which is
+// a mark inserted by LoggersSuspend().
+func writeToAllLogs(data []byte) {
+  for i:=0; i < loggers.Count(); i++ {
+    logger := loggers.At(i)
+    if logger == nil { break }
+    WriteAll(logger.(io.Writer), data)
+  }
+}
+
+
+// Calls Flush() for all loggers that are Flushable and Sync() for all loggers
+// that are Syncable (unless they are also Flushable).
+// The loggers list is processed up to the first nil entry
+// (see writeToAlllogs).
+func flushLogs() {
+  for i:=0; i < loggers.Count(); i++ {
+    logger := loggers.At(i)
+    if logger == nil { break }
+    if flush, flushable := logger.(Flushable); flushable {
+      flush.Flush()
+    } else if syn, syncable := logger.(Syncable); syncable {
+      syn.Sync()
+    }
   }
 }
 

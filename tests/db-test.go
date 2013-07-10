@@ -23,7 +23,6 @@ package tests
 import (
          "os"
          "fmt"
-         "log"
          "sort"
          "time"
          "bytes"
@@ -55,11 +54,10 @@ func DB_test() {
 }
 
 func faidb_test() {
-  oldlogger := util.Logger
-  defer func(){ util.Logger = oldlogger }()
+  util.LoggersSuspend()
+  defer util.LoggersRestore()
   var buffy bytes.Buffer
-  buflogger := log.New(&buffy,"",0)
-  util.Logger = buflogger
+  util.LoggerAdd(&buffy)
   
   faiclasses,_ := os.Open("testdata/faiclasses.ldif")
   x, err := xml.LdifToHash("fai", true, faiclasses)
@@ -67,6 +65,7 @@ func faidb_test() {
   config.FAIBase = "ou=fai,ou=configs,ou=systems,o=go-susi,c=de"
   db.FAIClassesCacheInit(x)
   
+  time.Sleep(200*time.Millisecond) // make sure log is written to buffer
   check(hasWords(buffy.String(),"ERROR!","does not belong to any release","cn=_fdgdfsgdsf,ou=scripts,ou=fai,ou=configs,ou=systems,o=go-susi,c=de","cn=_sadggfdsg,ou=templates,ou=fai,ou=configs,ou=systems,o=go-susi,c=de","cn=_fdsagdfagsf,ou=hooks,ou=fai,ou=configs,ou=systems,o=go-susi,c=de","cn=_fdsgffdsgfgfsdgdfg,ou=variables,ou=fai,ou=configs,ou=systems,o=go-susi,c=de", "cn=_fsdgffdgsfsd,ou=disk,ou=fai,ou=configs,ou=systems,o=go-susi,c=de", "cn=_fdlkgjdfksohgfhgfgfdjhhjfg,ou=profiles,ou=fai,ou=configs,ou=systems,o=go-susi,c=de"),"")
   
   fai1 := map[string]bool{}
@@ -225,12 +224,12 @@ func systemdb_test() {
   check(db.SystemPlainnameForMAC(Jobs[1].MAC), Jobs[1].Plainname)
   check(db.SystemPlainnameForMAC(Jobs[2].MAC), Jobs[2].Plainname)
   check(db.SystemPlainnameForMAC(Jobs[3].MAC), Jobs[3].Plainname)
-  oldlogger := util.Logger
-  defer func(){ util.Logger = oldlogger }()
+  util.LoggersSuspend()
+  defer util.LoggersRestore()
   var buffy bytes.Buffer
-  buflogger := log.New(&buffy,"",0)
-  util.Logger = buflogger
+  util.LoggerAdd(&buffy)
   check(db.SystemPlainnameForMAC("99:99:00:99:11:00"), "none")
+  time.Sleep(200*time.Millisecond) // make sure log is written to buffer
   check(strings.Index(buffy.String(),"ERROR")>0,true)
   
   check(db.SystemFullyQualifiedNameForMAC(Jobs[0].MAC), "none")
@@ -238,6 +237,7 @@ func systemdb_test() {
   
   buffy.Reset()
   check(db.SystemFullyQualifiedNameForMAC("99:99:00:99:11:00"), "none")
+  time.Sleep(200*time.Millisecond) // make sure log is written to buffer
   check(strings.Index(buffy.String(),"ERROR")>0,true)
   
   check(db.SystemFullyQualifiedNameForMAC("00:C4:d2:10:10:20"), "wikipedia-lb.esams.wikimedia.org")
@@ -253,6 +253,7 @@ func systemdb_test() {
   check(db.SystemIPAddressForName("localhost"), config.IP)
   buffy.Reset()
   check(db.SystemIPAddressForName("sdfjnsdjfbsdfjb32"), "none")
+  time.Sleep(200*time.Millisecond) // make sure log is written to buffer
   check(strings.Index(buffy.String(),"ERROR")>0,true)
   check(db.SystemIPAddressForName(config.Hostname), config.IP)
   check(db.SystemIPAddressForName("www.example.com"), "192.0.43.10")

@@ -24,17 +24,16 @@ import (
          "io"
          "os"
          "fmt"
-         "log"
          "net"
          "sort"
          "time"
-         "bytes"
          "strings"
          "math/rand"
          "io/ioutil"
          "encoding/base64"
          
          "../util"
+         "../bytes"
        )
 
 var util_test_rng = rand.New(rand.NewSource(0x0dd))
@@ -144,6 +143,9 @@ func (a *UintArray) Swap(i, j int) { (*a)[i], (*a)[j] = (*a)[j], (*a)[i] }
 // Unit tests for the package go-susi/util.
 func Util_test() {
   fmt.Printf("\n==== util ===\n\n")
+  
+  
+  testLogging()
 
   buf := make([]byte, 80)
   for i := range buf {
@@ -186,11 +188,12 @@ func Util_test() {
   }
   
   var buffy bytes.Buffer
-  oldlogger := util.Logger
-  util.Logger = log.New(&buffy, "", 0)
-  defer func(){ util.Logger = oldlogger }()
+  util.LoggersSuspend()
+  util.LoggerAdd(&buffy)
+  defer util.LoggersRestore()
   
   util.WithPanicHandler(panicker)
+  time.Sleep(200*time.Millisecond) // make sure log message is written out
   check(foobar, "bar")
   check(len(buffy.String()) > 10, true)
   
@@ -209,6 +212,7 @@ func Util_test() {
   util.SendLnTo("127.0.0.1:39390", longstr, 5 * time.Second)
   duration := time.Since(t0)
   check(duration > 4 * time.Second && duration < 6 * time.Second, true)
+  time.Sleep(200*time.Millisecond) // make sure log message is written out
   check(strings.Contains(buffy.String(), "ERROR"), true)
   
   go func() {
@@ -223,6 +227,7 @@ func Util_test() {
   util.SendLnTo("127.0.0.1:39390", longstr, 5 * time.Second)
   duration = time.Since(t0)
   check(duration < 2 * time.Second, true)
+  time.Sleep(200*time.Millisecond) // make sure log message is written out
   check(buffy.String(), "")
   
   go func() {
@@ -236,6 +241,7 @@ func Util_test() {
   util.ReadLn(conn, 5 * time.Second)
   duration = time.Since(t0)
   check(duration > 4 * time.Second && duration < 6 * time.Second, true)
+  time.Sleep(200*time.Millisecond) // make sure log message is written out
   check(strings.Contains(buffy.String(), "ERROR"), true)
   
   go func() {
@@ -250,6 +256,7 @@ func Util_test() {
   util.ReadLn(conn, 5 * time.Second)
   duration = time.Since(t0)
   check(duration > 4 * time.Second && duration < 6 * time.Second, true)
+  time.Sleep(200*time.Millisecond) // make sure log message is written out
   check(strings.Contains(buffy.String(), "ERROR"), true)
   
   go func() {
@@ -358,9 +365,11 @@ func Util_test() {
   illegal := time.Unix(0,0)
   buffy.Reset()
   check(util.ParseTimestamp(""), illegal)
+  time.Sleep(200*time.Millisecond) // make sure log message is written out
   check(strings.Contains(buffy.String(), "ERROR"), true)
   buffy.Reset()
   check(util.ParseTimestamp("20139910101010"), illegal)
+  time.Sleep(200*time.Millisecond) // make sure log message is written out
   check(strings.Contains(buffy.String(), "ERROR"), true)
   check(util.ParseTimestamp("20131110121314"), time.Date(2013, time.November, 10, 12, 13, 14, 0, time.Local))
   check(util.MakeTimestamp(util.ParseTimestamp(util.MakeTimestamp(test_time))), util.MakeTimestamp(test_time))
@@ -550,4 +559,129 @@ func testBase64() {
     for i := range buffy { buffy[i] = byte(i) }
     check(string(util.Base64EncodeString(string(buffy))), base64.StdEncoding.EncodeToString(buffy))
   }
+}
+
+type FlushableBuffer struct {
+  Buf bytes.Buffer
+  Flushes int
+  first bool
+}
+
+func (b *FlushableBuffer) Write(p []byte) (n int, err error) {
+  if !b.first {time.Sleep(1*time.Second)}
+  b.first = true
+  return b.Buf.Write(p)
+}
+
+func (b *FlushableBuffer) Flush() error {
+  b.Flushes++
+  return nil
+}
+
+type SyncableBuffer struct {
+  Buf bytes.Buffer
+  Flushes int
+  first bool
+}
+
+func (b *SyncableBuffer) Write(p []byte) (n int, err error) {
+  if !b.first {time.Sleep(1*time.Second)}
+  b.first = true
+  return b.Buf.Write(p)
+}
+
+func (b *SyncableBuffer) Sync() error {
+  b.Flushes++
+  return nil
+}
+
+func testLogging() {
+  // Check that os.Stderr is the (only) default logger
+  check(util.LoggersCount(),1)
+  util.LoggerRemove(os.Stderr)
+  check(util.LoggersCount(),0)
+  
+  // Check that default loglevel is 0
+  check(util.LogLevel, 0)
+  
+  flushy := new(FlushableBuffer)
+  synchy := new(SyncableBuffer)
+  
+  util.LoggerAdd(flushy)
+  check(util.LoggersCount(),1)
+  util.LoggerAdd(synchy)
+  check(util.LoggersCount(),2)
+  
+  util.LogLevel = 4
+  defer func(){ util.LogLevel = 0 }()
+  oldfac := util.BacklogFactor
+  defer func(){ util.BacklogFactor = oldfac }()
+  util.BacklogFactor = 4
+  
+  util.Log(0, "a0")                                 // 0
+  time.Sleep(200*time.Millisecond)
+  for i := 1; i <= 4; i++ { util.Log(i, "a%d", i) } //   1,2,3,4
+  for i := 0; i <= 4; i++ { util.Log(i, "b%d", i) } // 0,1,2,3
+  for i := 0; i <= 4; i++ { util.Log(i, "c%d", i) } // 0,1,2
+  for i := 0; i <= 4; i++ { util.Log(i, "d%d", i) } // 0,1
+  for i := 0; i <= 4; i++ { util.Log(i, "e%d", i) } // 0,1
+  util.Log(1,"x") // should be logged because when this Log() is executed, the backlog is only 15 long
+  util.Log(1,"y") // should NOT be logged after the previous "x" the backlog is 16=4*BacklogFactor long
+  
+  check(flushy.Flushes, 0)
+  check(synchy.Flushes, 0)
+  
+  time.Sleep(2*time.Second)
+  check(flushy.Flushes, 1)
+  check(synchy.Flushes, 1)
+  
+  util.Log(5, "Shouldnotbelogged!")
+  util.Log(4, "Shouldbelogged!")
+  time.Sleep(200*time.Millisecond)
+  check(flushy.Flushes, 2)
+  check(synchy.Flushes, 2)
+  
+  util.LoggersSuspend()
+  check(util.LoggersCount(),0)
+  util.LoggerAdd(os.Stderr)
+  check(util.LoggersCount(),1)
+  util.LoggersSuspend()
+  check(util.LoggersCount(),0)
+  util.Log(0, "This should disappear in the void")
+  buffy := new(bytes.Buffer)
+  util.LoggerAdd(buffy)
+  joke := "Sagt die Katze zum Verkäufer: Ich hab nicht genug Mäuse. Kann ich auch in Ratten zahlen?"
+  util.Log(0, joke)
+  time.Sleep(200*time.Millisecond)
+  check(strings.Index(buffy.String(),joke) >= 0, true)
+  
+  check(util.LoggersCount(),1)
+  util.LoggersRestore()
+  check(util.LoggersCount(),1)
+  util.LoggersRestore()
+  check(util.LoggersCount(),2)
+  
+  util.Log(0, "foo")
+  time.Sleep(200*time.Millisecond)
+  
+  lines := flushy.Buf.Split("\n")
+  for i := range lines {
+    if strings.Index(lines[i],"missing") < 0 {
+      idx := strings.LastIndex(lines[i]," ")
+      lines[i] = lines[i][idx+1:]
+    } else {
+      idx := strings.Index(lines[i]," missing")
+      lines[i] = lines[i][idx-2:idx]
+    }
+  }
+  
+  check(lines,[]string{"a0","a1","a2","a3","a4","b0","b1","b2","b3","c0","c1","c2","d0","d1","e0","e1","x","10","Shouldbelogged!","foo",""})
+  
+  
+  check(flushy.Buf.String(), synchy.Buf.String())
+  
+  
+  // Reset loggers so that only os.Stderr is a logger
+  for util.LoggersCount() > 0 { util.LoggersRestore() }
+  util.LoggerAdd(os.Stderr)
 }

@@ -22,7 +22,6 @@ MA  02110-1301, USA.
 package tests
 
 import (
-         "log"
          "fmt"
          "time"
          "bytes"
@@ -142,12 +141,11 @@ func Message_test() {
   check(error_string(<-message.Peer("broken").Ask("", "")),"missing port in address broken")
   check(error_string(<-message.Peer("doesnotexist.domain:10").Ask("", "")),"lookup doesnotexist.domain: no such host")
   
-  oldlogger := util.Logger
+  util.LoggersSuspend()
   oldloglevel := util.LogLevel
-  defer func(){ util.Logger = oldlogger; util.LogLevel = oldloglevel }()
+  defer func(){ util.LoggersRestore(); util.LogLevel = oldloglevel }()
   var buffy bytes.Buffer
-  buflogger := log.New(&buffy,"",0)
-  util.Logger = buflogger
+  util.LoggerAdd(&buffy)
   util.LogLevel = 2 // we want all messages, including INFO! and DEBUG!
   client := xml.NewHash("xml","header","new_foreign_client")
   client.Add("source",config.ServerSourceAddress)
