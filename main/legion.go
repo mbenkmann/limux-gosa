@@ -22,6 +22,7 @@ import (
           "os/exec"
           "os/signal"
           "fmt"
+          "math/rand"
           "net"
           "net/http"
           "hash"
@@ -137,6 +138,9 @@ Commands:
     Does nothing for the requested duration (in seconds). 
     Does not trigger timeout even if sleep duration is
     longer than timeout duration.
+    If <duration> is a string like "random(<seconds>)" (with no
+    spaces allowed anywhere in the string), then a random number of
+    seconds between 1 and <seconds> (inclusive) will be picked.
   
   speed <factor>
     All "sleep" durations are divided by <factor>.
@@ -1041,10 +1045,16 @@ func execSleep(clients *[]int, args []string) {
     util.Log(0, "ERROR! Too many arguments to command %v", args)
     return
   }
+  is_random := false
   sleep_str := ""
   if len(args) == 2 { sleep_str = args[1] }
+  if strings.HasPrefix(sleep_str,"random(") && strings.HasSuffix(sleep_str,")") {
+    is_random = true
+    sleep_str = sleep_str[7:len(sleep_str)-1]
+  }
+  
   if sleep_str == "" {
-    util.Log(0, "ERROR! First argument of \"sleep\" must be an integer in command %v", args)
+    util.Log(0, "ERROR! First argument of \"sleep\" must be an integer or \"random(<integer>)\" in command %v", args)
     return
   }
   
@@ -1053,10 +1063,13 @@ func execSleep(clients *[]int, args []string) {
     util.Log(0, "ERROR! Error parsing duration in command %v: %v", args, err)
     return
   }
+  
   for _, i := range *clients {
     QueueAction(i,func(d *demon){
       if !d.Skipping {
-        time.Sleep(time.Duration(sleep)*time.Second/time.Duration(Speed))
+        sleep_copy := sleep // each goroutine needs its own copy
+        if is_random { sleep_copy = rand.Intn(sleep_copy)+1 }
+        time.Sleep(time.Duration(sleep_copy)*time.Second/time.Duration(Speed))
       }
     })
   }

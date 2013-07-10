@@ -1,5 +1,5 @@
 server vts-susi
-speed 10
+#speed 10
 
 for 0 1 2
 
@@ -16,15 +16,17 @@ timeout 20 WOL failures
 wait wol
 print WOLs received
 
-sleep 36
+# BIOS bootup time with a random component of 1-6 seconds
+sleep 30
+sleep random(6)
 
-timeout 10 TFTP failure getting pxelinux.0
+timeout 60 TFTP failure getting pxelinux.0
 get tftp:/pxelinux.0
-timeout 10 TFTP failure getting pxelinux.cfg
+timeout 60 TFTP failure getting pxelinux.cfg
 get tftp:/pxelinux.cfg/${hwaddress}
-timeout 10 TFTP failure getting vmlinuz-install
+timeout 60 TFTP failure getting vmlinuz-install
 get tftp:/vmlinuz-install
-timeout 10 TFTP failure getting initrd.img-install
+timeout 60 TFTP failure getting initrd.img-install
 get tftp:/initrd.img-install
 print PXE boot done
 
