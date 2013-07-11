@@ -3,6 +3,7 @@ server vts-susi
 
 for 0 1 2
 
+ldif faistate:localboot
 summon
 print Tests running
 stopwatch total start
@@ -15,6 +16,9 @@ sleep 10
 timeout 20 WOL failures
 wait wol
 print WOLs received
+
+timeout 0 FAIstate not set to "install"
+check faistate ^install$
 
 # BIOS bootup time with a random component of 1-6 seconds
 sleep 30

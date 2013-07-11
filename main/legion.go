@@ -189,6 +189,10 @@ Commands:
     You can use ";" instead of "\n" to separate the lines in <LDIF data> ...
     This means that semicolons in attribute values require use of base64.
   
+  check <attribute> <regex>
+    If the executing client's LDAP data does not have <attribute> or none of
+    <attribute>'s values match <regex>, a timeout is triggered.
+  
   summon [ <client/range> ... ]
     Creates LDAP objects for the requested clients. Any existing LDAP objects
     will be reset to their default values (which can be set using the "ldif" 
@@ -357,6 +361,7 @@ var COMMANDS = map[string]command{"":{true,false,execUnknown},
                                   "halt":{true,false,execHalt},
                                   "speed":{true,false,execSpeed},
                                   "stopwatch":{true,false,execStopwatch},
+                                  "check":{true,false,execCheck},
                                   }
 
 type clientTime struct {
@@ -1359,6 +1364,38 @@ func execJob(clients *[]int, args []string) {
         job := xml.NewHash("xml","macaddress",d.LDAPData.Text("macaddress"))
         job.Add("timestamp", timestamp)
         gosa("job_trigger_action_"+typ, job)
+      }
+    })
+  }
+}
+
+func execCheck(clients *[]int, args []string) {
+  if len(args) != 3 {
+    util.Log(0, "ERROR! Command \"check\" takes 2 arguments (illegal command: %v)", args)
+    return
+  }
+  
+  re, err := regexp.Compile(args[2])
+  if err != nil {
+    util.Log(0, "ERROR! Could not parse regexp (illegal command: %v): %v", args, err)
+    return
+  }
+  
+  for _, i := range *clients {
+    QueueAction(i,func(d *demon){
+      if !d.Skipping {
+        state := db.SystemGetState(d.LDAPData.Text("macaddress"), args[1])
+        values := strings.Split(state,"\u241e")
+        found := false
+        for _,v := range values {
+          if re.MatchString(v) { found = true; break }
+        }
+        
+        if !found {
+          monitor.print(d, d.TimeoutMessage...)
+          d.Skipping = true
+          return
+        }
       }
     })
   }
