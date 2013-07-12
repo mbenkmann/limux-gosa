@@ -1641,7 +1641,7 @@ func execGet(clients *[]int, args []string) {
           }
             
           if err != nil {
-            util.Log(0, "WARNING! Client %v: (Attempt %v/%v) Error \"%v\" while getting \"%v\" from server %v", attempt,tries, DEMONS[d.ID], err, url, host)
+            util.Log(0, "WARNING! Client %v: (Attempt %v/%v) Error \"%v\" while getting \"%v\" from server %v", DEMONS[d.ID], attempt,tries, err, url, host)
             attempt++
             if attempt > tries {
               monitor.print(d, d.TimeoutMessage...)
