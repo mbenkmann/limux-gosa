@@ -1,7 +1,12 @@
 server vts-susi
 #speed 10
 
+
 for 0 1 2
+
+retries 2  # => try each get 3 times
+
+sleep random(10)  # randomize startup
 
 ldif faistate:localboot
 summon
@@ -11,9 +16,7 @@ stopwatch total start
 clear
 job reinstall 10
 
-sleep 10
-
-timeout 20 WOL failures
+timeout 60 WOL failures
 wait wol
 print WOLs received
 
@@ -24,25 +27,48 @@ check faistate ^install$
 sleep 30
 sleep random(6)
 
-timeout 60 TFTP failure getting pxelinux.0
+timeout 60 pxelinux.0 FAILED
 get tftp:/pxelinux.0
-timeout 60 TFTP failure getting pxelinux.cfg
+print pxelinux.0 OK
+timeout 60 pxelinux.cfg FAILED
 get tftp:/pxelinux.cfg/${hwaddress}
-timeout 60 TFTP failure getting vmlinuz-install
+print pxelinux.cfg OK
+timeout 60 vmlinuz-install FAILED
 get tftp:/vmlinuz-install
-timeout 60 TFTP failure getting initrd.img-install
+print vmlinuz-install OK
+timeout 60 initrd.img-install FAILED
 get tftp:/initrd.img-install
+print initrd.img-install OK
 print PXE boot done
 
 sleep 7
 boot
 print Booted
 
+# Registration timeout 10 is hardcoded in gosa-si-client
 timeout 10 Registration failed
+
+# 1st registration attempt
 here_i_am
 wait registered
 wait new_ldap_config
-print Registered at server
+success Registered at server
+
+# 2nd registration attempt (skipped if prior attempt successfull)
+timein Registration failed
+here_i_am
+wait registered
+wait new_ldap_config
+success Registered at server
+
+# 3rd registration attempt (skipped if prior attempt successfull)
+timein Registration failed
+here_i_am
+wait registered
+wait new_ldap_config
+success Registered at server
+
+timein Registered at server
 
 timeout 10 Timeouts
 

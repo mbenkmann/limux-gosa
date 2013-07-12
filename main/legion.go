@@ -158,6 +158,10 @@ Commands:
     replace an existing one. Use duration "0" to completely deactivate
     timing out of commands.
   
+  success [ <word> ... ]
+    Prints out <word> ... like "print", then skips to the next matching "timein"
+    command, as if a timeout had occurred (see "timeout").
+  
   timein [ <word> ... ]
     When a client is skipping commands due to "timeout" (see above), a "timein"
     with either no "word ..." arguments or with the exact same arguments as the
@@ -250,6 +254,11 @@ Commands:
     operation because the transfer time depends on the file size and network
     speed so that a useful timeout for the whole operation is hard to guess.
   
+  retries <NUM>
+    If "get" fails for any reason (including timeout), try again <NUM> times
+    before actually failing. If <NUM> is 0 (the default), only the initial
+    get attempt is made.
+  
   faimon <TYPE> [ <word> ... ]
     Sends the message "${hwaddress} <TYPE> <word> ..." to port 4711 of
     the default server and the corresponding CLMSG_<TYPE> XML message to
@@ -319,6 +328,8 @@ type demon struct {
   ID int
   Timeout time.Duration
   TimeoutMessage []string
+  SuccessTarget []string
+  Retries uint
   Skipping bool
   LDAPData *xml.Hash
   Env map[string]string
@@ -344,6 +355,7 @@ var COMMANDS = map[string]command{"":{true,false,execUnknown},
                                   "print":{true,true,execPrint},
                                   "timeout":{true,true,execTimeout},
                                   "timein":{true,true,execTimein},
+                                  "success":{true,true,execSuccess},
                                   "sleep":{true,false,execSleep},
                                   "summon":{true,false,execSummon},
                                   "banish":{true,false,execBanish},
@@ -362,6 +374,7 @@ var COMMANDS = map[string]command{"":{true,false,execUnknown},
                                   "speed":{true,false,execSpeed},
                                   "stopwatch":{true,false,execStopwatch},
                                   "check":{true,false,execCheck},
+                                  "retries":{true,false,execRetries},
                                   }
 
 type clientTime struct {
@@ -603,6 +616,7 @@ func main() {
       connectionTracker.WaitForEmpty(0)
       util.Log(1, "INFO! Last connection closed => Terminating")
       monitor.printAll()
+      util.LoggersFlush(5*time.Second)
       os.Exit(0) 
     }
   }()
@@ -896,6 +910,20 @@ func execPrint(clients *[]int, args []string) {
   }
 }
 
+func execSuccess(clients *[]int, args []string) {
+  args = args[1:] // remove first argument which is command name "success"
+  for _, i := range *clients {
+    QueueAction(i,func(d *demon){
+      if !d.Skipping {
+        args := d.expandArgs(args)
+        monitor.print(d, args...)
+        d.Skipping = true
+        d.SuccessTarget = args
+      }
+    })
+  }
+}
+
 func execHereIAm(clients *[]int, args []string) {
   if len(args) != 1 {
     util.Log(0, "ERROR! Too many arguments in command %v", args)
@@ -1080,6 +1108,27 @@ func execSleep(clients *[]int, args []string) {
   }
 }
 
+func execRetries(clients *[]int, args []string) {
+  if len(args) > 2 {
+    util.Log(0, "ERROR! Too many arguments to command %v", args)
+    return
+  }
+  
+  retries,err := strconv.ParseUint(args[1], 10, 32)
+  if err != nil {
+    util.Log(0, "ERROR! Error parsing retries count in command %v: %v", args, err)
+    return
+  }
+  
+  for _, i := range *clients {
+    QueueAction(i,func(d *demon){
+      if !d.Skipping {
+        d.Retries = uint(retries)
+      }
+    })
+  }
+}
+
 func execSpeed(clients *[]int, args []string) {
   if len(args) > 2 {
     util.Log(0, "ERROR! Too many arguments to command %v", args)
@@ -1141,13 +1190,24 @@ func execTimein(clients *[]int, args []string) {
   args = args[1:] // remove first argument which is the command name "timein"
   for _, id := range *clients {
     QueueAction(id,func(d *demon){
-      args := d.expandArgs(args)
-      eq := (len(args) == 0 || len(args) == len(d.TimeoutMessage))
-      for i := range args {
-        if i >= len(d.TimeoutMessage) { break }
-        if args[i] != d.TimeoutMessage[i] { eq = false; break; }
+      if d.Skipping {
+        args := d.expandArgs(args)
+        if d.SuccessTarget != nil {
+          eq := (len(args) == 0 || len(args) == len(d.SuccessTarget))
+          for i := range args {
+            if i >= len(d.SuccessTarget) { break }
+            if args[i] != d.SuccessTarget[i] { eq = false; break; }
+          }
+          if eq { d.Skipping = false; d.SuccessTarget = nil }
+        } else {
+          eq := (len(args) == 0 || len(args) == len(d.TimeoutMessage))
+          for i := range args {
+            if i >= len(d.TimeoutMessage) { break }
+            if args[i] != d.TimeoutMessage[i] { eq = false; break; }
+          }
+          if eq { d.Skipping = false }
+        }
       }
-      if eq { d.Skipping = false }
     })
   }
 }
@@ -1567,28 +1627,36 @@ func execGet(clients *[]int, args []string) {
         url := d.expandArg(url)
         util.Log(1,"INFO! Client %v: Getting \"%v:%v\" from server %v", DEMONS[d.ID], proto, url, host)
         
-        md5sum := MD5Summer()
-        start := time.Now()
-        var err error
-        if proto == "tftp" {
-          err = tftp.Get(host, url, md5sum, d.Timeout)
-        } else { // proto == "http"
-          err = httpGet(host, url, md5sum, d.Timeout)
-        }
-        
-        for i := range d.Stopwatches {
-          if d.Stopwatches[i].Running {
-            d.Stopwatches[i].GotBytes += md5sum.NumBytesWritten()
-            d.Stopwatches[i].GotTime += time.Since(start)
+        tries := d.Retries + 1
+        var attempt uint = 1
+        for {
+          md5sum := MD5Summer()
+          start := time.Now()
+          var err error
+          if proto == "tftp" {
+            err = tftp.Get(host, url, md5sum, d.Timeout)
+          } else { // proto == "http"
+            err = httpGet(host, url, md5sum, d.Timeout)
           }
-        }
-          
-        if err != nil {
-          util.Log(0, "WARNING! Client %v: Error \"%v\" while getting \"%v\" from server %v", DEMONS[d.ID], err, url, host)
-          monitor.print(d, d.TimeoutMessage...)
-          d.Skipping = true
-        } else {
-          util.Log(1,"INFO! %v received %v bytes with md5sum %x\n", DEMONS[d.ID], md5sum.NumBytesWritten(), md5sum.Sum(nil))
+            
+          if err != nil {
+            util.Log(0, "WARNING! Client %v: (Attempt %v/%v) Error \"%v\" while getting \"%v\" from server %v", attempt,tries, DEMONS[d.ID], err, url, host)
+            attempt++
+            if attempt > tries {
+              monitor.print(d, d.TimeoutMessage...)
+              d.Skipping = true
+              break
+            }
+          } else {
+            for i := range d.Stopwatches {
+              if d.Stopwatches[i].Running {
+                d.Stopwatches[i].GotBytes += md5sum.NumBytesWritten()
+                d.Stopwatches[i].GotTime += time.Since(start)
+              }
+            }
+            util.Log(1,"INFO! %v received %v bytes with md5sum %x\n", DEMONS[d.ID], md5sum.NumBytesWritten(), md5sum.Sum(nil))
+            break
+          }
         }
       }
     })
