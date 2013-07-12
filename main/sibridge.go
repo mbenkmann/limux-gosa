@@ -270,6 +270,7 @@ func main() {
       connectionTracker.WaitForEmpty(0)
       if !ListenForConnections { 
         util.Log(1, "INFO! Last connection closed => Terminating")
+        util.LoggersFlush(5*time.Second)
         os.Exit(0) 
       }
     }

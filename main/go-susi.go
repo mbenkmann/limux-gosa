@@ -205,6 +205,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
                        config.Shutdown()
                        util.Log(1, "INFO! Average request processing time: %v", time.Duration((atomic.LoadInt64(&message.RequestProcessingTime)+50)/100))
                        util.Log(1, "INFO! Databases have been saved => Exit program")
+                       util.LoggersFlush(5*time.Second)
                        os.Exit(0)
                     }
                     
@@ -367,6 +368,10 @@ func printStats() int {
   decrypted := message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
   x,_ := xml.StringToHash(decrypted)
   x = x.First("answer1")
+  if x == nil {
+    fmt.Fprintf(os.Stderr, "No results received!\n")
+    return 1
+  }
   for c := x.FirstChild(); c != nil; c = c.Next() {
     fmt.Println(c.Element().Name()+": "+c.Element().Text())
   }

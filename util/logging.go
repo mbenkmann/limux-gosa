@@ -111,6 +111,24 @@ func LoggersRestore() {
   for loggers.RemoveAt(0) != nil {}
 }
 
+// Does not return until all messages that have accrued up to this point
+// have been processed and all loggers that are
+// Flushable or Syncable have been flushed/synched.
+// Messages that are logged while LoggersFlush() is executing are not
+// guaranteed to be logged.
+//
+// If you pass maxwait != 0, this function will return after at most
+// this duration, even if the logs have not been flushed completely
+// up to this point.
+func LoggersFlush(maxwait time.Duration) {
+  // We push TWO dummy entries. The first one already causes a flush,
+  // but we need the second to make sure that WaitForEmpty() does not
+  // return until the flush is complete.
+  backlog.Push(logEntry{})
+  backlog.Push(logEntry{})
+  backlog.WaitForEmpty(maxwait)
+}
+
 // Outputs a message to all loggers added by LoggerAdd() formatted as
 // by fmt.Printf().
 // The level parameter assigns an importance to the message, where 0
@@ -174,7 +192,8 @@ func writeLogsLoop() {
       flushLogs() 
     }
     
-    writeLogEntry(backlog.Next().(logEntry))
+    entry := backlog.Next().(logEntry)
+    if entry.Args == nil { flushLogs() } else { writeLogEntry(entry) }
   } 
 }
 func init() { go writeLogsLoop() }
