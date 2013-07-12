@@ -1452,6 +1452,7 @@ func execCheck(clients *[]int, args []string) {
         }
         
         if !found {
+          util.Log(0, "WARNING! %v: Attribute %v is \"%v\" which does not match %v", DEMONS[d.ID], args[1], state, args[2])
           monitor.print(d, d.TimeoutMessage...)
           d.Skipping = true
           return
