@@ -22,6 +22,7 @@ print WOLs received
 
 timeout 0 FAIstate not set to "install"
 check faistate ^install$
+print faistate=install OK
 
 # BIOS bootup time with a random component of 1-6 seconds
 sleep 30
@@ -1628,6 +1629,7 @@ faimon TASKEND poweroff 0
 
 timeout 0 FAIstate not set to "localboot"
 check faistate ^localboot$
+print faistate=localboot OK
 
 print Successful tests
 
