@@ -145,7 +145,7 @@ class faiDiskEntry extends plugin
     $this->diskList->setWidth("100%");
     $this->diskList->setHeight("400px");
     $this->diskList->setColspecs(array('200px','*'));
-    $this->diskList->setHeader(array("Name",_("Description"),_("Type"),_("Mount point"),_("Options")));
+    $this->diskList->setHeader(array("Name",_("Description"),_("Type"),_("Filesystem type"),_("Mount point"),_("Mount options"),_("Options")));
     $this->diskList->setDefaultSortColumn(1);
     $this->diskList->setAcl('rwcdm'); // All ACLs, we filter on our own here.
   }
@@ -475,11 +475,13 @@ class faiDiskEntry extends plugin
     $data = $lData = array();
     foreach($this->partitions as $key => $part){
     
-      $cn       = $part['cn'];
-      $desc     = $part['description'];
-      $number   = $part['FAIpartitionNr'];
-      $size     = $part['FAIpartitionSize'];
-      $type     = $part['FAIpartitionType'];
+      $cn            = $part['cn'];
+      $desc          = $part['description'];
+      $number        = $part['FAIpartitionNr'];
+      $size          = $part['FAIpartitionSize'];
+      $type          = $part['FAIpartitionType'];
+      $fs_type       = $part['FAIfsType'];
+      $mount_options = $part['FAImountOptions'];
 
       // Remove encryption info from the mount point.
       $mnt = $part['FAImountPoint'];
@@ -505,12 +507,12 @@ class faiDiskEntry extends plugin
       // Build up info table, depending on the disk type. 
       $data[$key]=$key;
       if($this->FAIdiskType == "lvm"){
-        $lData[$key]=array('data' => array($cn,$desc,"",$mnt,$opt,$size));
+        $lData[$key]=array('data' => array($cn,$desc,"",$fs_type,$mnt,$mount_options,$opt,$size));
       }elseif($this->FAIdiskType == "raid"){
         $raid = $part['FAIpartitionType']." (".$part['FAIpartitionSize'].")";
-        $lData[$key]=array('data' => array($cn,$desc,$raid,$mnt,$opt));
+        $lData[$key]=array('data' => array($cn,$desc,$raid,$fs_type,$mnt,$mount_options,$opt));
       }else{
-        $lData[$key]=array('data' => array("",$desc,$type,$mnt,$opt,$size));
+        $lData[$key]=array('data' => array("",$desc,$type,$fs_type,$mnt,$mount_options,$opt,$size));
       }
     }
     $this->diskList->setListData($data,$lData);
