@@ -28,7 +28,7 @@ class printerPPDSelectionDialog extends plugin
         $this->ppdList->setEditable(true);
         $this->ppdList->setWidth("100%");
         $this->ppdList->setColspecs(array('*','20px'));
-        $this->ppdList->setHeight("200px");
+        $this->ppdList->setHeight("400px");
         $this->ppdList->setHeader(array(_("PPD")));
         $this->ppdList->setDefaultSortColumn(0);
     }
@@ -102,8 +102,10 @@ class printerPPDSelectionDialog extends plugin
         }
 
         //update PPD filter if searchbutton was pressed
-        if(isset($_POST["ppdSearch"]) && isset($_POST["SearchPPD"]))
-            $this->ppdFilter=set_post(get_post("ppdSearch"));
+        if(isset($_POST["txt_ppdSearch"]) && isset($_POST["btn_ppdSearch"])){
+            $this->ppdFilter=set_post(get_post("txt_ppdSearch"));
+            $this->Vendor="..";
+        }
         $smarty->assign("ppdFilter",$this->ppdFilter);
 
         $data = $lData = array();
@@ -114,7 +116,6 @@ class printerPPDSelectionDialog extends plugin
                 $data[$key] = array('TYPE' => 'VENDOR' , 'ID' => $key);
                 $lData[$key] = array('data'=>array($key));
             } 
-            $smarty->assign("mode","vnd");
 
         }else{
             $data[] = array('TYPE' => 'VENDOR' , 'ID' => '..');
@@ -134,7 +135,6 @@ class printerPPDSelectionDialog extends plugin
                     );
                 }
             }
-            $smarty->assign("mode","ppd");
         }
 
         //remove the elements which do not match the filter
@@ -142,8 +142,11 @@ class printerPPDSelectionDialog extends plugin
             $keysToWipe=array();
             foreach($lData as $key=>$val) {
                 $name=$val["data"][0];
-                if(strpos($name,$this->ppdFilter)===FALSE && $key!==0) {
-                    $keysToWipe[]=$key;
+                $needle=explode(' ', $this->ppdFilter);
+                foreach($needle as $need){
+                    if(stripos($name,$need)===FALSE && $key!==0) {
+                        $keysToWipe[]=$key;
+                    }
                 }
             }
             foreach($keysToWipe as $key) {
