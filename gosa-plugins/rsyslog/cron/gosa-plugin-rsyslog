@@ -1,0 +1,11 @@
+#!/bin/sh
+# This script is used to remove old syslog messages
+
+FILE="/etc/rsyslog.d/mysql.conf"
+USER="rsyslog"
+DB="Syslog"
+
+if [ -f $FILE ]; then
+   PW=`grep "rsyslog," $FILE | awk -F"," '{ print $4 }'`
+   mysql --host=localhost --user=$USER --password=$PW --database=$DB --execute "DELETE FROM SystemEvents WHERE ReceivedAT < subdate(curdate(), 90);"
+fi
