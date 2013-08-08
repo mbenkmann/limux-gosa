@@ -478,8 +478,8 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
           if x != nil {
             if field == "status" && x.Text() == "launch" {
               job.FirstOrAdd(field).SetText("processing")
-              // Only one job can be in status "processing" for the same machine at the same time,
-              // so remove all other local jobs in status "processing".
+              // Only one install or update job can be in status "processing" for the same machine at the same time,
+              // so remove all other local install and update jobs in status "processing".
               // NOTE: If 2 jobs launch at exactly the same time (no matter if they are the same
               // kind or not), actions will be taken for both jobs, but they will both be
               // deleted from the jobdb, even if they are install or update jobs. This is
@@ -487,8 +487,9 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
               // One could see this as a bug, in particular in the case where 2 identical jobs
               // are planned at the same time. However I don't see a reason to fix this ATM.
               local_processing := xml.FilterSimple("siserver", config.ServerSourceAddress, "macaddress", job.Text("macaddress"), "status", "processing")
+              install_or_update := xml.FilterOr([]xml.HashFilter{xml.FilterSimple("headertag", "trigger_action_reinstall"),xml.FilterSimple("headertag", "trigger_action_update")})
               not_the_new_job := xml.FilterNot(xml.FilterSimple("id", job.Text("id")))
-              JobsRemoveLocal(xml.FilterAnd([]xml.HashFilter{local_processing, not_the_new_job}), false)
+              JobsRemoveLocal(xml.FilterAnd([]xml.HashFilter{local_processing, install_or_update, not_the_new_job}), false)
               util.Log(1, "INFO! Launching job: %v",job)
               PendingActions.Push(job.Clone()) 
             } else {

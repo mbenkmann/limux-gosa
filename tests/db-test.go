@@ -256,7 +256,7 @@ func systemdb_test() {
   time.Sleep(200*time.Millisecond) // make sure log is written to buffer
   check(strings.Index(buffy.String(),"ERROR")>0,true)
   check(db.SystemIPAddressForName(config.Hostname), config.IP)
-  check(db.SystemIPAddressForName("www.example.com"), "192.0.43.10")
+  //check(db.SystemIPAddressForName("www.example.com"), "192.0.43.10")
   
   //check(db.SystemNameForIPAddress("18.9.22.169"), "www.mit.edu")
   

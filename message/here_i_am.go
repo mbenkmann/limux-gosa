@@ -87,7 +87,8 @@ func here_i_am(xmlmsg *xml.Hash) {
     
     switch (system.Text("faistate")+"12345")[0:5] {
       case "local":  local_processing := xml.FilterSimple("siserver", config.ServerSourceAddress, "macaddress", macaddress, "status", "processing")
-                     db.JobsRemoveLocal(local_processing, false) // false => re-schedule if periodic
+                     install_or_update := xml.FilterOr([]xml.HashFilter{xml.FilterSimple("headertag", "trigger_action_reinstall"),xml.FilterSimple("headertag", "trigger_action_update")})
+                     db.JobsRemoveLocal(xml.FilterAnd([]xml.HashFilter{local_processing, install_or_update}), false) // false => re-schedule if periodic
       case "reins",
            "insta": makeSureWeHaveAppropriateProcessingJob(macaddress, "trigger_action_reinstall", "none")
       case "updat",
@@ -179,11 +180,12 @@ func makeSureWeHaveAppropriateProcessingJob(macaddress, headertag, progress stri
   // If we don't already have an appropriate job with status "processing", create one
   if db.JobsQuery(xml.FilterAnd([]xml.HashFilter{local_processing, xml.FilterSimple("headertag", headertag)})).FirstChild() == nil {
   
-    // First cancel other local jobs for the same MAC in status "processing",
-    // because only one job can be processing at any time.
+    // First cancel other local install or update jobs for the same MAC in status "processing",
+    // because only one install or update job can be processing at any time.
     // NOTE: I'm not sure if clearing <periodic> is the right thing to do
     // in this case. See the corresponding note in foreign_job_updates.go
-    db.JobsRemoveLocal(local_processing, true)
+    install_or_update := xml.FilterOr([]xml.HashFilter{xml.FilterSimple("headertag", "trigger_action_reinstall"),xml.FilterSimple("headertag", "trigger_action_update")})
+    db.JobsRemoveLocal(xml.FilterAnd([]xml.HashFilter{local_processing, install_or_update}), true)
     
     // Now add the new job.
     db.JobAddLocal(job)

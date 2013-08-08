@@ -136,16 +136,19 @@ func foreign_job_updates(xmlmsg *xml.Hash) {
              Case 2: The updated job belongs to the sender
 *************************************************************************************/        
 /*2*/ } else if siserver == source {
-        // If the job is in status "processing", cancel all local jobs for the same
+        // If the job is an install or update job in status "processing", cancel all local 
+        // install or update jobs for the same
         // MAC in status "processing", because only one job can be processing at
         // any time.
         // NOTE: I'm not sure if clearing <periodic> is the right thing to do
         // in this case. I've chosen to do it like this because I'm wary of
         // situations where 2 servers might end up having the same periodic job.
         // I think a lost periodic job is better than too many.
-        if job.Text("status") == "processing" {
-          filter := xml.FilterSimple("siserver", config.ServerSourceAddress, "macaddress", macaddress, "status", "processing")
-          db.JobsRemoveLocal(filter, true)
+        if job.Text("status") == "processing" && 
+          ( job.Text("headertag") == "trigger_action_reinstall" || job.Text("headertag") == "trigger_action_update" ) {
+          local_processing := xml.FilterSimple("siserver", config.ServerSourceAddress, "macaddress", macaddress, "status", "processing")
+          install_or_update := xml.FilterOr([]xml.HashFilter{xml.FilterSimple("headertag", "trigger_action_reinstall"),xml.FilterSimple("headertag", "trigger_action_update")})
+          db.JobsRemoveLocal(xml.FilterAnd([]xml.HashFilter{local_processing, install_or_update}), true)
         }
         
         // Because the job belongs to the sender, the <id> field corresponds to

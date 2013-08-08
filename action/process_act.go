@@ -90,7 +90,10 @@ func Init() { // not init() because we need to call it from go-susi.go
                    util.Log(0, "ERROR! Unknown headertag in PendingActions for job: %v", job)
             }
             
-            if done { db.JobsRemoveLocal(xml.FilterSimple("id", job.Text("id")), false) }
+            if done { 
+              util.Log(1, "INFO! No further processing required => Removing job: %v", job)
+              db.JobsRemoveLocal(xml.FilterSimple("id", job.Text("id")), false) 
+            }
           }
         })
         
