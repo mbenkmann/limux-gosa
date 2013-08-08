@@ -79,7 +79,7 @@
 
  {else}
 
-  <div class="listContainer" id="d_scrollbody" style="min-height: 475px; height: 444px;">
+  <div class="listContainer">
 
    <table summary="{t}Entry list{/t}" style="width:100%;" cellpadding="0" cellspacing="0">
     <thead class="fixedListHeader listHeaderFormat">
