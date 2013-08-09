@@ -127,6 +127,7 @@ func detected_hardware(xmlmsg *xml.Hash) {
   // some essential attributes.
   if system.First("objectclass") == nil {
     system.Add("objectclass", "GOhard")
+    system.Add("objectclass", "FAIobject")
     if config.UnitTag != "" {
       system.Add("objectclass", "gosaAdministrativeUnitTag")
       system.Add("gosaunittag", config.UnitTag)
@@ -134,6 +135,9 @@ func detected_hardware(xmlmsg *xml.Hash) {
   }
   if system.First("gotomode") == nil {
     system.Add("gotomode", "locked")
+  }
+  if system.First("faistate") == nil {
+    system.Add("faistate", "install")
   }
   if system.First("dn") == nil {
     system.Add("dn","cn=%v,ou=incoming,%v", system.Text("cn"), config.LDAPBase)

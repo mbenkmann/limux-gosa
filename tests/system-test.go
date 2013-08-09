@@ -356,6 +356,113 @@ func SystemTest(daemon string, is_gosasi bool) {
     run_tftp_tests()
     run_new_foo_config_tests()
   }
+  
+  run_activate_new_client_test()
+}
+
+func run_activate_new_client_test() {
+  // send here_i_am for non-existing LDAP object
+  // check that we get registered
+  // check that we get detect_hardware
+  // check that job exists with status "processing", progress "hardware-detection"
+  // send detected_hardware
+  // check that LDAP object has been created
+  // send CLMSG_GOTOACTIVATION
+  // check that job exists with status "processing", progress "goto-activation"
+  // send gosa_set_activated_for_installation
+  // check that we received set_activated_for_installation
+  // check faistate "install" and gotoMode "active"
+  // check that job exists with status "processing"
+  // send progress 50
+  // check that job exists with status "processing" and progress "50"
+  // send log files
+  // check that faistate is "localboot"
+  // check that job is gone
+  
+  gosa("delete_jobdb_entry", hash("xml(where())"))
+  time.Sleep(reply_timeout)
+
+  mac := "aa:00:bb:11:cc:99"
+
+  // make sure there's no old entry from a (crashed) previous run
+  sys,_ := db.SystemGetAllDataForMAC(mac, false)
+  db.SystemReplace(sys, nil)
+  
+  hia := hash("xml(header(here_i_am)source(%v)target(%v)new_passwd(%v)mac_address(%v))", client_listen_address, config.ServerSourceAddress, keys[len(keys)-1], mac)
+  t0 := time.Now()
+  send("[ClientPackages]", hia)
+  check(waitlong(t0, "detect_hardware").XML.Text("header"),"detect_hardware")
+  check(waitlong(t0, "registered").XML.Text("header"),"registered")
+  
+  job := gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v)))clause(phrase(headertag(trigger_action_reinstall)))))",mac))
+  if check(checkTags(job, "header,source,target,session_id?,answer1"),"") {
+    check(job.First("answer1").Text("status"), "processing")
+    check(job.First("answer1").Text("progress"), "hardware-detection")
+  }
+  
+  detected_hardware := hash("xml(header(detected_hardware)source(%v))",client_listen_address)
+  dh := hash("detected_hardware(gotoModules(m1)goTOModules(m2)gotoxdriver(notemplate))")
+  detected_hardware.AddWithOwnership(dh)
+  dh2 := "<detected_hardware ghMemSize='12345' gotoLdapServer='1:ldap01.tvc.example.com:ldap://ldap01.tvc.example.com/o=go-susi,c=de' gotoSndModule=\"snd_noisemaster\"><gotoMODULES>m3</gotoMODULES><GOTOModulES>m4</GOTOModulES></detected_hardware>"
+  dh_string := strings.Replace(detected_hardware.String(),"<detected_hardware>",dh2+"<detected_hardware>",-1)
+  t0 = time.Now()
+  util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(dh_string, keys[len(keys)-1]), config.Timeout)
+  check(waitlong(t0, "set_activated_for_installation").XML,"<xml></xml>") //check that we do NOT received safi
+  check(waitlong(t0, "new_ldap_config").XML.Text("ldap_uri"), "ldap://ldap01.tvc.example.com")
+  sys,err := db.SystemGetAllDataForMAC(mac, false)
+  if check(err,nil) {
+    check(sys.Text("faistate"), "install")
+    
+    job = gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v)))clause(phrase(headertag(trigger_action_reinstall)))))",mac))
+    if check(checkTags(job, "header,source,target,session_id?,answer1"),"") {
+      check(job.First("answer1").Text("status"), "processing")
+      check(job.First("answer1").Text("progress"), "hardware-detection")
+    }
+    
+    gotoactivation := hash("xml(header(CLMSG_GOTOACTIVATION)source(%v)target(%v)macaddress(%v))", client_listen_address, config.ServerSourceAddress, mac)
+    send("CLIENT", gotoactivation)
+    
+    time.Sleep(reply_timeout)
+    
+    job = gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v)))clause(phrase(headertag(trigger_action_reinstall)))))",mac))
+    if check(checkTags(job, "header,source,target,session_id?,answer1"),"") {
+      check(job.First("answer1").Text("status"), "processing")
+      check(job.First("answer1").Text("progress"), "goto-activation")
+    }
+    
+    t0 = time.Now()
+    gosa("set_activated_for_installation", hash("xml(target(%v)macaddress(%v))",mac,mac))
+    check(waitlong(t0, "set_activated_for_installation").XML.Text("header"), "set_activated_for_installation")
+    check(db.SystemGetState(mac, "faistate"), "install")
+    check(db.SystemGetState(mac, "gotomode"), "active")
+    
+    job = gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v)))clause(phrase(headertag(trigger_action_reinstall)))))",mac))
+    if check(checkTags(job, "header,source,target,session_id?,answer1"),"") {
+      check(job.First("answer1").Text("status"), "processing")
+    }
+    
+    progress := hash("xml(header(CLMSG_PROGRESS)source(%v)target(%v)macaddress(%v)CLMSG_PROGRESS(50))", client_listen_address, config.ServerSourceAddress, mac)
+    send("CLIENT", progress)
+    
+    time.Sleep(reply_timeout)
+    
+    job = gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v)))clause(phrase(headertag(trigger_action_reinstall)))))",mac))
+    if check(checkTags(job, "header,source,target,session_id?,answer1"),"") {
+      check(job.First("answer1").Text("status"), "processing")
+      check(job.First("answer1").Text("progress"), "50")
+    }
+    
+    logs := hash("xml(header(CLMSG_save_fai_log)CLMSG_save_fai_log()source(%v)target(%v)macaddress(%v)fai_action(install))",client_listen_address, config.ServerSourceAddress, mac)
+    send("CLIENT", logs)
+    time.Sleep(reply_timeout)
+    
+    job = gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v)))clause(phrase(headertag(trigger_action_reinstall)))))",mac))
+    check(job.First("answer1"), nil)
+    
+    check(db.SystemGetState(mac, "faistate"), "localboot")
+  }
+  
+  db.SystemReplace(sys, nil)
 }
 
 func run_new_foo_config_tests() {
@@ -573,6 +680,9 @@ func run_trigger_activate_new_tests() {
     sysold.FirstOrAdd("iphostnumber").SetText(strings.SplitN(client_listen_address,":",2)[0])
     sysnew.RemoveFirst("cn")
     sysnew.RemoveFirst("dn")
+    // faistate is affected by side-effects not part of the test (deleting a job sets faistate to "localboot"), so we remove it
+    sysnew.RemoveFirst("faistate")
+    sysold.RemoveFirst("faistate")
     check(sysold, sysnew)
   }
   sys,_ = db.SystemGetAllDataForMAC(mac, false)
@@ -1051,9 +1161,10 @@ func run_detected_hardware_tests() {
   check(waitlong(t0, "new_ldap_config").XML.Text("ldap_uri"), "ldap://ldap01.tvc.example.com")
   sys,err := db.SystemGetAllDataForMAC(mac, false)
   if check(err,nil) {
-    check(checkTags(sys,"dn,cn,macaddress,gotoldapserver,objectclass+,gotosysstatus?,gotoxdriver,gotomodules+,ghmemsize,gotosndmodule,gotomode,iphostnumber"),"")
+    check(checkTags(sys,"dn,cn,faistate,macaddress,gotoldapserver,objectclass+,gotosysstatus?,gotoxdriver,gotomodules+,ghmemsize,gotosndmodule,gotomode,iphostnumber"),"")
     check(hasWords(sys.Text("cn"),config.Hostname),"")
     check(hasWords(sys.Text("dn"),"cn="+config.Hostname,"ou=incoming,"+config.LDAPBase),"")
+    check(sys.Text("faistate"),"install")
     check(sys.Text("macaddress"),mac)
     check(sys.Text("iphostnumber"),config.IP)
     modules := sys.Get("gotomodules")
@@ -1065,7 +1176,7 @@ func run_detected_hardware_tests() {
     check(sys.Text("gotomode"),"locked")
     oc := sys.Get("objectclass")
     sort.Strings(oc)
-    check(oc, []string{"GOhard"})
+    check(oc, []string{"FAIobject","GOhard"})
   }
   /*  
     TEST 2: System sends updated hardware information
@@ -1101,7 +1212,7 @@ func run_detected_hardware_tests() {
   
   sys, err = db.SystemGetAllDataForMAC(mac, false)
   if check(err,nil) {
-    check(checkTags(sys,"dn,cn,macaddress,objectclass+,gotoxmousetype,gotontpserver,gotoldapserver,gotosysstatus?,gotoxdriver,gotomodules+,ghmemsize,gotomode,iphostnumber"),"")
+    check(checkTags(sys,"dn,cn,macaddress,faistate,objectclass+,gotoxmousetype,gotontpserver,gotoldapserver,gotosysstatus?,gotoxdriver,gotomodules+,ghmemsize,gotomode,iphostnumber"),"")
     check(hasWords(sys.Text("cn"),config.Hostname),"")
     check(hasWords(sys.Text("dn"),"cn="+config.Hostname,"ou=incoming,"+config.LDAPBase),"")
     check(sys.Text("macaddress"),mac)
@@ -1115,7 +1226,7 @@ func run_detected_hardware_tests() {
     check(sys.Text("gotoxdriver"),"notemplate")
     oc := sys.Get("objectclass")
     sort.Strings(oc)
-    check(oc, []string{"GOhard"})
+    check(oc, []string{"FAIobject","GOhard"})
   }
   
   if sys != nil { 
@@ -1155,7 +1266,7 @@ func run_detected_hardware_tests() {
   sys, err = db.SystemGetAllDataForMAC(mac, false)
   if check(err,nil) {
     test3_result = sys.Clone()
-    check(checkTags(sys,"dn,cn,macaddress,objectclass+,gotosysstatus?,gotomode,iphostnumber,ghcputype,ghgfxadapter,ghmemsize,ghsoundadapter,ghusbsupport,gofonhardware,gosaunittag,gotolastuser,gotoxcolordepth,gotoxresolution,gotoxdriver,gotoxkblayout,gotoxkbmodel,gotoxkbvariant,gotoxmousetype,gotoxmouseport"),"")
+    check(checkTags(sys,"dn,cn,faistate,macaddress,objectclass+,gotosysstatus?,gotomode,iphostnumber,ghcputype,ghgfxadapter,ghmemsize,ghsoundadapter,ghusbsupport,gofonhardware,gosaunittag,gotolastuser,gotoxcolordepth,gotoxresolution,gotoxdriver,gotoxkblayout,gotoxkbmodel,gotoxkbvariant,gotoxmousetype,gotoxmouseport"),"")
     check(sys.Text("cn"),"_aa-00-bb-11-cc-99_")
     check(hasWords(sys.Text("dn"),"cn="+sys.Text("cn"),"ou=workstations,ou=systems,"+config.LDAPBase),"")
     check(sys.Text("macaddress"),mac)

@@ -201,10 +201,14 @@ func job_trigger_activate_new(xmlmsg *xml.Hash) *xml.Hash {
   // some essential attributes.
   if system.First("objectclass") == nil {
     system.Add("objectclass", "GOhard")
+    system.Add("objectclass", "FAIobject")
     if config.UnitTag != "" {
       system.Add("objectclass", "gosaAdministrativeUnitTag")
       system.Add("gosaunittag", config.UnitTag)
     }
+  }
+  if system.First("faistate") == nil {
+    system.Add("faistate", "install")
   }
   
   // gotoMode is always active

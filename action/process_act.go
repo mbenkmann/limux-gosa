@@ -118,11 +118,11 @@ func Init() { // not init() because we need to call it from go-susi.go
                  "trigger_action_reinstall": // "Neuinstallation"
                  macaddress := job.Text("macaddress")
                  faistate := db.SystemGetState(macaddress, "faiState")
-                 if strings.HasPrefix(faistate, "softupdat") || strings.HasPrefix(faistate, "install") {
+                 if faistate == "" || strings.HasPrefix(faistate, "softupdat") || strings.HasPrefix(faistate, "install") {
                    util.Log(1, "INFO! Setting faiState \"localboot\" for client with MAC %v", macaddress)
                    db.SystemSetState(macaddress, "faiState", "localboot")
                  } else if faistate != "localboot" {
-                   util.Log(1, "INFO! Leaving faiState \"%v\" alone for client with MAC %v", faistate, macaddress)
+                   util.Log(1, "INFO! Client with MAC %v has faiState \"%v\" => will NOT overwrite this with \"localboot\"", macaddress, faistate)
                  }
             
             default:
