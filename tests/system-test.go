@@ -358,6 +358,38 @@ func SystemTest(daemon string, is_gosasi bool) {
   }
   
   run_activate_new_client_test()
+  run_gosa_ping_tests()
+}
+
+func run_gosa_ping_tests() {
+  mac := "aa:00:bb:11:cc:99"
+  hia := hash("xml(header(here_i_am)source(%v)target(%v)new_passwd(%v)mac_address(%v))", client_listen_address, config.ServerSourceAddress, keys[len(keys)-1], mac)
+  send("[ClientPackages]", hia)
+  time.Sleep(reply_timeout)
+  
+  var reply string
+  conn, err := net.Dial("tcp", config.ServerSourceAddress)
+  if err != nil {
+    reply = err.Error()
+  } else {
+    util.SendLn(conn, message.GosaEncrypt("<xml><header>gosa_ping</header><source>GOSA</source><target>"+mac+"</target></xml>", config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+    reply = message.GosaDecrypt(util.ReadLn(conn, config.Timeout), config.ModuleKey["[GOsaPackages]"])
+    if reply != "" { reply = "" } else { reply = "error" }
+    conn.Close()
+  }
+  
+  check(reply, "")
+  
+  conn, err = net.Dial("tcp", config.ServerSourceAddress)
+  if err != nil {
+    reply = err.Error()
+  } else {
+    util.SendLn(conn, message.GosaEncrypt("<xml><header>gosa_ping</header><source>GOSA</source><target>0f:C3:d2:Aa:11:22</target></xml>", config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+    reply = message.GosaDecrypt(util.ReadLn(conn, config.Timeout), config.ModuleKey["[GOsaPackages]"])
+    conn.Close()
+  }
+  
+  check(reply, "")
 }
 
 func run_activate_new_client_test() {

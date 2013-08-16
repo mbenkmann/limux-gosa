@@ -160,6 +160,8 @@ func ProcessXMLMessage(xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply *
   reply = &bytes.Buffer{}
   disconnect = false
   switch xml.Text("header") {
+    case "gosa_ping":                reply.WriteString(gosa_ping(xml))
+                                     disconnect = true
     case "gosa_query_jobdb":         gosa_query_jobdb(xml).WriteTo(reply)
     case "gosa_query_fai_server":    gosa_query_fai_server(xml).WriteTo(reply)
     case "gosa_query_fai_release":   gosa_query_fai_release(xml).WriteTo(reply)
@@ -233,7 +235,7 @@ func ProcessXMLMessage(xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply *
         ErrorReplyXML("Unknown message type").WriteTo(reply)
   }
   
-  disconnect = reply.Contains("<error_string>")
+  disconnect = disconnect || reply.Contains("<error_string>")
   GosaEncryptBuffer(reply, key)
   return
 }
