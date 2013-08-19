@@ -313,6 +313,8 @@ func SystemSetStateMulti(macaddress string, attrname string, attrvalues []string
   out, err := ldapModifyAttribute(dn, "replace", attrname, attrvalues).CombinedOutput()
   if err != nil {
     return fmt.Errorf("Could not change state of object %v: %v (%v)",dn,err,string(out))
+  } else {
+    util.Log(2, "DEBUG! ldapmodify successful. Output: \"%v\"",string(out))
   }
   return nil
 }
