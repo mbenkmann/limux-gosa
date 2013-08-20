@@ -119,8 +119,12 @@ func Init() { // not init() because we need to call it from go-susi.go
                  macaddress := job.Text("macaddress")
                  faistate := db.SystemGetState(macaddress, "faiState")
                  if faistate == "" || strings.HasPrefix(faistate, "softupdat") || strings.HasPrefix(faistate, "install") {
-                   util.Log(1, "INFO! Setting faiState \"localboot\" for client with MAC %v", macaddress)
-                   db.SystemSetState(macaddress, "faiState", "localboot")
+                   if job.Text("progress") == "forward" {
+                     util.Log(1, "INFO! Job removed due to forwarding => will NOT set faiState to \"localboot\" for client with MAC %v", macaddress)
+                   } else {
+                     util.Log(1, "INFO! Setting faiState \"localboot\" for client with MAC %v", macaddress)
+                     db.SystemSetState(macaddress, "faiState", "localboot")
+                   }
                  } else if faistate != "localboot" {
                    util.Log(1, "INFO! Client with MAC %v has faiState \"%v\" => will NOT overwrite this with \"localboot\"", macaddress, faistate)
                  }
@@ -208,7 +212,8 @@ func Forward(job *xml.Hash) bool {
     return false
   }
   
-  // remove job with stop_periodic=true
+  // remove job with stop_periodic=true after setting progress="forward" to suppress forcing "localboot"
+  db.JobsModifyLocal(xml.FilterSimple("id", job.Text("id")), xml.NewHash("job","progress","forward"))
   db.JobsRemoveLocal(xml.FilterSimple("id", job.Text("id")), true)
   
   if !message.Peer(siserver).IsGoSusi() {
