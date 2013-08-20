@@ -634,9 +634,10 @@ func JobsUpdateNameForMAC(macaddress string) {
 // siserver==config.ServerSourceAddress. If any of the old jobs (as identified
 // by the combination headertag/macaddress) has no counterpart in the current
 // list of local jobs, then it will be added to the foreign_job_updates message
-// with <status>none</status><periodic>none</periodic>.
+// with <status>done</status><periodic>none</periodic>.
 //
-// If there are no jobs to update, no fju will be sent.
+// NOTE: Even if there are no jobs, an fju will be sent to make sure
+// that the target knows that our database is empty.
 func JobsSyncAll(target string, old *xml.Hash) {
   if old == nil { old = xml.NewHash("xml") }
   fju := old.Clone()
@@ -682,9 +683,8 @@ func JobsSyncAll(target string, old *xml.Hash) {
       fju.AddWithOwnership(job)
     }
     
-    if count > 1 {
-      ForeignJobUpdates <- fju
-    }
+    // NOTE: Send fju even if no jobs are present to make sure target knows that our db is empty.
+    ForeignJobUpdates <- fju
   }
   
   jobDBRequests <- &jobDBRequest{ syncall, nil, fju, nil }

@@ -2214,6 +2214,7 @@ func run_foreign_job_updates_tests() {
   
   // Now identify our test server as goSusi again
   send("[ServerPackages]", hash("xml(header(new_server)new_server()key(%v)loaded_modules(goSusi)macaddress(00:00:00:00:00:00))", keys[0]))
+  time.Sleep(4*time.Second) // make sure all full sync fjus are gone
   
   // Case 2 in foreign_job_updates.go
   // Updated job belongs to the sender (i.e. our test server)
