@@ -411,8 +411,13 @@ class application extends plugin
     /* Call common method to give check the hook */
     $message= plugin::check();
 
-    if(!preg_match("#^/#",$this->gosaApplicationExecute)){
-      $message[]=msgPool::invalid(_("Execute path"),"","","/some/path");
+
+    if ($this->gosaApplicationExecute == ""){
+      $message[]= msgPool::required(_("Execute"));
+    }
+    elseif(!preg_match("#^/#",$this->gosaApplicationExecute)){
+      $message[] = sprintf(_("The field %s must contain a valid path"), bold("Execute")).". ".
+        "<br><br> /some/path";
     }
 
     // Check if a wrong base was supplied
@@ -440,11 +445,6 @@ class application extends plugin
     if(preg_match("/[^a-z0-9_-]/",$this->cn))	{
       $message[]=msgPool::invalid(_("Name"),$this->cn,"/^[a-z0-9_-]*$/");
     }
-
-    if ($this->gosaApplicationExecute == ""){
-      $message[]= msgPool::required(_("Execute"));
-    }
-
     /* Check for existing application */
     $ldap= $this->config->get_ldap_link();
     $ldap->cd($this->config->current["BASE"]);

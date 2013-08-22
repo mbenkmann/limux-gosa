@@ -4489,3 +4489,6 @@ msgstr ""
 
 msgid "There was a problem with the selected FAIrelease. This release ('%s') is not available, release set to '%s' instead"
 msgstr "Es gab ein Problem mit dem ausgewählten FAI-Releases. Dieses Release ('%s') ist nicht verfügbar, Release wurde stattdessen auf '%s' gesetzt"
+
+msgid "The field %s must contain a valid path"
+msgstr "Das Feld %s muss einen gültigen Pfad enthalten"
