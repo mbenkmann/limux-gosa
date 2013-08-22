@@ -49,14 +49,15 @@ func Send_new_ldap_config(client_addr string, system *xml.Hash) {
       Client(client_addr).Tell(new_ntp_config, config.LocalClientMessageTTL)
     }
     
-    // if a gotoLdapServer attribute is available for the client, send
-    // a new_ldap_config message.
+    // We always send a new_ldap_config message. If a gotoLdapServer attribute
+    // is available for the client we use it, otherwise we send our own config,
+    // which in most cases will be the same as the client's.
+    new_ldap_config := xml.NewHash("xml","header","new_ldap_config")
+    new_ldap_config.Add("new_ldap_config")
+    new_ldap_config.Add("source", config.ServerSourceAddress)
+    new_ldap_config.Add("target", client_addr)
+
     if ldaps := system.Get("gotoldapserver"); len(ldaps) > 0 {
-      new_ldap_config := xml.NewHash("xml","header","new_ldap_config")
-      new_ldap_config.Add("new_ldap_config")
-      new_ldap_config.Add("source", config.ServerSourceAddress)
-      new_ldap_config.Add("target", client_addr)
-    
       for i := range ldaps {
         l := gotoLdapServerRegexp.FindStringSubmatch(ldaps[i])
         if l!=nil  && len(l) == 5 {
@@ -68,25 +69,31 @@ func Send_new_ldap_config(client_addr string, system *xml.Hash) {
           util.Log(0, "ERROR! Can't parse gotoLdapServer entry \"%v\"", ldaps[i])
         }
       }
-
-      // Send our own values instead of computing them again from the
-      // client's ldap_base. I don't see a real world situation where
-      // client and the server would have different values here.
-      if config.UnitTag != "" {
-        new_ldap_config.Add("unit_tag", config.UnitTag)
-        new_ldap_config.Add("admin_base", config.AdminBase)
-        new_ldap_config.Add("department", config.Department)
-      }
-      
-      faiclass := strings.Split(system.Text("faiclass"), ":")
-      release := ""
-      if len(faiclass) == 2 { release = faiclass[1] }
-      if release != "" {
-        new_ldap_config.Add("release", release)
-      }
-      
-      Client(client_addr).Tell(new_ldap_config.String(), config.LocalClientMessageTTL)
     }
+    
+    if new_ldap_config.First("ldap_uri") == nil {
+      util.Log(0, "WARNING! No usable LDAP config for client %v found => Sending my own config as fallback", client_addr)
+      new_ldap_config.Add("ldap_uri", config.LDAPURI)
+      new_ldap_config.Add("ldap_base", config.LDAPBase)
+    }
+
+    // Send our own values instead of computing them again from the
+    // client's ldap_base. I don't see a real world situation where
+    // client and the server would have different values here.
+    if config.UnitTag != "" {
+      new_ldap_config.Add("unit_tag", config.UnitTag)
+      new_ldap_config.Add("admin_base", config.AdminBase)
+      new_ldap_config.Add("department", config.Department)
+    }
+    
+    faiclass := strings.Split(system.Text("faiclass"), ":")
+    release := ""
+    if len(faiclass) == 2 { release = faiclass[1] }
+    if release != "" {
+      new_ldap_config.Add("release", release)
+    }
+    
+    Client(client_addr).Tell(new_ldap_config.String(), config.LocalClientMessageTTL)
   }
 }
 

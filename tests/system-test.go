@@ -1407,7 +1407,8 @@ func run_object_group_inheritance_tests() {
   t0 := time.Now()
   send("[ClientPackages]", hia)
   msg := waitlong(t0, "new_ldap_config")
-  check(msg.XML, "<xml></xml>") // no new_ldap_config should be sent because nackt has no gotoLdapServer
+  // Since issue #129 there will always be a new_ldap_config with the server's own values if the client object has none
+  //check(msg.XML, "<xml></xml>") // no new_ldap_config should be sent because nackt has no gotoLdapServer
   
   msg = waitlong(t0, "new_ntp_config")
   check(msg.XML, "<xml></xml>") // no new_ntp_config should be sent because nackt has no gotoNtpServer
