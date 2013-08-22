@@ -36,15 +36,20 @@ class userFilter extends plugin
     $this->listing = &$listing;
     $filter= $this->listing->getFilter();
 
-    // Load list of filters
+    // Load list of user's filters
     if(isset($this->attrs['gosaUserDefinedFilter'])){
       for($i=0; $i< $this->attrs['gosaUserDefinedFilter']['count']; $i++){
         $tmp = userFilter::explodeFilterString($this->attrs['gosaUserDefinedFilter'][$i]);
         if(isset($tmp['tag'])){
+          $tmp['personal'] = true;
           $this->filters[$tmp['tag']]= $tmp; 
         }
       }
     }
+
+    // Load list of other user's filters and merge
+    $foreignFilters = self::getFilter();
+    $this->filters = array_merge($foreignFilters, $this->filters);
 
     // Create the filter list
     $this->filterWidget= new sortableListing($this->filters, $this->convertFilterList());
@@ -114,7 +119,9 @@ class userFilter extends plugin
             $filter['tag'],
             htmlentities($filter['description'], ENT_COMPAT, 'UTF-8'),
             implode(", ",$filter['categories']),
-            implode(", ",$filter['flags'])));
+            implode(", ",$filter['flags'])),
+        'actions' => array('edit' => isset($filter['personal']), 'delete' => isset($filter['personal'])),
+      );
     }
     return($data); 
   }
@@ -158,6 +165,7 @@ class userFilter extends plugin
           
           // Now append the new filter object.
           $this->filters[$new_name] = $this->dialog->save();
+          $this->filters[$new_name]['personal'] = true;
           $this->dialog = NULL;
           $this->filterWidget->setListData($this->filters, $this->convertFilterList());
           $this->filterWidget->update();
@@ -184,7 +192,7 @@ class userFilter extends plugin
     $action = $this->filterWidget->getAction();
     if($action['action'] == 'delete' && count($action['targets']) == 1){
       $key= $this->filterWidget->getKey($action['targets'][0]);
-      if(isset($this->filters[$key])){
+      if(isset($this->filters[$key]) && isset($this->filters[$key]['personal'])){
         unset($this->filters[$key]);
         $this->filterWidget->update();
       }
@@ -248,6 +256,10 @@ class userFilter extends plugin
     // Build up new list of filters 
     $attrs = array();
     foreach($this->filters as $filter){
+      if (!isset($filter['personal'])) {
+        continue; # skip over filters of other users
+      }
+
       $tmp = $filter['parent'].";";
       $tmp.= implode(',', $filter['categories']).";";
       $tmp.= $filter['tag'].";";
