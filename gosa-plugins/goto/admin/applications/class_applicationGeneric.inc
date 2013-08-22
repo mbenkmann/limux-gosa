@@ -498,8 +498,11 @@ class application extends plugin
     $this->attrs["gosaApplicationIcon"]= $this->gosaApplicationIcon;
 
     /* Fix DOS line breaks in scripts */
-    $this->attrs['gotoLogonScript'] = preg_replace('/\\r\\n/', "\n", $this->attrs['gotoLogonScript']);
-    $this->attrs['gotoLogoffScript'] = preg_replace('/\\r\\n/', "\n", $this->attrs['gotoLogonScript']);
+    foreach (array('gotoLogonScript', 'gotoLogoffScript') as $script_attribute) {
+      if (isset($this->attrs[$script_attribute])) {
+        $this->attrs[$script_attribute] = preg_replace('/\\r\\n/', "\n", $this->attrs[$script_attribute]);
+      }
+    }
 
     /* Write back to ldap */
     $ldap= $this->config->get_ldap_link();
