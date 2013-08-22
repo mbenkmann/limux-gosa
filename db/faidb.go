@@ -99,6 +99,37 @@ var faiClassCache = xml.NewDB("faidb",nil,0)
 var faiClassCacheUpdateTime_mutex sync.Mutex
 var faiClassCacheUpdateTime = time.Now().Add(-1000*time.Hour)
 
+// Only the key set matters. Keys are DN fragments such as
+// "ou=plophos" and "ou=halut/2.4.0,ou=halut".
+// ATTENTION! DO NOT ACCESS WITHOUT HOLDING THE MUTEX!
+var all_releases = map[string]bool{}
+var all_releases_mutex sync.Mutex
+
+// Updates the list of all releases
+func FAIReleasesListUpdate() {
+  all_releases_mutex.Lock()
+  defer all_releases_mutex.Unlock()
+  
+  all_releases = map[string]bool{}
+  
+  // NOTE: config.UnitTagFilter is not used here because unit tag filtering is done
+  // in the FAIClasses() query.
+  x, err := xml.LdifToHash("fai", true, ldapSearchBase(config.FAIBase, "objectClass=FAIbranch","dn"))
+  if err != nil { 
+    util.Log(0, "ERROR! LDAP error while trying to determine list of FAI releases: %v", err)
+    return
+  }
+  
+  for fai := x.First("fai"); fai != nil; fai = fai.Next() {
+    dn := fai.Text("dn")
+    release := extractReleaseFromFAIClassDN("ou=foo,ou=disk,"+dn)
+    if release == "" { continue }
+    all_releases[release] = true
+  }
+  
+  util.Log(1, "INFO! FAIReleasesListUpdate() found the following releases: %v", all_releases)
+}
+
 // If the contents of the FAI classes cache are no older than age,
 // this function returns immediately. Otherwise the cache is refreshed.
 // If age is 0 the cache is refreshed unconditionally.
@@ -119,6 +150,29 @@ func FAIClassesCacheNoOlderThan(age time.Duration) {
   }
 
   FAIClassesCacheInit(x)  
+}
+
+// Takes the DN of a FAI class (e.g. cn=TURTLE,ou=disk,ou=halut/2.4.0,ou=halut,ou=fai,ou=configs,ou=systems,o=go-susi,c=de)
+// and returns a fragment of the DN that 
+// specifies the release, e.g. "ou=halut/2.4.0,ou=halut".
+// Returns "" if no release could be determined from the DN.
+// NOTE: The function only accepts DNs under config.FAIBase
+func extractReleaseFromFAIClassDN(dn string) string {
+  idx := strings.LastIndex(dn, ","+config.FAIBase)
+  if idx < 0 {
+    util.Log(0, "ERROR! Huh? I guess there's something about DNs I don't understand. \",%v\" is not a suffix of \"%v\"", config.FAIBase, dn)
+    return ""
+  }
+  
+  sub := dn[0:idx]
+  idx = strings.Index(sub,",")+1
+  idx2 := strings.Index(sub[idx:],",")+1
+  if idx == 0 || idx2 == 0 {
+    util.Log(0, "ERROR! FAI class %v does not belong to any release", dn)
+    return ""
+  }
+  release:= sub[idx+idx2:]
+  return release
 }
 
 // Parses the hash x and replaces faiClassCache with the result.
@@ -155,16 +209,15 @@ func FAIClassesCacheInit(x *xml.Hash) {
   // bit 22=1: freeze FAIvariable of the class name (implies bit 6=1)
   // bit 23=1: unused
   
+  all_releases_mutex.Lock()
+  defer all_releases_mutex.Unlock()
+  
   type info struct {
     Type int
     Tag string
   }
   class2release2info := map[string]map[string]info{}
 
-  // Only the key set matters. Keys are DN fragments such as
-  // "ou=plophos" and "ou=halut/2.4.0,ou=halut".
-  all_releases := map[string]bool{}
-  
   for fai := x.First("fai"); fai != nil; fai = fai.Next() {
     class := fai.Text("cn")
     if class == "" {
@@ -173,19 +226,9 @@ func FAIClassesCacheInit(x *xml.Hash) {
     }
     
     dn := fai.Text("dn")
-    idx := strings.LastIndex(dn, ","+config.FAIBase)
-    if idx < 0 {
-      util.Log(0, "ERROR! Huh? I guess there's something about DNs I don't understand. \",%v\" is not a suffix of \"%v\"", config.FAIBase, dn)
-      continue
-    }
-    sub := dn[0:idx]
-    idx = strings.Index(sub,",")+1
-    idx2 := strings.Index(sub[idx:],",")+1
-    if idx == 0 || idx2 == 0 {
-      util.Log(0, "ERROR! FAI class %v does not belong to any release", dn)
-      continue
-    }
-    release:= sub[idx+idx2:]
+    release := extractReleaseFromFAIClassDN(dn)
+    if release == "" { continue }
+    all_releases[release] = true // just in case FAIClassesCacheInit() is called before FAIReleasesListUpdate()
     
     typ := 0
     for _, oc := range fai.Get("objectclass") {
@@ -197,7 +240,6 @@ func FAIClassesCacheInit(x *xml.Hash) {
     if strings.Contains(state,"remove") { typ = typ << 8 }
     if strings.Contains(state,"freeze") { typ = typ | (typ << 16) }
     
-    all_releases[release] = true
     release2info := class2release2info[class]
     if release2info == nil {
       release2info := map[string]info{release:info{typ, fai.Text("gosaunittag")}}

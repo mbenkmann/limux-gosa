@@ -39,6 +39,7 @@ var hookMutex sync.Mutex
 // This happens in the background. This function does not wait for them to complete.
 func HooksExecute() {
   go util.WithPanicHandler(runHooks)
+  go util.WithPanicHandler(FAIReleasesListUpdate)
 }
 
 func runHooks() {
