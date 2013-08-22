@@ -32,6 +32,13 @@ import (
 // Handles all messages of the form "new_*_config" by calling config.NewConfigHookPath.
 //  xmlmsg: the decrypted and parsed message
 func new_foo_config(xmlmsg *xml.Hash) {
+  target := xmlmsg.Text("target")
+  if target != "" && target != config.ServerSourceAddress {
+    // See https://code.google.com/p/go-susi/issues/detail?id=126
+    util.Log(0, "WARNING! Ignoring message with incorrect target: %v", xmlmsg)
+    return
+  }
+  
   header := xmlmsg.Text("header")
   env := []string{}
   for _, tag := range xmlmsg.Subtags() {
