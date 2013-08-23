@@ -104,12 +104,19 @@ func here_i_am(xmlmsg *xml.Hash) {
     client_name := db.SystemNameForIPAddress(client_ip)
     new_name := strings.SplitN(client_name,".",2)[0]
     if config.FullQualifiedCN { new_name = client_name }
+    uses_standard_port := false
+    for _, standard_port := range config.ClientPorts {
+      if client_port == standard_port {
+        uses_standard_port = true
+        break
+      }
+    }
     
     update_name := false
     update_ip := false
     cn := system.Text("cn")
     if client_name != "none" && cn != client_name && cn != strings.SplitN(client_name,".",2)[0] {
-      if client_port != config.ClientPort {
+      if !uses_standard_port {
         util.Log(1, "INFO! Client cn (%v) does not match DNS name (%v) but client runs on non-standard port (%v) => Assuming test and will not update cn", cn, new_name, client_port)
       } else if DoNotChangeCN(system) { 
         util.Log(1, "INFO! Client cn (%v) does not match DNS name (%v) but client is blacklisted for cn updates", cn, new_name)
@@ -119,7 +126,7 @@ func here_i_am(xmlmsg *xml.Hash) {
       }
     }
     if client_ip != system.Text("iphostnumber") {
-      if system.Text("iphostnumber") != "" && client_port != config.ClientPort {
+      if system.Text("iphostnumber") != "" && !uses_standard_port {
         util.Log(1, "INFO! Client ipHostNumber (%v) does not match IP (%v) but client runs on non-standard port (%v) => Assuming test and will not update ipHostNumber", system.Text("iphostnumber"), client_ip, client_port)
       } else {
         util.Log(1, "INFO! Client ipHostNumber (%v) does not match IP (%v) => Update ipHostNumber", system.Text("iphostnumber"), client_ip)

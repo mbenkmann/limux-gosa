@@ -58,6 +58,13 @@ func ErrorReplyBuffer(msg interface{}) *bytes.Buffer {
   return &b
 }
 
+func handleServerMessage() bool {
+  if !config.RunServer {
+    util.Log(0, "WARNING! Ignoring server message because operating in client-only mode")
+  }
+  return config.RunServer
+}
+
 // Takes a possibly encrypted message in buf and processes it, returning a reply.
 // tcpAddr is the address of the message's sender.
 // Returns: 
@@ -104,7 +111,9 @@ func ProcessEncryptedMessage(buf *bytes.Buffer, tcpAddr *net.TCPAddr) (reply *by
         // special case for CLMSG_save_fai_log because this kind of message
         // is so large and parsing it to XML doesn't really gain us anything.
         if buf.Contains("<CLMSG_save_fai_log>") {
-          clmsg_save_fai_log(buf)
+          if handleServerMessage() {
+            clmsg_save_fai_log(buf)
+          }
           return &bytes.Buffer{}, false
         }
         
@@ -123,25 +132,28 @@ func ProcessEncryptedMessage(buf *bytes.Buffer, tcpAddr *net.TCPAddr) (reply *by
   // This part is only reached if none of the keys opened the message
   util.Log(0, "ERROR! Could not decrypt message from %v", tcpAddr)
   
-  // If the sender is one of our clients, maybe we got out of sync with its
-  // encryption key (e.g. by missing a new_key message). 
-  // If the sender is not one of our clients, maybe it believes it is.
-  // In either case, spam the client to cause it to re-register.
+  // Maybe we got out of sync with the sender's encryption key 
+  // (e.g. by missing a new_key message). Try to re-establish communcation.
   ip := tcpAddr.IP.To4()
   if ip == nil {
     util.Log(0, "ERROR! Cannot convert sender address to IPv4 address: %v", tcpAddr)
   } else {
-    client := db.ClientWithAddress(ip.String())
-    if client != nil {
-      util.Log(1, "INFO! Sender is a known client. Sending 'Müll' to make it re-register")
-      go util.SendLnTo(client.Text("client"), "Müll", config.Timeout)
-    } else {
-      util.Log(1, "INFO! Sender is not a known client. Trying to send 'Müll' to client port %v at sender IP %v", config.ClientPort, ip)
-      go util.SendLnTo(ip.String()+":"+config.ClientPort, "Müll", config.Timeout)
-    }
+    tryToReestablishCommunicationWith(ip.String())
   }
   
   return ErrorReplyBuffer("Could not decrypt message"), true
+}
+
+// Tries to re-establish communication with a client/server at the given IP,
+// by 
+//   1) sending (if config.RunServer) new_server messages to all standard
+//      client and server ports as well as all <source>/<client> addresses we
+//      find for the IP in our clients and servers databases.
+//   2) sending here_i_am to the server where we are registered. We do this
+//      even if config.RunServer (i.e. we are registered at ourselves) because
+//      this will trigger new_foreign_client messages sent to peers so that other
+//      servers that may believe they own us correct their data.
+func tryToReestablishCommunicationWith(ip string) {
 }
 
 // Arguments
@@ -159,80 +171,110 @@ func ProcessXMLMessage(xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply *
   
   reply = &bytes.Buffer{}
   disconnect = false
+  
+  is_client_message := true
   switch xml.Text("header") {
-    case "gosa_ping":                reply.WriteString(gosa_ping(xml))
-                                     disconnect = true
-    case "gosa_query_jobdb":         gosa_query_jobdb(xml).WriteTo(reply)
-    case "gosa_query_fai_server":    gosa_query_fai_server(xml).WriteTo(reply)
-    case "gosa_query_fai_release":   gosa_query_fai_release(xml).WriteTo(reply)
-    case "gosa_query_packages_list": pkg := gosa_query_packages_list(xml)
-                                     pkg.WriteTo(reply)
-                                     pkg.Destroy()
-    case "gosa_show_log_by_mac":     gosa_show_log_by_mac(xml).WriteTo(reply)
-    case "gosa_show_log_files_by_date_and_mac": 
-                                     gosa_show_log_files_by_date_and_mac(xml).WriteTo(reply)
-    case "gosa_get_log_file_by_date_and_mac":   
-                                     gosa_get_log_file_by_date_and_mac(xml).WriteTo(reply)
-    case "gosa_get_available_kernel":   
-                                     gosa_get_available_kernel(xml).WriteTo(reply)
-                                   
-    case "new_server":          new_server(xml)
-    case "confirm_new_server":  confirm_new_server(xml)
-    case "foreign_job_updates": foreign_job_updates(xml)
-    case "new_foreign_client":  new_foreign_client(xml)
-    case "information_sharing": information_sharing(xml)
-    case "here_i_am":           here_i_am(xml)
-    case "new_key":             new_key(xml)
-    case "detected_hardware":   detected_hardware(xml)
-    case "CLMSG_CURRENTLY_LOGGED_IN": clmsg_currently_logged_in(xml)
-    case "CLMSG_LOGIN":         clmsg_login(xml)
-    case "CLMSG_LOGOUT":        clmsg_logout(xml)
-    case "CLMSG_PROGRESS":      clmsg_progress(xml)
-    case "CLMSG_TASKDIE":       clmsg_taskdie(xml)
-    case "CLMSG_GOTOACTIVATION":clmsg_gotoactivation(xml)
     case "new_ldap_config",
          "new_ntp_config":      new_foo_config(xml)
-    case "job_set_activated_for_installation",
-         "gosa_set_activated_for_installation":
-                                gosa_set_activated_for_installation(xml)
-    case "gosa_trigger_action_lock",      // "Sperre"
-         "gosa_trigger_action_halt",      // "Anhalten"
-         "gosa_trigger_action_localboot", // "Erzwinge lokalen Start"
-         "gosa_trigger_action_reboot",    // "Neustarten"
-         "gosa_trigger_action_faireboot", // "Job abbrechen"
-         "gosa_trigger_action_activate",  // "Sperre aufheben"
-         "gosa_trigger_action_update",    // "Aktualisieren"
-         "gosa_trigger_action_reinstall", // "Neuinstallation"
-         "gosa_trigger_action_wake":      // "Aufwecken"
-                                gosa_trigger_action(xml).WriteTo(reply)
-    case "job_trigger_action_lock",      // "Sperre"
-         "job_trigger_action_halt",      // "Anhalten"
-         "job_trigger_action_localboot", // "Erzwinge lokalen Start"
-         "job_trigger_action_reboot",    // "Neustarten"
-         "job_trigger_action_faireboot", // "Job abbrechen"
-         "job_trigger_action_activate",  // "Sperre aufheben"
-         "job_trigger_action_update",    // "Aktualisieren"
-         "job_trigger_action_reinstall", // "Neuinstallation"
-         "job_trigger_action_wake":      // "Aufwecken"
-                                job_trigger_action(xml).WriteTo(reply)
-    case "gosa_trigger_activate_new",
-         "job_trigger_activate_new":
-                                job_trigger_activate_new(xml).WriteTo(reply)
-    case "gosa_send_user_msg",
-         "job_send_user_msg":   job_send_user_msg(xml).WriteTo(reply)
-    case "trigger_wake":
-                                trigger_wake(xml)
-    
-    case "gosa_delete_jobdb_entry":
-                                gosa_delete_jobdb_entry(xml).WriteTo(reply)
-    case "gosa_update_status_jobdb_entry":
-                                gosa_update_status_jobdb_entry(xml).WriteTo(reply)
     case "sistats":             sistats().WriteTo(reply)
     case "panic":               go func(){panic("Panic by user request")}()
-  default:
-        xml.SetText() // clean up excess top-level whitespace before logging
-        util.Log(0, "ERROR! ProcessXMLMessage: Unknown message type '%v'\n=======start message=======\n%v\n=======end message=======", xml.Text("header"), xml.String())
-        ErrorReplyXML("Unknown message type").WriteTo(reply)
+  default:                      
+    is_client_message = false
+  }
+  
+  is_server_message := !is_client_message
+  if is_server_message {
+    switch xml.Text("header") {
+      case "gosa_ping":                if handleServerMessage() {
+                                         reply.WriteString(gosa_ping(xml))
+                                         disconnect = true
+                                       }
+      case "gosa_query_jobdb":         if handleServerMessage() { gosa_query_jobdb(xml).WriteTo(reply) }
+      case "gosa_query_fai_server":    if handleServerMessage() { gosa_query_fai_server(xml).WriteTo(reply) }
+      case "gosa_query_fai_release":   if handleServerMessage() { gosa_query_fai_release(xml).WriteTo(reply) }
+      case "gosa_query_packages_list": if handleServerMessage() { 
+                                         pkg := gosa_query_packages_list(xml)
+                                         pkg.WriteTo(reply)
+                                         pkg.Destroy()
+                                       }
+      case "gosa_show_log_by_mac":     if handleServerMessage() { gosa_show_log_by_mac(xml).WriteTo(reply) }
+      case "gosa_show_log_files_by_date_and_mac": 
+                                       if handleServerMessage() { 
+                                         gosa_show_log_files_by_date_and_mac(xml).WriteTo(reply)
+                                       }
+      case "gosa_get_log_file_by_date_and_mac":   
+                                       if handleServerMessage() { 
+                                         gosa_get_log_file_by_date_and_mac(xml).WriteTo(reply)
+                                       }
+      case "gosa_get_available_kernel":   
+                                       if handleServerMessage() {
+                                         gosa_get_available_kernel(xml).WriteTo(reply)
+                                       }
+      case "new_server":          if handleServerMessage() { new_server(xml) }
+      case "confirm_new_server":  if handleServerMessage() { confirm_new_server(xml) }
+      case "foreign_job_updates": if handleServerMessage() { foreign_job_updates(xml) }
+      case "new_foreign_client":  if handleServerMessage() { new_foreign_client(xml) }
+      case "information_sharing": if handleServerMessage() { information_sharing(xml) }
+      case "here_i_am":           if handleServerMessage() { here_i_am(xml) }
+      case "new_key":             if handleServerMessage() { new_key(xml) }
+      case "detected_hardware":   if handleServerMessage() { detected_hardware(xml) }
+      case "CLMSG_CURRENTLY_LOGGED_IN": if handleServerMessage() { clmsg_currently_logged_in(xml) }
+      case "CLMSG_LOGIN":         if handleServerMessage() { clmsg_login(xml) }
+      case "CLMSG_LOGOUT":        if handleServerMessage() {clmsg_logout(xml) }
+      case "CLMSG_PROGRESS":      if handleServerMessage() {clmsg_progress(xml) }
+      case "CLMSG_TASKDIE":       if handleServerMessage() {clmsg_taskdie(xml) }
+      case "CLMSG_GOTOACTIVATION":if handleServerMessage() {clmsg_gotoactivation(xml) }
+      case "job_set_activated_for_installation",
+           "gosa_set_activated_for_installation":
+                                  if handleServerMessage() { gosa_set_activated_for_installation(xml) }
+      case "gosa_trigger_action_lock",      // "Sperre"
+           "gosa_trigger_action_halt",      // "Anhalten"
+           "gosa_trigger_action_localboot", // "Erzwinge lokalen Start"
+           "gosa_trigger_action_reboot",    // "Neustarten"
+           "gosa_trigger_action_faireboot", // "Job abbrechen"
+           "gosa_trigger_action_activate",  // "Sperre aufheben"
+           "gosa_trigger_action_update",    // "Aktualisieren"
+           "gosa_trigger_action_reinstall", // "Neuinstallation"
+           "gosa_trigger_action_wake":      // "Aufwecken"
+                                  if handleServerMessage() {
+                                    gosa_trigger_action(xml).WriteTo(reply)
+                                  }
+      case "job_trigger_action_lock",      // "Sperre"
+           "job_trigger_action_halt",      // "Anhalten"
+           "job_trigger_action_localboot", // "Erzwinge lokalen Start"
+           "job_trigger_action_reboot",    // "Neustarten"
+           "job_trigger_action_faireboot", // "Job abbrechen"
+           "job_trigger_action_activate",  // "Sperre aufheben"
+           "job_trigger_action_update",    // "Aktualisieren"
+           "job_trigger_action_reinstall", // "Neuinstallation"
+           "job_trigger_action_wake":      // "Aufwecken"
+                                  if handleServerMessage() {
+                                    job_trigger_action(xml).WriteTo(reply)
+                                  }
+      case "gosa_trigger_activate_new",
+           "job_trigger_activate_new":
+                                  if handleServerMessage() {
+                                    job_trigger_activate_new(xml).WriteTo(reply)
+                                  }
+      case "gosa_send_user_msg",
+           "job_send_user_msg":   if handleServerMessage() { job_send_user_msg(xml).WriteTo(reply) }
+      case "trigger_wake":        if handleServerMessage() {
+                                    trigger_wake(xml)
+                                  }
+      
+      case "gosa_delete_jobdb_entry":
+                                  if handleServerMessage() { gosa_delete_jobdb_entry(xml).WriteTo(reply) }
+      case "gosa_update_status_jobdb_entry":
+                                  if handleServerMessage() { gosa_update_status_jobdb_entry(xml).WriteTo(reply) }
+    default:
+          is_server_message = false
+    }
+  }
+  
+  if !is_server_message && !is_client_message {
+    xml.SetText() // clean up excess top-level whitespace before logging
+    util.Log(0, "ERROR! ProcessXMLMessage: Unknown message type '%v'\n=======start message=======\n%v\n=======end message=======", xml.Text("header"), xml.String())
+    ErrorReplyXML("Unknown message type").WriteTo(reply)
   }
   
   disconnect = disconnect || reply.Contains("<error_string>")

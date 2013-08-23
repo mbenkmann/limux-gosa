@@ -129,29 +129,40 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   }
   util.LogLevel = config.LogLevel
   
-  os.MkdirAll(path.Dir(config.JobDBPath), 0750)
+  if !config.RunServer {
+    util.Log(1, "INFO! No ldap-admin-dn configured => Will run in client-only mode")
+  }
+  
+  util.Log(1, "INFO! Expecting standard clients to communicate on these ports: %v", config.ClientPorts)
   
   config.ReadNetwork() // after config.ReadConfig()
-  db.ServersInit() // after config.ReadNetwork()
-  db.JobsInit() // after config.ReadConfig()
-  db.ClientsInit() // after config.ReadConfig()
   setConfigUnitTag() // after config.ReadNetwork()
   config.FAIBase = db.LDAPFAIBase()
   util.Log(1, "INFO! FAI base: %v", config.FAIBase)
-  db.HooksExecute() // after config.ReadConfig()
-  action.Init()
   
+  // ATTENTION! DO NOT MOVE THE FOLLOWING CODE FURTHER DOWN!
+  // We want to try listening on our socket as early in the program as possible,
+  // so that we can bail out if another go-susi instance is already running
+  // before potentially damaging the databases.
   tcp_addr, err := net.ResolveTCPAddr("tcp4", config.ServerListenAddress)
   if err != nil {
     util.Log(0, "ERROR! ResolveTCPAddr: %v", err)
     os.Exit(1)
   }
-
   listener, err := net.ListenTCP("tcp4", tcp_addr)
   if err != nil {
     util.Log(0, "ERROR! ListenTCP: %v", err)
     os.Exit(1)
   }
+  
+  if config.RunServer {
+    os.MkdirAll(path.Dir(config.JobDBPath), 0750)
+    db.ServersInit() // after config.ReadNetwork()
+    db.JobsInit() // after config.ReadConfig()
+    db.ClientsInit() // after config.ReadConfig()
+    db.HooksExecute() // after config.ReadConfig()
+    action.Init()
+  }  
   
   // Create channels for receiving events. 
   // The main() goroutine receives on all these channels 
@@ -161,18 +172,22 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
   util.Log(1, "INFO! Intercepting these signals: %v", signals_to_watch)
   
-  util.Log(1, "INFO! Accepting FAI monitoring messages on TCP port %v", config.FAIMonPort)
-  go faimon(":"+config.FAIMonPort)
-  
-  util.Log(1, "INFO! Accepting TFTP requests on UDP port %v", config.TFTPPort)
-  go tftp.ListenAndServe(":"+config.TFTPPort, config.TFTPFiles, config.PXELinuxCfgHookPath)
-  
   util.Log(1, "INFO! Accepting gosa-si protocol connections on TCP port %v", strings.SplitN(config.ServerSourceAddress,":",2)[1]);
   go acceptConnections(listener, tcp_connections)
   
-  go message.CheckPossibleClients()
-  go message.Broadcast_new_server()
-  go message.DistributeForeignJobUpdates()
+  if config.RunServer {
+    util.Log(1, "INFO! Accepting FAI monitoring messages on TCP port %v", config.FAIMonPort)
+    go faimon(":"+config.FAIMonPort)
+  
+    util.Log(1, "INFO! Accepting TFTP requests on UDP port %v", config.TFTPPort)
+    go tftp.ListenAndServe(":"+config.TFTPPort, config.TFTPFiles, config.PXELinuxCfgHookPath)
+
+    go message.CheckPossibleClients()
+    go message.Broadcast_new_server()
+    go message.DistributeForeignJobUpdates()
+  }
+  
+  // http server for profiling
   go func(){http.ListenAndServe("localhost:6060", nil)}()
   
   myself, err := db.SystemGetAllDataForMAC(config.MAC, true)
@@ -186,7 +201,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
                     if sig != syscall.SIGTTOU { // don't log SIGTTOU as that may cause another
                       util.Log(1, "INFO! Received signal \"%v\"", sig)
                     }
-                    if sig == syscall.SIGUSR2 { 
+                    if sig == syscall.SIGUSR2 && config.RunServer { 
                       db.HooksExecute()
                     }
                     if sig == syscall.SIGHUP || sig == syscall.SIGTERM || 
@@ -195,13 +210,15 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
                        util.Log(0, "WARNING! Shutting down!")
                        util.Log(1, "INFO! Shutting down listener")
                        listener.Close()
-                       wait := make(chan bool,16)
-                       go func(){ db.JobsShutdown(); wait<-true }()
-                       go func(){ db.ServersShutdown(); wait<-true }()
-                       go func(){ db.ClientsShutdown(); wait<-true }()
-                       <-wait // for jobdb
-                       <-wait // for serverdb
-                       <-wait // for clientdb
+                       if config.RunServer {
+                         wait := make(chan bool,16)
+                         go func(){ db.JobsShutdown(); wait<-true }()
+                         go func(){ db.ServersShutdown(); wait<-true }()
+                         go func(){ db.ClientsShutdown(); wait<-true }()
+                         <-wait // for jobdb
+                         <-wait // for serverdb
+                         <-wait // for clientdb
+                       }
                        config.Shutdown()
                        util.Log(1, "INFO! Average request processing time: %v", time.Duration((atomic.LoadInt64(&message.RequestProcessingTime)+50)/100))
                        util.Log(1, "INFO! Databases have been saved => Exit program")

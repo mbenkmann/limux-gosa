@@ -18,7 +18,6 @@ package message
 import (
          "net"
          "time"
-         "strings"
         
          "../db"
          "../xml"
@@ -33,17 +32,19 @@ import (
 func gosa_ping(xmlmsg *xml.Hash) string {
   macaddress := xmlmsg.Text("target")
   
+  portscan := false
   target := ""
   if system := db.ClientWithMAC(macaddress); system != nil {
     target = system.Text("client")
   } else
   if system := db.ServerWithMAC(macaddress); system != nil {
-    target = strings.Split(system.Text("source"),":")[0] + ":" + config.ClientPort
+    target =system.Text("source")
   } else
   if system := db.SystemFullyQualifiedNameForMAC(macaddress); system != "none" {
     addrs, err := net.LookupIP(system)
     if err == nil && len(addrs) > 0 {
-      target = addrs[0].String() + ":" + config.ClientPort
+      target = addrs[0].String()
+      portscan = true
     }
   }
   
@@ -53,16 +54,50 @@ func gosa_ping(xmlmsg *xml.Hash) string {
   }
   
   reachable := make(chan bool, 2)
-  go func() {
-    conn, err := net.Dial("tcp", target)
-    if err != nil {
+  
+  if portscan {
+    // Scan ports sequentially in one goroutine.
+    // This gives a fast reachable<-false if the network reports that all
+    // ports are unreachable. It may be slow, however, if the network simply
+    // DROPs request packages for closed ports.
+    // For this reason, see further below...
+    go func() {
+      for _, port := range config.ClientPorts {
+        conn, err := net.Dial("tcp", target+":"+port)
+        if err == nil {
+          conn.Close()
+          reachable <- true
+          return
+        }
+      }
       reachable <- false
-    } else {
-      conn.Close()
-      reachable <- true
-    }
-  }()
+    }()
     
+    // ... Scan the same ports in parallel. This gives a fast reachable<-true if
+    // at least one port is reachable.
+    for _, port := range config.ClientPorts {
+      go func(p string) {
+        conn, err := net.Dial("tcp", target+":"+p)
+        if err == nil {
+          conn.Close()
+          reachable <- true
+          return
+        }
+      }(port)
+    }
+  } else { // no portscan necessary. Use target directly.
+    go func() {
+      conn, err := net.Dial("tcp", target)
+      if err != nil {
+        reachable <- false
+      } else {
+        conn.Close()
+        reachable <- true
+      }
+    }()
+  }
+    
+  // Make sure we don't wait too long for a result.
   go func() {
     time.Sleep(100*time.Millisecond)
     reachable <- false

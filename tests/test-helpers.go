@@ -364,6 +364,9 @@ ldap-base = o=go-susi,c=de
 ldap-admin-dn = cn=admin,o=go-susi,c=de
 ldap-admin-password = password
 
+[client]
+port = 20997, 20998  20999
+
 [tftp]
 port = 20069
 /pxelinux.0 = `+tempdir+`/pxelinux.txt

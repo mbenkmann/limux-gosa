@@ -64,8 +64,11 @@ func SystemPlainnameForMAC(macaddress string) string {
     ipport := strings.SplitN(client.Text("client"),":",2)
     ip := ipport[0]
     port := ipport[1]
-    if port == config.ClientPort {
-      name = SystemNameForIPAddress(ip)
+    for _, standard_port := range config.ClientPorts {
+      if port == standard_port {
+        name = SystemNameForIPAddress(ip)
+        break
+      }
     }
   }
   

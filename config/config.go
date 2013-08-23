@@ -51,6 +51,11 @@ var ServerListenAddress = ":20081"
 // IP address part of <source> element.
 var IP = "127.0.0.1"
 
+// If this is true, go-susi will offer server functionality in addition
+// to client functionality. If false, only client functionality will
+// be available.
+var RunServer bool = true
+
 // The address sent in the <source> element.
 var ServerSourceAddress = "127.0.0.1:20081"
 
@@ -96,8 +101,11 @@ var FAIMonPort = "4711"
 // UDP Port for receiving TFTP requests
 var TFTPPort = "69"
 
-// Port for gosa-si-client.
-var ClientPort = "20083"
+// Potential ports for clients. This list is used for 2 purposes:
+//   1) to distinguish between standard clients and test clients
+//   2) to attempt contact with a client with known IP but unknown port 
+// NOTE: The server port is appended to this list by ReadConfig().
+var ClientPorts = []string{"20083"}
 
 // Maps a file name as contained in a TFTP request to the actual path on
 // the local filesystem for satisfying that request.
@@ -229,7 +237,9 @@ var LDAPURI = "ldap://localhost:389"
 var LDAPBase = "c=de"
 
 // DN of the admin user for writing to LDAP.
-var LDAPAdmin = "cn=clientmanager,ou=incoming,c=de"
+// If this is not a valid DN, RunServer will be false and only client
+// services will be offered.
+var LDAPAdmin = ""
 
 // File containing the password of the admin user for writing to LDAP.
 var LDAPAdminPasswordFile string
@@ -454,6 +464,12 @@ func ReadConfig() {
     }
   }
   
+  if client, ok:= conf["[client]"]; ok {
+    if port,ok := client["port"]; ok {
+      ClientPorts = strings.Fields(strings.Replace(port,","," ",-1))
+    }
+  }
+  
   if faimon, ok:= conf["[faimon]"]; ok {
     if port,ok := faimon["port"]; ok {
       FAIMonPort = port
@@ -472,7 +488,11 @@ func ReadConfig() {
     }
   }
   
+  if LDAPAdmin == "" {
+    RunServer = false
+  }
   
+  ClientPorts = append(ClientPorts, ServerListenAddress[strings.Index(ServerListenAddress,":")+1:])
 }
 
 // Reads network parameters.
