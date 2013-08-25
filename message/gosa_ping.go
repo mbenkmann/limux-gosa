@@ -41,9 +41,9 @@ func gosa_ping(xmlmsg *xml.Hash) string {
     target =system.Text("source")
   } else
   if system := db.SystemFullyQualifiedNameForMAC(macaddress); system != "none" {
-    addrs, err := net.LookupIP(system)
-    if err == nil && len(addrs) > 0 {
-      target = addrs[0].String()
+    addr, err := util.Resolve(system)
+    if err == nil {
+      target = addr
       portscan = true
     }
   }
