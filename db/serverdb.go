@@ -42,7 +42,7 @@ import (
 //    <key>currentserverkey</key>
 //    <key>previousserverkey</key>
 //  </xml>
-var serverDB *xml.DB
+var serverDB *xml.DB = xml.NewDB("serverdb",nil,0)
 
 // Initializes serverDB with data from the file config.ServerDBPath if it exists,
 // as well as the list of peer servers from DNS and [ServerPackages]/address.
@@ -93,27 +93,9 @@ func addServersFromConfig() {
 
 // Adds servers listed in for service tcp/gosa-si to the serverDB.
 func addServersFromDNS() {
-  var cname string
-  var addrs []*net.SRV
-  cname, addrs, err := net.LookupSRV("gosa-si", "tcp", config.Domain)
-  if err != nil {
-    util.Log(0, "ERROR! LookupSRV: %v", err) 
-    return
-  }
-  
-  if len(addrs) == 0 {
-    util.Log(1, "INFO! No other go-susi or gosa-si servers listed in DNS for domain '%v'", config.Domain)
-  } else {
-    servers := make([]string, len(addrs))
-    for i := range addrs {
-      servers[i] = fmt.Sprintf("%v:%v", strings.TrimRight(addrs[i].Target,"."), addrs[i].Port)
-    }
-    util.Log(1, "INFO! DNS lists the following %v servers: %v", cname, strings.Join(servers,", "))
-    
-    // add all servers listed in DNS to our database (skipping this server)
-    for _, server := range servers {
-      addServer(server)
-    }
+  // add all servers listed in DNS to our database (skipping this server)
+  for _, server := range config.ServersFromDNS() {
+    addServer(server)
   }
 }
 
