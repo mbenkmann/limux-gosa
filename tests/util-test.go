@@ -23,6 +23,7 @@ package tests
 import (
          "io"
          "os"
+         "os/exec"
          "fmt"
          "net"
          "sort"
@@ -144,6 +145,57 @@ func (a *UintArray) Swap(i, j int) { (*a)[i], (*a)[j] = (*a)[j], (*a)[i] }
 func Util_test() {
   fmt.Printf("\n==== util ===\n\n")
   
+  addr, err := util.Resolve("1.2.3.4")
+  check(err,nil)
+  check(addr,"1.2.3.4")
+  
+  addr, err = util.Resolve("1.2.3.4:5")
+  check(err,nil)
+  check(addr,"1.2.3.4:5")
+  
+  addr, err = util.Resolve("::1:5")
+  check(err, nil)
+  check(addr,"[::1:5]")
+  
+  addr, err = util.Resolve("localhost:65535")
+  check(err, nil)
+  check(addr, "127.0.0.1:65535")
+  
+  addr, err = util.Resolve("localhost")
+  check(err, nil)
+  check(addr, "127.0.0.1")
+  
+  addr, err = util.Resolve("::1")
+  check(err, nil)
+  check(addr, "127.0.0.1")
+  
+  addr, err = util.Resolve("[::1]")
+  check(err, nil)
+  check(addr, "127.0.0.1")
+  
+  addr, err = util.Resolve("[::1]:12345")
+  check(err, nil)
+  check(addr, "127.0.0.1:12345")
+  
+  addr, err = util.Resolve("")
+  check(hasWords(err,"no","such","host"), "")
+  check(addr, "")
+  
+  addr, err = util.Resolve(":10")
+  check(hasWords(err,"no","such","host"), "")
+  check(addr, ":10")
+  
+  h,_ := exec.Command("hostname").CombinedOutput()
+  hostname := strings.TrimSpace(string(h))
+  
+  // NOTE! The following test currently fails if hostname -I returns
+  // multiple addresses. I'll fix this when I have a test system where
+  // that's the case.
+  ipp,_ := exec.Command("hostname","-I").CombinedOutput()
+  ips := strings.TrimSpace(string(ipp))
+  addr, err = util.Resolve(hostname+":234")
+  check(err, nil)
+  check(addr, ips+":234")
   
   testLogging()
 

@@ -26,6 +26,7 @@ import (
          "net"
          "time"
          "bytes"
+         "regexp"
          "strings"
          "crypto/md5"
          "runtime/debug"
@@ -229,3 +230,61 @@ func Wake(macaddress string, host_or_net string) error {
   _, err = udpconn.Write(payload)
   return err
 }
+
+const re_1xx = "(1([0-9]?[0-9]?))"
+const re_2xx = "(2([6-9]|([0-4][0-9]?)|(5[0-5]?))?)"
+const re_xx  = "([3-9][0-9]?)"
+const re_port = "(0|([1-6][0-9]{0,4})|([7-9][0-9]{0,3}))"
+const ip_part = "(0|"+re_1xx+"|"+re_2xx+"|"+re_xx+")"
+var startsWithIPv4Regexp = regexp.MustCompile("^"+ip_part+"([.]"+ip_part+"){3}")
+var endsWithPort = regexp.MustCompile(":"+re_port+"$")
+
+// Takes either a HOST or a HOST:IP pair and replaces the HOST part with
+// that machine's IP address (preferring an IPv4 address if there is one).
+// If HOST is "localhost" or "::1", it will be replaced with "127.0.0.1".
+// If HOST is already an IPv4 address, it will be kept.
+// If there is only an IPv6 address available, it will be enclosed in "[...]"
+// in the result (even if there is no port).
+// 
+// Returns the modified address or the original address with an error.
+func Resolve(addr string) (string, error) {
+  if startsWithIPv4Regexp.MatchString(addr) { return addr, nil }
+  
+  host := addr
+  port := ""
+  var err error
+  
+  // the net.ParseIP() check tries to prevent confusing an IPv6 address for a port
+  if endsWithPort.MatchString(addr) && net.ParseIP(addr) == nil {
+    host, port, err = net.SplitHostPort(addr)
+    if err != nil { return addr, err }
+    port = ":" + port
+  }
+  
+  if host == "localhost" || host == "::1" || host == "[::1]" { 
+    return "127.0.0.1" + port, nil 
+  }
+  
+  addrs, err := net.LookupIP(host)
+  if err != nil {
+    return addr, err
+  }
+  
+  if len(addrs) == 0 { // I don't think this is possible but just in case...
+    return addr, fmt.Errorf("No IP address for %v", host)
+  }
+  
+  // try to find an IPv4 non-loopback address
+  for _, a := range addrs {
+    if !a.IsLoopback() && a.To4() != nil { return a.String() + port, nil }
+  }
+  
+  // try to find an IPv4 address (possibly loopback)
+  for _, a := range addrs {
+    if a.To4() != nil { return a.String() + port, nil }
+  }
+  
+  // take the first address (which is IPv6)
+  return "[" + addrs[0].String() + "]" + port, nil
+}
+

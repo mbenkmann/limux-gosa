@@ -421,8 +421,9 @@ var connections_mutex sync.Mutex
 // Returns a PeerConnection for talking to addr, which can be either
 // IP:ADDR or HOST:ADDR (where HOST is something that DNS can resolve).
 func Peer(addr string) *PeerConnection {
-  if addr == config.ServerSourceAddress { 
-    panic("Peer() called with my own address. This is a bug!") 
+  addr, err := util.Resolve(addr)
+  if err != nil {
+    return &PeerConnection{err:err}
   }
   
   host, port, err := net.SplitHostPort(addr)
@@ -430,16 +431,13 @@ func Peer(addr string) *PeerConnection {
     return &PeerConnection{err:err}
   }
   
-  addrs, err := net.LookupIP(host)
-  if err != nil {
-    return &PeerConnection{err:err}
-  }
+  if host == "127.0.0.1" { host = config.IP } // for consistency
   
-  if len(addrs) == 0 { // I don't think this is possible but just in case...
-    return &PeerConnection{err:fmt.Errorf("No IP address for %v",host)}
-  }
+  addr = host + ":" + port
   
-  addr = addrs[0].String() + ":" + port
+  if addr == config.ServerSourceAddress { 
+    panic("Peer() called with my own address. This is a bug!") 
+  }
   
   connections_mutex.Lock()
   defer connections_mutex.Unlock()

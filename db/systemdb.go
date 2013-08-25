@@ -175,11 +175,11 @@ func SystemCommonNameForMAC(macaddress string) string {
 // ATTENTION! This function accesses a variety of external sources
 // and may therefore take a while. If possible you should use it asynchronously.
 func SystemIPAddressForName(host string) string {
-  addrs, err := net.LookupIP(host)
-  if err != nil || len(addrs) == 0 { 
+  ip, err := util.Resolve(host)
+  if err != nil { 
     // if host already contains a domain, give up
     if strings.Index(host, ".") >= 0 {
-      util.Log(0, "ERROR! LookupIP(%v): %v", host, err)
+      util.Log(0, "ERROR! Resolve(\"%v\"): %v", host, err)
       return "none" 
     }
     
@@ -205,25 +205,8 @@ func SystemIPAddressForName(host string) string {
     return "none" 
   }
 
-  ip := addrs[0].String() // this may be an IPv6 address
-  
-  // try to find a non-loopback address
-  for _, a := range addrs {
-    if !a.IsLoopback() {
-      ip = a.String()
-      break
-    } else { 
-      ip = config.IP // translate loopback address to our own IP for consistency
-    }
-  }
-  
-  // try to find an IPv4 non-loopback address
-  for _, a := range addrs {
-    if !a.IsLoopback() && a.To4() != nil {
-      ip = a.To4().String()
-      break
-    }
-  }
+  // translate loopback address to our own IP for consistency
+  if ip == "127.0.0.1" { ip = config.IP } 
   
   return ip
 }

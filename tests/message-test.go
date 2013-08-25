@@ -59,9 +59,9 @@ func Message_test() {
   // to be reading from this channel.
   defer func(){db.ForeignJobUpdates <- nil}()
   
-  check(error_string(<-message.Peer("Broken").Ask("foo","")),"missing port in address Broken")
+  check(error_string(<-message.Peer("Broken").Ask("foo","")),"lookup Broken: no such host")
   check(error_string(<-message.Peer("192.168.250.128:55").Ask("foo","")),"PeerConnection.Ask: No key known for peer 192.168.250.128:55")
-  check(error_string(<-message.Peer("127.0.0.1:55551").Ask("foo","bar")),"dial tcp 127.0.0.1:55551: connection refused")
+  check(hasWords(error_string(<-message.Peer("127.0.0.1:55551").Ask("foo","bar")),"connection refused"),"")
   
   listen()
   defer func() {listen_stop()}()
@@ -138,7 +138,7 @@ func Message_test() {
   time.Sleep(1*time.Second)
   util.LogLevel = oldlevel
   
-  check(error_string(<-message.Peer("broken").Ask("", "")),"missing port in address broken")
+  check(error_string(<-message.Peer("broken").Ask("", "")),"lookup broken: no such host")
   check(error_string(<-message.Peer("doesnotexist.domain:10").Ask("", "")),"lookup doesnotexist.domain: no such host")
   
   util.LoggersSuspend()

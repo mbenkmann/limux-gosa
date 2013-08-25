@@ -1370,21 +1370,15 @@ func execServer(clients *[]int, args []string) {
     return
   }
   
-  port := "20081"
-  host := args[1]
-  colon := strings.Index(host,":")
-  if colon > 0 {
-    host = host[0:colon]
-    port = host[colon+1:]
-  }
-  
-  addrs, err := net.LookupIP(host)
-  if err != nil || len(addrs) == 0 {
+  host, err := util.Resolve(args[1])
+  if err != nil {
     util.Log(0, "ERROR! %v", err)
     return
   }
   
-  config.ServerSourceAddress = addrs[0].String() + ":" + port
+  if strings.Index(host,":") < 0 { host += ":20081" }
+  
+  config.ServerSourceAddress = host
   
   del := xml.NewHash("xml","where","clause","connector","or")
   clause := del.First("where").First("clause")

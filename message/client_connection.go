@@ -175,26 +175,19 @@ var client_connections = map[string]*ClientConnection{}
 var client_connections_mutex sync.Mutex
 
 // Returns a ClientConnection for talking to addr, which can be either
-// IP:ADDR or HOST:ADDR (where HOST is something that DNS can resolve).
+// IP:PORT or HOST:PORT (where HOST is something that DNS can resolve).
 func Client(addr string) *ClientConnection {
-  host, port, err := net.SplitHostPort(addr)
+  addr, err := util.Resolve(addr)
   if err != nil {
     util.Log(0, "ERROR! Client(%v): %v", addr, err)
     return &ClientConnection{addr:"127.0.0.1:0"}
   }
   
-  addrs, err := net.LookupIP(host)
+  _, _, err = net.SplitHostPort(addr)
   if err != nil {
     util.Log(0, "ERROR! Client(%v): %v", addr, err)
     return &ClientConnection{addr:"127.0.0.1:0"}
   }
-  
-  if len(addrs) == 0 { // I don't think this is possible but just in case...
-    util.Log(0, "ERROR! No IP address for %v",host)
-    return &ClientConnection{addr:"127.0.0.1:0"}
-  }
-  
-  addr = addrs[0].String() + ":" + port
   
   client_connections_mutex.Lock()
   defer client_connections_mutex.Unlock()

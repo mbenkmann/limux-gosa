@@ -25,7 +25,6 @@ import (
          "net"
          "fmt"
          "time"
-         "bytes"
          "regexp"
          "strings"
          
@@ -121,59 +120,47 @@ func addServersFromDNS() {
 // Adds server (host:port) to the database if it does not exist yet (and if it
 // is not identical to this go-susi).
 func addServer(server string) {
-    host, port, err := net.SplitHostPort(server)
-    if err != nil {
-      util.Log(0, "ERROR! Could not add peer \"%v\": %v", server, err)
-      return
+  server, err := util.Resolve(server)
+  if err != nil {
+    util.Log(0, "ERROR! util.Resolve(\"%v\"): %v", server, err)
+    return
+  }
+  ip, port, err := net.SplitHostPort(server)
+  if err != nil {
+    util.Log(0, "ERROR! net.SplitHostPort(\"%v\"): %v", server, err)
+    return
+  }
+
+  // translate loopback address to our own IP for consistency
+  if ip == "127.0.0.1" { ip = config.IP }
+  source := ip + ":" + port
+  
+  // do not add our own address
+  if source == config.ServerSourceAddress { return }
+  
+  // if we don't have an entry for the server, generate a dummy entry.
+  if len(ServerKeys(source)) == 0 {
+    // There's no point in generating a random server key. 
+    // First of all, the server key is only as secure as the ServerPackages
+    // module key (because whoever has that can decrypt the message that
+    // contains the server key).
+    // Secondly the whole gosa-si protocol is not really secure. For instance
+    // there is lots of known plaintext and no salting of messages. And the
+    // really important messages are all encrypted with fixed keys anyway.
+    // So instead of pretending more security by generating a random key,
+    // we make debugging a little easier by generating a unique key derived
+    // from the ServerPackages module key.
+    var key string
+    if ip < config.IP {
+      key = ip + config.IP
+    } else {
+      key = config.IP + ip
     }
-    addrs, err := net.LookupIP(host)
-    if err != nil || len(addrs) == 0 {
-      if err != nil {
-        util.Log(0, "ERROR! LookupIP: %v", err)
-      } else {
-        util.Log(0, "ERROR! No IP address for %v", host)
-      }
-    } else 
-    {
-      ip := addrs[0].String() // this may be an IPv6 address
-      // try to find an IPv4 address
-      for _, a := range addrs {
-        if a.To4() != nil {
-          ip = a.To4().String()
-          break
-        }
-      }
-      // translate loopback address to our own IP for consistency
-      if ip == "127.0.0.1" { ip = config.IP }
-      source := ip + ":" + port
-      
-      // do not add our own address
-      if source == config.ServerSourceAddress { return }
-      
-      // if we don't have an entry for the server, generate a dummy entry.
-      if len(ServerKeys(source)) == 0 {
-        // There's no point in generating a random server key. 
-        // First of all, the server key is only as secure as the ServerPackages
-        // module key (because whoever has that can decrypt the message that
-        // contains the server key).
-        // Secondly the whole gosa-si protocol is not really secure. For instance
-        // there is lots of known plaintext and no salting of messages. And the
-        // really important messages are all encrypted with fixed keys anyway.
-        // So instead of pretending more security by generating a random key,
-        // we make debugging a little easier by generating a unique key derived
-        // from the ServerPackages module key.
-        var key string
-        if bytes.Compare([]byte(ip), []byte(config.IP)) < 0 {
-          key = ip + config.IP
-        } else {
-          key = config.IP + ip
-        }
-        key = config.ModuleKey["[ServerPackages]"] + strings.Replace(key, ".", "", -1)
-        server_xml := xml.NewHash("xml", "source", source)
-        server_xml.Add("key", key)
-        ServerUpdate(server_xml)
-      }
-    }
+    key = config.ModuleKey["[ServerPackages]"] + strings.Replace(key, ".", "", -1)
+    server_xml := xml.NewHash("xml", "source", source)
+    server_xml.Add("key", key)
+    ServerUpdate(server_xml)
+  }
 }
 
 // Updates the data for server.
