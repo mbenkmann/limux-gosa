@@ -136,9 +136,6 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   util.Log(1, "INFO! Expecting standard clients to communicate on these ports: %v", config.ClientPorts)
   
   config.ReadNetwork() // after config.ReadConfig()
-  setConfigUnitTag() // after config.ReadNetwork()
-  config.FAIBase = db.LDAPFAIBase()
-  util.Log(1, "INFO! FAI base: %v", config.FAIBase)
   
   // ATTENTION! DO NOT MOVE THE FOLLOWING CODE FURTHER DOWN!
   // We want to try listening on our socket as early in the program as possible,
@@ -156,6 +153,9 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   }
   
   if config.RunServer {
+    setConfigUnitTag() // after config.ReadNetwork()
+    config.FAIBase = db.LDAPFAIBase()
+    util.Log(1, "INFO! FAI base: %v", config.FAIBase)
     os.MkdirAll(path.Dir(config.JobDBPath), 0750)
     db.ServersInit() // after config.ReadNetwork()
     db.JobsInit() // after config.ReadConfig()
@@ -190,9 +190,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   // http server for profiling
   go func(){http.ListenAndServe("localhost:6060", nil)}()
   
-  myself, err := db.SystemGetAllDataForMAC(config.MAC, true)
-  if err != nil { util.Log(0, "ERROR! Error getting my own LDAP object: %v", err) }
-  go func(){message.Send_new_ldap_config(config.ServerSourceAddress, myself)}()
+  go message.RegistrationHandler()
 
   /********************  main event loop ***********************/  
   for{ 
