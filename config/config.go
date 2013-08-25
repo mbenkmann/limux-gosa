@@ -127,6 +127,9 @@ func init() {
 // host:port addresses of peer servers read from config file.
 var PeerServers = []string{}
 
+// The preferred server to register at when in client-only mode.
+var PreferredServer = ""
+
 // This machine's hostname.
 var Hostname = "localhost"
 
@@ -421,26 +424,15 @@ func ReadConfig() {
     }
   }
   
-  if serverpackages, ok := conf["[ServerPackages]"]; ok {
-    if addresses, ok := serverpackages["address"]; ok && addresses != "" {
-      PeerServers = append(PeerServers, strings.Fields(strings.Replace(addresses,","," ",-1))...)
-    }
-    if dnslookup, ok := serverpackages["dns-lookup"]; ok {
+  if server, ok:= conf["[server]"]; ok {
+    
+    if dnslookup, ok := server["dns-lookup"]; ok {
       dnslookup = strings.TrimSpace(dnslookup)
       if dnslookup != "false" && dnslookup != "true" {
-        util.Log(0, "ERROR! ReadConfig: [ServerPackages]/dns-lookup must be \"true\" or \"false\", not \"%v\"", dnslookup)
+        util.Log(0, "ERROR! ReadConfig: [server]/dns-lookup must be \"true\" or \"false\", not \"%v\"", dnslookup)
       }
       DNSLookup = (dnslookup == "true")
     }
-    if lookupdomains, ok := serverpackages["domains"]; ok {
-      for _, dom := range strings.Fields(strings.Replace(lookupdomains,","," ",-1)) {
-        if dom[0] != '.' { dom = "." + dom }
-        LookupDomains = append(LookupDomains, dom)
-      }
-    }
-  }
-  
-  if server, ok:= conf["[server]"]; ok {
     
     if port,ok := server["port"]; ok {
       port = strings.TrimSpace(port)
@@ -468,6 +460,15 @@ func ReadConfig() {
     if port,ok := client["port"]; ok {
       ClientPorts = strings.Fields(strings.Replace(port,","," ",-1))
     }
+    
+    if ip,ok := client["ip"]; ok {
+      pref, err := util.Resolve(ip)
+      if err != nil {
+        util.Log(0, "ERROR! Could not resolve [client]/ip value \"%v\": ",ip, err)
+      } else {
+        PreferredServer = pref
+      }
+    }
   }
   
   if faimon, ok:= conf["[faimon]"]; ok {
@@ -484,6 +485,28 @@ func ReadConfig() {
     for tftp_path, real_path := range tftp {
       if len(tftp_path) > 1 && tftp_path[0] == '/' {
         TFTPFiles[tftp_path[1:]] = real_path
+      }
+    }
+  }
+  
+  // The [ServerPackages] section must be evaluated AFTER the [server]
+  // section, because the manual says that [ServerPackages]/dns-lookup takes
+  // precedence over [server]/dns-lookup.
+  if serverpackages, ok := conf["[ServerPackages]"]; ok {
+    if addresses, ok := serverpackages["address"]; ok && addresses != "" {
+      PeerServers = append(PeerServers, strings.Fields(strings.Replace(addresses,","," ",-1))...)
+    }
+    if dnslookup, ok := serverpackages["dns-lookup"]; ok {
+      dnslookup = strings.TrimSpace(dnslookup)
+      if dnslookup != "false" && dnslookup != "true" {
+        util.Log(0, "ERROR! ReadConfig: [ServerPackages]/dns-lookup must be \"true\" or \"false\", not \"%v\"", dnslookup)
+      }
+      DNSLookup = (dnslookup == "true")
+    }
+    if lookupdomains, ok := serverpackages["domains"]; ok {
+      for _, dom := range strings.Fields(strings.Replace(lookupdomains,","," ",-1)) {
+        if dom[0] != '.' { dom = "." + dom }
+        LookupDomains = append(LookupDomains, dom)
       }
     }
   }
@@ -613,6 +636,29 @@ func ReadNetwork() {
   
   util.Log(1, "INFO! Hostname: %v  Domain: %v  MAC: %v  Server: %v", Hostname, Domain, MAC, ServerSourceAddress)
 }
+
+// Returns the gosa-si servers listed in DNS.
+func ServersFromDNS() []string {
+  var cname string
+  var addrs []*net.SRV
+  cname, addrs, err := net.LookupSRV("gosa-si", "tcp", Domain)
+  if err != nil {
+    util.Log(0, "ERROR! LookupSRV: %v", err) 
+    return []string{}
+  }
+  
+  servers := make([]string, len(addrs))
+  if len(addrs) == 0 {
+    util.Log(1, "INFO! No other go-susi or gosa-si servers listed in DNS for domain '%v'", Domain)
+  } else {
+    for i := range addrs {
+      servers[i] = fmt.Sprintf("%v:%v", strings.TrimRight(addrs[i].Target,"."), addrs[i].Port)
+    }
+    util.Log(1, "INFO! DNS lists the following %v servers: %v", cname, strings.Join(servers,", "))
+  }
+  return servers
+}
+
 
 func Shutdown() {
   util.Log(1, "INFO! Removing temporary directory %v", TempDir)
