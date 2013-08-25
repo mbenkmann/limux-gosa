@@ -30,6 +30,55 @@ import (
 
 var gotoLdapServerRegexp = regexp.MustCompile("^([0-9]+):([^:]+):([^:/]+:/{0,2}[^/]+)/(.*)$")
 
+// Partially handles the message "new_ldap_config", then passes it on to
+// new_foo_config().
+//  xmlmsg: the decrypted and parsed message
+func new_ldap_config(xmlmsg *xml.Hash) {
+  target := xmlmsg.Text("target")
+  if target != "" && target != config.ServerSourceAddress {
+    // See https://code.google.com/p/go-susi/issues/detail?id=126
+    util.Log(0, "WARNING! Ignoring message with incorrect target: %v", xmlmsg)
+    return
+  }
+  
+  ldap_uri   := ""
+  if ldap := xmlmsg.First("ldap_uri"); ldap != nil {
+    ldap_uri = ldap.Text()
+  }
+  admin_base := xmlmsg.Text("admin_base")
+  department := xmlmsg.Text("department")
+  ldap_base  := xmlmsg.Text("ldap_base")
+  unit_tag   := xmlmsg.Text("unit_tag")
+  
+  // NOTE: The tests config.FOO != FOO may seem pointless but don't forget that
+  // even when the strings compare as equal, they are different pointers.
+  // The additional test avoids unnecessary memory
+  // writes which is a precaution against race conditions because we do not use
+  // locking when accessing these variables.
+  // In particular this avoids unsafe writes to these variables when we receive
+  // the new_ldap_config message we send to ourselves after registering at ourselves.
+  if ldap_uri   != "" && config.LDAPURI  != ldap_uri  { config.LDAPURI  = ldap_uri  }
+  if ldap_base  != "" && config.LDAPBase != ldap_base { config.LDAPBase = ldap_base }
+  
+  if unit_tag == "" {
+    if config.UnitTag != "" {
+      config.UnitTag = ""
+      config.UnitTagFilter = ""
+      config.AdminBase = ""
+      config.Department = ""
+    }
+  } else {
+    if config.UnitTag != unit_tag { 
+      config.UnitTag = unit_tag
+      config.UnitTagFilter = "(gosaUnitTag="+config.UnitTag+")"
+    }
+    if admin_base != "" && config.AdminBase  != admin_base { config.AdminBase = admin_base }
+    if department != "" && config.Department != department { config.Department = department }
+  }
+  
+  new_foo_config(xmlmsg)
+}
+
 // If system == nil or <xml></xml>, this function does nothing; otherwise it
 // takes the information from system (format as returned by db.SystemGetAllDataForMAC())
 // and sends new_ldap_config and new_ntp_config messages to client_addr (IP:PORT).
