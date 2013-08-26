@@ -57,6 +57,7 @@ Architecture: any
 Depends: ldap-utils, libc6
 Conflicts: gosa-si-server, gosa-si-client, gosa-si-common
 Replaces: gosa-si-server, gosa-si-client, gosa-si-common
+Provides: gosa-si-server, gosa-si-client, gosa-si-common
 Suggests: gosa, tidy
 Description: Support infrastructure daemon for GOsa
  A stable and fast replacement for gosa-si-server/gosa-si-client, the
