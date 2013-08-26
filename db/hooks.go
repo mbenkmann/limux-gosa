@@ -23,6 +23,7 @@ package db
 import (
          "sync"
          "time"
+         "os"
          "os/exec"
          "runtime"
          
@@ -62,7 +63,9 @@ func runHooks() {
 func KernelListHook() {
   start := time.Now()
   util.Log(1, "INFO! Running kernel-list-hook %v", config.KernelListHookPath)
-  klist, err := xml.LdifToHash("kernel", true, exec.Command(config.KernelListHookPath))
+  cmd := exec.Command(config.KernelListHookPath)
+  cmd.Env = append(config.HookEnvironment(), os.Environ()...)
+  klist, err := xml.LdifToHash("kernel", true, cmd)
   if err != nil {
     util.Log(0, "ERROR! kernel-list-hook %v: %v", config.KernelListHookPath, err)
     return
@@ -131,7 +134,9 @@ func PackageListHook() {
   timestamp := util.MakeTimestamp(start)
 
   util.Log(1, "INFO! Running package-list-hook %v", config.PackageListHookPath)
-  plist, err := xml.LdifToHash("pkg", true, exec.Command(config.PackageListHookPath), packageListFormat...)
+  cmd := exec.Command(config.PackageListHookPath)
+  cmd.Env = append(config.HookEnvironment(), os.Environ()...)
+  plist, err := xml.LdifToHash("pkg", true, cmd, packageListFormat...)
   if err != nil {
     util.Log(0, "ERROR! package-list-hook %v: %v", config.PackageListHookPath, err)
     return

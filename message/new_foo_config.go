@@ -40,7 +40,7 @@ func new_foo_config(xmlmsg *xml.Hash) {
   }
   
   header := xmlmsg.Text("header")
-  env := []string{}
+  env := config.HookEnvironment()
   for _, tag := range xmlmsg.Subtags() {
     if tag == header { continue }
     env = append(env, tag+"="+strings.Join(xmlmsg.Get(tag),"\n"))

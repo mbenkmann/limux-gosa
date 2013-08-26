@@ -38,6 +38,7 @@ import (
          "../db"
          "../util"
          "../bytes"
+         "../config"
        )
 
 // Accepts UDP connections for TFTP requests on listen_address, serves read requests
@@ -195,7 +196,7 @@ func getFile(name string, files map[string]string, pxelinux_hook string) (cacheE
     if entry.LoadCount == 0 {
       util.Log(1, "INFO! TFTP: Calling %v to generate pxelinux.cfg for %v", pxelinux_hook, mac)
     
-      env := []string{}
+      env := config.HookEnvironment()
       sys, err := db.SystemGetAllDataForMAC(mac, true)
       
       if err != nil {
