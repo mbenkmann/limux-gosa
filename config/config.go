@@ -455,6 +455,15 @@ func ReadConfig() {
       ServerListenAddress = ServerListenAddress[:i+1] + port
     }
     
+    if ip,ok := server["ip"]; ok {
+      pref, err := util.Resolve(ip)
+      if err != nil {
+        util.Log(0, "ERROR! Could not resolve [server]/ip value \"%v\": ",ip, err)
+      } else {
+        PreferredServer = pref
+      }
+    }
+    
     if uri, ok := server["ldap-uri"]; ok { LDAPURI = uri }
     if base,ok := server["ldap-base"]; ok { LDAPBase = base }
     if admin,ok:= server["ldap-admin-dn"]; ok { LDAPAdmin = admin }
@@ -472,15 +481,6 @@ func ReadConfig() {
   if client, ok:= conf["[client]"]; ok {
     if port,ok := client["port"]; ok {
       ClientPorts = strings.Fields(strings.Replace(port,","," ",-1))
-    }
-    
-    if ip,ok := client["ip"]; ok {
-      pref, err := util.Resolve(ip)
-      if err != nil {
-        util.Log(0, "ERROR! Could not resolve [client]/ip value \"%v\": ",ip, err)
-      } else {
-        PreferredServer = pref
-      }
     }
   }
   
@@ -529,6 +529,10 @@ func ReadConfig() {
   }
   
   ClientPorts = append(ClientPorts, ServerListenAddress[strings.Index(ServerListenAddress,":")+1:])
+  
+  if strings.Index(PreferredServer,":") < 0 {
+    PreferredServer += ServerListenAddress[strings.Index(ServerListenAddress,":"):]
+  }
 }
 
 // Reads network parameters.
@@ -672,6 +676,12 @@ func ServersFromDNS() []string {
   return servers
 }
 
+// Constructs a standard environment for hook execution and returns it.
+func HookEnvironment() []string {
+  env := []string{"MAC="+MAC, "IPADDRESS="+IP, "SERVERPORT="+ServerListenAddress[strings.Index(ServerListenAddress,":")+1:],
+                  "HOSTNAME="+Hostname, "FQDN="+Hostname+"."+Domain }
+  return env
+}
 
 func Shutdown() {
   util.Log(1, "INFO! Removing temporary directory %v", TempDir)
