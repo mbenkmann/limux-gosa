@@ -54,6 +54,7 @@ class userFilter extends plugin
     // Create the filter list
     $this->filterWidget= new sortableListing($this->filters, $this->convertFilterList());
     $this->filterWidget->setDeleteable(true);
+    $this->filterWidget->setInstantDelete(false);
     $this->filterWidget->setEditable(true);
     $this->filterWidget->setWidth("100%");
     $this->filterWidget->setHeight("270px");
@@ -178,6 +179,7 @@ class userFilter extends plugin
     $action = $this->filterWidget->getAction();
     if($action['action'] == 'edit' && count($action['targets']) == 1){
       $key= $this->filterWidget->getKey($action['targets'][0]);
+
       if(isset($this->filters[$key])){
         $this->dialog=new userFilterEditor($this->filters[$key], $this->listing);
       }
@@ -194,6 +196,7 @@ class userFilter extends plugin
       $key= $this->filterWidget->getKey($action['targets'][0]);
       if(isset($this->filters[$key]) && isset($this->filters[$key]['personal'])){
         unset($this->filters[$key]);
+        $this->filterWidget->setListData($this->filters, $this->convertFilterList());
         $this->filterWidget->update();
       }
     }
