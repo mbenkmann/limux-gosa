@@ -61,7 +61,7 @@ func RegistrationHandler() {
         if registrationState == 0 {
           serverList = serversToTry()
           currentServer = "" // AFTER serversToTry() because it uses currentServer
-          util.Log(1, "INFO! New server registration started. Candidates: %v", serverList)
+          util.Log(1, "INFO! New server registration started. Preferred server: %v  Candidates: %v", config.PreferredServer, serverList)
           indexInList = -1
           registrationQueue.Push("timeout")
         }
@@ -75,10 +75,10 @@ func RegistrationHandler() {
         if registrationState == 0 {
           for indexInList++; indexInList < len(serverList) && serverList[indexInList] == ""; indexInList++ {}
           if indexInList < len(serverList) {
-            if indexInList > 0 {
+            if currentServer != "" {
               util.Log(0, "WARNING! Registration at %v failed => Will try next candidate server", currentServer)
             }
-            currentServer = serverList[indexInList]
+            currentServer,_ = util.Resolve(serverList[indexInList])
             util.Log(1, "INFO! Trying to register at %v", currentServer)
             go Send_here_i_am(currentServer)
             go func() {
