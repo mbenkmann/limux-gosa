@@ -55,11 +55,11 @@ Standards-Version: 3.9.4
 Package: go-susi
 Architecture: any
 Depends: ldap-utils, libc6
-Conflicts: gosa-si-server
-Replaces: gosa-si-server
+Conflicts: gosa-si-server, gosa-si-client, gosa-si-common
+Replaces: gosa-si-server, gosa-si-client, gosa-si-common
 Suggests: gosa, tidy
 Description: Support infrastructure daemon for GOsa
- A stable and fast replacement for gosa-si-server, the
+ A stable and fast replacement for gosa-si-server/gosa-si-client, the
  support infrastructure daemon required by GOsa 2.7.
 "
 
@@ -146,6 +146,7 @@ build:
 	# DO NOT STRIP BINARIES! THIS BREAKS THEM WITH GO 1.1 (AT LEAST ON ARM)
 	chmod a+rx main/gosa-si-server main/generate_* main/send_* main/update_config_files
 	mkdir -p dist/etc/gosa-si dist/etc/logrotate.d dist/usr/lib/go-susi/ dist/usr/sbin
+	mkdir -p dist/etc/default dist/etc/init.d
 	mkdir -p dist/usr/share/doc/go-susi
 	mkdir -p dist/usr/share/man/man1
 	mkdir -p dist/usr/share/man/man5
@@ -156,10 +157,14 @@ build:
 	cp doc/*.5 dist/usr/share/man/man5
 	gzip -9 dist/usr/share/doc/go-susi/changelog.Debian
 	cp main/generate_* main/send_user_msg main/update_config_files dist/usr/lib/go-susi/
+	cp main/trigger_action dist/usr/lib/go-susi/
 	cp go-susi dist/usr/lib/go-susi/gosa-si-server
 	cp encrypt dist/usr/lib/go-susi/encrypt
 	cp main/gosa-si-server dist/usr/sbin
+	cp main/gosa-si.init dist/etc/init.d/gosa-si
+	echo DEBUG=-vvv >dist/etc/default/gosa-si
 	ln -snf ../lib/go-susi/gosa-si-server dist/usr/sbin/go-susi
+	ln -snf gosa-si-server dist/usr/sbin/gosa-si-client
 	cp sibridge dist/usr/sbin/
 	-cp logrotate-gosa-si-server dist/etc/logrotate.d/gosa-si-server
 	echo >debian/files go-susi_\$(DEBVERSION)_\$(DEB_BUILD_ARCH).deb $section $priority
