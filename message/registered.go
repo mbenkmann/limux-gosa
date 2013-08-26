@@ -108,7 +108,7 @@ func RegistrationHandler() {
         } 
       
       default:
-        util.Log(0, "WARNING! Received \"registered\" from unexpected server %v => Confirming if I'm still registered at %v", r, currentServer)
+        util.Log(0, "WARNING! Received \"registered\" from unexpected server %v => Confirming that I'm still registered at %v", r, currentServer)
         registrationQueue.Push("confirm")
     }
   }

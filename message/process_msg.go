@@ -180,6 +180,13 @@ func ProcessXMLMessage(xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply *
     case "usr_msg":             usr_msg(xml)
     case "sistats":             sistats().WriteTo(reply)
     case "panic":               go func(){panic("Panic by user request")}()
+    case "trigger_action_halt",      // "Anhalten"
+         "trigger_action_localboot", // "Erzwinge lokalen Start"
+         "trigger_action_reboot",    // "Neustarten"
+         "trigger_action_faireboot", // "Job abbrechen"
+         "trigger_action_update",    // "Aktualisieren"
+         "trigger_action_reinstall", // "Neuinstallation"
+         "trigger_action_instant_update": trigger_action_foo(xml)
   default:                      
     is_client_message = false
   }
