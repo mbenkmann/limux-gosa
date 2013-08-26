@@ -1,0 +1,23 @@
+#!/bin/bash
+
+exec &>/var/log/trigger_action.log
+date
+set
+
+case "$header" in
+  trigger_action_localboot|trigger_action_halt|trigger_action_reboot|trigger_action_reinstall|trigger_action_update|trigger_action_instant_update)
+     event=${header##trigger_action_}
+     test "$event" = "reinstall" && event="install"
+     test "$event" = "update" && event="softupdate"
+     test "$event" = "instant_update" && event="softupdate"
+     echo >/etc/gosa-si/event "$event"
+     who | grep -qv pts/ && /usr/bin/goto-notify "$event"
+     /usr/sbin/goto-action &
+     ;;
+  trigger_action_faireboot)
+     /usr/sbin/faireboot
+     ;;
+  *) echo 1>&2 "Unknown action type $header"
+     exit 1
+     ;;
+esac
