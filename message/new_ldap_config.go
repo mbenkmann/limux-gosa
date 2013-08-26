@@ -41,6 +41,17 @@ func new_ldap_config(xmlmsg *xml.Hash) {
     return
   }
   
+  if config.RunServer {
+    util.Log(0, "WARNING! Will not update internal LDAP settings because I'm not in client-only mode.")
+  } else {
+    updateInternalLdapSettings(xmlmsg)
+  }
+  
+  new_foo_config(xmlmsg)
+}
+
+
+func updateInternalLdapSettings(xmlmsg *xml.Hash) {  
   ldap_uri   := ""
   if ldap := xmlmsg.First("ldap_uri"); ldap != nil {
     ldap_uri = ldap.Text()
@@ -57,11 +68,18 @@ func new_ldap_config(xmlmsg *xml.Hash) {
   // locking when accessing these variables.
   // In particular this avoids unsafe writes to these variables when we receive
   // the new_ldap_config message we send to ourselves after registering at ourselves.
-  if ldap_uri   != "" && config.LDAPURI  != ldap_uri  { config.LDAPURI  = ldap_uri  }
-  if ldap_base  != "" && config.LDAPBase != ldap_base { config.LDAPBase = ldap_base }
+  if ldap_uri   != "" && config.LDAPURI  != ldap_uri  { 
+    util.Log(1, "INFO! LDAP URI changed: \"%v\" => \"%v\"", config.LDAPURI, ldap_uri)
+    config.LDAPURI  = ldap_uri  
+  }
+  if ldap_base  != "" && config.LDAPBase != ldap_base { 
+    util.Log(1, "INFO! LDAP base changed: \"%v\" => \"%v\"", config.LDAPBase, ldap_base)
+    config.LDAPBase = ldap_base 
+  }
   
   if unit_tag == "" {
     if config.UnitTag != "" {
+      util.Log(1, "INFO! gosaUnitTag support DISABLED")
       config.UnitTag = ""
       config.UnitTagFilter = ""
       config.AdminBase = ""
@@ -69,15 +87,20 @@ func new_ldap_config(xmlmsg *xml.Hash) {
     }
   } else {
     if config.UnitTag != unit_tag { 
+      util.Log(1, "INFO! gosaUnitTag changed: \"%v\" => \"%v\"", config.UnitTag, unit_tag)
       config.UnitTag = unit_tag
       config.UnitTagFilter = "(gosaUnitTag="+config.UnitTag+")"
     }
-    if admin_base != "" && config.AdminBase  != admin_base { config.AdminBase = admin_base }
-    if department != "" && config.Department != department { config.Department = department }
+    if admin_base != "" && config.AdminBase  != admin_base { 
+      util.Log(1, "INFO! Admin base changed: \"%v\" => \"%v\"", config.AdminBase, admin_base)
+      config.AdminBase = admin_base 
+    }
+    if department != "" && config.Department != department { 
+      util.Log(1, "INFO! Department changed: \"%v\" => \"%v\"", config.Department, department)
+      config.Department = department 
+    }
   }
-  
-  new_foo_config(xmlmsg)
-}
+}  
 
 // If system == nil or <xml></xml>, this function does nothing; otherwise it
 // takes the information from system (format as returned by db.SystemGetAllDataForMAC())

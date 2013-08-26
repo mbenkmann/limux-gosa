@@ -23,7 +23,6 @@ package db
 import (
          "os"
          "net"
-         "fmt"
          "time"
          "regexp"
          "strings"

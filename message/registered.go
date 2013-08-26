@@ -22,6 +22,7 @@ import (
          "../xml"
          "../util"
          "../util/deque"
+         "../config"
        )
 
 
@@ -40,6 +41,13 @@ var indexInList int
 var secs_between_candidates = 10
 
 var timeout_for_confirmation = 60*time.Second
+
+// Handles the message "registered".
+//  xmlmsg: the decrypted and parsed message
+func registered(xmlmsg *xml.Hash) {
+  server := xmlmsg.Text("source")
+  if server != "" { registrationQueue.Push(server) }
+}
 
 // Infinite loop that handles registering and staying registered at
 // a server.
@@ -72,15 +80,15 @@ func RegistrationHandler() {
             }
             currentServer = serverList[indexInList]
             util.Log(1, "INFO! Trying to register at %v", currentServer)
-            Send_here_i_am(currentServer)
+            go Send_here_i_am(currentServer)
             go func() {
-              time.Sleep((secs_between_candidates+rand.IntN(10))*time.Second)
+              time.Sleep(time.Duration(secs_between_candidates+rand.Intn(10))*time.Second)
               registrationQueue.Push("timeout")
-            }
+            }()
           } else {
             util.Log(0, "WARNING! Registration failed. No more servers left to try. Will wait 1 minute then try again.")
             // wait with random element to disband any client swarms
-            time.Sleep((55+rand.IntN(20))*time.Second)
+            time.Sleep(time.Duration(55+rand.Intn(20))*time.Second)
             registrationQueue.Clear()
             registrationQueue.Insert("register")
           }
@@ -92,11 +100,11 @@ func RegistrationHandler() {
       case "confirm":
         if registrationState == 2 {
           registrationState = 1
-          Send_here_i_am(currentServer)
+          go Send_here_i_am(currentServer)
           go func() {
             time.Sleep(timeout_for_confirmation)
             registrationQueue.Push("confirm_timeout")
-          }
+          }()
         } 
       
       default:
@@ -118,7 +126,8 @@ func serversToTry() []string {
   // If we're running a server, never register anywhere else.
   if config.RunServer { return []string{config.ServerSourceAddress} }
   
-  servers = []string{currentServer, config.PreferredServer }
-  servers = append(servers, config.PeerServers...)
-  servers = append(servers, config.ServersFromDNS()...)
+  servers := []string{currentServer, config.PreferredServer }
+  servers  = append(servers, config.PeerServers...)
+  servers  = append(servers, config.ServersFromDNS()...)
+  return servers
 }

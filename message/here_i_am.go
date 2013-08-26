@@ -33,6 +33,30 @@ import (
 var TotalRegistrations int32
 var MissedRegistrations int32
 
+// sends a here_i_am message to target (HOST:PORT).
+func Send_here_i_am(target string) {
+  here_i_am := xml.NewHash("xml", "header", "here_i_am")
+  here_i_am.Add("here_i_am")
+  here_i_am.Add("source", config.ServerSourceAddress)
+  here_i_am.Add("target", target)
+  here_i_am.Add("events","goSusi")
+  here_i_am.Add("gotoHardwareChecksum", "unknown")
+  here_i_am.Add("client_status", config.Version)
+  here_i_am.Add("client_revision", config.Revision)
+  here_i_am.Add("mac_address", config.MAC) //Yes, that's mac_address with "_"
+  
+  // We don't generate random keys as it adds no security.
+  // Everybody who has the ClientPackages key can decrypt the
+  // key exchange messages, so a random key would only be as
+  // secure as the ClientPackages key itself.
+  clientpackageskey := config.ModuleKey["[ClientPackages]"]
+  here_i_am.Add("key_lifetime","2147483647")
+  here_i_am.Add("new_passwd", clientpackageskey)
+  
+  util.Log(2, "DEBUG! Sending here_i_am to %v: %v", target, here_i_am)
+  util.SendLnTo(target, GosaEncrypt(here_i_am.String(), clientpackageskey), config.Timeout)
+}
+
 // Handles the message "here_i_am".
 //  xmlmsg: the decrypted and parsed message
 func here_i_am(xmlmsg *xml.Hash) {
@@ -72,12 +96,16 @@ func here_i_am(xmlmsg *xml.Hash) {
   if !checkTime(start, macaddress) { atomic.AddInt32(&MissedRegistrations, 1) }
   
   if err != nil { // if no LDAP data available for system, create install job, do hardware detection
-    util.Log(1, "INFO! %v => Creating install job and sending detect_hardware to %v", err, macaddress)
+    if client_addr == config.ServerSourceAddress {
+      util.Log(1, "INFO! %v => Normally I would create an install job and send detect_hardware, but the here_i_am is from myself, so I better not saw the branch I'm sitting on.", err)
+    } else {
+      util.Log(1, "INFO! %v => Creating install job and sending detect_hardware to %v", err, macaddress)
     
-    detect_hardware := message_start + "<header>detect_hardware</header><detect_hardware></detect_hardware></xml>"
-    Client(client_addr).Tell(detect_hardware, config.LocalClientMessageTTL)
+      detect_hardware := message_start + "<header>detect_hardware</header><detect_hardware></detect_hardware></xml>"
+      Client(client_addr).Tell(detect_hardware, config.LocalClientMessageTTL)
     
-    makeSureWeHaveAppropriateProcessingJob(macaddress, "trigger_action_reinstall", "hardware-detection")
+      makeSureWeHaveAppropriateProcessingJob(macaddress, "trigger_action_reinstall", "hardware-detection")
+    }
 
   } else { // if LDAP data for system is available
     

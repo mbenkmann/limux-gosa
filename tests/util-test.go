@@ -188,14 +188,15 @@ func Util_test() {
   h,_ := exec.Command("hostname").CombinedOutput()
   hostname := strings.TrimSpace(string(h))
   
-  // NOTE! The following test currently fails if hostname -I returns
-  // multiple addresses. I'll fix this when I have a test system where
-  // that's the case.
   ipp,_ := exec.Command("hostname","-I").CombinedOutput()
-  ips := strings.TrimSpace(string(ipp))
+  ips := strings.Fields(strings.TrimSpace(string(ipp)))
   addr, err = util.Resolve(hostname+":234")
   check(err, nil)
-  check(addr, ips+":234")
+  ip := ""
+  for _, ip2 := range ips {
+    if addr == ip2+":234" { ip = ip2 }
+  }
+  check(addr, ip+":234")
   
   testLogging()
 

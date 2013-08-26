@@ -176,6 +176,7 @@ func ProcessXMLMessage(xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply *
   switch xml.Text("header") {
     case "new_ldap_config":     new_ldap_config(xml)
     case "new_ntp_config":      new_foo_config(xml)
+    case "registered":          registered(xml)
     case "sistats":             sistats().WriteTo(reply)
     case "panic":               go func(){panic("Panic by user request")}()
   default:                      

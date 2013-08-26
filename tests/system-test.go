@@ -1541,9 +1541,12 @@ func run_here_i_am_tests() {
       clients = append(clients, fmt.Sprintf("%v,%v",qe.XML.Text("client"),qe.XML.Text("macaddress")))
     }
   }
-  // Check if the 2 clients (and only those) were either in cns or nfc
+  // Check if the 2 clients were either in cns or nfc
+  // The only other client that should be in the list is the server's own internal client
   sort.Strings(clients)
-  check(clients, []string{client_addr[1]+","+mac[1], client_addr[2]+","+mac[2]})
+  compare_clients := []string{client_addr[1]+","+mac[1], client_addr[2]+","+mac[2], config.ServerSourceAddress+","+config.MAC}
+  sort.Strings(compare_clients)
+  check(clients, compare_clients)
   
   // send here_i_am from MAC not in LDAP with our test client's address
   phantom_mac := "6c:d0:12:Fe:ce:50"
