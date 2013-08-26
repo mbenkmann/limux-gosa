@@ -2,10 +2,10 @@
 
 exec 2>/var/log/send_user_msg.log
 
-test -n "$send_user_msg_do_not_recurse" && {
-  echo 1>&2 "Recursive call => aborting"
-  exit 1
-}
+date 1>&2
+echo 1>&2 "Processing message $subject from $from"
+
+test -z "$send_user_msg_do_not_recurse" && 
 
 ################### forward to all servers in serverdb ########################
 (
@@ -67,7 +67,7 @@ done
 ) &
 
 
-############################## send to all clients on our server ####################
+############################ resolve groups into individual users ###################
 
 users="$user"
 
@@ -75,7 +75,7 @@ for g in $group ; do
   users="$users $(ldapsearch -x -LLL "(&(cn=$g)(objectClass=posixGroup))" memberUid | sed -n 's/memberUid: //p')"
 done
 
-
+############################## send to all clients on our server ####################
 sed 's/xml>/\n/g' /var/lib/go-susi/clientdb.xml | 
 while read -r line ; do
   client="${line##*<client>}"
@@ -85,14 +85,15 @@ while read -r line ; do
   server="${server%%</source>*}"
   key="${line%%</key>*}"
   key="${key##*<key>}"
-  src="127.0.0.1:20081"
+  
+  test "$server" != "$IPADDRESS:$SERVERPORT" && continue  # skip foreign clients
 
   test "$key" = "$line" && continue
 
   for user in $users ; do
     msg="<xml>
 <header>usr_msg</header>
-<source>$src</source>
+<source>$server</source>
 <target>$client</target>
 <subject>$subject</subject>
 <message>$message</message>
@@ -106,4 +107,27 @@ while read -r line ; do
     echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc "${client%:*}" "${client#*:}") &
   done
  
+done
+
+############################## send to all users on our machine ####################
+
+temp=/tmp/goto-notify.d
+while ! mkdir --mode=u=rwx,go= "$temp" ; do
+  temp=/tmp/goto-notify.d.$$.$RANDOM
+done
+  
+for user in $users ; do
+  who | grep -q "^$user " || continue
+  tempfile="$temp.$user"
+  echo >$tempfile "source:$source
+target:$target
+usr:$user
+subject:$subject
+message:$message
+"
+
+echo 1>&2 "Notifying logged in user $user"
+          
+LANG=de_DE.UTF-8 /usr/bin/goto-notify -b user-message "$user" "$subject" "$message" "$tempfile" &
+              
 done

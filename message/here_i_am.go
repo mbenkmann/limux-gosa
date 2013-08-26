@@ -45,11 +45,15 @@ func Send_here_i_am(target string) {
   here_i_am.Add("client_revision", config.Revision)
   here_i_am.Add("mac_address", config.MAC) //Yes, that's mac_address with "_"
   
+  clientpackageskey := config.ModuleKey["[ClientPackages]"]
+  // If [ClientPackages]/key missing, take the last key in the list
+  // (We don't take the 1st because that would be "dummy-key").
+  if clientpackageskey == "" { clientpackageskey = config.ModuleKeys[len(config.ModuleKeys)-1] }
+  
   // We don't generate random keys as it adds no security.
   // Everybody who has the ClientPackages key can decrypt the
   // key exchange messages, so a random key would only be as
   // secure as the ClientPackages key itself.
-  clientpackageskey := config.ModuleKey["[ClientPackages]"]
   here_i_am.Add("key_lifetime","2147483647")
   here_i_am.Add("new_passwd", clientpackageskey)
   

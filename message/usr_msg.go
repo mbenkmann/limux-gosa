@@ -22,10 +22,9 @@ import (
 // Handles the message "usr_msg".
 //  xmlmsg: the decrypted and parsed message
 func usr_msg(xmlmsg *xml.Hash) {
-  xmlmsg.First("header").SetText("job_send_user_msg")
   for child := xmlmsg.First("usr"); child != nil; child = child.Next() {
     child.Rename("user")
   }
-  job_send_user_msg(xmlmsg)
+  
+  SendUserMsg(xmlmsg)
 }
-

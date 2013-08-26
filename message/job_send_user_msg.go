@@ -20,6 +20,8 @@ MA  02110-1301, USA.
 package message
 
 import (
+         "os"
+         "os/exec"
          "time"
          "strings"
          
@@ -65,4 +67,21 @@ func job_send_user_msg(xmlmsg *xml.Hash) *xml.Hash {
   return answer
 }
 
-
+func SendUserMsg(job *xml.Hash) {
+  start := time.Now()
+  util.Log(1, "INFO! Running user-msg-hook %v", config.UserMessageHookPath)
+  env := config.HookEnvironment()
+  for _, tag := range job.Subtags() {
+    env = append(env, tag+"="+strings.Join(job.Get(tag),"\n"))
+  }
+  cmd := exec.Command(config.UserMessageHookPath)
+  env = append(env, "xml="+job.String())
+  cmd.Env = append(env, os.Environ()...)
+  out, err := cmd.CombinedOutput()
+  if err != nil {
+    util.Log(0, "ERROR! user-msg-hook %v: %v (%v)", config.UserMessageHookPath, err, string(out))
+    return
+  }
+  util.Log(1, "INFO! Finished user-msg-hook. Running time: %v", time.Since(start))
+  return
+}
