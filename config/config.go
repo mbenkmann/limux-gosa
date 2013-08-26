@@ -65,6 +65,9 @@ var LogFilePath = "/var/log/go-susi.log"
 // Path of the server config file.
 var ServerConfigPath = "/etc/gosa-si/server.conf"
 
+// Path of the client config file.
+var ClientConfigPath = "/etc/gosa-si/client.conf"
+
 // Path to database of scheduled jobs.
 var JobDBPath = "/var/lib/go-susi/jobdb.xml"
 
@@ -323,6 +326,7 @@ func ReadArgs(args []string) {
       testdir := arg[7:]
       LogFilePath = testdir + "/go-susi.log"
       ServerConfigPath = testdir + "/server.conf"
+      ClientConfigPath = testdir + "/client.conf"
       JobDBPath = testdir + "/jobdb.xml"
       ServerDBPath = testdir + "/serverdb.xml"
       ClientDBPath = testdir + "/clientdb.xml"
@@ -334,6 +338,7 @@ func ReadArgs(args []string) {
         util.Log(0, "ERROR! ReadArgs: missing argument to -c")
       } else {
         ServerConfigPath = args[i]
+        ClientConfigPath = ""
       }
     } else if arg == "--help" {
     
@@ -355,42 +360,50 @@ func ReadArgs(args []string) {
 // Parses the relevant configuration files and sets 
 // the config variables accordingly.
 func ReadConfig() {
-  file, err := os.Open(ServerConfigPath)
-  if err != nil {
-    util.Log(0, "ERROR! ReadConfig: %v", err)
-    return
-  }
-  defer file.Close()
-  input := bufio.NewReader(file)
-  
   conf := map[string]map[string]string{"":map[string]string{}}
-  current_section := ""
-  for {
-    var line string
-    line, err = input.ReadString('\n')
-    if err != nil { break }
-    
-    line = strings.TrimSpace(line)
-    if len(line) > 2 && line[0] == '[' && line[len(line)-1] == ']' {
-      current_section = line
-      if _, ok := conf[current_section]; !ok {
-        conf[current_section] = map[string]string{}
-      }
-    }
-    
-    i := strings.Index(line, "=")
-    if i >= 0 {
-      key := strings.TrimSpace(line[0:i])
-      value := strings.TrimSpace(line[i+1:])
-      if key != "" {
-        conf[current_section][key] = value
-      }
-    }
-  }
   
-  if err != io.EOF {
-    util.Log(0, "ERROR! ReadConfig: %v", err)
-    // Do not return. Try working with whatever we got out of the file.
+  for _, configfile := range []string{ClientConfigPath, ServerConfigPath} {
+    if configfile == "" { continue }
+    file, err := os.Open(configfile)
+    if err != nil {
+      if os.IsNotExist(err) { 
+        /* File does not exist is not an error that needs to be reported */ 
+      } else {
+        util.Log(0, "ERROR! ReadConfig: %v", err)
+      }
+      continue
+    }
+    defer file.Close()
+    input := bufio.NewReader(file)
+
+    current_section := ""
+    for {
+      var line string
+      line, err = input.ReadString('\n')
+      if err != nil { break }
+      
+      line = strings.TrimSpace(line)
+      if len(line) > 2 && line[0] == '[' && line[len(line)-1] == ']' {
+        current_section = line
+        if _, ok := conf[current_section]; !ok {
+          conf[current_section] = map[string]string{}
+        }
+      }
+      
+      i := strings.Index(line, "=")
+      if i >= 0 {
+        key := strings.TrimSpace(line[0:i])
+        value := strings.TrimSpace(line[i+1:])
+        if key != "" {
+          conf[current_section][key] = value
+        }
+      }
+    }
+
+    if err != io.EOF {
+      util.Log(0, "ERROR! ReadConfig: %v", err)
+      // Do not return. Try working with whatever we got out of the file.
+    }
   }
   
   for sectionname, section := range conf {
