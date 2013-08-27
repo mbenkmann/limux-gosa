@@ -505,7 +505,7 @@ func faiProgressWatch() {
       continue
     }
     
-    header := line[0:idx]
+    header := "CLMSG_" + line[0:idx]
     content := line[idx+1:]
     x := xml.NewHash("xml","header",header)
     x.Add("source", config.ServerSourceAddress)

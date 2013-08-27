@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 umask 077
 rm -f /var/run/gosa-si-client.socket
 touch /var/run/gosa-si-client.socket

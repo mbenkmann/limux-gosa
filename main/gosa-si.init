@@ -19,19 +19,21 @@
 # Load LSB support functions
 . /lib/lsb/init-functions
 
+pidfile="$(sed 2>/dev/null -n 's/^pid-file *= *\([^ ]*\)/\1/p' /etc/gosa-si/client.conf /etc/gosa-si/server.conf | tail -n 1)"
+test -z "$pidfile" && pidfile=/var/run/gosa-si-server.pid
 
 case "$1" in
 start)  log_daemon_msg "Starting GOsa support infrastructure"
 	if [ -x /usr/sbin/gosa-si-server ]; then
 		log_progress_msg "daemon"
-		start-stop-daemon --start --quiet --pidfile /var/run/gosa-si-server.pid --name gosa-si-server --startas /usr/sbin/gosa-si-server -- $DEBUG
+		start-stop-daemon --start --pidfile "$pidfile" --name gosa-si-server --startas /usr/sbin/gosa-si-server -- $DEBUG
 	fi
         log_end_msg $?
 	;;
 stop)   log_daemon_msg "Stopping GOsa support infrastructure"
 	if [ -x /usr/sbin/gosa-si-server ]; then
 		log_progress_msg "daemon"
-		start-stop-daemon --stop --retry 5 --quiet --pidfile /var/run/gosa-si-server.pid --name gosa-si-server
+		start-stop-daemon --stop --retry 5 --pidfile "$pidfile" --name gosa-si-server
 	fi
         log_end_msg $?
         ;;
