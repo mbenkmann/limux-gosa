@@ -800,7 +800,11 @@ class ogroup extends plugin
         if ($this->dn == 'new'){
             $this->dn= 'cn='.$this->cn.','.get_ou("group", "ogroupRDN").$this->base;
         }
-
+        
+        if (isset($this->parent->by_object['environment'])) {
+          $removed_member_dns = array_keys(array_diff($this->original_members, $this->member));
+          $this->parent->by_object['environment']->handle_removed_group_member_dns($removed_member_dns);
+        }
 
         $this->copyValuesToRemovedMembers();
 

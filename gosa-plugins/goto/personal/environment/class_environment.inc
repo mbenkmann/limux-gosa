@@ -49,6 +49,7 @@ class environment extends plugin
   var $gotoShare          = "";     // currently selected Share Option
   var $gotoShareSelections= array();// Available Shares for this account in Listbox format
   var $gotoAvailableShares= array();// Available Shares for this account
+  var $previous_gotoShares= array(); // Previously used shares for comparison on save
 
   /* Kiosk profile */
   var $kiosk_enabled      = FALSE;
@@ -149,6 +150,7 @@ class environment extends plugin
 
     /* Prepare Shares */
     $this->gotoShares = $this->get_Shares();
+    $this->previous_gotoShares = $this->gotoShares;
 
     /* Update gotoProfileFlags */
     $this->update_gotoProfileFlags();
@@ -1230,6 +1232,16 @@ class environment extends plugin
     $display.= $smarty->fetch(get_template_path('environment.tpl', TRUE,dirname(__FILE__)));
     return($display);
   }
+  
+  private function all_group_member_dns ()
+  {
+    if (isset($this->parent->by_object['group'])) {
+      $group = $this->parent->by_object['group'];
+      return array_map(function ($x) { return $x['dn']; }, array_values($group->members));
+    } else {
+      return $this->parent->by_object['ogroup']->member;
+    }
+  }
 
   function remove_from_parent()
   {
@@ -1237,7 +1249,12 @@ class environment extends plugin
     if (!$this->initially_was_account){
       return;
     }
-
+    
+    $this->detect_grouptype();    
+    if ($this->is_group && !empty($this->gotoShares)) {
+      $this->remove_group_shares_from_users($this->gotoShares, $this->all_group_member_dns());      
+    }
+    
     /* include global link_info */
     $ldap= $this->config->get_ldap_link();
 
@@ -1477,7 +1494,11 @@ class environment extends plugin
       }
       $this->attrs['gotoShare'][] =$share['server']."|".$share['name']."|".$mntp."|".$share['PwdHash']."|".$share['Username'];
     }
-
+    
+    $removed_shares = array_values(array_diff_key($this->previous_gotoShares, $this->gotoShares));
+    if ($this->is_group && !empty($removed_shares)) {
+      $this->remove_group_shares_from_users($removed_shares, $this->all_group_member_dns());
+    }
 
     if($this->gotoXResolution == "auto") $this->gotoXResolution ="";
     $saveThis = array("gotoProfileServer","gotoProfileQuota","gotoXResolution","gotoKioskProfile","gosaDefaultPrinter");
@@ -1529,6 +1550,7 @@ class environment extends plugin
     }
     $this->handle_post_events($mode,array("uid"=>$this->uid));
   }
+
 
 
   /* Generate ListBox frindly output for the definedhotplugs 
@@ -1852,6 +1874,59 @@ class environment extends plugin
       $this->update_kiosk_profiles();
     }
   }
+  
+  public function handle_removed_group_member_dns($removed_member_dns) {
+    $this->remove_group_shares_from_users($this->gotoShares, $removed_member_dns);
+  }
+  
+  protected function remove_group_shares_from_users($removed_shares, $user_dns) {
+    $strip_share_to_name_and_server = function ($share) {
+      return array('server' => $share['server'], 'name' => $share['name']);
+    };
+    $removed_shares_name_and_server = array_map($strip_share_to_name_and_server, $removed_shares);
+    
+    foreach ($user_dns as $user_dn) {
+      $config = session::global_get('config');
+      $ldap = $config->get_ldap_link();
+      $ldap->cat($user_dn, array('gotoShare'), '(gotoShare=*)');
+      $user_attributes = $ldap->fetch();
+      if (empty($user_attributes)) {
+        @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__, $user_dn, 'Skipping group member without shares');
+        continue; // member has no shares
+      }
+      $user_shares = $user_attributes['gotoShare'];
+      unset($user_shares['count']);
+
+      @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__, $user_dn, 'Checking shares of group member');
+      foreach ($user_shares as $share_index => $share) {
+        if (substr($share, 0, 1) !== '!') {
+          @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__, $share, 'Skipping share that is not inherited');
+          continue; // not a group-inherited share
+        }
+
+        @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__, $share, 'Checking share');
+
+        $share_parts = explode('|', substr($share, 1));
+        $share_name_and_server = array('server' => $share_parts[0], 'name' => $share_parts[1]);
+
+        @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__, $share_name_and_server, 'Checking if share should be removed');
+
+        if (array_search($share_name_and_server, $removed_shares_name_and_server, TRUE) !== FALSE) {
+          @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__, $share_name_and_server, 'Removing share (in memory)');
+          unset($user_shares[$share_index]);
+        }
+      }
+
+      @DEBUG (DEBUG_TRACE, __LINE__, __FUNCTION__, __FILE__, $user_dn, 'Saving changes to shares');
+      $ldap->cd($user_dn);
+      $ldap->modify(array('gotoShare' => $user_shares));
+      if (!$ldap->success()){
+        msg_dialog::display(_("LDAP error"), msgPool::ldaperror($ldap->get_error(), $this->dn, LDAP_DEL, get_class()));
+      }
+    }
+  }
+    
+
 
   /* Return plugin informations for acl handling 
 #FIXME these ACLs should work for groups too */ 

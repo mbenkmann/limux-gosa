@@ -40,6 +40,7 @@ class group extends plugin
     var $SID= "";
     var $ridBase= 0;
     var $members= array();
+    var $previous_members= array();
     var $users= array();
     var $member= array();
     var $allusers= array();
@@ -218,6 +219,8 @@ class group extends plugin
         $this->memberList->setDefaultSortColumn(2);
 
         $this->reload(TRUE);
+        
+        $this->previous_members = $this->members;
     }
 
     function execute()
@@ -751,7 +754,13 @@ class group extends plugin
                 $this->gidNumber= get_next_id("gidNumber", $this->dn);
             }
         }
-
+        
+        if (isset($this->parent->by_object['environment'])) {
+          $removed_members = array_diff($this->previous_members, $this->members);
+          $removed_member_dns = array_map(function ($x) { return $x['dn']; }, array_values($removed_members));
+          $this->parent->by_object['environment']->handle_removed_group_member_dns($removed_member_dns);
+        }
+         
         plugin::save(); 
 
         /* Remove objectClass for samba/phone support */
