@@ -21,9 +21,36 @@ MA  02110-1301, USA.
 package message
 
 import (
+         "time"
+         "strings"
+         "os"
+         "os/exec"
+         
          "../xml"
+         "../util"
          "../config"
        )
+
+// Handles "set_activated_for_installation".
+//  xmlmsg: the decrypted and parsed message
+func set_activated_for_installation(xmlmsg *xml.Hash) {
+  start := time.Now()
+  env := config.HookEnvironment()
+  for _, tag := range xmlmsg.Subtags() {
+    env = append(env, tag+"="+strings.Join(xmlmsg.Get(tag),"\n"))
+  }
+  cmd := exec.Command(config.ActivatedHookPath)
+  env = append(env, "xml="+xmlmsg.String())
+  cmd.Env = append(env, os.Environ()...)
+  util.Log(1, "INFO! Running activated-hook %v with parameters %v", config.ActivatedHookPath, env)
+  out, err := cmd.CombinedOutput()
+  if err != nil {
+    util.Log(0, "ERROR! activated-hook %v: %v (%v)", config.ActivatedHookPath, err, string(out))
+    return
+  }
+  util.Log(1, "INFO! Finished activated-hook. Running time: %v", time.Since(start))
+}
+
 
 // Sends "set_activated_for_installation" to client_addr and calls
 // Send_new_ldap_config(client_addr, system)

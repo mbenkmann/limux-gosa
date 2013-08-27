@@ -100,6 +100,14 @@ var TriggerActionHookPath = "/usr/lib/go-susi/trigger_action"
 // spurious registered messages.
 var RegisteredHookPath = "/usr/lib/go-susi/registered"
 
+// Called when a set_activated_for_installation message is received.
+var ActivatedHookPath = "/usr/lib/go-susi/activated"
+
+// Called when a detect_hardware message is received.
+// Writes to its standard output the system's hardware configuration
+// in LDIF format.
+var DetectHardwareHookPath = "/usr/lib/go-susi/detect_hardware"
+
 // Path where log files from CLMSG_save_fai_log are stored.
 // Within this directory go-susi creates sub-directories named
 // after the clients' MAC addresses and symlinks named after the
@@ -176,6 +184,10 @@ var MaxConnections int32 = 512
 // Maximum time permitted for a read or write transmission. If this time
 // is exceeded, the transmission is aborted.
 var Timeout = 5 * time.Minute
+
+// Maximum time allowed for detect-hardware-hook. If the hook does not complete
+// in this time, a standard detected_hardware message will be sent to the server.
+var DetectHardwareTimeout = 30 * time.Second
 
 // Maximum time to buffer and retry sending a message that is of interest only
 // to a local client, such as new_ldap_config. This TTL is very short.
@@ -448,6 +460,12 @@ func ReadConfig() {
     }
     if registered_hook, ok := general["registered-hook"]; ok {
       RegisteredHookPath = registered_hook
+    }
+    if activated_hook, ok := general["activated-hook"]; ok {
+      ActivatedHookPath = activated_hook
+    }
+    if detect_hardware_hook, ok := general["detect-hardware-hook"]; ok {
+      DetectHardwareHookPath = detect_hardware_hook
     }
   }
   
