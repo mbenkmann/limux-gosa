@@ -22,8 +22,6 @@
 
 class DaemonEvent_notify extends DaemonEvent
 {
-    var $visible_for = USER_EVENT;
-
     var $user = array();
     var $group= array(); 
 
@@ -35,6 +33,10 @@ class DaemonEvent_notify extends DaemonEvent
 
     public function __construct($config,$data = array())
     {
+        // Non-static data cannot be assigned to properties in the class body,
+        // have to set it here
+        $this->visible_for = SYSTEM_EVENT | USER_EVENT;
+        
         DaemonEvent::__construct($config,$data);
 
         $ui = get_userinfo();
@@ -48,7 +50,7 @@ class DaemonEvent_notify extends DaemonEvent
 
         $this->s_Schedule_Action = "job_send_user_msg";
         $this->s_Trigger_Action= "gosa_send_user_msg";
-        $this->s_Queued_Action= "trigger_action_notify";
+        $this->s_Queued_Action= "send_user_msg";
         $this->s_Menu_Image = "plugins/goto/images/notify.png";
         $this->s_List_Image = "plugins/goto/images/notify.png";
         $this->a_targets = array("GOSA"); // Required to get the event send. Maybe this is a wrong value.
@@ -230,6 +232,14 @@ class DaemonEvent_notify extends DaemonEvent
         }
       }
       return $result;
+    }
+    
+    public function get_targets()
+    {
+        // The target list is ignored for sending messages, fill it with useful
+        // information for the deployment status
+        $targets_summary = implode(", ", array_merge($this->user, $this->group));
+        return array($targets_summary);
     }
 
     public function save()

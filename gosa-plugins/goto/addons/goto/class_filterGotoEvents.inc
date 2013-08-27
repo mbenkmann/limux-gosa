@@ -66,7 +66,7 @@ class filterGotoEvents extends  filterLDAP {
 
             /* If PAUSED or WAITING add edit action
              */
-            if(in_array_strict($entry['STATUS'],array("waiting")) && $acl_is_writeable){
+            if(in_array_strict($entry['STATUS'],array("waiting")) && !preg_match("/send_user_msg/",$entry['HEADERTAG']) && $acl_is_writeable){
                 $entry['objectClass'][] = "FAKE_OC__edit";
             }
 
