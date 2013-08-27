@@ -1,4 +1,4 @@
-/* 
+/*
 Copyright (c) 2012 Landeshauptstadt München
 Author: Matthias S. Benkmann
 
