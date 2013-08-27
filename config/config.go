@@ -95,6 +95,11 @@ var NewConfigHookPath = "/usr/lib/go-susi/update_config_files"
 // Called whenever a trigger_action_foo message is received.
 var TriggerActionHookPath = "/usr/lib/go-susi/trigger_action"
 
+// Called when a registered message is received that is part of a
+// successful registration. The hook will not be called for
+// spurious registered messages.
+var RegisteredHookPath = "/usr/lib/go-susi/registered"
+
 // Path where log files from CLMSG_save_fai_log are stored.
 // Within this directory go-susi creates sub-directories named
 // after the clients' MAC addresses and symlinks named after the
@@ -440,6 +445,9 @@ func ReadConfig() {
     }
     if trigger_action_hook, ok := general["trigger-action-hook"]; ok {
       TriggerActionHookPath = trigger_action_hook
+    }
+    if registered_hook, ok := general["registered-hook"]; ok {
+      RegisteredHookPath = registered_hook
     }
   }
   

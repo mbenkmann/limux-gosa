@@ -17,6 +17,9 @@ package message
 
 import (
          "time"
+         "strings"
+         "os"
+         "os/exec"
          "math/rand"
          
          "../xml"
@@ -46,7 +49,7 @@ var timeout_for_confirmation = 60*time.Second
 //  xmlmsg: the decrypted and parsed message
 func registered(xmlmsg *xml.Hash) {
   server := xmlmsg.Text("source")
-  if server != "" { registrationQueue.Push(server) }
+  if server != "" { registrationQueue.Push(xmlmsg) }
 }
 
 // Infinite loop that handles registering and staying registered at
@@ -55,7 +58,13 @@ func RegistrationHandler() {
   registrationQueue.Push("register")
   
   for {
-    r := registrationQueue.Next()
+    rn := registrationQueue.Next()
+    var r string
+    switch rn := rn.(type) {
+      case string: r = rn
+      case *xml.Hash: r = rn.Text("server")
+    }
+    
     switch r {
       case "register" :
         if registrationState == 0 {
@@ -94,8 +103,11 @@ func RegistrationHandler() {
           }
         }
       case currentServer:
-        util.Log(1, "INFO! Successfully registered at %v", currentServer)
-        registrationState = 2
+        if registrationState != 2 {
+          util.Log(1, "INFO! Successfully registered at %v", currentServer)
+          registrationState = 2
+          go CallRegisteredHook(rn.(*xml.Hash))
+        }
        
       case "confirm":
         if registrationState == 2 {
@@ -130,4 +142,22 @@ func serversToTry() []string {
   servers  = append(servers, config.PeerServers...)
   servers  = append(servers, config.ServersFromDNS()...)
   return servers
+}
+
+func CallRegisteredHook(xmlmsg *xml.Hash) {
+  start := time.Now()
+  env := config.HookEnvironment()
+  for _, tag := range xmlmsg.Subtags() {
+    env = append(env, tag+"="+strings.Join(xmlmsg.Get(tag),"\n"))
+  }
+  cmd := exec.Command(config.RegisteredHookPath)
+  env = append(env, "xml="+xmlmsg.String())
+  cmd.Env = append(env, os.Environ()...)
+  util.Log(1, "INFO! Running registered-hook %v with parameters %v", config.RegisteredHookPath, env)
+  out, err := cmd.CombinedOutput()
+  if err != nil {
+    util.Log(0, "ERROR! registered-hook %v: %v (%v)", config.RegisteredHookPath, err, string(out))
+    return
+  }
+  util.Log(1, "INFO! Finished registered-hook. Running time: %v", time.Since(start))
 }
