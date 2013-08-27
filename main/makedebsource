@@ -158,14 +158,14 @@ build:
 	cp doc/*.5 dist/usr/share/man/man5
 	gzip -9 dist/usr/share/doc/go-susi/changelog.Debian
 	cp main/generate_* main/send_user_msg main/update_config_files dist/usr/lib/go-susi/
-	cp main/trigger_action dist/usr/lib/go-susi/
+	cp main/trigger_action main/registered dist/usr/lib/go-susi/
+	cp main/activated main/detect_hardware dist/usr/lib/go-susi/
 	cp go-susi dist/usr/lib/go-susi/gosa-si-server
 	cp encrypt dist/usr/lib/go-susi/encrypt
 	cp main/gosa-si-server dist/usr/sbin
 	cp main/gosa-si.init dist/etc/init.d/gosa-si
 	echo DEBUG=-vvv >dist/etc/default/gosa-si
 	ln -snf ../lib/go-susi/gosa-si-server dist/usr/sbin/go-susi
-	ln -snf gosa-si-server dist/usr/sbin/gosa-si-client
 	cp sibridge dist/usr/sbin/
 	-cp logrotate-gosa-si-server dist/etc/logrotate.d/gosa-si-server
 	echo >debian/files go-susi_\$(DEBVERSION)_\$(DEB_BUILD_ARCH).deb $section $priority

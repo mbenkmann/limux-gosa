@@ -63,6 +63,8 @@ func RegistrationHandler() {
     switch rn := rn.(type) {
       case string: r = rn
       case *xml.Hash: r = rn.Text("source")
+      case chan string: if registrationState > 0 { rn <- currentServer } else { rn <- "" }
+                        continue
       default: panic("RegistrationHandler(): Unexpected type in registrationQueue")
     }
     
@@ -99,7 +101,6 @@ func RegistrationHandler() {
             util.Log(0, "WARNING! Registration failed. No more servers left to try. Will wait 1 minute then try again.")
             // wait with random element to disband any client swarms
             time.Sleep(time.Duration(55+rand.Intn(20))*time.Second)
-            registrationQueue.Clear()
             registrationQueue.Insert("register")
           }
         }
@@ -132,6 +133,14 @@ func RegistrationHandler() {
 // scratch. 
 func ConfirmRegistration() {
   registrationQueue.Push("confirm")
+}
+
+// Returns the IP:PORT address of the server where we're currently registered, 
+// or "" if we're currently not registered anywhere.
+func CurrentRegistrationServer() string {
+  c := make(chan string,2)
+  registrationQueue.Push(c)
+  return <-c
 }
 
 // ATTENTION! The returned list may contain empty strings.

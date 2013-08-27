@@ -490,7 +490,7 @@ func ReadConfig() {
     if ip,ok := server["ip"]; ok {
       pref, err := util.Resolve(ip)
       if err != nil {
-        util.Log(0, "ERROR! Could not resolve [server]/ip value \"%v\": ",ip, err)
+        util.Log(0, "ERROR! Could not resolve [server]/ip value \"%v\": %v",ip, err)
       } else {
         PreferredServer = pref
       }
