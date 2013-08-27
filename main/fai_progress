@@ -1,0 +1,5 @@
+#!/bin/sh
+umask 077
+rm -f /var/run/gosa-si-client.socket
+touch /var/run/gosa-si-client.socket
+exec -a fai-susi-bridge tail -f /var/run/gosa-si-client.socket

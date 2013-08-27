@@ -108,6 +108,10 @@ var ActivatedHookPath = "/usr/lib/go-susi/activated"
 // in LDIF format.
 var DetectHardwareHookPath = "/usr/lib/go-susi/detect_hardware"
 
+// Path to a file from which FAI progress events will be read and
+// then converted to CLMSG_* messages.
+var FAIProgressHookPath = "/usr/lib/go-susi/fai_progress"
+
 // Path where log files from CLMSG_save_fai_log are stored.
 // Within this directory go-susi creates sub-directories named
 // after the clients' MAC addresses and symlinks named after the
@@ -466,6 +470,9 @@ func ReadConfig() {
     }
     if detect_hardware_hook, ok := general["detect-hardware-hook"]; ok {
       DetectHardwareHookPath = detect_hardware_hook
+    }
+    if fai_progress, ok := general["fai-progress-hook"]; ok {
+      FAIProgressHookPath = fai_progress
     }
   }
   

@@ -28,7 +28,9 @@ package main
 
 import (
           "io"
+          "bufio"
           "os"
+          "os/exec"
           "os/signal"
           "fmt"
           "net"
@@ -174,6 +176,8 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
   util.Log(1, "INFO! Accepting gosa-si protocol connections on TCP port %v", strings.SplitN(config.ServerSourceAddress,":",2)[1]);
   go acceptConnections(listener, tcp_connections)
+  
+  go util.WithPanicHandler(faiProgressWatch)
   
   if config.RunServer {
     util.Log(1, "INFO! Accepting FAI monitoring messages on TCP port %v", config.FAIMonPort)
@@ -459,5 +463,60 @@ func faiConnection(conn *net.TCPConn) {
   
   if  buf.Len() != 0 {
     util.Log(2, "DEBUG! Incomplete FAI monitor message (i.e. not terminated by \"\\n\") from %v: %v", conn.RemoteAddr(), buf.String())
+  }
+}
+
+func faiProgressWatch() {
+  clientpackageskey := config.ModuleKey["[ClientPackages]"]
+  // If [ClientPackages]/key missing, take the last key in the list
+  // (We don't take the 1st because that would be "dummy-key").
+  if clientpackageskey == "" { clientpackageskey = config.ModuleKeys[len(config.ModuleKeys)-1] }
+  
+  util.Log(1, "INFO! Launching fai-progress-hook %v", config.FAIProgressHookPath)
+  env := config.HookEnvironment()
+  cmd := exec.Command(config.FAIProgressHookPath)
+  cmd.Env = append(env, os.Environ()...)
+
+  out, err := cmd.StdoutPipe()
+  if err != nil {
+    util.Log(0, "ERROR! Could not get stdout pipe for %v: %v => FAI progress monitoring disabled", config.FAIProgressHookPath, err)
+    return
+  }
+
+  err = cmd.Start()
+  if err != nil {
+    util.Log(0, "ERROR! Could not launch %v: %v => FAI progress monitoring disabled", config.FAIProgressHookPath, err)
+    return
+  }
+  
+  reader := bufio.NewReader(out)
+  for {
+    line, err := reader.ReadString('\n')
+    if err != nil {
+      util.Log(0, "ERROR! Error reading stdout from FAI progress monitor %v: %v => FAI progress monitoring disabled", config.FAIProgressHookPath, err)
+      return
+    }
+
+    line = strings.TrimSpace(line)
+    util.Log(1, "INFO! FAI progress event: \"%v\"", line)
+    idx := strings.Index(line," ")
+    if idx < 0 {
+      util.Log(0, "WARNING! Ignoring strange FAI progress event \"%v\"", line)
+      continue
+    }
+    
+    header := line[0:idx]
+    content := line[idx+1:]
+    x := xml.NewHash("xml","header",header)
+    x.Add("source", config.ServerSourceAddress)
+    target := message.CurrentRegistrationServer()
+    x.Add("target", target)
+    x.Add(header,content)
+    x.Add("macaddress", config.MAC)
+    x.Add("timestamp", util.MakeTimestamp(time.Now()))
+    
+    util.Log(2, "DEBUG! Sending to %v: %v", target, x)
+    msg := x.String()
+    go func(){util.SendLnTo(target, message.GosaEncrypt(msg, clientpackageskey), config.Timeout)}()
   }
 }
