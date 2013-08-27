@@ -49,7 +49,7 @@ var timeout_for_confirmation = 60*time.Second
 //  xmlmsg: the decrypted and parsed message
 func registered(xmlmsg *xml.Hash) {
   server := xmlmsg.Text("source")
-  if server != "" { registrationQueue.Push(xmlmsg) }
+  if server != "" { registrationQueue.Push(xmlmsg.Clone()) }
 }
 
 // Infinite loop that handles registering and staying registered at
@@ -63,6 +63,7 @@ func RegistrationHandler() {
     switch rn := rn.(type) {
       case string: r = rn
       case *xml.Hash: r = rn.Text("server")
+      default: panic("RegistrationHandler(): Unexpected type in registrationQueue")
     }
     
     switch r {
