@@ -15,7 +15,7 @@ echo 10 >/proc/sys/net/ipv4/tcp_keepalive_intvl
 echo 5 >/proc/sys/net/ipv4/tcp_keepalive_probes
 
 
-pidfile="$(sed 2>/dev/null -n 's/^pid-file *= *\([^ ]*\)/\1/p' /etc/gosa-si/server.conf)"
+pidfile="$(sed 2>/dev/null -n 's/^pid-file *= *\([^ ]*\)/\1/p' /etc/gosa-si/client.conf /etc/gosa-si/server.conf | tail -n 1)"
 test -z "$pidfile" && pidfile=/var/run/gosa-si-server.pid
 
 crashlog="/var/log/gosa-si-server-crash.log"
