@@ -62,7 +62,7 @@ func RegistrationHandler() {
     var r string
     switch rn := rn.(type) {
       case string: r = rn
-      case *xml.Hash: r = rn.Text("server")
+      case *xml.Hash: r = rn.Text("source")
       default: panic("RegistrationHandler(): Unexpected type in registrationQueue")
     }
     
