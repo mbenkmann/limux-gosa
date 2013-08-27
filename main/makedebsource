@@ -160,6 +160,7 @@ build:
 	cp main/generate_* main/send_user_msg main/update_config_files dist/usr/lib/go-susi/
 	cp main/trigger_action main/registered dist/usr/lib/go-susi/
 	cp main/activated main/detect_hardware dist/usr/lib/go-susi/
+	cp main/fai_progress dist/usr/lib/go-susi/
 	cp go-susi dist/usr/lib/go-susi/gosa-si-server
 	cp encrypt dist/usr/lib/go-susi/encrypt
 	cp main/gosa-si-server dist/usr/sbin
