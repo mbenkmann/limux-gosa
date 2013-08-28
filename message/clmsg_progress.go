@@ -46,6 +46,8 @@ func clmsg_progress(xmlmsg *xml.Hash) {
   filter := xml.FilterSimple("siserver",   config.ServerSourceAddress, 
                              "status",    "processing",
                              "macaddress", macaddress)
+  do_not_run_progress_backwards := xml.FilterRel("progress", progress, -1, -1)
+  filter = xml.FilterAnd([]xml.HashFilter{filter, do_not_run_progress_backwards})
   db.JobsModifyLocal(filter, xml.NewHash("job","progress",progress))
   if progress == "100" {
     util.Log(1, "INFO! Progress 100%% => Setting status \"done\" for client %v with MAC %v",xmlmsg.Text("source"), macaddress)
