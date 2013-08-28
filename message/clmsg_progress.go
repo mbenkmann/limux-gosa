@@ -43,15 +43,17 @@ func clmsg_progress(xmlmsg *xml.Hash) {
   // any given time, but sometimes jobs get "lost", typically through manual
   // intervention. Progressing all jobs in lockstep has the nice side effect of
   // taking such old stuck jobs along.
-  filter := xml.FilterSimple("siserver",   config.ServerSourceAddress, 
+  all_processing_jobs_for_mac := xml.FilterSimple("siserver",   config.ServerSourceAddress, 
                              "status",    "processing",
                              "macaddress", macaddress)
-  do_not_run_progress_backwards := xml.FilterRel("progress", progress, -1, -1)
-  filter = xml.FilterAnd([]xml.HashFilter{filter, do_not_run_progress_backwards})
+  // the additional comparisons with "0" and "100" are there to allow overwriting
+  // non-numerical progress values such as "hardware-detection".
+  do_not_run_progress_backwards := xml.FilterOr([]xml.HashFilter{xml.FilterRel("progress", progress, -1, -1), xml.FilterRel("progress", "0", -1, -1), xml.FilterRel("progress", "100", 1, 1)})
+  filter := xml.FilterAnd([]xml.HashFilter{all_processing_jobs_for_mac, do_not_run_progress_backwards})
   db.JobsModifyLocal(filter, xml.NewHash("job","progress",progress))
   if progress == "100" {
     util.Log(1, "INFO! Progress 100%% => Setting status \"done\" for client %v with MAC %v",xmlmsg.Text("source"), macaddress)
-    db.JobsModifyLocal(filter, xml.NewHash("job","status","done"))
+    db.JobsModifyLocal(all_processing_jobs_for_mac, xml.NewHash("job","status","done"))
     // Setting faistate => "localboot" is done in action/process_act.go in reaction
     // to the removal of the job.
   }
