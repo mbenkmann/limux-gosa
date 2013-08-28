@@ -21,7 +21,9 @@ package message
 
 import (
          "io/ioutil"
+         "bufio"
          "os"
+         "os/exec"
          "path"
          "time"
          "regexp"
@@ -145,4 +147,85 @@ func clmsg_save_fai_log(buf *bytes.Buffer) {
       continue
     }
   }
+}
+
+// Executes program and reads from its standard output log files to transfer to
+// the target server. See fai-savelog-hook in the manual.
+func Send_clmsg_save_fai_log(target string, program string) {
+  var buffy bytes.Buffer
+  defer buffy.Reset()
+  
+  clientpackageskey := config.ModuleKey["[ClientPackages]"]
+  // If [ClientPackages]/key missing, take the last key in the list
+  // (We don't take the 1st because that would be "dummy-key").
+  if clientpackageskey == "" { clientpackageskey = config.ModuleKeys[len(config.ModuleKeys)-1] }
+  
+  util.Log(1, "INFO! Launching fai-savelog-hook %v", program)
+  start := time.Now()
+  env := config.HookEnvironment()
+  cmd := exec.Command(program)
+  cmd.Env = append(env, os.Environ()...)
+
+  out, err := cmd.StdoutPipe()
+  if err != nil {
+    util.Log(0, "ERROR! Could not get stdout pipe for %v: %v", program, err)
+    return
+  }
+  defer out.Close()
+  
+  in, err := cmd.StdinPipe()
+  if err != nil {
+    util.Log(0, "ERROR! Could not get stdin pipe for %v: %v", program, err)
+    return
+  }
+  defer in.Close()
+
+  err = cmd.Start()
+  if err != nil {
+    util.Log(0, "ERROR! Could not launch %v: %v", program, err)
+    return
+  }
+  
+  buffy.WriteString("<xml><header>CLMSG_save_fai_log</header><source>")
+  buffy.WriteString(config.ServerSourceAddress)
+  buffy.WriteString("</source>")
+  buffy.WriteString("<target>")
+  buffy.WriteString(target)
+  buffy.WriteString("</target>")
+  buffy.WriteString("<macaddress>")
+  buffy.WriteString(config.MAC)
+  buffy.WriteString("</macaddress>")
+  buffy.WriteString("<CLMSG_save_fai_log>")
+  
+  reader := bufio.NewReader(out)
+  fai_action := ""
+  for {
+    line, err := reader.ReadString('\n')
+    if err != nil {
+      util.Log(0, "ERROR! Error reading stdout from %v: %v", program, err)
+      return
+    }
+
+    line = strings.TrimSpace(line)
+    if line == "install" || line == "softupdate" {
+      fai_action = line
+      break
+    }
+    
+    buffy.WriteString(line)
+  }
+  
+  util.Log(1, "INFO! Received %v bytes in %v from fai-savelog-hook", buffy.Len(), time.Since(start))
+  
+  buffy.WriteString("</CLMSG_save_fai_log>")
+  buffy.WriteString("<fai_action>")
+  buffy.WriteString(fai_action)
+  buffy.WriteString("</fai_action>")
+  buffy.WriteString("</xml>")
+  
+  util.Log(1, "INFO! Sending %v bytes of log files to %v", buffy.Len(), target)
+  GosaEncryptBuffer(&buffy, clientpackageskey)
+  util.SendLnTo(target, buffy.String(), config.Timeout)
+  
+  in.Write([]byte{'\n'}) // notify hook that transfer is complete
 }
