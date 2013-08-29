@@ -487,11 +487,15 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
                 // because JobsRemoveLocal() is asynchronous.
                 // One could see this as a bug, in particular in the case where 2 identical jobs
                 // are planned at the same time. However I don't see a reason to fix this ATM.
-                util.Log(1, "INFO! New %v job => Removing other reinstall/update jobs currently processing for %v", job.Text("headertag"), job.Text("macaddress"))
                 local_processing := xml.FilterSimple("siserver", config.ServerSourceAddress, "macaddress", job.Text("macaddress"), "status", "processing")
                 install_or_update := xml.FilterOr([]xml.HashFilter{xml.FilterSimple("headertag", "trigger_action_reinstall"),xml.FilterSimple("headertag", "trigger_action_update")})
                 not_the_new_job := xml.FilterNot(xml.FilterSimple("id", job.Text("id")))
-                JobsRemoveLocal(xml.FilterAnd([]xml.HashFilter{local_processing, install_or_update, not_the_new_job}), false)
+                to_remove := xml.FilterAnd([]xml.HashFilter{local_processing, install_or_update, not_the_new_job})
+                removed_jobs := jobDB.Query(to_remove)
+                if removed_jobs.FirstChild() != nil {
+                  util.Log(1, "INFO! New %v job => Removing other reinstall/update jobs currently processing for %v: %v", job.Text("headertag"), job.Text("macaddress"), removed_jobs)
+                }
+                JobsRemoveLocal(to_remove, false)
               }
               util.Log(1, "INFO! Launching job: %v",job)
               PendingActions.Push(job.Clone()) 
@@ -528,7 +532,8 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
 // used with a filter that checks siserver to avoid local jobs.
 func JobsRemoveForeign(filter xml.HashFilter) {
   deljob := func(request *jobDBRequest) {
-    jobDB.Remove(request.Filter)
+    removed := jobDB.Remove(request.Filter)
+    util.Log(2, "DEBUG! Removed foreign jobs: %v", removed)
   }
   jobDBRequests <- &jobDBRequest{ deljob, filter, nil, nil }
 }
@@ -552,9 +557,11 @@ func JobsAddOrModifyForeign(filter xml.HashFilter, job *xml.Hash) {
   }
   
   addmodify := func(request *jobDBRequest) {
-    found := jobDB.Query(request.Filter).First("job")
+    jobs := jobDB.Query(request.Filter)
+    found := jobs.First("job")
     
     if found != nil { // if jobs found => update their fields
+      util.Log(2, "DEBUG! Applying %v to foreign job(s): %v", request.Job, jobs)
       for ; found != nil; found = found.Next() {
         for _, field := range updatableFields {
           x := request.Job.First(field)
@@ -568,6 +575,7 @@ func JobsAddOrModifyForeign(filter xml.HashFilter, job *xml.Hash) {
       }
     } else // no job matches filter => add job
     {
+      util.Log(2, "DEBUG! Adding new foreign job: %v", request.Job)
       job := request.Job
       job.Rename("job")
       job.FirstOrAdd("original_id").SetText(job.Text("id"))
