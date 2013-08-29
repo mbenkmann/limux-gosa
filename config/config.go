@@ -579,7 +579,6 @@ func ReadConfig() {
   if strings.Index(PreferredServer,":") < 0 {
     PreferredServer += ServerListenAddress[strings.Index(ServerListenAddress,":"):]
   }
-  PreferredServer = strings.Replace(PreferredServer, "127.0.0.1", IP, 1)
 }
 
 // Reads network parameters.
@@ -699,6 +698,7 @@ func ReadNetwork() {
   }
   
   util.Log(1, "INFO! Hostname: %v  Domain: %v  MAC: %v  Server: %v", Hostname, Domain, MAC, ServerSourceAddress)
+  PreferredServer = strings.Replace(PreferredServer, "127.0.0.1", IP, 1)
 }
 
 // Returns the gosa-si servers listed in DNS.
