@@ -1370,7 +1370,7 @@ func execServer(clients *[]int, args []string) {
     return
   }
   
-  host, err := util.Resolve(args[1])
+  host, err := util.Resolve(args[1],config.IP)
   if err != nil {
     util.Log(0, "ERROR! %v", err)
     return
