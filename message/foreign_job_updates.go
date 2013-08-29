@@ -154,7 +154,7 @@ func foreign_job_updates(xmlmsg *xml.Hash) {
         // Because the job belongs to the sender, the <id> field corresponds to
         // the <original_id> we have in our database, so we can select the
         // job with precision.
-        filter := xml.FilterSimple("original_id", job.Text("id"))
+        filter := xml.FilterSimple("siserver", source, "original_id", job.Text("id"))
           
         db.JobsAddOrModifyForeign(filter, job)
 
