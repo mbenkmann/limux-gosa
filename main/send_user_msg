@@ -87,6 +87,7 @@ while read -r line ; do
   key="${key##*<key>}"
   
   test "$server" != "$IPADDRESS:$SERVERPORT" && continue  # skip foreign clients
+  test "$client" == "$server" && continue  # skip client built into server
 
   test "$key" = "$line" && continue
 
@@ -132,3 +133,7 @@ echo 1>&2 "Notifying logged in user $user"
 LANG=de_DE.UTF-8 /usr/bin/goto-notify -b user-message "$user" "$subject" "$message" "$tempfile" &
               
 done
+
+wait
+
+rm -rf "$temp"
