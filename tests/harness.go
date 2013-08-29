@@ -25,6 +25,8 @@ import (
          "strings"
          "reflect"
          "runtime"
+         
+         "../bytes"
        )
 
 // true => show test output even for PASSED tests.
@@ -44,6 +46,8 @@ var ExpectedFail = 0
 
 // How many tests that were expected to fail did instead pass.
 var UnexpectedPass = 0
+
+var FailureReport = new(bytes.Buffer)
 
 // It's ridiculously hard to check if a value is nil in Go.
 // At the time of this writing the following prints "false":
@@ -90,6 +94,7 @@ func checkLevel(x interface{}, expected interface{}, level int) bool {
     fmt.Println("FAILED")
     Fail++
     fmt.Printf("OUTPUT  : %v\nEXPECTED: %v\n", x, expected)
+    FailureReport.WriteString(fmt.Sprintf("Test %2v (%v:%v) FAILED\nOUTPUT  : %v\nEXPECTED: %v\n", Count, file, line, x, expected))
     return false
   }
   return true
@@ -117,6 +122,7 @@ func checkFailLevel(x interface{}, expected interface{}, level int) bool {
     Pass++
     UnexpectedPass++
     fmt.Printf("OUTPUT  : %v\n", x)
+    FailureReport.WriteString(fmt.Sprintf("Test %2v (%v:%v) PASSED UNEXPECTEDLY\nOUTPUT  : %v\n", Count, file, line, x))
     return true
   } else {
     fmt.Println("FAILED AS EXPECTED")

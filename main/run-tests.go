@@ -50,6 +50,9 @@ func main() {
   }
   
   // -----------------------------------------
+  if tests.FailureReport.Len() > 0 {
+    fmt.Printf("\n===========================================================\n%v\n", tests.FailureReport)
+  }
   fmt.Printf("\n=== Results ===\n\n#Tests: %3v\nPassed: %3v (%v unexpected)\nFailed: %3v (%v expected)\n", 
   tests.Count, tests.Pass, tests.UnexpectedPass, tests.Fail, tests.ExpectedFail)
   
