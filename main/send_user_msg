@@ -99,6 +99,7 @@ while read -r line ; do
 <message>$message</message>
 <usr>$user</usr>
 <usr_msg></usr_msg>
+<send_user_msg_do_not_recurse>1</send_user_msg_do_not_recurse>
 </xml>
 "
   
