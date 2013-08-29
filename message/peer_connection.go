@@ -421,7 +421,7 @@ var connections_mutex sync.Mutex
 // Returns a PeerConnection for talking to addr, which can be either
 // IP:ADDR or HOST:ADDR (where HOST is something that DNS can resolve).
 func Peer(addr string) *PeerConnection {
-  addr, err := util.Resolve(addr)
+  addr, err := util.Resolve(addr, config.IP)
   if err != nil {
     return &PeerConnection{err:err}
   }
@@ -430,8 +430,6 @@ func Peer(addr string) *PeerConnection {
   if err != nil {
     return &PeerConnection{err:err}
   }
-  
-  if host == "127.0.0.1" { host = config.IP } // for consistency
   
   addr = host + ":" + port
   

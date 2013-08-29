@@ -35,6 +35,7 @@ import (
          
          "../util"
          "../bytes"
+         "../config"
        )
 
 var util_test_rng = rand.New(rand.NewSource(0x0dd))
@@ -145,43 +146,63 @@ func (a *UintArray) Swap(i, j int) { (*a)[i], (*a)[j] = (*a)[j], (*a)[i] }
 func Util_test() {
   fmt.Printf("\n==== util ===\n\n")
   
-  addr, err := util.Resolve("1.2.3.4")
+  addr, err := util.Resolve("1.2.3.4", "")
   check(err,nil)
   check(addr,"1.2.3.4")
   
-  addr, err = util.Resolve("1.2.3.4:5")
+  addr, err = util.Resolve("1.2.3.4:5", "")
   check(err,nil)
   check(addr,"1.2.3.4:5")
   
-  addr, err = util.Resolve("::1:5")
+  addr, err = util.Resolve("::1:5", "")
   check(err, nil)
   check(addr,"[::1:5]")
   
-  addr, err = util.Resolve("localhost:65535")
+  addr, err = util.Resolve("localhost:65535", "")
   check(err, nil)
   check(addr, "127.0.0.1:65535")
   
-  addr, err = util.Resolve("localhost")
+  addr, err = util.Resolve("localhost", "")
   check(err, nil)
   check(addr, "127.0.0.1")
   
-  addr, err = util.Resolve("::1")
+  addr, err = util.Resolve("::1","")
   check(err, nil)
   check(addr, "127.0.0.1")
   
-  addr, err = util.Resolve("[::1]")
+  addr, err = util.Resolve("[::1]","")
   check(err, nil)
   check(addr, "127.0.0.1")
   
-  addr, err = util.Resolve("[::1]:12345")
+  addr, err = util.Resolve("[::1]:12345","")
   check(err, nil)
   check(addr, "127.0.0.1:12345")
   
-  addr, err = util.Resolve("")
+  addr, err = util.Resolve("localhost:65535", "foo")
+  check(err, nil)
+  check(addr, "foo:65535")
+  
+  addr, err = util.Resolve("localhost", "foo")
+  check(err, nil)
+  check(addr, "foo")
+  
+  addr, err = util.Resolve("::1","foo")
+  check(err, nil)
+  check(addr, "foo")
+  
+  addr, err = util.Resolve("[::1]","foo")
+  check(err, nil)
+  check(addr, "foo")
+  
+  addr, err = util.Resolve("[::1]:12345","foo")
+  check(err, nil)
+  check(addr, "foo:12345")
+  
+  addr, err = util.Resolve("","")
   check(hasWords(err,"no","such","host"), "")
   check(addr, "")
   
-  addr, err = util.Resolve(":10")
+  addr, err = util.Resolve(":10","")
   check(hasWords(err,"no","such","host"), "")
   check(addr, ":10")
   
@@ -190,7 +211,7 @@ func Util_test() {
   
   ipp,_ := exec.Command("hostname","-I").CombinedOutput()
   ips := strings.Fields(strings.TrimSpace(string(ipp)))
-  addr, err = util.Resolve(hostname+":234")
+  addr, err = util.Resolve(hostname+":234", config.IP)
   check(err, nil)
   ip := ""
   for _, ip2 := range ips {

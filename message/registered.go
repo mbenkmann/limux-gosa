@@ -90,7 +90,7 @@ func RegistrationHandler() {
             if currentServer != "" {
               util.Log(0, "WARNING! Registration at %v failed => Will try next candidate server", currentServer)
             }
-            currentServer,_ = util.Resolve(serverList[indexInList])
+            currentServer,_ = util.Resolve(serverList[indexInList], config.IP)
             util.Log(1, "INFO! Trying to register at %v", currentServer)
             go Send_here_i_am(currentServer)
             go func() {

@@ -177,7 +177,7 @@ var client_connections_mutex sync.Mutex
 // Returns a ClientConnection for talking to addr, which can be either
 // IP:PORT or HOST:PORT (where HOST is something that DNS can resolve).
 func Client(addr string) *ClientConnection {
-  addr, err := util.Resolve(addr)
+  addr, err := util.Resolve(addr, config.IP)
   if err != nil {
     util.Log(0, "ERROR! Client(%v): %v", addr, err)
     return &ClientConnection{addr:"127.0.0.1:0"}

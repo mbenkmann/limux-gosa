@@ -178,7 +178,7 @@ func SystemCommonNameForMAC(macaddress string) string {
 // ATTENTION! This function accesses a variety of external sources
 // and may therefore take a while. If possible you should use it asynchronously.
 func SystemIPAddressForName(host string) string {
-  ip, err := util.Resolve(host)
+  ip, err := util.Resolve(host, config.IP)
   if err != nil { 
     // if host already contains a domain, give up
     if strings.Index(host, ".") >= 0 {
@@ -208,9 +208,6 @@ func SystemIPAddressForName(host string) string {
     return "none" 
   }
 
-  // translate loopback address to our own IP for consistency
-  if ip == "127.0.0.1" { ip = config.IP } 
-  
   return ip
 }
 

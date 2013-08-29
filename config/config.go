@@ -502,7 +502,7 @@ func ReadConfig() {
     }
     
     if ip,ok := server["ip"]; ok {
-      pref, err := util.Resolve(ip)
+      pref, err := util.Resolve(ip,"")
       if err != nil {
         util.Log(0, "ERROR! Could not resolve [server]/ip value \"%v\": %v",ip, err)
       } else {
@@ -579,6 +579,7 @@ func ReadConfig() {
   if strings.Index(PreferredServer,":") < 0 {
     PreferredServer += ServerListenAddress[strings.Index(ServerListenAddress,":"):]
   }
+  PreferredServer = strings.Replace(PreferredServer, "127.0.0.1", IP, 1)
 }
 
 // Reads network parameters.

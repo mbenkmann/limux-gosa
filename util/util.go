@@ -245,15 +245,20 @@ var endsWithPort = regexp.MustCompile(":"+re_port+"$")
 // If HOST is already an IPv4 address, it will be kept.
 // If there is only an IPv6 address available, it will be enclosed in "[...]"
 // in the result (even if there is no port).
+//
+// If localip != "" in the result "127.0.0.1" will be replaced with localip.
 // 
 // Returns the modified address or the original address with an error.
-func Resolve(addr string) (string, error) {
+func Resolve(addr string, localip string) (string, error) {
+  if localip == "" { localip = "127.0.0.1" }
+  addr = strings.Replace(addr, "127.0.0.1", localip, 1)
+  
   if startsWithIPv4Regexp.MatchString(addr) { return addr, nil }
   
   host := addr
   port := ""
   var err error
-  
+
   // the net.ParseIP() check tries to prevent confusing an IPv6 address for a port
   if endsWithPort.MatchString(addr) && net.ParseIP(addr) == nil {
     host, port, err = net.SplitHostPort(addr)
@@ -262,7 +267,7 @@ func Resolve(addr string) (string, error) {
   }
   
   if host == "localhost" || host == "::1" || host == "[::1]" { 
-    return "127.0.0.1" + port, nil 
+    return localip + port, nil 
   }
   
   addrs, err := net.LookupIP(host)
@@ -281,7 +286,7 @@ func Resolve(addr string) (string, error) {
   
   // try to find an IPv4 address (possibly loopback)
   for _, a := range addrs {
-    if a.To4() != nil { return a.String() + port, nil }
+    if a.To4() != nil { return strings.Replace(a.String(), "127.0.0.1", localip, 1) + port, nil }
   }
   
   // take the first address (which is IPv6)
