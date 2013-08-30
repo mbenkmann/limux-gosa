@@ -165,8 +165,11 @@ func ServerUpdate(server *xml.Hash) {
 // Removes the server data for the server with the given IP:PORT address and
 // returns the removed data or nil if the server was not in the database.
 func ServerRemove(addr string) *xml.Hash {
-  server := serverDB.Remove(xml.FilterSimple("source", addr))
-  return server.First("xml")
+  server := serverDB.Remove(xml.FilterSimple("source", addr)).First("xml")
+  if server != nil {
+    util.Log(1, "INFO! Removed %v from serverdb", addr)
+  }
+  return server
 }
 
 // Returns all keys (0-length slice if none) known for the server identified by

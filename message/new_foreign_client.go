@@ -29,5 +29,14 @@ import (
 //  xmlmsg: the decrypted and parsed message
 func new_foreign_client(xmlmsg *xml.Hash) {
   db.ClientUpdate(xmlmsg)
+  // If the client is not the same as the sending server,
+  // it can't be a server. Remove from peer database if it is there.
+  // NOTE: This deals with the fact that go-susi uses the same port
+  // for client-only instances as for server instances. A server that
+  // is re-installed to become a client may therefore be listed in
+  // serverdb.
+  if xmlmsg.Text("source") != xmlmsg.Text("client") {
+    db.ServerRemove(xmlmsg.Text("client"))
+  }
 }
 

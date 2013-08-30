@@ -76,6 +76,10 @@ func here_i_am(xmlmsg *xml.Hash) {
   client.Add("macaddress",macaddress)
   client.Add("key",xmlmsg.Text("new_passwd"))
   db.ClientUpdate(client)
+  // A client that sends here_i_am to us is either our own internal client or
+  // a client-only client. In either case make sure we don't have an entry in the
+  // peer database.
+  db.ServerRemove(client_addr)
   
   util.Log(1, "INFO! Informing all peers about new registered client %v at %v", macaddress, client_addr)
   for _, server := range db.ServerAddresses() {
