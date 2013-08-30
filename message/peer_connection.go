@@ -338,14 +338,14 @@ func (conn *PeerConnection) handleConnection() {
           //       a full sync to make up for any lost foreign_job_updates messages.
         } else {
           // resending succeed => We're back in business. Do full sync.
-          if !conn.IsGoSusi() {
-            // If peer is not go-susi it generates a new key after re-starting,
-            // so we need to send it a key, so that it understands our fju.
-            // go-susi doesn't need this. See the long comment in db/serverdb.go:addServer()
-            Send_new_server("new_server", conn.addr)
-          }
-          // Full sync.
-          conn.SyncAll() 
+          // If peer is not go-susi it generates a new key after re-starting,
+          // so we need to send it a key, so that it understands our fju.
+          // go-susi doesn't need this. See the long comment in db/serverdb.go:addServer()
+          // However it is possible that the database of a go-susi has been nuked,
+          // so just to be on the save side we send new_server anyway.
+          // The new_server/confirm_new_server exchange will automatically trigger
+          // a full sync.
+          Send_new_server("new_server", conn.addr)
         }
       }
       
