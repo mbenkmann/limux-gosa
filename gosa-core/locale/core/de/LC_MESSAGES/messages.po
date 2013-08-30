@@ -3479,6 +3479,27 @@ msgstr "Benutzerauswahl"
 msgid "Default filter2"
 msgstr "Standard-Filter"
 
+msgid "Primary groups"
+msgstr "Primäre Gruppen"
+
+msgid "Samba groups"
+msgstr "Sambagruppen"
+
+msgid "Application groups"
+msgstr "Anwendungsgruppen"
+
+msgid "Mail groups"
+msgstr "Mailgruppen"
+
+msgid "Functional groups"
+msgstr "Funkionelle Gruppen"
+
+msgid "Environment groups"
+msgstr "Umgebungsgruppen"
+
+msgid "Menu groups"
+msgstr "Menügruppen"
+
 #: plugins/admin/groups/group-list.xml:11
 msgid "List of groups"
 msgstr "Liste der Gruppen"

@@ -25,5 +25,91 @@
       <characters>3</characters>
     </autocomplete>
   </search>
+  
+  <search>
+    <tag>primary</tag>
+    <label>Primary groups</label>
+    <query>
+      <backend>PrimaryGroupLDAP</backend>
+      <filter>(&amp;(objectClass=posixGroup)(gidNumber=*)(cn=$))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+  
+  <search>
+    <tag>samba</tag>
+    <label>Samba groups</label>
+    <query>
+      <backend>GroupLDAP</backend>
+      <filter>(&amp;(objectClass=sambaGroupMapping)(cn=$))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+
+  <search>
+    <tag>mail</tag>
+    <label>Mail groups</label>
+    <query>
+      <backend>GroupLDAP</backend>
+      <filter>(&amp;(objectClass=gosaMailAccount)(cn=$))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+  
+  <search>
+    <tag>environment</tag>
+    <label>Environment groups</label>
+    <query>
+      <backend>GroupLDAP</backend>
+      <filter>(&amp;(objectClass=gotoEnvironment)(cn=$))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+  
+
+  <search>
+    <tag>menu</tag>
+    <label>Menu groups</label>
+    <query>
+      <backend>MenuGroupLDAP</backend>
+      <filter>(&amp;(objectClass=posixGroup)(cn=$))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
+
+
+  <search>
+    <tag>functional</tag>
+    <label>Functional groups</label>
+    <query>
+      <backend>GroupLDAP</backend>
+      <filter>(&amp;(objectClass=posixGroup)(!(objectClass=gosaMailAccount))(cn=$))</filter>
+    </query>
+    <autocomplete>
+      <attribute>cn</attribute>
+      <frequency>0.5</frequency>
+      <characters>3</characters>
+    </autocomplete>
+  </search>
 
 </filterdef>
