@@ -37,6 +37,7 @@ func CheckPossibleClients() {
   for child := db.ClientsWeMayHave.FirstChild(); child != nil; child = child.Next() {
     client := child.Element()
     addr := client.Text("client")
+    if addr == config.ServerSourceAddress { continue } // do not send Müll to ourselves
     util.Log(1, "INFO! Sending 'Müll' to %v", addr)
     go util.SendLnTo(addr, "Müll", config.Timeout)
   }
