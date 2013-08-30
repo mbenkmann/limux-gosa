@@ -234,6 +234,15 @@ func SystemTest(daemon string, is_gosasi bool) {
     time.Sleep(1*time.Second)
   }
   
+  // Check for the new_server message we should get after the connection is re-established
+  time.Sleep(2*time.Second)
+  for _,msg = range get(t0) {
+    if msg.XML.Text("header") == "new_server" { break }
+  }
+  
+  // Send back confirm_new_server
+  send("[ServerPackages]", hash("xml(header(confirm_new_server)confirm_new_server()key(%v)loaded_modules(goSusi)macaddress(00:00:00:00:00:00))", msg.XML.Text("key")))
+  
   // Check for the <sync>all</sync> message we should get after the connection
   // is re-established
   time.Sleep(2*time.Second)
