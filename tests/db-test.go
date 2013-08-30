@@ -286,12 +286,22 @@ func systemdb_test() {
   data, err := db.SystemGetAllDataForMAC("no-mac", true)
   check(data, nil)
   check(err, "Could not find system with MAC no-mac")
+  _, ok := err.(db.SystemNotFoundError)
+  check(ok, true)
   
   ldapUri := config.LDAPURI
   config.LDAPURI = "broken"
   data, err = db.SystemGetAllDataForMAC(db.SystemMACForName("systest1"), true)
   check(data, nil)
   check(err, "Could not parse LDAP URI(s)=broken (3)\n")
+  _, ok = err.(db.SystemNotFoundError)
+  check(ok, false)
+  config.LDAPURI = "ldap://localhost:1"
+  data, err = db.SystemGetAllDataForMAC(db.SystemMACForName("systest1"), true)
+  check(data, nil)
+  check(err, "ldap_sasl_bind(SIMPLE): Can't contact LDAP server (-1)\n")
+  _, ok = err.(db.SystemNotFoundError)
+  check(ok, false)
   config.LDAPURI = ldapUri
   
   data, err = db.SystemGetAllDataForMAC(db.SystemMACForName("systest1"), true)

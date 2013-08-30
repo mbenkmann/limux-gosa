@@ -383,10 +383,15 @@ func SystemForceFAIState(macaddress, faistate string) {
   util.Log(0, "ERROR! ForceFAIState(%v, %v): Some install/softupdate jobs could not be removed.", macaddress, faistate)
 }
 
+type SystemNotFoundError struct {
+  error
+}
 
 // Returns the complete data available for the system identified by the given 
 // macaddress. If an error occurs or the system is not found, 
 // the returned data is nil and the 2nd return value is the error.
+// If the system is not found, the error will be of type SystemNotFoundError.
+// This can be used to distinguish this case from other kinds of failures.
 // The format of the returned data is
 // <xml>
 //  <dn>...</dn>
@@ -405,7 +410,7 @@ func SystemForceFAIState(macaddress, faistate string) {
 func SystemGetAllDataForMAC(macaddress string, use_groups bool) (*xml.Hash, error) {
   x, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",LDAPFilterEscape(macaddress), config.UnitTagFilter)))
   if err != nil { return nil, err }
-  if x.First("dn") == nil { return nil, fmt.Errorf("Could not find system with MAC %v", macaddress) }
+  if x.First("dn") == nil { return nil, SystemNotFoundError{fmt.Errorf("Could not find system with MAC %v", macaddress)} }
   if use_groups {
     dn := x.Text("dn")
     groups := SystemGetGroupsWithMember(dn)

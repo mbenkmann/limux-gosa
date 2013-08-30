@@ -81,6 +81,16 @@ func here_i_am(xmlmsg *xml.Hash) {
   // peer database.
   db.ServerRemove(client_addr)
   
+  util.Log(1, "INFO! Getting LDAP data for client %v (%v) including groups", client_addr, macaddress)
+  system, err := db.SystemGetAllDataForMAC(macaddress, true)
+  if _, not_found := err.(db.SystemNotFoundError); err != nil && !not_found {
+    // If we encounter any error other than "system not found" we can't continue
+    util.Log(0, "ERROR! LDAP error searching for %v: %v", macaddress, err)
+    return
+  }
+  
+  checkTime(start, macaddress)
+  
   util.Log(1, "INFO! Informing all peers about new registered client %v at %v", macaddress, client_addr)
   for _, server := range db.ServerAddresses() {
     client.First("target").SetText(server)
@@ -90,10 +100,6 @@ func here_i_am(xmlmsg *xml.Hash) {
 
   message_start := "<xml><source>"+config.ServerSourceAddress+"</source><target>"+client_addr+"</target>"
   registered := message_start + "<header>registered</header><registered></registered>"
-  
-  util.Log(1, "INFO! Getting LDAP data for client %v (%v) including groups", client_addr, macaddress)
-  system, err := db.SystemGetAllDataForMAC(macaddress, true)
-  checkTime(start, macaddress)
   
   if system != nil && system.Text("gotoldapserver") != "" {
     registered += "<ldap_available>true</ldap_available>"
