@@ -23,6 +23,8 @@ package message
 
 import ( 
          "net"
+         "time"
+         "math/rand"
          "strings"
          "crypto/cipher"
          "crypto/aes"
@@ -138,7 +140,7 @@ func ProcessEncryptedMessage(buf *bytes.Buffer, tcpAddr *net.TCPAddr) (reply *by
   if ip == nil {
     util.Log(0, "ERROR! Cannot convert sender address to IPv4 address: %v", tcpAddr)
   } else {
-    tryToReestablishCommunicationWith(ip.String())
+    go tryToReestablishCommunicationWith(ip.String())
   }
   
   return ErrorReplyBuffer("Could not decrypt message"), true
@@ -146,14 +148,42 @@ func ProcessEncryptedMessage(buf *bytes.Buffer, tcpAddr *net.TCPAddr) (reply *by
 
 // Tries to re-establish communication with a client/server at the given IP,
 // by 
-//   1) sending (if config.RunServer) new_server messages to all standard
-//      client and server ports as well as all <source>/<client> addresses we
-//      find for the IP in our clients and servers databases.
-//   2) sending here_i_am to the server where we are registered. We do this
+//   1) sending here_i_am to the server where we are registered. We do this
 //      even if config.RunServer (i.e. we are registered at ourselves) because
 //      this will trigger new_foreign_client messages sent to peers so that other
 //      servers that may believe they own us correct their data.
+//   2) sending (if config.RunServer) new_server messages to all known servers
+//      we find for the IP in our servers database.
+//   3) if config.RunServer and in 2) we did not find a server at that IP,
+//      maybe it's a client that thinks we are its server. Send "Müll" to
+//      all ClientPorts in that case to cause re-registration.
 func tryToReestablishCommunicationWith(ip string) {
+  // Wait a little to limit the rate of spam wars between
+  // 2 machines that can't re-establish communication (e.g. because of changed
+  // keys in server.conf).
+  delay := time.Duration(rand.Intn(60))*time.Second
+
+  util.Log(0, "WARNING! Will try to re-establish communication with %v after waiting %v", ip, delay)
+  time.Sleep(delay)
+  ConfirmRegistration() // 1)
+  
+  if config.RunServer { // 2)
+    sendmuell := true
+    for _, server := range db.ServerAddresses() {
+      if strings.HasPrefix(server, ip) {
+        sendmuell = false
+        srv := server
+        go util.WithPanicHandler(func(){ Send_new_server("new_server", srv) })
+      }
+    }
+    
+    if sendmuell {
+      for _, port := range config.ClientPorts {
+        addr := ip + ":" + port
+        go util.SendLnTo(addr, "Müll", config.Timeout)
+      }
+    }
+  }
 }
 
 // Arguments
