@@ -22,6 +22,7 @@ package db
 import (
          "os"
          "time"
+         "math/rand"
          "regexp"
          "strings"
          
@@ -172,8 +173,16 @@ func ClientUpdate(client *xml.Hash) {
     for oldclient := old.FirstChild(); oldclient != nil; oldclient = oldclient.Next() {
       if oldclient.Element().Text("source") == config.ServerSourceAddress {
         addr := oldclient.Element().Text("client")
-        util.Log(1, "INFO! Client taken away from us. Verifying by sending 'Müll' to %v", addr)
-        go util.SendLnTo(addr, "Müll", config.Timeout)
+        // Add a random delay to avoid situations where multiple servers
+        // manage to send a client going round and round re-registering because
+        // gosa-si-client always picks a new server when receiving an undecryptable
+        // message instead of trying to re-register at its current server.
+        delay := time.Duration(rand.Intn(60))*time.Second
+        util.Log(1, "INFO! Client taken away from us. Verifying by sending 'Müll' to %v after waiting %v", addr, delay)
+        go func(){ 
+          time.Sleep(delay)
+          util.SendLnTo(addr, "Müll", config.Timeout)
+        }()
       }
     }
   }
