@@ -26,7 +26,6 @@ class reference extends plugin
     var $aclResolver = NULL;
 
     var $referenceFilters = array();
-    var $objectList ="";
     var $modifyTimestamp = "";
 
     function reference (&$config, $dn= NULL, $parent = NULL)
@@ -91,7 +90,7 @@ class reference extends plugin
         $ldap = $this->config->get_ldap_link();
         $ldap->cd($this->config->current['BASE']);
         $str = "";
-        foreach($this->referenceFilters as $filter){
+        foreach($this->referenceFilters as &$filter){
             $ldap->search($filter['filter'], array_keys($filter['attrs']));
             if(!$ldap->success()){
                 msg_dialog::display(_("LDAP error"), msgPool::ldaperror($ldap->get_error(), $this->dn, LDAP_VIEW, get_class()));
@@ -117,14 +116,26 @@ class reference extends plugin
                     $data[] = $entry;
                 }
                 $list->setListData($data, $data);
-
-                $list->update();    
-                $str .= "<h3>".$filter['msg']."</h3>";
-                $str .= $list->render();
-                $str .= "<div class='v-spacer'></div>";
+                $filter['list'] = $list;
             }
         }
-        $this->objectList = $str;
+    }
+
+    protected function renderObjectList() {
+        $str = '';
+
+        foreach ($this->referenceFilters as $filter){
+            if (!isset($filter['list'])) {
+                continue;
+            }
+
+            $filter['list']->update();
+            $str .= "<h3>".$filter['msg']."</h3>";
+            $str .= $filter['list']->render();
+            $str .= "<div class='v-spacer'></div>";
+        }
+
+        return $str;
     }
 
     function execute()
@@ -156,7 +167,7 @@ class reference extends plugin
         $tz = timezone::get_default_timezone();
         $smarty->assign('modifyTimestamp', set_post(date('d.m.Y H:i:s', strtotime($this->modifyTimestamp))));
 
-        $smarty->assign('objectList', $this->objectList);
+        $smarty->assign('objectList', $this->renderObjectList());
         $smarty->assign("acls",$this->aclResolver->getReadableACL());
 
         session::set('autocomplete', $this->aclResolver);

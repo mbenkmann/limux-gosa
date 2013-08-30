@@ -422,7 +422,7 @@ class sortableListing {
                 if (preg_match('/^SORT_([0-9]+)$/', $key, $match)) {
 
                     // Switch to new column or invert search order?
-                    $column= $match[1];
+                    $column= (int) $match[1];
                     if ($this->sortColumn != $column) {
                         $this->sortColumn= $column;
                     } else {
@@ -611,35 +611,46 @@ class sortableListing {
     {
         $this->sortingEnabled= $bool;
     }
+    
+    protected function removeValueFromArray(array $array, $value) {
+      $filterFunction = function ($x) use ($value) { return $x !== $value; };
+      
+      return array_filter($array, $filterFunction);
+    }
 
+    protected function columnsFromLeftToRightWithPrimarySortColumnAtTheBeginning() {
+      $allColumns = range(0, $this->columns - 1);
+      $columnsWithoutPrimarySortColumn = $this->removeValueFromArray($allColumns, $this->sortColumn);
+      return array_merge(array($this->sortColumn), $columnsWithoutPrimarySortColumn);
+    }
 
     public function sortData()
     {
-        if(!$this->sortingEnabled || !count($this->data)) return;
+        if (!$this->sortingEnabled || empty($this->data)) return;
+        
+        $columnsSortPriority = $this->columnsFromLeftToRightWithPrimarySortColumnAtTheBeginning();
+        $reverseSort = !$this->sortDirection[$this->sortColumn];
 
-        // Extract data
-        $tmp= array();
-        foreach($this->displayData as $key => $item) {
-            if (isset($item[$this->sortColumn])){
-                $tmp[$key]= $item[$this->sortColumn];
-            } else {
-                $tmp[$key]= "";
+        $comparatorFunction = function($a, $b) use ($columnsSortPriority, $reverseSort) {
+            foreach ($columnsSortPriority as $column) {
+                if ($reverseSort) {
+                    $comparisonResult = strcasecmp($a[$column], $b[$column]);
+                } else {
+                    $comparisonResult = strcasecmp($b[$column], $a[$column]);            
+                }
+                if ($comparisonResult != 0) {
+                    // Found a difference
+                    break;
+                }
             }
-        }
-
-        // Sort entries
-        if ($this->sortDirection[$this->sortColumn]) {
-            asort($tmp);
-        } else {
-            arsort($tmp);
-        }
-
-        // Adapt mapping accordingly
-        $this->mapping= array();
-        foreach ($tmp as $key => $value) {
-            $this->mapping[]= $key;
-        }
-    }
+    
+            return $comparisonResult;
+        };
+        
+        $sortableData = $this->displayData;
+        uasort($sortableData, $comparatorFunction);
+        $this->mapping = array_keys($sortableData);
+      }
 
 
     public function addEntry($entry, $displayEntry= null, $key= null)
