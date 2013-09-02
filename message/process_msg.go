@@ -165,7 +165,7 @@ func tryToReestablishCommunicationWith(ip string) {
 
   util.Log(0, "WARNING! Will try to re-establish communication with %v after waiting %v", ip, delay)
   time.Sleep(delay)
-  util.Log(0, "WARNING! Will try to re-establish communication with %v", ip, delay)
+  util.Log(0, "WARNING! Will try to re-establish communication with %v", ip)
   ConfirmRegistration() // 1)
   
   if config.RunServer { // 2)
