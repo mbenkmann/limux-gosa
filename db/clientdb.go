@@ -181,7 +181,12 @@ func ClientUpdate(client *xml.Hash) {
         util.Log(1, "INFO! Client taken away from us. Verifying by sending 'Müll' to %v after waiting %v", addr, delay)
         go func(){ 
           time.Sleep(delay)
-          util.SendLnTo(addr, "Müll", config.Timeout)
+          if c := ClientWithAddress(addr); c != nil && c.Text("source") == config.ServerSourceAddress {
+            util.Log(1, "INFO! Client %v has returned to us => Will not spam it.", addr)
+          } else {
+            util.Log(1, "INFO! Spamming client %v.", addr)
+            util.SendLnTo(addr, "Müll", config.Timeout)
+          }
         }()
       }
     }
