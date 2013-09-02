@@ -22,6 +22,7 @@ package message
 import (
          "time"
          "strings"
+         "sync"
          "sync/atomic"
          
          "../db"
@@ -61,15 +62,48 @@ func Send_here_i_am(target string) {
   util.SendLnTo(target, GosaEncrypt(here_i_am.String(), clientpackageskey), config.Timeout)
 }
 
+type hiaEntry struct {
+  last time.Time
+  strikes int
+}
+
+var hiaDBMutex sync.Mutex
+var hiaDB = map[string]*hiaEntry{}
+
+func throttle(client_addr string) int {
+  hiaDBMutex.Lock()
+  defer hiaDBMutex.Unlock()
+  
+  hia, found := hiaDB[client_addr]
+  if !found {
+    hia = &hiaEntry{last:time.Now(), strikes:-1}
+    hiaDB[client_addr] = hia
+  }
+  
+  if time.Since(hia.last) > 5*time.Minute {
+    hia.strikes = 0
+  } else {
+    hia.strikes++
+  }
+  
+  hia.last = time.Now()
+  return hia.strikes
+}
+
+
 // Handles the message "here_i_am".
 //  xmlmsg: the decrypted and parsed message
 func here_i_am(xmlmsg *xml.Hash) {
   start := time.Now()
+  client_addr := xmlmsg.Text("source")
+  if strikes := throttle(client_addr); strikes > 10 { 
+    util.Log(2, "DEBUG! Throttling client %v (%v strikes)", client_addr, strikes)
+    return
+  }
   client := xml.NewHash("xml","header","new_foreign_client")
   client.Add("new_foreign_client")
   client.Add("source",config.ServerSourceAddress)
   client.Add("target",config.ServerSourceAddress)
-  client_addr := xmlmsg.Text("source")
   macaddress  := xmlmsg.Text("mac_address") //Yes, that's "mac_address" with "_"
   util.Log(1, "INFO! here_i_am from client %v (%v)", client_addr, macaddress)
   client.Add("client", client_addr)
