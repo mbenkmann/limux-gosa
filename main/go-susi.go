@@ -233,7 +233,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
                       util.Log(1, "INFO! Rejecting TCP request from %v because of go-susi shutdown", conn.RemoteAddr())
                       conn.Close() 
                     } else {
-                      util.Log(1, "INFO! Incoming TCP request from %v", conn.RemoteAddr())
+                      //util.Log(2, "DEBUG! Incoming TCP request from %v", conn.RemoteAddr())
                       go util.WithPanicHandler(func(){handle_request(conn)})
                     }
     }
@@ -268,7 +268,7 @@ func acceptConnections(listener *net.TCPListener, tcp_connections chan<- *net.TC
 func handle_request(conn *net.TCPConn) {
   defer conn.Close()
   defer atomic.AddInt32(&ActiveConnections, -1)
-  defer util.Log(1, "INFO! Connection to %v closed", conn.RemoteAddr())
+  //defer util.Log(2, "DEBUG! Connection to %v closed", conn.RemoteAddr())
   
   var err error
   
@@ -282,7 +282,7 @@ func handle_request(conn *net.TCPConn) {
   readbuf := make([]byte, 4096)
   n := 1
   for n != 0 {
-    util.Log(2, "DEBUG! Receiving from %v", conn.RemoteAddr())
+    //util.Log(2, "DEBUG! Receiving from %v", conn.RemoteAddr())
     n, err = conn.Read(readbuf)
     
     if err != nil && err != io.EOF {
