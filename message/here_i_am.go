@@ -20,6 +20,7 @@ MA  02110-1301, USA.
 package message
 
 import (
+         "math/rand"
          "time"
          "strings"
          "sync"
@@ -96,9 +97,13 @@ func throttle(client_addr string) int {
 func here_i_am(xmlmsg *xml.Hash) {
   start := time.Now()
   client_addr := xmlmsg.Text("source")
-  if strikes := throttle(client_addr); strikes > 10 { 
-    util.Log(2, "DEBUG! Throttling client %v (%v strikes)", client_addr, strikes)
-    return
+  if client_addr != config.ServerSourceAddress { // do not throttle our internal client
+    if strikes := throttle(client_addr); strikes > 10 { 
+      util.Log(0, "WARNING! Throttling client %v (%v strikes)", client_addr, strikes)
+      if rand.Intn(strikes) != 0 { // client has a 1 in strikes chance of getting through
+        return
+      }  
+    }
   }
   client := xml.NewHash("xml","header","new_foreign_client")
   client.Add("new_foreign_client")
