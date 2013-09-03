@@ -131,6 +131,9 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   }
   util.LogLevel = config.LogLevel
   
+  util.Log(0, "=============================================================================")
+  util.Log(0, "INFO! go-susi %v started", config.Version)
+  
   if !config.RunServer {
     util.Log(1, "INFO! No ldap-admin-dn configured => Will run in client-only mode")
   }
