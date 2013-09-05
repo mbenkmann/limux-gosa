@@ -114,6 +114,9 @@ Commands:
   <job type>: Schedule job(s) of this type.
               Argument types: Machine, Date, Time
 
+  kill:       Delete the LDAP object(s) of the selected machine(s).
+              This command can not be abbreviated.
+  
   examine, x: Print one line info about machine(s).
               Argument types: Machine
               Client states: x_x o_o o_O ~_^ X_x ^_^ o_^ ^,^
@@ -415,8 +418,8 @@ var jobs      = []string{"update","softupdate","reboot","halt","install",  "rein
 // It's important that the jobs are at the beginning of the commands slice,
 // because we use that fact later to distinguish between commands that refer to
 // jobs and other commands.
-var commands  = append(jobs,                                                                                                             "help","x",      "examine", "query_jobdb","query_jobs","jobs", "delete_jobs","delete_jobdb_entry","qq","xx")
-var canonical = []string{"update","update"    ,"reboot","halt","reinstall","reinstall",  "wake","localboot","lock","activate","activate","help","examine","examine", "query",      "query",     "query","delete",     "delete"            ,"qq","xx"}
+var commands  = append(jobs,                                                                                                             "help","x",      "examine", "query_jobdb","query_jobs","jobs", "delete_jobs","delete_jobdb_entry","qq","xx","kill")
+var canonical = []string{"update","update"    ,"reboot","halt","reinstall","reinstall",  "wake","localboot","lock","activate","activate","help","examine","examine", "query",      "query",     "query","delete",     "delete"            ,"qq","xx","kill"}
 
 type jobDescriptor struct {
   MAC string
@@ -443,6 +446,13 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
   cmd := fields[0] // always present because msg is non-empty
   i := 0
   for ; i < len(commands); i++ {
+    
+    // The "kill" command can not be abbreviated for safety reasons.
+    if commands[i] == "kill" {
+      if cmd == "kill" { break }
+      continue
+    }
+    
     if strings.HasPrefix(commands[i], cmd) { break }
   }
   
@@ -563,6 +573,8 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
     reply = commandExamine(joblist)
   } else if cmd == "query" {
     reply = commandGosa("gosa_query_jobdb",false,joblist)
+  } else if cmd == "kill" {
+    reply = commandKill(joblist)
   } else if cmd == "delete" {
     reply = strings.Replace(commandGosa("gosa_query_jobdb",true,joblist),"==","<-",-1)+"\n"+
             commandGosa("gosa_delete_jobdb_entry",true,joblist)
@@ -612,15 +624,20 @@ func commandExamine(joblist *[]jobDescriptor) (reply string) {
       for i := range reachable { reachable[i] <- 0 }
     }()
     
+    if reply != "" { reply += "\n" }
     sys, err := db.SystemGetAllDataForMAC(j.MAC, true)
-    if sys == nil { return err.Error() }
+    if sys == nil { 
+      reply += err.Error()
+      continue 
+    }
+        
     grps := db.SystemGetGroupsWithMember(sys.Text("dn"))
     gotomode := sys.Text("gotomode")
     faistate := sys.Text("faistate")
     faiclass := sys.Text("faiclass")
     release := "unknown"
     if strings.Index(faiclass,":")>=0 { release = faiclass[strings.Index(faiclass,":"):] }
-    if reply != "" { reply += "\n" }
+    
     if db.SystemIsWorkstation(j.MAC) {
       reply += ClientStates[<-reachable[0]+ <-reachable[1]*2 + <-reachable[2]*4]
     } else {
@@ -646,6 +663,27 @@ func commandExamine(joblist *[]jobDescriptor) (reply string) {
     reply += "\n    " + ldap
   }
   
+  return reply
+}
+
+func commandKill(joblist *[]jobDescriptor) (reply string) {
+  for _, j := range *joblist {
+    if j.Name == "*" { continue }
+    
+    if reply != "" { reply += "\n" }
+    sys, err := db.SystemGetAllDataForMAC(j.MAC, false)
+    if sys == nil { 
+      reply += err.Error()
+      continue 
+    }
+    
+    err = db.SystemReplace(sys, nil)
+    if err != nil {
+      reply += err.Error()
+    } else {
+      reply += "DELETED " + sys.Text("dn")
+    }
+  }
   return reply
 }
 
