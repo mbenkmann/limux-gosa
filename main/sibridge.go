@@ -87,7 +87,8 @@ Argument types:
   Machine   - IP address, short name, fully qualified name, MAC address
   "*"       - (only for "query" and "delete") all machines with pending jobs
   Job type  - "update"/"softupdate", "reboot", "halt", "install"/"reinstall",
-              "wakeup", "localboot", "lock", "unlock"/"activate"
+              "wakeup", "localboot", "lock", "unlock"/"activate",
+              "send_user_msg"/"message"/"msg"
               These may be abbreviated to prefixes (e.g. "wak" = "wakeup" )
   date      - YYYY-MM-DD
   abs. time - HH:MM, H:M, HH:M, H:MM
@@ -115,6 +116,7 @@ Commands:
               Argument types: Machine, Date, Time
 
   kill:       Delete the LDAP object(s) of the selected machine(s).
+              Argument types: Machine
               This command can not be abbreviated.
   
   examine, x: Print one line info about machine(s).
@@ -414,12 +416,12 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
   }
 }
 
-var jobs      = []string{"update","softupdate","reboot","halt","install",  "reinstall","wakeup","localboot","lock","unlock",  "activate"}
+var jobs      = []string{"update","softupdate","reboot","halt","install",  "reinstall","wakeup","localboot","lock","unlock",  "activate", "send_user_msg","msg",         "message"}
 // It's important that the jobs are at the beginning of the commands slice,
 // because we use that fact later to distinguish between commands that refer to
 // jobs and other commands.
-var commands  = append(jobs,                                                                                                             "help","x",      "examine", "query_jobdb","query_jobs","jobs", "delete_jobs","delete_jobdb_entry","qq","xx","kill")
-var canonical = []string{"update","update"    ,"reboot","halt","reinstall","reinstall",  "wake","localboot","lock","activate","activate","help","examine","examine", "query",      "query",     "query","delete",     "delete"            ,"qq","xx","kill"}
+var commands  = append(jobs,                                                                                                                                                             "help","x",      "examine", "query_jobdb","query_jobs","jobs", "delete_jobs","delete_jobdb_entry","qq","xx","kill")
+var canonical = []string{"update","update"    ,"reboot","halt","reinstall","reinstall",  "wake","localboot","lock","activate","activate","send_user_msg","send_user_msg","send_user_msg","help","examine","examine", "query",      "query",     "query","delete",     "delete"            ,"qq","xx","kill"}
 
 type jobDescriptor struct {
   MAC string
@@ -591,7 +593,9 @@ func commandJob(joblist *[]jobDescriptor) (reply string) {
     
     if reply != "" {reply = reply + "\n" }
     reply = reply + fmt.Sprintf("=> %-10v %v  %v (%v)\n", j.Job, util.ParseTimestamp(j.Date+j.Time).Format("2006-01-02 15:04:05"), j.MAC, j.Name)
-    xmlmess := fmt.Sprintf("<xml><header>job_trigger_action_%v</header><source>GOSA</source><target>%v</target><macaddress>%v</macaddress><timestamp>%v</timestamp></xml>", j.Job, j.MAC, j.MAC, j.Date+j.Time)
+    header := "job_trigger_action_" + j.Job
+    if j.Job == "send_user_msg" { header = "job_" + j.Job }
+    xmlmess := fmt.Sprintf("<xml><header>%v</header><source>GOSA</source><target>%v</target><macaddress>%v</macaddress><timestamp>%v</timestamp></xml>", header, j.MAC, j.MAC, j.Date+j.Time)
     gosa_reply := <- message.Peer(TargetAddress).Ask(xmlmess, config.ModuleKey["[GOsaPackages]"])
     reply += parseGosaReply(gosa_reply)
   }
@@ -697,7 +701,9 @@ func generate_clauses(joblist *[]jobDescriptor, idx int, machines *map[string]bo
         *clauses = *clauses + "<phrase><macaddress>"+m+"</macaddress></phrase>"
       }
       for j := range *jobtypes {
-        *clauses = *clauses + "<phrase><headertag>trigger_action_"+j+"</headertag></phrase>"
+        header := j
+        if j != "send_user_msg" { header = "trigger_action_"+header}
+        *clauses = *clauses + "<phrase><headertag>"+header+"</headertag></phrase>"
       }
       *clauses = *clauses + "</clause>"
     }
@@ -780,6 +786,7 @@ func parseGosaReply(reply_from_gosa string) string {
     if reply != "" {reply = reply + "\n" }
     job := answer.Text("headertag")
     if strings.Index(job, "trigger_action_") == 0 { job = job[15:] }
+    if job == "send_user_msg" { job = "message" }
     progress := answer.Text("progress")
     status := (answer.Text("status")+"    ")[:4]
     if status == "proc" {
