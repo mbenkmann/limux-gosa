@@ -116,8 +116,8 @@ Commands:
 
   examine, x: Print one line info about machine(s).
               Argument types: Machine
-              Client states: x_x o_o o_O ^_^ X_x x_X o_^ ^.^
-              Server states: X_X O_O @_@ O_@ x_~ O_~ @_~ ^_~
+              Client states: x_x o_o o_O ~_^ X_x ^_^ o_^ ^,^
+              Server states: X_X O_O @_@ O_@ x_~ ^.^ @_~ ^_~
                         SSH:     yes     yes     yes     yes
                   si-client:         yes yes         yes yes
                   si-server:                 yes yes yes yes
@@ -155,8 +155,8 @@ var SpecialFiles = []string{}
 
 // nothing, SSH only, si-client only, SSH+si-client
 // si-server + ...
-var ClientStates = []string{"x_x", "o_o", "o_O", "^_^", "X_x", "x_X", "o_^", "^.^"}
-var ServerStates = []string{"X_X", "O_O", "@_@", "O_@", "x_~", "O_~", "@_~", "^_~"}
+var ClientStates = []string{"x_x", "o_o", "o_O", "~_^", "X_x", "^_^", "o_^", "^,^"}
+var ServerStates = []string{"X_X", "O_O", "@_@", "O_@", "x_~", "^.^", "@_~", "^_~"}
 
 func main() {
   // This is NOT config.ReadArgs() !!
