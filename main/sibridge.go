@@ -119,6 +119,15 @@ Commands:
               Argument types: Machine
               This command can not be abbreviated.
   
+  foo-> :     Fill in missing LDAP attributes in selected machine(s) by
+              copying them from system "foo" (a Machine as described in
+              section "Argument Types" above). 
+              If any of the selected machines are in ou=incoming, they
+              will be moved into the same ou as "foo".
+              The attribute gotoMode is never copied, so a locked system
+              will remain locked, allowing you to make further changes
+              before activating it for installation.
+  
   examine, x: Print one line info about machine(s).
               Argument types: Machine
               Client states: x_x o_o o_O ~_^ X_x ^_^ o_^ ^,^
@@ -445,29 +454,58 @@ func (j *jobDescriptor) HasTime() bool { return j.Time != "" }
 //  repeat: if non-0, if the requestor does not send anything within that time, repeat the same command
 func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat time.Duration) {
   fields := strings.Fields(msg)
+  
+  idx := strings.Index(fields[0],"->")
+  if idx > 0 {
+    msg = msg[0:idx]+" "+msg[idx:]
+    fields = strings.Fields(msg)
+  }
+  
+  if len(fields) > 1 && strings.HasPrefix(fields[1],"->") {
+    fields[0] += "->"
+    fields[1] = fields[1][2:]
+    if fields[1] == "" { fields = strings.Fields(strings.Join(fields," ")) }
+  }
+  
   cmd := fields[0] // always present because msg is non-empty
+  
   i := 0
-  for ; i < len(commands); i++ {
+  is_job_cmd := false
+  
+  var sys_to_copy *xml.Hash
+  
+  if strings.HasSuffix(cmd,"->") {
+    template := jobDescriptor{}
+    if !parseMachine(cmd[0:len(cmd)-2], &template) {
+      return "! Cannot find system to copy: "+cmd, 0
+    }
+    cmd = "copy"
+    sys_to_copy, _ = db.SystemGetAllDataForMAC(template.MAC, false)
+    if sys_to_copy == nil { return "! Can't happen", 0 }
     
-    // The "kill" command can not be abbreviated for safety reasons.
-    if commands[i] == "kill" {
-      if cmd == "kill" { break }
-      continue
+  } else {
+    for ; i < len(commands); i++ {
+      
+      // The "kill" command can not be abbreviated for safety reasons.
+      if commands[i] == "kill" {
+        if cmd == "kill" { break }
+        continue
+      }
+      
+      if strings.HasPrefix(commands[i], cmd) { break }
     }
     
-    if strings.HasPrefix(commands[i], cmd) { break }
+    if i == len(commands) {
+      return "! Unrecognized command: " + cmd, 0
+    }
+    
+    // cmd is the canonical name for the command, e.g. if the user entered "x"
+    // then cmd is now "examine".
+    cmd = canonical[i]
+    
+    // As explained in the command at var commands, determine if the command is a job.
+    is_job_cmd = (i < len(jobs))
   }
-  
-  if i == len(commands) {
-    return "! Unrecognized command: " + cmd, 0
-  }
-  
-  // cmd is the canonical name for the command, e.g. if the user entered "x"
-  // then cmd is now "examine".
-  cmd = canonical[i]
-  
-  // As explained in the command at var commands, determine if the command is a job.
-  is_job_cmd := (i < len(jobs))
   
   // Depending on the type of command, only certain kinds of arguments are permitted:
   //  all commands: machine references (MAC, IP, name)
@@ -577,6 +615,8 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
     reply = commandGosa("gosa_query_jobdb",false,joblist)
   } else if cmd == "kill" {
     reply = commandKill(joblist)
+  } else if cmd == "copy" {
+    reply = commandCopy(sys_to_copy, joblist)
   } else if cmd == "delete" {
     reply = strings.Replace(commandGosa("gosa_query_jobdb",true,joblist),"==","<-",-1)+"\n"+
             commandGosa("gosa_delete_jobdb_entry",true,joblist)
@@ -609,6 +649,14 @@ func commandExamine(joblist *[]jobDescriptor) (reply string) {
   for _, j := range *joblist {
     if j.Name == "*" { continue }
     
+    if reply != "" { reply += "\n" }
+    reply += examine(&j)
+  }
+  
+  return reply
+}
+
+func examine(j *jobDescriptor) (reply string) {
     ports := []string{"22","20083","20081"}
     reachable := []chan int{make(chan int, 2),make(chan int, 2),make(chan int, 2)}
     for i := range ports {
@@ -628,11 +676,10 @@ func commandExamine(joblist *[]jobDescriptor) (reply string) {
       for i := range reachable { reachable[i] <- 0 }
     }()
     
-    if reply != "" { reply += "\n" }
     sys, err := db.SystemGetAllDataForMAC(j.MAC, true)
     if sys == nil { 
       reply += err.Error()
-      continue 
+      return reply
     }
         
     grps := db.SystemGetGroupsWithMember(sys.Text("dn"))
@@ -665,9 +712,7 @@ func commandExamine(joblist *[]jobDescriptor) (reply string) {
     if strings.Index(ldap,":") >= 0 { ldap = ldap[strings.Index(ldap,":")+1:] }
     if strings.Index(ldap,":") >= 0 { ldap = ldap[strings.Index(ldap,":")+1:] }
     reply += "\n    " + ldap
-  }
-  
-  return reply
+    return reply
 }
 
 func commandKill(joblist *[]jobDescriptor) (reply string) {
@@ -687,6 +732,46 @@ func commandKill(joblist *[]jobDescriptor) (reply string) {
     } else {
       reply += "DELETED " + sys.Text("dn")
     }
+  }
+  return reply
+}
+
+func commandCopy(template *xml.Hash, joblist *[]jobDescriptor) (reply string) {
+  for _, j := range *joblist {
+    if j.Name == "*" { continue }
+    
+    if reply != "" { reply += "\n" }
+    sys, err := db.SystemGetAllDataForMAC(j.MAC, false)
+    if sys == nil { 
+      reply += err.Error()
+      continue 
+    }
+
+    newsys := sys.Clone()
+    
+    if strings.Index(sys.Text("dn"), ",ou=incoming,") > 0 {
+      newsys.RemoveFirst("dn") // so that a new one will be filled in from the template
+    }
+      
+    // If necessary db.SystemFillInMissingData() also generates a dn 
+    // derived from system's cn and template's dn.
+    db.SystemFillInMissingData(newsys, template)
+    
+    if sys.Text("gotomode") != "active" {
+      newsys.FirstOrAdd("gotomode").SetText("locked")
+    }
+      
+    err = db.SystemReplace(sys, newsys)
+    if err != nil {
+      reply += err.Error()
+    } else {
+      reply += "UPDATED " + newsys.Text("dn")
+    }
+      
+    // Add system to the same object groups template is member of (if any).
+    db.SystemAddToGroups(newsys.Text("dn"), db.SystemGetGroupsWithMember(template.Text("dn")))
+    
+    reply += "\n" + examine(&j)
   }
   return reply
 }
