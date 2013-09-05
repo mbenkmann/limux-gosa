@@ -612,9 +612,12 @@ func commandExamine(joblist *[]jobDescriptor) (reply string) {
       for i := range reachable { reachable[i] <- 0 }
     }()
     
-    gotomode := db.SystemGetState(j.MAC, "gotoMode")
-    faistate := db.SystemGetState(j.MAC, "faistate")
-    faiclass := db.SystemGetState(j.MAC, "faiclass")
+    sys, err := db.SystemGetAllDataForMAC(j.MAC, true)
+    if sys == nil { return err.Error() }
+    grps := db.SystemGetGroupsWithMember(sys.Text("dn"))
+    gotomode := sys.Text("gotomode")
+    faistate := sys.Text("faistate")
+    faiclass := sys.Text("faiclass")
     release := "unknown"
     if strings.Index(faiclass,":")>=0 { release = faiclass[strings.Index(faiclass,":"):] }
     if reply != "" { reply += "\n" }
@@ -625,6 +628,22 @@ func commandExamine(joblist *[]jobDescriptor) (reply string) {
     }
     reply += " "
     reply += fmt.Sprintf("%v %v (%v) \"%v\" %v",gotomode,j.MAC,j.Name,faistate,release)
+    for _,class := range strings.Fields(faiclass) {
+      if strings.HasPrefix(class, "HARDENING") { continue }
+      if class[0] == ':' { continue }
+      reply += " " + class
+    }
+    if grps.FirstChild() != nil {
+      reply += "\n    inherits from:"
+      for g := grps.FirstChild(); g != nil; g = g.Next() {
+        reply += " " + g.Element().Text("cn")
+      }
+    }
+    reply += "\n    " + sys.Text("faidebianmirror")
+    ldap := sys.Text("gotoldapserver")
+    if strings.Index(ldap,":") >= 0 { ldap = ldap[strings.Index(ldap,":")+1:] }
+    if strings.Index(ldap,":") >= 0 { ldap = ldap[strings.Index(ldap,":")+1:] }
+    reply += "\n    " + ldap
   }
   
   return reply
