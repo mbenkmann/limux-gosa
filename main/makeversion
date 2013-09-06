@@ -19,10 +19,10 @@ echo "$logdata" | tac | tr 'A-Z' 'a-z' | sed 's/\([[#]\)/\n\1/g' |
     case "$line" in
       [0-9]*) set -- $line
               tick=$(($tick + 1))
-              test tick = 100 && tick = 991
-              test tick = 1000 && tick = 9991
-              test tick = 10000 && tick = 99991
-              test tick = 100000 && tick = 999991
+              test $tick = 100 && tick=991
+              test $tick = 1000 && tick=9991
+              test $tick = 10000 && tick=99991
+              test $tick = 100000 && tick=999991
               ;;
       '[milestone]'*) milestone=$(($milestone + 1))
                       minor=0
