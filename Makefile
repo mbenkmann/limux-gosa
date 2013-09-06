@@ -37,9 +37,9 @@ man: doc/manpage.xsl
 
 .PHONY: doc
 doc:
-	wget -nv "https://docs.google.com/document/d/17_j8s2-PBVJLaQzmjrdeh6CVWkzP_viA3Uo7AtFmt8c/export?format=pdf" -O doc/go-susi-manual.pdf
-	wget -nv "https://docs.google.com/document/d/17_j8s2-PBVJLaQzmjrdeh6CVWkzP_viA3Uo7AtFmt8c/export?format=odt" -O doc/go-susi-manual.odt
-	wget -nv "https://docs.google.com/document/d/17_j8s2-PBVJLaQzmjrdeh6CVWkzP_viA3Uo7AtFmt8c/export?format=html" -O - | tidy -quiet -numeric -asxml -indent -o doc/go-susi-manual.xhtml 2>&1 | { grep -v Warning || true ; }
+	wget --no-check-certificate -nv "https://docs.google.com/document/d/17_j8s2-PBVJLaQzmjrdeh6CVWkzP_viA3Uo7AtFmt8c/export?format=pdf" -O doc/go-susi-manual.pdf
+	wget --no-check-certificate -nv "https://docs.google.com/document/d/17_j8s2-PBVJLaQzmjrdeh6CVWkzP_viA3Uo7AtFmt8c/export?format=odt" -O doc/go-susi-manual.odt
+	wget --no-check-certificate -nv "https://docs.google.com/document/d/17_j8s2-PBVJLaQzmjrdeh6CVWkzP_viA3Uo7AtFmt8c/export?format=html" -O - | tidy -quiet -numeric -asxml -indent -o doc/go-susi-manual.xhtml 2>&1 | { grep -v Warning || true ; }
 
 
 doc/manpage.xsl: doc/manpage.pxsl
