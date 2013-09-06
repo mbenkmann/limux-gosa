@@ -697,7 +697,7 @@ func ReadNetwork() {
     ServerSourceAddress = IP + ServerListenAddress[strings.Index(ServerListenAddress,":"):]
   }
   
-  util.Log(1, "INFO! Hostname: %v  Domain: %v  MAC: %v  Server: %v", Hostname, Domain, MAC, ServerSourceAddress)
+  util.Log(1, "INFO! Hostname: %v  Domain: %v  MAC: %v  Listener: %v", Hostname, Domain, MAC, ServerSourceAddress)
   PreferredServer = strings.Replace(PreferredServer, "127.0.0.1", IP, 1)
 }
 
