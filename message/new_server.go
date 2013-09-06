@@ -70,7 +70,7 @@ func Send_new_server(header string, target string) {
 // Handles the message "new_server".
 //  xmlmsg: the decrypted and parsed message
 func new_server(xmlmsg *xml.Hash) {
-  server := xmlmsg.Text("source")
+  server, _ := util.Resolve(xmlmsg.Text("source"), config.IP)
   if server == config.ServerSourceAddress { return } // never accept our own address as peer
   setGoSusi(xmlmsg)
   db.ServerUpdate(xmlmsg)
@@ -85,7 +85,8 @@ func new_server(xmlmsg *xml.Hash) {
 // Handles the message "confirm_new_server".
 //  xmlmsg: the decrypted and parsed message
 func confirm_new_server(xmlmsg *xml.Hash) {
-  if xmlmsg.Text("source") == config.ServerSourceAddress { return } // never accept our own address as peer
+  server, _ := util.Resolve(xmlmsg.Text("source"), config.IP)
+  if server == config.ServerSourceAddress { return } // never accept our own address as peer
   setGoSusi(xmlmsg)
   handleClients(xmlmsg)
   Peer(xmlmsg.Text("source")).SyncAll()
