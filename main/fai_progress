@@ -2,4 +2,5 @@
 umask 077
 rm -f /var/run/gosa-si-client.socket
 touch /var/run/gosa-si-client.socket
+pkill -f fai-susi-bridge
 exec -a fai-susi-bridge tail -f /var/run/gosa-si-client.socket
