@@ -169,7 +169,9 @@ func here_i_am(xmlmsg *xml.Hash) {
     switch (system.Text("faistate")+"12345")[0:5] {
       case "local":  local_processing := xml.FilterSimple("siserver", config.ServerSourceAddress, "macaddress", macaddress, "status", "processing")
                      install_or_update := xml.FilterOr([]xml.HashFilter{xml.FilterSimple("headertag", "trigger_action_reinstall"),xml.FilterSimple("headertag", "trigger_action_update")})
-                     db.JobsRemoveLocal(xml.FilterAnd([]xml.HashFilter{local_processing, install_or_update}), false) // false => re-schedule if periodic
+                     local_processing_install_or_update := xml.FilterAnd([]xml.HashFilter{local_processing, install_or_update})
+                     db.JobsModifyLocal(local_processing_install_or_update, xml.NewHash("job","progress","groom")) // to prevent faistate => localboot
+                     db.JobsRemoveLocal(local_processing_install_or_update, false) // false => re-schedule if periodic
       case "reins",
            "insta": makeSureWeHaveAppropriateProcessingJob(macaddress, "trigger_action_reinstall", "none")
       case "updat",
@@ -273,7 +275,9 @@ func makeSureWeHaveAppropriateProcessingJob(macaddress, headertag, progress stri
     // NOTE: I'm not sure if clearing <periodic> is the right thing to do
     // in this case. See the corresponding note in foreign_job_updates.go
     install_or_update := xml.FilterOr([]xml.HashFilter{xml.FilterSimple("headertag", "trigger_action_reinstall"),xml.FilterSimple("headertag", "trigger_action_update")})
-    db.JobsRemoveLocal(xml.FilterAnd([]xml.HashFilter{local_processing, install_or_update}), true)
+    local_processing_install_or_update := xml.FilterAnd([]xml.HashFilter{local_processing, install_or_update})
+    db.JobsModifyLocal(local_processing_install_or_update, xml.NewHash("job","progress","groom")) // to prevent faistate => localboot
+    db.JobsRemoveLocal(local_processing_install_or_update, true)
     
     // Now add the new job.
     db.JobAddLocal(job)

@@ -119,8 +119,8 @@ func Init() { // not init() because we need to call it from go-susi.go
                  macaddress := job.Text("macaddress")
                  faistate := db.SystemGetState(macaddress, "faiState")
                  if faistate == "" || strings.HasPrefix(faistate, "softupdat") || strings.HasPrefix(faistate, "install") {
-                   if job.Text("progress") == "forward" {
-                     util.Log(1, "INFO! Job removed due to forwarding => will NOT set faiState to \"localboot\" for client with MAC %v", macaddress)
+                   if job.Text("progress") == "forward" || job.Text("progress") == "groom" {
+                     util.Log(1, "INFO! Job removed due to %ving => will NOT set faiState to \"localboot\" for client with MAC %v", job.Text("progress"), macaddress)
                    } else {
                      util.Log(1, "INFO! Setting faiState \"localboot\" for client with MAC %v", macaddress)
                      db.SystemSetState(macaddress, "faiState", "localboot")

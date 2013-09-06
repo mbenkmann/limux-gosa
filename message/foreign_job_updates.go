@@ -148,7 +148,9 @@ func foreign_job_updates(xmlmsg *xml.Hash) {
           ( job.Text("headertag") == "trigger_action_reinstall" || job.Text("headertag") == "trigger_action_update" ) {
           local_processing := xml.FilterSimple("siserver", config.ServerSourceAddress, "macaddress", macaddress, "status", "processing")
           install_or_update := xml.FilterOr([]xml.HashFilter{xml.FilterSimple("headertag", "trigger_action_reinstall"),xml.FilterSimple("headertag", "trigger_action_update")})
-          db.JobsRemoveLocal(xml.FilterAnd([]xml.HashFilter{local_processing, install_or_update}), true)
+          local_processing_install_or_update := xml.FilterAnd([]xml.HashFilter{local_processing, install_or_update})
+          db.JobsModifyLocal(local_processing_install_or_update, xml.NewHash("job","progress","forward")) // to prevent faistate => localboot
+          db.JobsRemoveLocal(local_processing_install_or_update, true)
         }
         
         // Because the job belongs to the sender, the <id> field corresponds to
