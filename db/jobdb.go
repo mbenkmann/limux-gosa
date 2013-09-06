@@ -473,6 +473,7 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
     var count uint64 = 1
     for child := jobdb_xml.FirstChild(); child != nil; child = child.Next() {
         job := child.Remove()
+        send_fju_for_this_job := true
         for _, field := range updatableFields {
           x := request.Job.First(field)
           if x != nil {
@@ -501,6 +502,11 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
               PendingActions.Push(job.Clone()) 
             } else {
               job.FirstOrAdd(field).SetText(x.Text())
+              
+              // suppress fju sending for internal changes
+              if field == "progress" && (x.Text() == "forward" || x.Text() == "groom") { 
+                send_fju_for_this_job = false
+              }
             }
             
             if field == "timestamp" {
@@ -510,10 +516,12 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
         }
         JobUpdateXMLMessage(job)
         jobDB.Replace(xml.FilterSimple("id", job.Text("id")), true, job)
-        job.RemoveFirst("original_id")
-        job.Rename("answer"+strconv.FormatUint(count, 10))
-        count++
-        fju.AddWithOwnership(job)
+        if send_fju_for_this_job {
+          job.RemoveFirst("original_id")
+          job.Rename("answer"+strconv.FormatUint(count, 10))
+          count++
+          fju.AddWithOwnership(job)
+        }
     }
     
     if count > 1 {
