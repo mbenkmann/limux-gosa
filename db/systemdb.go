@@ -38,9 +38,17 @@ import (
 
 // Set of attributes that should not be copied by SystemFillInMissingData() even
 // if the target does not have them. 
-var DoNotCopyAttribute = map[string]bool{"dn":true, "cn":true, 
+var DoNotCopyAttribute = map[string]bool{"dn":true, "cn":true,
+                                         "macaddress":true, "iphostnumber":true,
                                          "member":true, "gosagroupobjects":true,
                                          "description":true, "gocomment":true }
+
+// Set of objectclasses that should be copied by SystemFillInMissingData().
+var CopyObjectclass = map[string]bool{"top":true,"FAIobject":true, "GOhard":true,
+                                      "gosaAdministrativeUnitTag":true, 
+                                      "gotoWorkstation":true,
+                                      "goServer":true,
+                                      "FAIrepositoryServer":true}
 
 // template matching rules are rejected if an attribute name does not match this re.
 var attributeNameRegexp = regexp.MustCompile("^[a-zA-Z]+$")
@@ -684,10 +692,7 @@ func SystemGetGroupsWithName(cn string) *xml.Hash {
 // system objects and will not add inappropriate attributes. For instance if
 // defaults represents a gosaGroupOfNames, this function will not copy the "member"
 // attributes to system.
-// If defaults has a gosaUnitTag but system doesn't,
-// this function will add the objectClass gosaAdministrativeUnitTag
-// and the gosaUnitTag to system. Other objectClasses are only copied if
-// system has no objectClass at all.
+// Objectclasses are copied selectively based on the CopyObjectclass map.
 //
 // If system has no dn but defaults has one, then system will get a dn
 // derived by replacing the last component of defaults' dn by
@@ -706,14 +711,6 @@ func SystemFillInMissingData(system *xml.Hash, defaults *xml.Hash) {
     }
   }
   
-  // If system does not have a gosaUnitTag but does have objectClass(es), 
-  // add objectClass gosaAdministrativeUnitTag, because the loop below
-  // only copies objectClass if system has none.
-  if system.First("gosaunittag") == nil && defaults.First("gosaunittag") != nil && 
-     system.First("objectclass") != nil {
-        system.Add("objectclass", "gosaAdministrativeUnitTag")
-  }
-  
   for _, tag := range defaults.Subtags() {
     
     if DoNotCopyAttribute[tag] { continue }
@@ -724,6 +721,16 @@ func SystemFillInMissingData(system *xml.Hash, defaults *xml.Hash) {
       }
     }
   }
+  
+  // add missing objectClasses if whitelisted
+  oclasses := system.Get("objectclass")
+  outer: for _,oc := range defaults.Get("objectclass") {
+    if CopyObjectclass[oc] { 
+      for _,oc2 := range oclasses { if oc2 == oc { continue outer } }
+      system.Add("objectclass", oc)
+    }
+  }
+  
 }
 
 // Adds the system with the given dn as a member to the gosaGroupOfNames
