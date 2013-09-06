@@ -94,7 +94,11 @@ func RegistrationHandler() {
             util.Log(1, "INFO! Trying to register at %v", currentServer)
             go Send_here_i_am(currentServer)
             go func() {
-              time.Sleep(time.Duration(secs_between_candidates+rand.Intn(10))*time.Second)
+              delay := time.Duration(secs_between_candidates+rand.Intn(10))*time.Second
+              if len(serverList) == 1 { // if we have only 1 candidate, use the longer confirmation timeout
+                delay = timeout_for_confirmation
+              }
+              time.Sleep(delay)
               registrationQueue.Push("timeout")
             }()
           } else {
