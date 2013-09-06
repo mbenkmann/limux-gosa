@@ -496,6 +496,7 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
                 if removed_jobs.FirstChild() != nil {
                   util.Log(1, "INFO! New %v job => Removing other reinstall/update jobs currently processing for %v: %v", job.Text("headertag"), job.Text("macaddress"), removed_jobs)
                 }
+                JobsModifyLocal(to_remove, xml.NewHash("job","progress","groom")) // to prevent faistate => localboot
                 JobsRemoveLocal(to_remove, false)
               }
               util.Log(1, "INFO! Launching job: %v",job)
@@ -763,6 +764,7 @@ func groomJobDB() {
         
         if siserver == config.ServerSourceAddress { // job is local => remove
           util.Log(1, "INFO! Removing inconsistent job: %v", job)
+          JobsModifyLocal(xml.FilterSimple("id", job.Text("id")), xml.NewHash("job","progress","groom")) // to prevent faistate => localboot
           JobsRemoveLocal(xml.FilterSimple("id", job.Text("id")), false)
         }
         
