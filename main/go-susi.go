@@ -343,12 +343,12 @@ func handle_request(conn *net.TCPConn) {
         }
         
         if disconnect {
-          util.Log(1, "INFO! Forcing disconnect because of error")
+          util.Log(1, "INFO! Forcing disconnect of %v because of error", conn.RemoteAddr())
           return
         }
         
         if Shutdown {
-          util.Log(1, "INFO! Forcing disconnect because of go-susi shutdown")
+          util.Log(1, "INFO! Forcing disconnect of %v because of go-susi shutdown", conn.RemoteAddr())
           return
         }
       }
@@ -356,7 +356,7 @@ func handle_request(conn *net.TCPConn) {
   }
   
   if  buf.Len() != 0 {
-    util.Log(0, "ERROR! Incomplete message (i.e. not terminated by \"\\n\") of %v bytes: %v", buf.Len(), buf.String())
+    util.Log(0, "ERROR! Incomplete message from %v (i.e. not terminated by \"\\n\") of %v bytes: %v", conn.RemoteAddr(),buf.Len(), buf.String())
   }
 }
 

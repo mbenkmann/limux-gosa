@@ -164,7 +164,7 @@ func here_i_am(xmlmsg *xml.Hash) {
     
     Send_new_ldap_config(client_addr, system)
     
-    util.Log(1, "INFO! Making sure job database is consistent with faistate \"%v\"", system.Text("faistate"))
+    util.Log(1, "INFO! Making sure jobs for %v are consistent with faistate \"%v\"", macaddress, system.Text("faistate"))
     
     switch (system.Text("faistate")+"12345")[0:5] {
       case "local":  local_processing := xml.FilterSimple("siserver", config.ServerSourceAddress, "macaddress", macaddress, "status", "processing")
