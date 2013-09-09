@@ -273,7 +273,7 @@ attributetype ( 1.3.6.1.4.1.10098.1.1.5.23 NAME 'FAIpartitionFlags'
 attributetype ( 1.3.6.1.4.1.10098.1.1.5.24 NAME 'FAIdebianMirror'
 		DESC 'TODO'
 		EQUALITY caseIgnoreIA5Match
-		SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE)
+		SYNTAX 1.3.6.1.4.1.1466.115.121.1.26)
 
 # Name       : FAIdebianRelease
 # Description: Used for bootstrap sources.list settings. It contains

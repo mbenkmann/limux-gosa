@@ -4492,3 +4492,9 @@ msgstr "Es gab ein Problem mit dem ausgewählten FAI-Releases. Dieses Release ('
 
 msgid "The field %s must contain a valid path"
 msgstr "Das Feld %s muss einen gültigen Pfad enthalten"
+
+msgid "Inherit from object group"
+msgstr "Von Gruppe übernehmen"
+
+msgid "Choose automatically"
+msgstr "Automatisch auswählen"

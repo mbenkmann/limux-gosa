@@ -99,8 +99,6 @@
    
    {elseif $fai_activated}
    
-    {if $FAIdebianMirror == "inherited"}
-   
    <table summary="{t}FAI class assignment{/t}">
     <tr>
      <td style='width:50%'>
@@ -113,67 +111,40 @@
     <tr>
      <td>
       {render acl=$FAIdebianMirrorACL}
-       <select name="FAIdebianMirror"  onchange='document.mainform.submit()' size=1>
-       {foreach from=$FAIservers item=val key=key}
-        {if $key == "inherited" || $key == "auto"} 
-         <option value="{$key}" {if $FAIdebianMirror == $key} selected {/if}>{t}{$key}{/t}</option>
-        {else}
-         <option value="{$key}" {if $FAIdebianMirror == $key} selected {/if}>{$key}</option>
+        {if $member_of_ogroup}
+          <input type='hidden' name='FAIdebianMirror_inherit_submitted' value='1'>
+          <input type='checkbox' name='FAIdebianMirror_inherit' {if $FAIdebianMirror_inherit} checked {/if} value="1"
+            onClick="document.mainform.submit();" class='center'> {t}Inherit from object group{/t}
         {/if}
-       {/foreach}
-       </select>
-      {/render}
-     </td>
-     <td>
-      <select name="FAIrelease"  disabled size=1>
-       {html_options options=$InheritedFAIrelease output=$InheritedFAIrelease selected=$InheritedFAIrelease}
-      </select>
-     </td>
-    </tr>
-    <tr>
-     <td colspan="2">
-   
-      <b>{t}Assigned FAI classes{/t}</b>
-     
-      {render acl=$FAIclassACL}
-       {$FAIScriptlist}	
-      {/render}
-     </td>
-    </tr>
-   </table>
+        
+        <input type='hidden' name='FAIdebianMirror_auto_submitted' value='1'>
+        <input type='checkbox' name='FAIdebianMirror_auto' {if $FAIdebianMirror_inherit} disabled {/if} {if $FAIdebianMirror_auto} checked {/if} value="1"
+        onClick="document.mainform.submit();" class='center'> {t}Choose automatically{/t}
+      
+         {$FAIdebianMirrorList}
 
-   {else} 
-   
-   <table summary="{t}FAI class assignment{/t}">
-    <tr>
-     <td style='width:50%'>
-      <b>{t}FAI server{/t}</b>
-     </td>
-     <td style='width:50%'>
-      <b>{t}Release{/t}</b>
-     </td>
-    </tr>
-    <tr>
-     <td>
-      {render acl=$FAIdebianMirrorACL}
-       <select name="FAIdebianMirror" onchange='document.mainform.submit()' size=1>
-        {foreach from=$FAIservers item=val key=key}
-         {if $key == "inherited" || $key == "auto"} 
-          <option value="{$key}" {if $FAIdebianMirror == $key} selected {/if}>{t}{$key}{/t}</option>
-         {else}
-          <option value="{$key}" {if $FAIdebianMirror == $key} selected {/if}>{$key}</option>
-         {/if}
-        {/foreach}
-       </select>
+        <select name='FAIdebianMirror_to_add' id='FAIdebianMirror_to_add' size="1" style="max-width:480px" {if $FAIdebianMirror_inherit || $FAIdebianMirror_auto} disabled {/if} >
+         {html_options values=$availableFAIdebianMirror output=$availableFAIdebianMirror}	
+        </select>
+
+
+        <button type='submit' name='add_FAIdebianMirror' id='add_FAIdebianMirror' {if $FAIdebianMirror_inherit || $FAIdebianMirror_auto} disabled {/if} >
+        {msgPool type=addButton}</button>
       {/render}
+           
      </td>
      <td>
       {render acl=$FAIreleaseACL}
+      {if $FAIdebianMirror_inherit}
+      <select name="FAIrelease"  disabled size=1>
+          {html_options options=$InheritedFAIrelease output=$InheritedFAIrelease selected=$InheritedFAIrelease}
+         </select>
+         {else}
+      
        <select name="FAIrelease"  onchange='document.mainform.submit()' size=1>
-        {foreach from=$FAIservers.$FAIdebianMirror item=val key=key}
-         <option value="{$val}" {if $FAIrelease == $key} selected {/if}>{$val}</option>
-        {/foreach}
+         {html_options values=$available_fai_releases output=$available_fai_releases selected=$FAIrelease}	
        </select>
+       {/if}
       {/render}
      </td>
     </tr>
@@ -186,6 +157,8 @@
         {$FAIScriptlist}	
        {/render}
        
+       {if !$FAIdebianMirror_inherit}
+       
        {render acl=$FAIclassACL}
         <select name="FAIclassesSel" size=1>
          {foreach from=$FAIclasses item=val key=key}
@@ -197,12 +170,13 @@
        {render acl=$FAIclassACL}
         <button type='submit' name='AddClass'>{msgPool type=addButton}</button>
        {/render}
+      
+       {/if}
 
       </td>
      </tr>
     </table>
 
-   {/if} <!-- Inherited -->
 {/if} <!-- FAI active-->
   </td>
  </tr>

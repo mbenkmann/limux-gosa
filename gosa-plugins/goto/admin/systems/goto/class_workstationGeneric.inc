@@ -872,7 +872,7 @@ class workgeneric extends plugin
                 $this->parent->by_object['workstartup']->gotoLdapServers = array();
             }
             if($obj->acl_is_writeable("FAIdebianMirror")){
-                $this->parent->by_object['workstartup']->FAIdebianMirror= "inherited";
+                $this->parent->by_object['workstartup']->FAIdebianMirror= array("inherited");
             }
         }
     }

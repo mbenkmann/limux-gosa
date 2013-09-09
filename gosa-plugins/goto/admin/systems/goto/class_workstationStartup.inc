@@ -35,7 +35,7 @@ class workstartup extends plugin
     /* FAI class selection */ 
     var $FAIclass           = array();  // The currently selected classes 
     var $FAIrelease           = "";
-    var $FAIdebianMirror      = "auto";
+    var $FAIdebianMirror      = array("auto");
     var $FAIstate             = "";
     var $si_active            = FALSE;
     var $si_fai_action_failed = FALSE;
@@ -50,7 +50,7 @@ class workstartup extends plugin
     /* FAI class selection */
     var $InheritedFAIclass       = array();
     var $InheritedFAIrelease     = "";
-    var $InheritedFAIdebianMirror= "auto";
+    var $InheritedFAIdebianMirror= array("auto");
 
     var $CopyPasteVars    = array("gotoModules","gotoShares");
     var $fai_activated    = FALSE;
@@ -68,6 +68,11 @@ class workstartup extends plugin
         }
 
         plugin::plugin ($config, $dn, $parent);
+        
+        if(isset($this->attrs['FAIdebianMirror'])){
+            unset($this->attrs['FAIdebianMirror']['count']);
+            $this->FAIdebianMirror = array_values($this->attrs['FAIdebianMirror']);
+        }
 
         /* Check for si daemon */
         $this->si_active = $this->config->get_cfg_value("core","gosaSupportURI") != "";
@@ -211,7 +216,7 @@ class workstartup extends plugin
         if ($this->member_of_ogroup){
 
             if(count($this->FAIclass)==0 && $this->FAIrelease == ""){
-                $this->FAIdebianMirror = "inherited";
+                $this->FAIdebianMirror = array("inherited");
             }
 
             if($this->fai_activated){
@@ -241,36 +246,40 @@ class workstartup extends plugin
                         break;
 
                     case 'FAIdebianMirror':
-                        $this->InheritedFAIdebianMirror = $attrs[$name][0];
+                        unset($attrs[$name]['count']);
+                        $this->InheritedFAIdebianMirror = $attrs[$name];
                         break;
                 }
             }
         }
 
         $this->update_fai_cache();
-
+        
         if($this->fai_activated && !$this->si_fai_action_failed && $this->si_active){
 
             /* Check if the current mirror is available 
              */
-            if(!isset($this->cache['SERVERS'][$this->FAIdebianMirror])){
-                if(count($this->FAIclass)){
-                    msg_dialog::display(_("Error"), sprintf(_("FAI mirror '%s' is not available - setting to mirror 'auto'!"), $this->FAIdebianMirror), ERROR_DIALOG);
+            if (!empty($this->FAIdebianMirror)) {
+                $fai_servers = $this->available_fai_servers();
+                $intersect = array_intersect($this->FAIdebianMirror, $fai_servers);
+                if(empty($intersect)){
+                    if(count($this->FAIclass)){
+                        msg_dialog::display(_("Error"), sprintf(_("None of the configured FAI mirrors (%s) are available - setting to mirror 'auto'!"), implode(", ", $this->FAIdebianMirror)), ERROR_DIALOG);
+                    }
+                    $this->FAIdebianMirror = array("auto");
+                    $this->FAIrelease = key($this->cache['SERVERS']['auto']);
+                    $this->cache['CLASSES'] = array();
+                    $this->update_fai_cache();
                 }
-                $this->FAIdebianMirror = "auto";
-                $this->FAIrelease = key($this->cache['SERVERS'][$this->FAIdebianMirror]);
-                $this->cache['CLASSES'] = array();
-                $this->update_fai_cache();
             }
 
-            /* Check if the current mirror is available 
+            /* Check if the current release is available 
              */
-            if(!isset($this->cache['SERVERS'][$this->FAIdebianMirror][$this->FAIrelease])){
-                $new_release = key($this->cache['SERVERS'][$this->FAIdebianMirror]); 
+            if(!empty($this->FAIrelease) && !in_array_strict($this->FAIrelease, $this->available_fai_releases())){
                 if(count($this->FAIclass)){
-                    msg_dialog::display(_("Error"), sprintf(_("FAI release '%s' is not available on mirror '%s' - setting to release '%s'!"), $this->FAIrelease, $this->FAIdebianMirror,$new_release), ERROR_DIALOG);
+                    msg_dialog::display(_("Error"), sprintf(_("FAI release '%s' is not available on any configured mirror (%s) - setting to release '%s'!"), $this->FAIrelease, implode(", ", $this->FAIdebianMirror),$this->first_available_fai_release()), ERROR_DIALOG);
                 }
-                $this->FAIrelease = $new_release;
+                $this->FAIrelease  = $this->first_available_fai_release();
                 $this->cache['CLASSES'] = array();
                 $this->update_fai_cache();
             }
@@ -297,8 +306,47 @@ class workstartup extends plugin
         $this->faiList->setHeader(array(_("Name"),_("Classes")));
         $this->faiList->setDefaultSortColumn(0);
 
+        $this->FAIdebianMirrorList = new sortableListing(array(),array(), TRUE);
+        $this->FAIdebianMirrorList->setDeleteable(true);
+        $this->FAIdebianMirrorList->setInstantDelete(false);
+        $this->FAIdebianMirrorList->setEditable(false);
+        $this->FAIdebianMirrorList->setWidth("100%");
+        $this->FAIdebianMirrorList->setHeight("160px");
+        $this->FAIdebianMirrorList->setHeader(array(_("FAI server")));
+        $this->FAIdebianMirrorList->setDefaultSortColumn(0);
+        
+        
+        
     }
-
+    
+    protected function available_fai_servers() {
+        return array_keys($this->cache['SERVERS']);
+    }
+    
+    protected function available_fai_releases()
+    {
+        if (empty($this->FAIdebianMirror)) {
+            return array();
+        }
+        
+        $first_server    = $this->FAIdebianMirror[0];
+        $further_servers = array_slice($this->FAIdebianMirror, 1);
+        $releases        = array_keys($this->cache['SERVERS'][$first_server]);
+        foreach ($further_servers as $server) {
+            $releases = array_intersect($releases, array_keys($this->cache['SERVERS'][$server]));
+        }
+        return $releases;
+    }
+    
+    protected function first_available_fai_release()
+    {
+        $fai_releases = $this->available_fai_releases();
+        if (isset($fai_releases[0])) {
+            return $fai_releases[0];
+        } else {
+            return '';
+        }
+    }
 
     function check()
     {
@@ -308,7 +356,7 @@ class workstartup extends plugin
         $messages= plugin::check();
 
         /* If there are packages selected, but no mirror show error */   
-        if(($this->FAIdebianMirror == "none")&&(count($this->FAIclass)>0)){
+        if(empty($this->FAIdebianMirror)&&(count($this->FAIclass)>0)){
             $messages[]=_("Please select a 'FAI server' or remove the 'FAI classes'.");
         }
 
@@ -371,7 +419,40 @@ class workstartup extends plugin
                     $this->FAIclass[get_post('FAIclassesSel')]=get_post('FAIclassesSel');
                 }
             }
+            
+            if($this->acl_is_writeable("FAIdebianMirror")) {
+                if(isset($_POST['FAIdebianMirror_auto_submitted'])) {
+                    if(isset($_POST['FAIdebianMirror_auto'])) {
+                        $this->FAIdebianMirror = array('auto');
+                    } elseif ($this->FAIdebianMirror === array('auto')) {
+                        $this->FAIdebianMirror = array();
+                    }
+                }
+                
+                if(isset($_POST['FAIdebianMirror_inherit_submitted'])) {
+                    if(isset($_POST['FAIdebianMirror_inherit'])) {
+                        $this->FAIdebianMirror = array('inherited');
+                    } elseif ($this->FAIdebianMirror === array('inherited')) {
+                        $this->FAIdebianMirror = array();
+                    }
+                }
 
+                $this->FAIdebianMirrorList->save_object();
+                $action = $this->FAIdebianMirrorList->getAction();
+                if($action['action'] == 'delete'){
+                    $key = $this->FAIdebianMirrorList->getKey($action['targets'][0]);
+                    array_splice($this->FAIdebianMirror, $key, 1);
+                }
+
+                if(isset($_POST['add_FAIdebianMirror']) && isset($_POST['FAIdebianMirror_to_add'])){
+                    $new_FAIdebianMirror = $_POST['FAIdebianMirror_to_add'];
+                    if(!in_array_strict($new_FAIdebianMirror,$this->FAIdebianMirror) && 
+                       in_array_strict($new_FAIdebianMirror, $this->available_fai_servers())){
+                        $this->FAIdebianMirror[] = $new_FAIdebianMirror;
+                    }
+                }
+            }
+            
 
             $this->faiList->save_object();
             $action = $this->faiList->getAction();
@@ -382,7 +463,7 @@ class workstartup extends plugin
                   /* class list is emtpy. Check whether the system is part of an object group and set
                     the FAI mirror to "inherited" in this case. */
                   if ($this->member_of_ogroup) {
-                    $this->FAIdebianMirror = "inherited";
+                    $this->FAIdebianMirror = array("inherited");
                   }
                 }
              }
@@ -555,35 +636,48 @@ class workstartup extends plugin
         if(!$this->si_fai_action_failed && $this->si_active && $this->fai_activated){
 
             $smarty->assign("FAIservers"  ,    set_post($this->cache['SERVERS']));
-            $smarty->assign("FAIdebianMirror", set_post($this->FAIdebianMirror));
 
             /* Get classes for release from cache.
              * Or build cache
              */
-            if($this->FAIdebianMirror == "inherited"){
+            if($this->FAIdebianMirror === array("inherited")){
                 $release = $this->InheritedFAIrelease;
             }else{
-                if ($this->InheritedFAIdebianMirror != "auto" && empty($this->FAIclass)) {
-                    /* FAIdebianMirror got set from inherited to something else, try to 
+                if ($this->InheritedFAIdebianMirror !== array("auto") && empty($this->FAIclass)) {
+                    /* FAIdebianMirror got set from inherited to something else, try to
                        carry over the inherited release if it is available on the mirror */
-                    if (isset($this->cache['SERVERS'][$this->FAIdebianMirror][$this->InheritedFAIrelease])) {
+                    $this->FAIdebianMirror = $this->InheritedFAIdebianMirror;
+                    if (in_array_strict($this->InheritedFAIrelease, $this->available_fai_releases())) {
                         $this->FAIrelease = $this->InheritedFAIrelease;
                     } else {
+                        $this->FAIrelease = $this->first_available_fai_release();
+
                         msg_dialog::display(_("Warning"), sprintf(_("The selected FAI server does not carry the previously inherited release, FAI release got reset from %s to %s!"), $this->InheritedFAIrelease, $this->FAIrelease), WARNING_DIALOG);
                     }
+                } 
+                if (in_array_strict($this->FAIrelease, $this->available_fai_releases())) {
+                    $release = $this->FAIrelease;
+                } else {
+                    if ($this->available_fai_releases() == NULL) {
+                        $this->FAIrelease = "";
+                        $release = "";
+                    }
                 }
-                $release = $this->FAIrelease;
             }
 
-            $smarty->assign("gotoBootKernels", set_post($this->cache['KERNELS'][$release]));
+            if ($release) {
+                $smarty->assign("gotoBootKernels", set_post($this->cache['KERNELS'][$release]));
+            }else {
+                $smarty->assign("gotoBootKernels", set_post(array("default" => "default")));
+            }
             $smarty->assign("FAIrelease"  ,    set_post($this->FAIrelease));
             $smarty->assign("InheritedFAIrelease", set_post($this->InheritedFAIrelease));
 
             /* Get classes */
-            if($this->FAIdebianMirror == "inherited"){
+            if($this->FAIdebianMirror === array("inherited")){
                 $tmp = $this->InheritedFAIclass;
             }else{
-                if ($this->InheritedFAIdebianMirror != "auto" && empty($this->FAIclass)) { 
+                if ($this->InheritedFAIdebianMirror !== array("auto") && empty($this->FAIclass)) { 
                     /* FAIdebianMirror got set from inherited to something else, carry over
                        all previously inherited FAI classes */
                     foreach($this->InheritedFAIclass as $class) {
@@ -661,12 +755,33 @@ class workstartup extends plugin
         }// END FAI output generation 
 
         $this->faiList->setAcl('rwcdm');
-        $this->faiList->setDeleteable($this->FAIdebianMirror != "inherited");
-        $this->faiList->setReorderable($this->FAIdebianMirror != "inherited");
+        $this->faiList->setDeleteable($this->FAIdebianMirror !== array("inherited"));
+        $this->faiList->setReorderable($this->FAIdebianMirror !== array("inherited"));
         $this->faiList->setListData($data,$lData);
         $this->faiList->update();
+        
+        $FAIdebianMirror_inherit = ($this->FAIdebianMirror === array('inherited'));
+        $FAIdebianMirror_auto    = ($this->FAIdebianMirror === array('auto'));
+
+        $this->FAIdebianMirrorList->setAcl('rwcdm');
+        $this->FAIdebianMirrorList->setDeleteable(!$FAIdebianMirror_inherit && !$FAIdebianMirror_auto);
+        if ($FAIdebianMirror_inherit) {
+            $FAIdebianMirror_for_display = $this->InheritedFAIdebianMirror;
+        } else {
+            $FAIdebianMirror_for_display 
+                = array_diff($this->FAIdebianMirror, array('auto', 'inherited'));
+        }
+        $this->FAIdebianMirrorList->setListData($FAIdebianMirror_for_display);
+        $this->FAIdebianMirrorList->update();
 
         $smarty->assign("FAIScriptlist", $this->faiList->render());
+        $smarty->assign("FAIdebianMirrorList", $this->FAIdebianMirrorList->render());
+        $available_fai_servers_for_display 
+            = array_diff($this->available_fai_servers(), array('auto', 'inherited'));
+        $smarty->assign("availableFAIdebianMirror", $available_fai_servers_for_display);
+        $smarty->assign("available_fai_releases", $this->available_fai_releases());
+        $smarty->assign("FAIdebianMirror_inherit", $FAIdebianMirror_inherit);
+        $smarty->assign("FAIdebianMirror_auto", $FAIdebianMirror_auto);
 
         /* Show main page */
         $smarty->assign("gotoKernelParameters",set_post($this->gotoKernelParameters));
@@ -684,18 +799,23 @@ class workstartup extends plugin
     /* Save data to object */
     function save_object()
     {
-        $old_mirror  = $this->FAIdebianMirror;
+        $old_mirrors  = $this->FAIdebianMirror;
         plugin::save_object();
-
+        
         /* Update release */
-        if($old_mirror != $this->FAIdebianMirror){
-            if(!isset($this->cache['SERVERS'][$this->FAIdebianMirror][$this->FAIrelease])){
-                $this->FAIrelease      = key($this->cache['SERVERS'][$this->FAIdebianMirror]);
+        if($old_mirrors !== $this->FAIdebianMirror){
+            $releases = $this->available_fai_releases();
+            if(!in_array_strict($this->FAIrelease, $releases)){
+                if (isset($releases[0])) {
+                    $this->FAIrelease      = $releases[0];
+                } else {
+                    $this->FAIrelease = '';
+                }
             }
         }
 
         /* Clear FAI class list if FAI mirror has been set to inherited */
-        if($this->FAIdebianMirror == "inherited"){
+        if($this->FAIdebianMirror === array("inherited")){
           $this->FAIclass = array();
         }
 
@@ -773,7 +893,7 @@ another location! */
 
         /* Skip FAI attribute handling if not necessary */
         if($this->fai_activated && !$this->si_fai_action_failed){
-            if($this->FAIdebianMirror == "inherited"){
+            if($this->FAIdebianMirror === array("inherited")){
                 $this->attrs['FAIclass'] = $this->attrs['FAIrelease'] =  $this->attrs['FAIdebianMirror'] = array();
             }else{
                 foreach($this->FAIclass as $class){
@@ -809,11 +929,6 @@ another location! */
 
         if ($this->gotoBootKernel == "default-inherited"){
             $this->attrs['gotoBootKernel']= array();
-        }
-
-        /* if mirror == none stop saving this attribute */
-        if($this->FAIdebianMirror == "none"){
-            $this->FAIdebianMirror = "";
         }
 
         /* Get FAIstate from object, the generic tab could have changed it during execute */
@@ -1091,40 +1206,49 @@ another location! */
                 }
             }
         }
+        
+        if (empty($this->FAIdebianMirror)) {
+            return;
+        }
 
         /* Ensure that our selection is valid, else we get several PHP warnings 
            if there is no FAI configuration at all.
          */
-        if(!isset($this->cache['SERVERS'][$this->FAIdebianMirror])){
-            $this->cache['SERVERS'][$this->FAIdebianMirror][''] ='';
+        foreach ($this->FAIdebianMirror as $server) {
+            if(!isset($this->cache['SERVERS'][$server])){
+                $this->cache['SERVERS'][$server][''] ='';
+            }
         }
 
         /* Build up arrays, without checks */
         if(!$first_call){
 
             /* Check if the selected mirror is available */
-            if(!isset($this->cache['SERVERS'][$this->FAIdebianMirror])){
-                $this->FAIdebianMirror = "auto";
-                $this->FAIrelease      = key($this->cache['SERVERS'][$this->FAIdebianMirror]);
-                trigger_error("There was a problem with the selected FAIdebianMirror. This mirror ('".$this->FAIdebianMirror."') is not available");
+            $fai_servers = $this->available_fai_servers();
+            $intersect = array_intersect($this->FAIdebianMirror, $fai_servers);
+            if(empty($intersect)){
+                trigger_error("There was a problem with the selected FAIdebianMirror. These mirror ('".implode(', ', $this->FAIdebianMirror)."') are not available");
+                $this->FAIdebianMirror = array("auto");
+                $this->FAIrelease  = $this->first_available_fai_release();
             }
 
             /* Check if the selected release is available */
-            if($this->FAIdebianMirror != "inherited" && !isset($this->cache['SERVERS'][$this->FAIdebianMirror][$this->FAIrelease])){
-
-                if($this->FAIrelease != ""){
-		    $old_release = $this->FAIrelease;
-                    $this->FAIrelease = key($this->cache['SERVERS'][$this->FAIdebianMirror]);
-                    msg_dialog::display(_("Warning"), sprintf(_("There was a problem with the selected FAIrelease. This release ('%s') is not available, release set to '%s' instead"), $old_release, $this->FAIrelease), WARNING_DIALOG);
+            if($this->FAIdebianMirror !== array("inherited") && !in_array_strict($this->FAIrelease, $this->available_fai_releases())){
+    		    $old_release = $this->FAIrelease;
+                $fai_releases = $this->available_fai_releases();
+                if (isset($fai_releases[0])) {
+                    $this->FAIrelease = $fai_releases[0];
+                    if($old_release != ""){
+                            msg_dialog::display(_("Warning"), sprintf(_("There was a problem with the selected FAIrelease. This release ('%s') is not available, release set to '%s' instead"), $old_release, $this->FAIrelease), WARNING_DIALOG);
+                    }
                 }
-                $this->FAIrelease = key($this->cache['SERVERS'][$this->FAIdebianMirror]);
             }
         }
 
         /* Get classes for release from cache. 
          * Or build cache
          */
-        if($this->FAIdebianMirror == "inherited"){
+        if($this->FAIdebianMirror === array("inherited")){
             $release = $this->InheritedFAIrelease;
         }else{
             $release = $this->FAIrelease;
@@ -1173,7 +1297,7 @@ another location! */
                     if (isset($entries[2])){
                         $releases= explode(",", $entries[2]);
 
-                        foreach ($releases as $release_data){
+                           foreach ($releases as $release_data){
                             $release_c  = preg_replace('/:.*$/', '', $release_data);
                             $sections_c = explode(':', preg_replace('/^[^:]+:([^|]+)|.*$/', '\1', $release_data));
                             $classes_c  = explode('|', preg_replace('/^[^|]+\|(.*)$/', '\1', $release_data));
@@ -1226,7 +1350,7 @@ another location! */
     function get_invalid_classes($classes)
     {
         $this->update_fai_cache();
-        if($this->FAIdebianMirror == "inherited" && isset($this->cache['CLASSES'][$this->InheritedFAIrelease])){
+        if($this->FAIdebianMirror === array("inherited") && isset($this->cache['CLASSES'][$this->InheritedFAIrelease])){
             $release_classes = $this->cache['CLASSES'][$this->InheritedFAIrelease];
         }elseif(isset($this->cache['CLASSES'][$this->FAIrelease])){
             $release_classes = $this->cache['CLASSES'][$this->FAIrelease];
@@ -1254,7 +1378,7 @@ another location! */
     {
         $this->update_fai_cache();
 
-        if($this->FAIdebianMirror == "inherited" && isset($this->cache['CLASSES'][$this->InheritedFAIrelease])){
+        if($this->FAIdebianMirror === array("inherited") && isset($this->cache['CLASSES'][$this->InheritedFAIrelease])){
             $classes = $this->cache['CLASSES'][$this->InheritedFAIrelease];
         }elseif(isset($this->cache['CLASSES'][$this->FAIrelease])){
             $classes = $this->cache['CLASSES'][$this->FAIrelease];

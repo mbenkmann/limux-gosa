@@ -24,7 +24,7 @@ olcAttributeTypes: ( 1.3.6.1.4.1.10098.1.1.5.20 NAME 'FAIstatus' DESC 'Store FAI
 olcAttributeTypes: ( 1.3.6.1.4.1.10098.1.1.5.21 NAME 'FAIpackagelistDependency' DESC 'Store package lists where we depend from' EQUALITY caseIgnoreIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE)
 olcAttributeTypes: ( 1.3.6.1.4.1.10098.1.1.5.22 NAME 'FAIpartitionSize' DESC 'Store size range for partition size' EQUALITY caseIgnoreIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE)
 olcAttributeTypes: ( 1.3.6.1.4.1.10098.1.1.5.23 NAME 'FAIpartitionFlags' DESC 'Optional flags like "preserve"' EQUALITY caseIgnoreIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE)
-olcAttributeTypes: ( 1.3.6.1.4.1.10098.1.1.5.24 NAME 'FAIdebianMirror' DESC 'TODO' EQUALITY caseIgnoreIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE)
+olcAttributeTypes: ( 1.3.6.1.4.1.10098.1.1.5.24 NAME 'FAIdebianMirror' DESC 'TODO' EQUALITY caseIgnoreIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26)
 olcAttributeTypes: ( 1.3.6.1.4.1.10098.1.1.5.25 NAME 'FAIdebianRelease' DESC 'TODO' EQUALITY caseIgnoreIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE)
 olcAttributeTypes: ( 1.3.6.1.4.1.10098.1.1.5.26 NAME 'FAIdebianSection' DESC 'TODO' EQUALITY caseIgnoreIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26)
 olcAttributeTypes: ( 1.3.6.1.4.1.10098.1.1.5.27 NAME 'FAIrepository' DESC 'TODO' SYNTAX 1.3.6.1.4.1.1466.115.121.1.26)
