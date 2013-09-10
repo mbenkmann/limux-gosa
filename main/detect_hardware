@@ -1,5 +1,6 @@
 #!/bin/bash
 
-echo "
-ghCpuType:: WjgwLCA0TUh6
-"
+ghCpuType="$(cat /proc/cpuinfo | tr '\t' ' ' | sed -n 's/^model name *: //p'|sort -u)"
+test -n "$ghCpuType" && echo "ghCpuType:: $(echo -n $ghCpuType | base64 -w 0)"
+ghGfxAdapter="$(lspci | sed -n 's/.*VGA compatible controller: //p;s/.*Display controller: //p'|sort -u)"
+test -n "$ghGfxAdapter" && echo "ghGfxAdapter:: $(echo -n $ghGfxAdapter | base64 -w 0)"
