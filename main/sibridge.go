@@ -95,6 +95,15 @@ Argument types:
   rel. time - a number followed by "s", "m", "h" or "d" for seconds, minutes,
               hours and days respectively. Relative times are always relative
               to the current time. I.e. "10m" means "10 minutes from now".
+  substring - an arbitrary string that is used to select among a set of
+              objects the one whose name contains the substring (case-insensitive).
+              If there are multiple matches the object with the fewest additional
+              characters is chosen.
+              It is an error if no matching object is found.
+  substrings - Multiple whitespace separated words that are used to select among
+               a set of objects all those that match any of the substrings in the
+               manner described for type "substring".
+               It is an error if one of the substrings does not match an object.
 
 Argument order:
   Times may either precede or follow the machines they should affect, 
@@ -119,16 +128,53 @@ Commands:
               Argument types: Machine
               This command can not be abbreviated.
   
-  foo-> :     Fill in missing LDAP attributes in selected machine(s) by
-              copying them from system "foo" (a Machine as described in
-              section "Argument Types" above). 
+  foo-> :     Fill in missing LDAP attributes in selected machine(s).
+              Argument types: Machine
+              The missing attributes are copied from system "foo" 
+              (a Machine as described in section "Argument Types" above). 
+              
               If any of the selected machines are in ou=incoming, they
               will be moved into the same ou as "foo".
               The attribute gotoMode is never copied, so a locked system
               will remain locked, allowing you to make further changes
               before activating it for installation.
+              
+  .release:   Change the release of the selected machine(s).
+              Argument types: substring
+              
+              This command does not take machines as argument.
+              You must select the machines by using any other
+              command (such as "examine") prior to ".release".
   
-  examine, x: Print one line info about machine(s).
+  .classes:   Set the FAI classes for the selected machine(s).
+              Argument types: substrings
+              Each substring selects exactly one FAI class.
+              If more than 1 substring is passed, "HARDENING" or
+              "HARDENING_SERVER" is automatically appended to
+              the list depending on the kind of machine.
+              Only FAI classes available for the machine's release
+              will be considered, so you should use the
+              ".release" command first, if the release needs to be changed.
+              
+              This command does not take machines as argument.
+              You must select the machines by using any other
+              command (such as "examine") prior to ".classes".
+  
+  .deb, .repo: Set the list of repositories to use for the selected machine(s).
+              Argument types: substrings
+              Each substring is matched against the fairepository attributes of
+              FAIrepositoryServer objects. The URL of the matching repository
+              is extracted and becomes a FAIDebianMirror attribute value of the
+              selected machine(s).
+              Only repositories that have the proper release are consider,
+              so you should use the ".release" command first if the
+              release needs to be changed.
+            
+              This command does not take machines as argument.
+              You must select the machines by using any other
+              command (such as "examine") prior to ".deb".
+  
+  examine, x: Print info about machine(s).
               Argument types: Machine
               Client states: x_x o_o o_O ~_^ X_x ^_^ o_^ ^,^
               Server states: X_X O_O @_@ O_@ x_~ ^.^ @_~ ^_~
@@ -429,8 +475,8 @@ var jobs      = []string{"update","softupdate","reboot","halt","install",  "rein
 // It's important that the jobs are at the beginning of the commands slice,
 // because we use that fact later to distinguish between commands that refer to
 // jobs and other commands.
-var commands  = append(jobs,                                                                                                                                                             "help","x",      "examine", "query_jobdb","query_jobs","jobs", "delete_jobs","delete_jobdb_entry","qq","xx","kill")
-var canonical = []string{"update","update"    ,"reboot","halt","reinstall","reinstall",  "wake","localboot","lock","activate","activate","send_user_msg","send_user_msg","send_user_msg","help","examine","examine", "query",      "query",     "query","delete",     "delete"            ,"qq","xx","kill"}
+var commands  = append(jobs,                                                                                                                                                             "help","x",      "examine", "query_jobdb","query_jobs","jobs", "delete_jobs","delete_jobdb_entry","qq","xx","kill", ".release", ".classes", ".debianrepository", ".repository")
+var canonical = []string{"update","update"    ,"reboot","halt","reinstall","reinstall",  "wake","localboot","lock","activate","activate","send_user_msg","send_user_msg","send_user_msg","help","examine","examine", "query",      "query",     "query","delete",     "delete"            ,"qq","xx","kill", ".release", ".classes", ".deb"             , ".deb"       }
 
 type jobDescriptor struct {
   MAC string
@@ -439,12 +485,14 @@ type jobDescriptor struct {
   Date string
   Time string
   Job string
+  Sub string
 }
 
 func (j *jobDescriptor) HasMachine() bool { return j.MAC != "" }
 func (j *jobDescriptor) HasJob() bool { return j.Job != "" }
 func (j *jobDescriptor) HasDate() bool { return j.Date != "" }
 func (j *jobDescriptor) HasTime() bool { return j.Time != "" }
+func (j *jobDescriptor) HasSub() bool { return j.Sub != "" }
 
 // msg must be non-empty.
 // joblist: see comment in handle_request() for explanation
@@ -508,14 +556,16 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
   }
   
   // Depending on the type of command, only certain kinds of arguments are permitted:
-  //  all commands: machine references (MAC, IP, name)
+  //  all non-dot commands: machine references (MAC, IP, name)
   //  job commands: times (XXs, XXm, XXh, XXd, YYYY-MM-DD, HH:MM)
   //  delete: job type ("update","softupdate","reboot","halt","install", "reinstall","wakeup","localboot","lock","unlock", "activate")
   //  query,qq and delete: all machines wildcard "*"
+  //  dot commands: substrings
   allowed := map[string]bool{"machine":true}
   if is_job_cmd { allowed["time"] = true }
   if cmd == "delete" { allowed["job"]=true }
   if cmd == "delete" || cmd == "query" || cmd == "qq" { allowed["*"]=true }
+  if cmd[0] == '.' { allowed["substring"]=true; allowed["machine"]=false }
   
   // parse all fields into partial job descriptors
   parsed := []jobDescriptor{}
@@ -527,7 +577,8 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
       // be interpreted as job types ("reinstall" in the example)
        (allowed["machine"] && parseMachine(fields[i], &template)) ||
        (allowed["job"] && parseJob(fields[i], &template)) ||
-       (allowed["*"] && parseWild(fields[i], &template)) {
+       (allowed["*"] && parseWild(fields[i], &template)) ||
+       (allowed["substring"] && parseSubstring(fields[i], &template)) {
       parsed = append(parsed, template)
       continue 
     } else 
@@ -579,6 +630,13 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
     if j.HasJob() {
       template.Job = j.Job
     }
+    if j.HasSub() {
+      if template.Sub == "" {
+        template.Sub = j.Sub 
+      } else {
+        template.Sub += " "+j.Sub 
+      }
+    }
     if j.HasDate() {
       template.Date = j.Date
     }
@@ -589,6 +647,7 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
       j.Date = template.Date
       j.Time = template.Time
       j.Job = template.Job
+      j.Sub = template.Sub
       *joblist = append(*joblist, j)
     }
   }
@@ -617,6 +676,12 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
     reply = commandKill(joblist)
   } else if cmd == "copy" {
     reply = commandCopy(sys_to_copy, joblist)
+  } else if cmd == ".release" {
+    reply = commandRelease(joblist)
+  } else if cmd == ".classes" {
+    reply = commandClasses(joblist)
+  } else if cmd == ".deb" {
+    reply = commandDeb(joblist)
   } else if cmd == "delete" {
     reply = strings.Replace(commandGosa("gosa_query_jobdb",true,joblist),"==","<-",-1)+"\n"+
             commandGosa("gosa_delete_jobdb_entry",true,joblist)
@@ -624,6 +689,18 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
   }
   
   return reply,repeat
+}
+
+func commandRelease(joblist *[]jobDescriptor) (reply string) {
+  return "! NOT IMPLEMENTED"
+}
+
+func commandClasses(joblist *[]jobDescriptor) (reply string) {
+  return "! NOT IMPLEMENTED"
+}
+
+func commandDeb(joblist *[]jobDescriptor) (reply string) {
+  return "! NOT IMPLEMENTED"
 }
 
 func commandJob(joblist *[]jobDescriptor) (reply string) {
@@ -707,11 +784,15 @@ func examine(j *jobDescriptor) (reply string) {
         reply += " " + g.Element().Text("cn")
       }
     }
-    reply += "\n    " + sys.Text("faidebianmirror")
-    ldap := sys.Text("gotoldapserver")
-    if strings.Index(ldap,":") >= 0 { ldap = ldap[strings.Index(ldap,":")+1:] }
-    if strings.Index(ldap,":") >= 0 { ldap = ldap[strings.Index(ldap,":")+1:] }
-    reply += "\n    " + ldap
+    for mirror := sys.First("faidebianmirror"); mirror != nil; mirror = mirror.Next() {
+      reply += "\n    " + mirror.Text()
+    }
+    for ldaps := sys.First("gotoldapserver"); ldaps != nil; ldaps = ldaps.Next() {
+      ldap := ldaps.Text()
+      if strings.Index(ldap,":") >= 0 { ldap = ldap[strings.Index(ldap,":")+1:] }
+      if strings.Index(ldap,":") >= 0 { ldap = ldap[strings.Index(ldap,":")+1:] }
+      reply += "\n    " + ldap
+    }
     return reply
 }
 
@@ -951,6 +1032,12 @@ func parseWild(wild string, template *jobDescriptor) bool {
     return true
   }
   return false
+}
+
+func parseSubstring(sub string, template *jobDescriptor) bool {
+  if sub == "" { return false }
+  template.Sub = sub
+  return true
 }
 
 var dateRegexp = regexp.MustCompile("^20[0-9][0-9]-[0-1][0-9]-[0-3][0-9]$")
