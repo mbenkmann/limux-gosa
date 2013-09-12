@@ -749,7 +749,84 @@ func commandRelease(joblist *[]jobDescriptor) (reply string) {
 }
 
 func commandClasses(joblist *[]jobDescriptor) (reply string) {
-  return "! NOT IMPLEMENTED"
+  mainloop:
+  for _, j := range *joblist {
+    if j.Name == "*" { continue }
+    if j.Sub  == ""  { continue }
+    
+    if reply != "" { reply += "\n" }
+    
+    faiclass := db.SystemGetState(j.MAC, "faiclass")
+    
+    idx := strings.Index(faiclass, ":")
+    if idx < 0 { 
+      reply += "! ERROR: Could not determine release of "+j.Name+" ("+j.MAC+")"
+      continue mainloop
+    }
+    
+    release := faiclass[idx+1:]
+    faiclass = ""
+    
+    classes := db.FAIClasses(xml.FilterSimple("fai_release", release))
+
+    need_hardening := false
+    
+    for _, sub := range strings.Fields(j.Sub) {
+      best_class := ""
+      best_score := 19770120
+      multi := false
+      for c := classes.FirstChild(); c != nil; c = c.Next() {
+        name := c.Element().Text("class")
+        if len(name) - len(sub) > best_score { continue }
+        if strings.Contains(strings.ToLower(name),strings.ToLower(sub)) {
+          new_score := len(name) - len(sub)
+          if new_score == best_score && name != best_class { 
+            multi = true 
+            best_class += ", " + name
+          } else {
+            multi = false
+            best_class = name
+          }
+          best_score = new_score
+        }
+      }
+      
+      if multi {
+        reply += "! ERROR: Multiple matches for \""+sub+"\": " + best_class
+        continue mainloop
+      }
+      
+      if best_class == "" {
+        reply += fmt.Sprintf("! ERROR: No matches for \"%v\" in release \"%v\".", sub, release)
+        continue mainloop
+      }
+      
+      if faiclass != "" { 
+        faiclass += " " 
+        need_hardening = true
+      }
+      faiclass += best_class
+      if strings.Index(best_class, "HARDENING") == 0 {
+        need_hardening = false
+      }
+    }
+    
+    if need_hardening {
+      if db.SystemIsWorkstation(j.MAC) { faiclass += " HARDENING" } else { faiclass += "HARDENING_SERVER" }
+    }
+    
+    faiclass += " :" + release
+    
+    err := db.SystemSetStateMulti(j.MAC, "faiclass", []string{faiclass})
+    if err != nil {
+      reply += err.Error()
+    } else {
+      reply += "UPDATED " + j.Name + " ("+j.MAC+")"
+    }
+    
+    reply += "\n" + examine(&j)
+  }
+  return reply
 }
 
 func commandDeb(joblist *[]jobDescriptor) (reply string) {
@@ -827,7 +904,6 @@ func examine(j *jobDescriptor) (reply string) {
     reply += " "
     reply += fmt.Sprintf("%v %v (%v) \"%v\" %v",gotomode,j.MAC,j.Name,faistate,release)
     for _,class := range strings.Fields(faiclass) {
-      if strings.HasPrefix(class, "HARDENING") { continue }
       if class[0] == ':' { continue }
       reply += " " + class
     }
