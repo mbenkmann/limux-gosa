@@ -100,7 +100,7 @@ var faiClassCacheUpdateTime_mutex sync.Mutex
 var faiClassCacheUpdateTime = time.Now().Add(-1000*time.Hour)
 
 // Only the key set matters. Keys are DN fragments such as
-// "ou=plophos" and "ou=halut/2.4.0,ou=halut".
+// "ou=plophos" and "ou=2.4.0,ou=halut".
 // ATTENTION! DO NOT ACCESS WITHOUT HOLDING THE MUTEX!
 var all_releases = map[string]bool{}
 var all_releases_mutex sync.Mutex
@@ -130,6 +130,28 @@ func FAIReleasesListUpdate() {
   util.Log(1, "INFO! FAIReleasesListUpdate() found the following releases: %v", all_releases)
 }
 
+// Returns the list of known releases (e.g. "plophos/4.1.0").
+// FAIReleasesListUpdate() must have been called at least once or the returned list
+// will be empty.
+func FAIReleases() []string {
+  all_releases_mutex.Lock()
+  defer all_releases_mutex.Unlock()
+  
+  releases := make([]string,0,len(all_releases))
+  
+  for release := range all_releases {
+    release = strings.Replace(release, "ou=", "", -1)
+    release_parts := strings.Split(release, ",")
+    release = ""
+    for i := range(release_parts) {
+      if release != "" { release += "/" }
+      release += release_parts[len(release_parts)-i-1]
+    }
+    releases = append(releases, release)
+  }
+  return releases
+}
+
 // If the contents of the FAI classes cache are no older than age,
 // this function returns immediately. Otherwise the cache is refreshed.
 // If age is 0 the cache is refreshed unconditionally.
@@ -152,9 +174,9 @@ func FAIClassesCacheNoOlderThan(age time.Duration) {
   FAIClassesCacheInit(x)  
 }
 
-// Takes the DN of a FAI class (e.g. cn=TURTLE,ou=disk,ou=halut/2.4.0,ou=halut,ou=fai,ou=configs,ou=systems,o=go-susi,c=de)
+// Takes the DN of a FAI class (e.g. cn=TURTLE,ou=disk,ou=2.4.0,ou=halut,ou=fai,ou=configs,ou=systems,o=go-susi,c=de)
 // and returns a fragment of the DN that 
-// specifies the release, e.g. "ou=halut/2.4.0,ou=halut".
+// specifies the release, e.g. "ou=2.4.0,ou=halut".
 // Returns "" if no release could be determined from the DN.
 // NOTE: The function only accepts DNs under config.FAIBase
 func extractReleaseFromFAIClassDN(dn string) string {

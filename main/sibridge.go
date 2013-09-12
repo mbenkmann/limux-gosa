@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2012 Landeshauptstadt München
+Copyright (c) 2012,2013 Landeshauptstadt München
 Author: Matthias S. Benkmann
 
 This program is free software; you can redistribute it and/or
@@ -43,7 +43,7 @@ import (
        )
 
 const VERSION_MESSAGE = `sibridge %v (revision %v)
-Copyright (c) 2012 Landeshauptstadt München
+Copyright (c) 2012,2013 Landeshauptstadt München
 Author: Matthias S. Benkmann
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -250,7 +250,7 @@ func main() {
   
   config.ReadNetwork() // after config.ReadConfig()
   config.Timeout = 20*time.Second
-  
+  config.FAIBase = db.LDAPFAIBase()
   
   target_reachable := make(chan bool, 2)
   go func() {
@@ -692,7 +692,60 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
 }
 
 func commandRelease(joblist *[]jobDescriptor) (reply string) {
-  return "! NOT IMPLEMENTED"
+  db.FAIReleasesListUpdate()
+  releases := db.FAIReleases()
+  
+  for _, j := range *joblist {
+    if j.Name == "*" { continue }
+    if j.Sub  == ""  { continue }
+    
+    if reply != "" { reply += "\n" }
+    
+    best_release := ""
+    best_score := 19770120
+    multi := false
+    for _, r := range releases {
+      if len(r) - len(j.Sub) > best_score { continue }
+      if strings.Contains(strings.ToLower(r),strings.ToLower(j.Sub)) {
+        new_score := len(r) - len(j.Sub)
+        if new_score == best_score { 
+          multi = true 
+          best_release += ", " + r
+        } else {
+          multi = false
+          best_release = r
+        }
+        best_score = new_score
+      }
+    }
+    
+    if multi {
+      reply += "! ERROR: Multiple matches for \""+j.Sub+"\": " + best_release
+      continue
+    }
+    
+    if best_release == "" {
+      reply += fmt.Sprintf("! ERROR: No matches for \"%v\". Candidates: %v", j.Sub,releases)
+      continue
+    }
+    
+    faiclass := db.SystemGetState(j.MAC, "faiclass")
+    
+    idx := strings.Index(faiclass, ":")
+    if idx >= 0 { faiclass = faiclass[0:idx] } // remove old release from faiclass
+    
+    faiclass += ":" + best_release
+    
+    err := db.SystemSetStateMulti(j.MAC, "faiclass", []string{faiclass})
+    if err != nil {
+      reply += err.Error()
+    } else {
+      reply += "UPDATED " + j.Name + " ("+j.MAC+")"
+    }
+    
+    reply += "\n" + examine(&j)
+  }
+  return reply
 }
 
 func commandClasses(joblist *[]jobDescriptor) (reply string) {

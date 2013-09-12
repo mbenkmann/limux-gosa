@@ -97,6 +97,10 @@ func faidb_test() {
   check(fai1,map[string]bool{}) //in the output from db.FAIClassesCacheInit() but not in "testdata/query_fai_release.log"
   check(fai2,map[string]bool{}) //in "testdata/query_fai_release.log" but not in output from db.FAIClassesCacheInit()
   
+  db.FAIReleasesListUpdate()
+  releases := db.FAIReleases()
+  sort.Strings(releases)
+  check(releases, []string{"xavier", "xavier/charles", "xavier/charles/prof", "xavier/charles/prof/x-men"})
 }
 
 func clientdb_test() {
