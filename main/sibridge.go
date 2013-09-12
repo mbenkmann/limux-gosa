@@ -166,7 +166,7 @@ Commands:
               FAIrepositoryServer objects. The URL of the matching repository
               is extracted and becomes a FAIDebianMirror attribute value of the
               selected machine(s).
-              Only repositories that have the proper release are consider,
+              Only repositories that have the proper release are considered,
               so you should use the ".release" command first if the
               release needs to be changed.
             
@@ -830,7 +830,70 @@ func commandClasses(joblist *[]jobDescriptor) (reply string) {
 }
 
 func commandDeb(joblist *[]jobDescriptor) (reply string) {
-  return "! NOT IMPLEMENTED"
+  mainloop:
+  for _, j := range *joblist {
+    if j.Name == "*" { continue }
+    if j.Sub  == ""  { continue }
+    
+    if reply != "" { reply += "\n" }
+    
+    faiclass := db.SystemGetState(j.MAC, "faiclass")
+    
+    idx := strings.Index(faiclass, ":")
+    if idx < 0 { 
+      reply += "! ERROR: Could not determine release of "+j.Name+" ("+j.MAC+")"
+      continue mainloop
+    }
+    
+    release := faiclass[idx+1:]
+    
+    servers := db.FAIServers()
+    repos := []string{}
+
+    for _, sub := range strings.Fields(j.Sub) {
+      best_repo := ""
+      best_score := 19770120
+      multi := false
+      for srv := servers.FirstChild(); srv != nil; srv = srv.Next() {
+        if srv.Element().Text("fai_release") != release { continue }
+        repo := srv.Element().Text("server")
+        if len(repo) - len(sub) > best_score { continue }
+        if strings.Contains(strings.ToLower(repo),strings.ToLower(sub)) {
+          new_score := len(repo) - len(sub)
+          if new_score == best_score && repo != best_repo { 
+            multi = true 
+            best_repo += ", " + repo
+          } else {
+            multi = false
+            best_repo = repo
+          }
+          best_score = new_score
+        }
+      }
+      
+      if multi {
+        reply += "! ERROR: Multiple matches for \""+sub+"\": " + best_repo
+        continue mainloop
+      }
+      
+      if best_repo == "" {
+        reply += fmt.Sprintf("! ERROR: No matches for \"%v\" with release \"%v\".", sub, release)
+        continue mainloop
+      }
+      
+      repos = append(repos, best_repo)
+    }
+    
+    err := db.SystemSetStateMulti(j.MAC, "faidebianmirror", repos)
+    if err != nil {
+      reply += err.Error()
+    } else {
+      reply += "UPDATED " + j.Name + " ("+j.MAC+")"
+    }
+    
+    reply += "\n" + examine(&j)
+  }
+  return reply
 }
 
 func commandJob(joblist *[]jobDescriptor) (reply string) {
@@ -922,6 +985,12 @@ func examine(j *jobDescriptor) (reply string) {
       if strings.Index(ldap,":") >= 0 { ldap = ldap[strings.Index(ldap,":")+1:] }
       reply += "\n    " + ldap
     }
+    for repos := sys.First("fairepository"); repos != nil; repos = repos.Next() {
+      repo := repos.Text()
+      repo_parts := strings.Split(repo,"|")
+      reply += "\n    offers: " + repo_parts[2] + " " + repo_parts[3] + " \tURL: "+repo_parts[0]
+    }
+
     return reply
 }
 
