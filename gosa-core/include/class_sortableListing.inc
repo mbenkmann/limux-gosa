@@ -50,7 +50,8 @@ class sortableListing {
     private $current_mapping;
     private $active_index= array();
     private $scrollPosition= 0;
-    private $sortColumn= 0;
+    private $primarySortColumn= 0;
+    private $additionalSortColumns = array();
     private $sortDirection= array();
 
     private $acl= "";
@@ -100,7 +101,12 @@ class sortableListing {
 
     public function setDefaultSortColumn($id)
     {
-        $this->sortColumn = $id;
+        $this->primarySortColumn = $id;
+    }
+
+    public function setAdditionalSortColumns($primarySortColumn, array $additionalSortColumns)
+    {
+        $this->additionalSortColumns[$primarySortColumn] = $additionalSortColumns;
     }
 
     /*
@@ -295,7 +301,7 @@ class sortableListing {
             for ($i= 0; $i<$this->columns; $i++) {
                 $link= "href='?plug=".$_GET['plug']."&amp;PID=".$this->id."&amp;act=SORT_$i'";
                 $sorter= "";
-                if ($i == $this->sortColumn){
+                if ($i == $this->primarySortColumn){
                     $sorter= "&nbsp;".image("images/lists/sort-".($this->sortDirection[$i]?"up":"down").".png", null, $this->sortDirection[$i]?_("Sort ascending"):_("Sort descending"));
                 }
 
@@ -423,8 +429,8 @@ class sortableListing {
 
                     // Switch to new column or invert search order?
                     $column= (int) $match[1];
-                    if ($this->sortColumn != $column) {
-                        $this->sortColumn= $column;
+                    if ($this->primarySortColumn != $column) {
+                        $this->primarySortColumn= $column;
                     } else {
                         $this->sortDirection[$column]= !$this->sortDirection[$column];
                     }
@@ -618,25 +624,29 @@ class sortableListing {
       return array_filter($array, $filterFunction);
     }
 
-    protected function columnsFromLeftToRightWithPrimarySortColumnAtTheBeginning() {
-      $allColumns = range(0, $this->columns - 1);
-      $columnsWithoutPrimarySortColumn = $this->removeValueFromArray($allColumns, $this->sortColumn);
-      return array_merge(array($this->sortColumn), $columnsWithoutPrimarySortColumn);
+    protected function getAdditionalSortColumns() {
+        if (isset($this->additionalSortColumns[$this->primarySortColumn])) {
+            return $this->additionalSortColumns[$this->primarySortColumn];
+        } else {
+            $allColumns = range(0, $this->columns - 1);
+            $columnsWithoutPrimarySortColumn = $this->removeValueFromArray($allColumns, $this->primarySortColumn);
+            return $columnsWithoutPrimarySortColumn;
+        }
     }
 
     public function sortData()
     {
         if (!$this->sortingEnabled || empty($this->data)) return;
-        
-        $columnsSortPriority = $this->columnsFromLeftToRightWithPrimarySortColumnAtTheBeginning();
-        $reverseSort = !$this->sortDirection[$this->sortColumn];
+
+        $columnsSortPriority = array_merge(array($this->primarySortColumn), $this->getAdditionalSortColumns());
+        $reverseSort = !$this->sortDirection[$this->primarySortColumn];
 
         $comparatorFunction = function($a, $b) use ($columnsSortPriority, $reverseSort) {
             foreach ($columnsSortPriority as $column) {
                 if ($reverseSort) {
                     $comparisonResult = strcasecmp($a[$column], $b[$column]);
                 } else {
-                    $comparisonResult = strcasecmp($b[$column], $a[$column]);            
+                    $comparisonResult = strcasecmp($b[$column], $a[$column]);
                 }
                 if ($comparisonResult != 0) {
                     // Found a difference

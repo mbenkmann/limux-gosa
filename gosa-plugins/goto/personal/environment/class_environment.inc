@@ -217,9 +217,17 @@ class environment extends plugin
     $this->shareList->setEditable(false);
     $this->shareList->setWidth("100%");
     $this->shareList->setHeight("120px");
-    $this->shareList->setHeader(array(_("Server"),_("Share name"),_("Mount point"), 
-            _("User"), _("Type"), _("Action")));
-    $this->shareList->setDefaultSortColumn(1);
+    $columnHeaders = array(_("Server"), _("Share name"), _("Mount point"),
+          _("User"), _("Type"), _("Action"));
+    $this->shareList->setHeader($columnHeaders);
+    $shareNameColumnIndex = 1;
+    $this->shareList->setDefaultSortColumn($shareNameColumnIndex);
+
+    foreach (range(0, count($columnHeaders)) as $columnIndex) {
+      if ($columnIndex != $shareNameColumnIndex) {
+        $this->shareList->setAdditionalSortColumns($columnIndex, array($shareNameColumnIndex));
+      }
+    }
   }
 
   function update_gotoProfileFlags($string_flags = NULL) {
