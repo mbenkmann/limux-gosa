@@ -416,8 +416,7 @@ class application extends plugin
       $message[]= msgPool::required(_("Execute"));
     }
     elseif(!preg_match("#^/#",$this->gosaApplicationExecute)){
-      $message[] = sprintf(_("The field %s must contain a valid path"), bold("Execute")).". ".
-        "<br><br> /some/path";
+      $message[]= msgPool::invalidPath(_("Execute"));
     }
 
     // Check if a wrong base was supplied

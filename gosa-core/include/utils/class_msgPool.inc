@@ -250,6 +250,11 @@ class msgPool
     return (sprintf(_("The required field %s is empty!"), bold($name)));
   }
 
+  public static function invalidPath($name)
+  {
+    return (sprintf(_("The field %s must contain a valid path"), bold($name))."! "."<br><br> /some/path");
+  }
+
 
   public static function invalid($name, $data= "", $regex= "", $example= "")
   {
