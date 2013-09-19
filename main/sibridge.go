@@ -812,7 +812,7 @@ func commandClasses(joblist *[]jobDescriptor) (reply string) {
     }
     
     if need_hardening {
-      if db.SystemIsWorkstation(j.MAC) { faiclass += " HARDENING" } else { faiclass += "HARDENING_SERVER" }
+      if db.SystemIsWorkstation(j.MAC) { faiclass += " HARDENING" } else { faiclass += " HARDENING_SERVER" }
     }
     
     faiclass += " :" + release
