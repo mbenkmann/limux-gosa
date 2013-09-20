@@ -108,9 +108,27 @@ func clmsg_save_fai_log(buf *bytes.Buffer) {
   // Create convenience symlink with the system's name as alias for MAC address.
   go util.WithPanicHandler(func() {
     if plainname := db.SystemPlainnameForMAC(macaddress); plainname != "none" {
-      err := os.Symlink(strings.ToLower(macaddress), path.Join(config.FAILogPath, strings.ToLower(plainname)))
+      linkpath := path.Join(config.FAILogPath, strings.ToLower(plainname))
+      link_target, err := os.Readlink(linkpath)
+      if err != nil && !os.IsNotExist(err.(*os.LinkError).Err) {
+        util.Log(0, "ERROR! %v exists but is not a symlink: %v", linkpath, err)
+        return
+      }
+      if err == nil {
+        if link_target == strings.ToLower(macaddress) {
+          return // symlink is already correct => nothing to do
+        }
+        
+        util.Log(0, "WARNING! Machine %v has a new MAC %v . Removing old symlink %v => %v", plainname, macaddress, linkpath, link_target)
+        err = os.Remove(linkpath)
+        if err != nil {
+          util.Log(0, "ERROR! Removing %v failed: %v", linkpath, err)
+          // Don't bail out. Maybe we can create the new symlink anyway.
+        }
+      }
+      err = os.Symlink(strings.ToLower(macaddress), linkpath)
       if err != nil && !os.IsExist(err.(*os.LinkError).Err) {
-        util.Log(0, "ERROR! Could not create symlink %v => %v: %v", path.Join(config.FAILogPath, strings.ToLower(plainname)), strings.ToLower(macaddress), err)
+        util.Log(0, "ERROR! Could not create symlink %v => %v: %v", linkpath, strings.ToLower(macaddress), err)
       }
     }
   })
