@@ -99,13 +99,17 @@ func SystemPlainnameForMAC(macaddress string) string {
 // It may therefore take a while. If possible you should use it asynchronously.
 func SystemFullyQualifiedNameForMAC(macaddress string) string {
   system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",LDAPFilterEscape(macaddress), config.UnitTagFilter),"cn","ipHostNumber"))
-  name := system.Text("cn")
-  if name == "" {
+  names := system.Get("cn")
+  if len(names) == 0 {
     util.Log(0, "ERROR! Error getting cn for MAC %v: %v", macaddress, err)
     return "none"
   }
+  if len(names) != 1 {
+    util.Log(0, "ERROR! Multiple LDAP objects with same MAC %v: %v", macaddress, names)
+    return "none"
+  }
 
-  name = strings.ToLower(name)
+  name := strings.ToLower(names[0])
   has_domain := strings.Index(name,".") > 0
   
   // try name lookup. If the name has no domain, we will then
@@ -172,11 +176,16 @@ func SystemFullyQualifiedNameForMAC(macaddress string) string {
 // If possible you should use it asynchronously.
 func SystemCommonNameForMAC(macaddress string) string {
   system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",LDAPFilterEscape(macaddress), config.UnitTagFilter),"cn"))
-  name := system.Text("cn")
-  if name == "" {
+  names := system.Get("cn")
+  if len(names) == 0 {
     util.Log(0, "ERROR! Error getting cn for MAC %v: %v", macaddress, err)
+    return ""
   }
-  return name
+  if len(names) != 1 {
+    util.Log(0, "ERROR! Multiple LDAP objects with same MAC %v: %v", macaddress, names)
+    return ""
+  }
+  return names[0]
 }
 
 // Returns the IP address (IPv4 if possible) for the machine with the given name.
@@ -297,10 +306,14 @@ func SystemSetState(macaddress string, attrname, attrvalue string) {
 // If possible you should use it asynchronously.
 func SystemSetStateMulti(macaddress string, attrname string, attrvalues []string) error {
   system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",LDAPFilterEscape(macaddress), config.UnitTagFilter),"dn"))
-  dn := system.Text("dn")
-  if dn == "" {
+  dns := system.Get("dn")
+  if len(dns) == 0 {
     return fmt.Errorf("Could not get dn for MAC %v: %v", macaddress, err)
   }
+  if len(dns) > 1 {
+    return fmt.Errorf("Multiple LDAP objects for MAC %v: %v", macaddress, dns)
+  }
+  dn := dns[0]
   out, err := ldapModifyAttribute(dn, "replace", attrname, attrvalues).CombinedOutput()
   if err != nil {
     return fmt.Errorf("Could not change state of object %v: %v (%v)",dn,err,string(out))
@@ -320,11 +333,16 @@ func SystemSetStateMulti(macaddress string, attrname string, attrvalues []string
 func SystemGetState(macaddress string, attrname string) string {
   attrname = strings.ToLower(attrname)
   system, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",LDAPFilterEscape(macaddress), config.UnitTagFilter),attrname))
-  if err == nil && system.Text("dn") == "" {
+  dns := system.Get("dn")
+  if err == nil && len(dns) == 0 {
     err = fmt.Errorf("Object not found")
   }
   if err != nil {
     util.Log(0, "ERROR! Could not get attribute %v for MAC %v: %v", attrname, macaddress, err)
+    return ""
+  }
+  if len(dns) > 1 {
+    util.Log(0, "ERROR! Multiple LDAP objects with MAC %v: %v", macaddress, dns)
     return ""
   }
   
@@ -418,9 +436,11 @@ type SystemNotFoundError struct {
 func SystemGetAllDataForMAC(macaddress string, use_groups bool) (*xml.Hash, error) {
   x, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=GOhard)(macAddress=%v)%v)",LDAPFilterEscape(macaddress), config.UnitTagFilter)))
   if err != nil { return nil, err }
-  if x.First("dn") == nil { return nil, SystemNotFoundError{fmt.Errorf("Could not find system with MAC %v", macaddress)} }
+  dns := x.Get("dn")
+  if len(dns) == 0 { return nil, SystemNotFoundError{fmt.Errorf("Could not find system with MAC %v", macaddress)} }
+  if len(dns) > 1 { return nil, fmt.Errorf("Multiple LDAP objects with MAC %v: %v", macaddress, dns)}
   if use_groups {
-    dn := x.Text("dn")
+    dn := dns[0]
     groups := SystemGetGroupsWithMember(dn)
     for group := groups.First("xml"); group != nil; group = group.Next() {
       SystemFillInMissingData(x, group)

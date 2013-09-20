@@ -159,7 +159,12 @@ func ServerUpdate(server *xml.Hash) {
     server.Add("key", keys[0])
   }
   util.Log(2, "DEBUG! ServerUpdate for %v: Keys are now %v", source, server.Get("key"))
-  serverDB.Replace(xml.FilterSimple("source", source), false, server)
+  filter := xml.FilterSimple("source", source)
+  if macaddress := server.Text("macaddress"); macaddress != "" {
+    // if we have a MAC for the server, remove an old entry with that MAC, too.
+    filter = xml.FilterOr([]xml.HashFilter{xml.FilterSimple("macaddress", macaddress), filter})
+  }
+  serverDB.Replace(filter, false, server)
 }
 
 // Removes the server data for the server with the given IP:PORT address and
