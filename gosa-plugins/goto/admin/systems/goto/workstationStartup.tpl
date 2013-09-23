@@ -101,10 +101,10 @@
    
    <table summary="{t}FAI class assignment{/t}">
     <tr>
-     <td style='width:50%'>
+     <td style='width:75%'>
       <b>{t}FAI server{/t}</b>
      </td>
-     <td style='width:50%'>
+     <td style='width:25%'>
       <b>{t}Release{/t}</b>
      </td>
     </tr>
@@ -120,18 +120,7 @@
         <input type='hidden' name='FAIdebianMirror_auto_submitted' value='1'>
         <input type='checkbox' name='FAIdebianMirror_auto' {if $FAIdebianMirror_inherit} disabled {/if} {if $FAIdebianMirror_auto} checked {/if} value="1"
         onClick="document.mainform.submit();" class='center'> {t}Choose automatically{/t}
-      
-         {$FAIdebianMirrorList}
-
-        <select name='FAIdebianMirror_to_add' id='FAIdebianMirror_to_add' size="1" style="max-width:480px" {if $FAIdebianMirror_inherit || $FAIdebianMirror_auto} disabled {/if} >
-         {html_options values=$availableFAIdebianMirror output=$availableFAIdebianMirror}	
-        </select>
-
-
-        <button type='submit' name='add_FAIdebianMirror' id='add_FAIdebianMirror' {if $FAIdebianMirror_inherit || $FAIdebianMirror_auto} disabled {/if} >
-        {msgPool type=addButton}</button>
       {/render}
-           
      </td>
      <td>
       {render acl=$FAIreleaseACL}
@@ -148,6 +137,22 @@
       {/render}
      </td>
     </tr>
+    <tr>
+     <td colspan="2">
+      {render acl=$FAIdebianMirrorACL}
+         {$FAIdebianMirrorList}
+
+      <!--<select name='FAIdebianMirror_to_add' id='FAIdebianMirror_to_add' size="1" style="max-width:480px" {if $FAIdebianMirror_inherit || $FAIdebianMirror_auto} disabled {/if} > -->
+      <select name='FAIdebianMirror_to_add' id='FAIdebianMirror_to_add' size="1" style="max-width:480px" {if $FAIdebianMirror_inherit || $FAIdebianMirror_auto} disabled {/if} > 
+       {html_options values=$availableFAIdebianMirror output=$availableFAIdebianMirror}	
+      </select>
+      <button type='submit' name='add_FAIdebianMirror' id='add_FAIdebianMirror' {if $FAIdebianMirror_inherit || $FAIdebianMirror_auto} disabled {/if} >
+      {msgPool type=addButton}</button>
+      {/render}
+     </td>
+    </tr>
+           
+
     <tr>
      <td colspan="2"> 
       
