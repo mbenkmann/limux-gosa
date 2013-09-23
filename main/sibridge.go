@@ -69,6 +69,9 @@ Remote control for an siserver at targetserver:targetport.
              file, it will be processed concurrently with other special
              files and data from other -e and -f arguments.
              This permits using FIFOs and other special files for input.
+
+-i           Read from from stdin even if -l, -e or -f is used. Normally
+             these switches suppress interactive mode.
 `
 
 const HELP_MESSAGE = `Basics:
@@ -207,6 +210,9 @@ var TargetAddress = ""
 // whether to start a listener for incoming TCP connections.
 var ListenForConnections = false
 
+// Force interactive mode even if batch commands given.
+var Interactive = false
+
 // All commands passed via -e and -f switches.
 var BatchCommands bytes.Buffer
 
@@ -303,8 +309,11 @@ func main() {
   }
   
   // Start a "connection" to Stdin/Stdout for interactive use
-  interactive_conn := NewReaderWriterConnection(Dup(syscall.Stdin,"interactive:/dev/stdin"), Dup(syscall.Stdout,"interactive:/dev/stdout"))
-  connections <- interactive_conn
+  var interactive_conn net.Conn
+  if Interactive || (!ListenForConnections && BatchCommands.Len()==0) {
+    interactive_conn = NewReaderWriterConnection(Dup(syscall.Stdin,"interactive:/dev/stdin"), Dup(syscall.Stdout,"interactive:/dev/stdout"))
+    connections <- interactive_conn
+  }
   
   // If requested, accept TCP connections
   if ListenForConnections {
@@ -1315,6 +1324,8 @@ func ReadArgs(args []string) {
       }
     } else if arg == "-l" {
       ListenForConnections = true
+    } else if arg == "-i" {
+      Interactive = true
     } else if arg == "-e" {
       i++
       if i >= len(args) {
