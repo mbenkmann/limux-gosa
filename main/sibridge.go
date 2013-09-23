@@ -289,7 +289,7 @@ func main() {
   
   // Start a "connection" for the commands provided via -e and -f (ordinary files)
   if BatchCommands.Len() > 0 {
-    connections <- NewReaderWriterConnection(&BatchCommands, os.Stdout)
+    connections <- NewReaderWriterConnection(&BatchCommands, Dup(syscall.Stdout,"BatchCommands:/dev/stdout"))
   }
   
   // Start connections for reading from special files
@@ -298,12 +298,12 @@ func main() {
     if err != nil {
       util.Log(0, "ERROR! Error opening \"%v\": %v", special, err)
     } else {
-      connections <- NewReaderWriterConnection(file, os.Stdout)
+      connections <- NewReaderWriterConnection(file, Dup(syscall.Stdout,special+":/dev/stdout"))
     }
   }
   
   // Start a "connection" to Stdin/Stdout for interactive use
-  interactive_conn := NewReaderWriterConnection(os.Stdin, os.Stdout)
+  interactive_conn := NewReaderWriterConnection(Dup(syscall.Stdin,"interactive:/dev/stdin"), Dup(syscall.Stdout,"interactive:/dev/stdout"))
   connections <- interactive_conn
   
   // If requested, accept TCP connections
@@ -1476,4 +1476,13 @@ func NewReaderWriterConnection(r io.Reader, w io.Writer) *ReaderWriterConnection
   conn := &ReaderWriterConnection{reader:r,writer:w}
   go conn.bufferFiller()
   return conn
+}
+
+func Dup(fd int, name string) *os.File {
+  newfd, err := syscall.Dup(fd)
+  if err != nil {
+    util.Log(0, "ERROR! %v", err)
+    return os.NewFile(uintptr(fd), name)
+  }
+  return os.NewFile(uintptr(newfd), name)
 }
