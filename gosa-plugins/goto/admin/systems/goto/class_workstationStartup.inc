@@ -36,6 +36,7 @@ class workstartup extends plugin
     var $FAIclass           = array();  // The currently selected classes 
     var $FAIrelease           = "";
     var $FAIdebianMirror      = array("auto");
+    var $FAIdebianMirrorSaved = array();
     var $FAIstate             = "";
     var $si_active            = FALSE;
     var $si_fai_action_failed = FALSE;
@@ -423,9 +424,10 @@ class workstartup extends plugin
             if($this->acl_is_writeable("FAIdebianMirror")) {
                 if(isset($_POST['FAIdebianMirror_auto_submitted'])) {
                     if(isset($_POST['FAIdebianMirror_auto'])) {
+                        $this->FAIdebianMirrorSaved = $this->FAIdebianMirror;
                         $this->FAIdebianMirror = array('auto');
                     } elseif ($this->FAIdebianMirror === array('auto')) {
-                        $this->FAIdebianMirror = array();
+                        $this->FAIdebianMirror = $this->FAIdebianMirrorSaved;
                     }
                 }
                 
