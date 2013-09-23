@@ -145,7 +145,7 @@ class faiDiskEntry extends plugin
     $this->diskList->setWidth("100%");
     $this->diskList->setHeight("400px");
     $this->diskList->setColspecs(array('200px','*'));
-    $this->diskList->setHeader(array("Name",_("Description"),_("Type"),_("Filesystem type"),_("Mount point"),_("Mount options"),_("Options")));
+    $this->diskList->setHeader(array("Name",_("Description"),_("Type"),_("Filesystem type"),_("Mount point"),_("Mount options"),_("Options"),_("Size in MB")));
     $this->diskList->setDefaultSortColumn(1);
     $this->diskList->setAcl('rwcdm'); // All ACLs, we filter on our own here.
   }
