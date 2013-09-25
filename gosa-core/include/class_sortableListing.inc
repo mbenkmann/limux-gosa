@@ -644,19 +644,19 @@ class sortableListing {
         $comparatorFunction = function($a, $b) use ($columnsSortPriority, $reverseSort) {
             foreach ($columnsSortPriority as $column) {
                 if ($reverseSort) {
-                    $comparisonResult = strcasecmp($a[$column], $b[$column]);
-                } else {
                     $comparisonResult = strcasecmp($b[$column], $a[$column]);
+                } else {
+                    $comparisonResult = strcasecmp($a[$column], $b[$column]);
                 }
                 if ($comparisonResult != 0) {
                     // Found a difference
                     break;
                 }
             }
-    
+
             return $comparisonResult;
         };
-        
+
         $sortableData = $this->displayData;
         uasort($sortableData, $comparatorFunction);
         $this->mapping = array_keys($sortableData);
