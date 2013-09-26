@@ -110,7 +110,7 @@ func clmsg_save_fai_log(buf *bytes.Buffer) {
     if plainname := db.SystemPlainnameForMAC(macaddress); plainname != "none" {
       linkpath := path.Join(config.FAILogPath, strings.ToLower(plainname))
       link_target, err := os.Readlink(linkpath)
-      if err != nil && !os.IsNotExist(err.(*os.LinkError).Err) {
+      if err != nil && !os.IsNotExist(err.(*os.PathError).Err) {
         util.Log(0, "ERROR! %v exists but is not a symlink: %v", linkpath, err)
         return
       }
