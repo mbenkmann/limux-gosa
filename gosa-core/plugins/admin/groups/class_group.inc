@@ -217,6 +217,9 @@ class group extends plugin
         $this->memberList->setHeader(array("X",'~',_("Surname"),_("Given name"),_("Login")));
         $this->memberList->setColspecs(array('20px','20px','*','*','*','20px'));
         $this->memberList->setDefaultSortColumn(2);
+        $primarySortColumn = 2;
+        $additionalSortColumns = array(3, 4);
+        $this->memberList->setAdditionalSortColumns($primarySortColumn, $additionalSortColumns);
 
         $this->reload(TRUE);
         
