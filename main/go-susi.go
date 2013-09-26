@@ -80,6 +80,7 @@ func main() {
   signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTTOU, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT }
   signal.Notify(signals, signals_to_watch...)
   
+  config.Init()
   config.ReadArgs(os.Args[1:])
   
   if config.PrintVersion {

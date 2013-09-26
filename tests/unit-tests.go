@@ -36,6 +36,8 @@ func UnitTests() {
   defer os.RemoveAll(confdir)
   //defer fmt.Printf("\nLog file directory: %v\n", confdir)
   config.ReadArgs([]string{"-c", conffile, "--test="+confdir })
+  config.Init()
+  defer config.Shutdown()
   config.ReadConfig()
   util.LogLevel = config.LogLevel
   config.Timeout = 5*time.Second

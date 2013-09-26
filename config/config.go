@@ -143,13 +143,6 @@ var TFTPFiles = map[string]string{}
 // Temporary directory only accessible by the user running go-susi.
 // Used e.g. for storing password files. Deleted in config.Shutdown().
 var TempDir = ""
-func init() {
-  tempdir, err := ioutil.TempDir("", "go-susi-")
-  TempDir = tempdir
-  if err != nil { panic(err) }
-  err = os.Chmod(tempdir, 0700)
-  if err != nil { panic(err) }
-}
 
 // host:port addresses of peer servers read from config file.
 var PeerServers = []string{}
@@ -277,26 +270,12 @@ var LDAPAdmin = ""
 
 // File containing the password of the admin user for writing to LDAP.
 var LDAPAdminPasswordFile string
-func init() {
-  // The assignment must be inside init() instead of (as would be nicer)
-  // as part of the var declaration, because TempDir is initialized in init().
-  LDAPAdminPasswordFile = TempDir + "/" + "ldapadminpw"
-  err := ioutil.WriteFile(LDAPAdminPasswordFile, []byte{}, 0600)
-  if err != nil { panic(err) }
-}
 
 // DN of the user for reading from LDAP. Empty string means anonymous.
 var LDAPUser = ""
 
 // File containing the password of the user for reading from LDAP.
 var LDAPUserPasswordFile string
-func init() {
-  // The assignment must be inside init() instead of (as would be nicer)
-  // as part of the var declaration, because TempDir is initialized in init().
-  LDAPUserPasswordFile = TempDir + "/" + "ldapuserpw"
-  err := ioutil.WriteFile(LDAPUserPasswordFile, []byte{}, 0600)
-  if err != nil { panic(err) }
-}
 
 // The unit tag for this server. If "", unit tags are not used.
 var UnitTag = ""
@@ -333,6 +312,24 @@ var PrintHelp = false
 
 // true if "--stats" is passed on the command line
 var PrintStats = false
+
+// Set up TempDir, LDAPAdminPasswordFile and LDAPUserPasswordFile.
+// The TempDir is deleted when Shutdown() is called.
+func Init() {
+  tempdir, err := ioutil.TempDir("", "go-susi-")
+  TempDir = tempdir
+  if err != nil { panic(err) }
+  err = os.Chmod(tempdir, 0700)
+  if err != nil { panic(err) }
+
+  LDAPAdminPasswordFile = TempDir + "/" + "ldapadminpw"
+  err = ioutil.WriteFile(LDAPAdminPasswordFile, []byte{}, 0600)
+  if err != nil { panic(err) }
+
+  LDAPUserPasswordFile = TempDir + "/" + "ldapuserpw"
+  err = ioutil.WriteFile(LDAPUserPasswordFile, []byte{}, 0600)
+  if err != nil { panic(err) }
+}
 
 // Parses args and sets config variables accordingly.
 func ReadArgs(args []string) {

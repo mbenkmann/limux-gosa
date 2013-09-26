@@ -243,6 +243,7 @@ func main() {
   
   if config.PrintVersion || config.PrintHelp { os.Exit(0) }
   
+  config.Init()
   config.ReadConfig()
   if TargetAddress == "" {
     TargetAddress = config.ServerSourceAddress
@@ -339,6 +340,7 @@ func main() {
       connectionTracker.WaitForEmpty(0)
       if !ListenForConnections { 
         util.Log(1, "INFO! Last connection closed => Terminating")
+        config.Shutdown() // delete tempdir
         util.LoggersFlush(5*time.Second)
         os.Exit(0) 
       }

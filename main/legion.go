@@ -561,6 +561,7 @@ func main() {
   
   if config.PrintVersion || config.PrintHelp { os.Exit(0) }
   
+  config.Init()
   config.ReadConfig()
   
   util.LogLevel = config.LogLevel
@@ -616,6 +617,7 @@ func main() {
       connectionTracker.WaitForEmpty(0)
       util.Log(1, "INFO! Last connection closed => Terminating")
       monitor.printAll()
+      config.Shutdown()
       util.LoggersFlush(5*time.Second)
       os.Exit(0) 
     }
