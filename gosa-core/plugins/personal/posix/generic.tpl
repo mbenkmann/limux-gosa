@@ -132,9 +132,9 @@
      <h3>{t}SSH keys{/t}</h3>
      <button type='submit' name='edit_sshpublickey'>{t}Edit public ssh keys...{/t}</button>
      {/render}
+   <hr>
    {/if}
 
-   <hr>
    {include file="$pwmode.tpl"}
   </td>
   <td class='left-border'>   &nbsp;

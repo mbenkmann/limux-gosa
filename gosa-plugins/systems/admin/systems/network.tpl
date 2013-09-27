@@ -56,10 +56,10 @@
 				</tr>
       </table>
 
-      <hr>
 
 {if $dhcpEnabled}
 
+      <hr>
       <table  summary="{t}DHCP settings{/t}">
         {if $dhcpParentNodeCnt}
         <tr>
