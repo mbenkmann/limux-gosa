@@ -756,8 +756,9 @@ class group extends plugin
         }
         
         if (isset($this->parent->by_object['environment'])) {
-          $removed_members = array_diff($this->previous_members, $this->members);
-          $removed_member_dns = array_map(function ($x) { return $x['dn']; }, array_values($removed_members));
+          $previous_member_dns = array_map(function ($x) { return $x['dn']; }, array_values($this->previous_members));
+          $member_dns = array_map(function ($x) { return $x['dn']; }, array_values($this->members));
+          $removed_member_dns = array_diff($previous_member_dns, $member_dns);
           $this->parent->by_object['environment']->handle_removed_group_member_dns($removed_member_dns);
         }
          
