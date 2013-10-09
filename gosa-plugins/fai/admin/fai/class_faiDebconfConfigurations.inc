@@ -98,6 +98,10 @@ class faiDebconfConfigurations extends plugin
       $this->ConfigurationsList->setWidth("100%");
       $this->ConfigurationsList->setColspecs(array('120px','*','100px','*', '50px'));
       $this->ConfigurationsList->setHeader(array(_("Package"), _("Variable"), _("Type"), _("Value"), ""));
+      $this->ConfigurationsList->setDefaultSortColumn(0);
+      $primarySortColumn = 0;
+      $additionalSortColumns = array(1, 2);
+      $this->ConfigurationsList->setAdditionalSortColumns($primarySortColumn, $additionalSortColumns);
 
     }
 

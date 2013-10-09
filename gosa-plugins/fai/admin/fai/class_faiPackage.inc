@@ -135,6 +135,9 @@ class faiPackage extends plugin
     $this->packageList->setColspecs(array('20px','*','*','100px','60px'));
     $this->packageList->setHeader(array(_("Status"),_("Name"),_("Description"),_("Version")));
     $this->packageList->setDefaultSortColumn(1);
+    $primarySortColumn = 1;
+    $additionalSortColumns = array(2, 3);
+    $this->packageList->setAdditionalSortColumns($primarySortColumn, $additionalSortColumns);
   }
 
   function get_configured_packages($packages, $base)
