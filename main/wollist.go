@@ -19,7 +19,7 @@ package main
 /*
 #include <stdlib.h>
 #include <pcap/pcap.h>
-#cgo LDFLAGS: -lpcap
+#cgo LDFLAGS: /usr/lib/libpcap.a
 */
 import "C"
 
