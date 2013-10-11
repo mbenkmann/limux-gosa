@@ -148,6 +148,14 @@ func here_i_am(xmlmsg *xml.Hash) {
   atomic.AddInt32(&TotalRegistrations, 1)
   if !checkTime(start, macaddress) { atomic.AddInt32(&MissedRegistrations, 1) }
   
+  // gosa-si puts incoming messages into incomingdb and then
+  // processes them in the order they are returned by the database
+  // which causes messages to be processed in the wrong order.
+  // If gosa-si-client processes a new_ldap_config message before
+  // the registered message this may cause it to hang.
+  // To counteract this we wait a little after sending "registered".
+  time.Sleep(1000*time.Millisecond)
+  
   if err != nil { // if no LDAP data available for system, create install job, do hardware detection
     if client_addr == config.ServerSourceAddress {
       util.Log(1, "INFO! %v => Normally I would create an install job and send detect_hardware, but the here_i_am is from myself, so I better not saw the branch I'm sitting on.", err)

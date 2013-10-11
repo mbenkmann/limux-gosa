@@ -713,6 +713,8 @@ func run_trigger_activate_new_tests() {
   send("[ClientPackages]", hia)
   waitlong(t0, "registered")
   
+  time.Sleep(2*time.Second) // give server time to update ipHostNumber in the LDAP entry
+  
   sysnew,err := db.SystemGetAllDataForMAC(mac, false)
   if check(err, nil) {
     check(sysnew.Text("cn"), "_fa-1e-c9-76-00-aa_")
