@@ -54,11 +54,6 @@ import (
 import _ "net/http/pprof"
 import "net/http"
 
-const USAGE = `go-susi
-
-Starts the daemon.
-`
-
 // Set to true when a signal is received that triggers go-susi shutdown.
 var Shutdown = false
 
