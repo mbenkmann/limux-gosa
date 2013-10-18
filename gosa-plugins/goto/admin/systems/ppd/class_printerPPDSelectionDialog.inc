@@ -11,8 +11,8 @@ class printerPPDSelectionDialog extends plugin
     var $header               =array();
     var $current_del_id       = "";
     var $Vendor               = "";
-    var $selectedPPD = "";
-    var $ppdFilter="";
+    var $selectedPPD          = "";
+    var $ppdFilter            = "";
 
     function printerPPDSelectionDialog (&$config, $dn= NULL,$list=false,$headers=false,$ppd=false)
     {
@@ -101,29 +101,36 @@ class printerPPDSelectionDialog extends plugin
             }
         }
 
+        $data = $lData = array();
+        $listVendor = array();
+
         //update PPD filter if searchbutton was pressed
-        if(isset($_POST["txt_ppdSearch"]) && isset($_POST["btn_ppdSearch"])){
+        if(isset($_POST["btn_ppdSearch"]) && isset($_POST["listVendor"])){
             $this->ppdFilter=set_post(get_post("txt_ppdSearch"));
-            $this->Vendor="..";
+            $this->Vendor=get_post("listVendor");
+        }
+        if(isset($_POST["btn_reset"])){
+            $this->ppdFilter="";
+            $this->Vendor="";
         }
         $smarty->assign("ppdFilter",$this->ppdFilter);
 
-        $data = $lData = array();
         if(empty($this->Vendor)){
-            
             $this->ppdList->setDeleteable(false);
             foreach($this->header as $key => $entry){
                 $data[$key] = array('TYPE' => 'VENDOR' , 'ID' => $key);
                 $lData[$key] = array('data'=>array($key));
+                $listVendor[$key]=$key;
             } 
 
+            $smarty->assign("mode","vnd");
         }else{
-            $data[] = array('TYPE' => 'VENDOR' , 'ID' => '..');
-            $lData[] = array(
-                'data'=>array(".. ["._("back")."]"),
-                'actions'=>array('delete' => false)
-            );
-
+            //$data[] = array('TYPE' => 'VENDOR' , 'ID' => '..');
+            //$lData[] = array(
+            //    'data'=>array(".. ["._("back")."]"),
+            //    'actions'=>array('delete' => false)
+            //);
+            $listVendor[$this->Vendor]=$this->Vendor;
             $this->ppdList->setDeleteable(true);
             foreach($list as $key => $ppd){
                 $name = $ppd['ppd']['name'];
@@ -135,7 +142,9 @@ class printerPPDSelectionDialog extends plugin
                     );
                 }
             }
+            $smarty->assign("mode","ppd");
         }
+        asort($listVendor);
 
         //remove the elements which do not match the filter
         if($this->ppdFilter!="") {
@@ -158,6 +167,7 @@ class printerPPDSelectionDialog extends plugin
         $this->ppdList->setListData($data,$lData);
         $this->ppdList->update();
 
+        $smarty->assign("ListVendor", $listVendor);
         $smarty->assign("List", $this->ppdList->render());
 
         $display.= $smarty->fetch(get_template_path('printerPPDSelectionDialog.tpl', TRUE,dirname(__FILE__)));

@@ -11,7 +11,7 @@
  <table summary="" width="100%">
   <tr>
    <td>{t}Model{/t}:<i>
-    {$ppdString}</i>&nbsp;
+    {t}{$ppdString}{/t}</i>&nbsp;
     {render acl=$acl}
      <button type='submit' name='SelectPPD'>{t}Select{/t}</button>
     {/render}
@@ -36,7 +36,6 @@
  {/if}
  
 {/if}
-<hr>
 <div class="plugin-actions">
  
  {if $path_valid}
