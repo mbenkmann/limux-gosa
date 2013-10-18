@@ -167,7 +167,7 @@ class ogroupManagement extends management
 				$type = $events['BY_CLASS']['DaemonEvent_notify'];
 				$this->dialogObject = new $type['CLASS_NAME']($this->config);
 				$this->dialogObject->add_targets($targets);
-				$this->dialogObject->set_type(TRIGGERED_EVENT);
+                $this->dialogObject->set_type(SCHEDULED_EVENT);
 			}
 
         }
@@ -214,14 +214,14 @@ class ogroupManagement extends management
     
     protected function _getTabFooter()
     {
-        if (!$this->dialogObject) {
+        if ($this->dialogObject instanceof MemberInheritanceDialog) {
+            $str = "<p style=\"text-align:right\">\n";
+            $str.= "<button type=\"submit\" name=\"edit_finish\">".msgPool::okButton()."</button>\n";
+            $str.= "&nbsp;\n";
+            return $str;
+        } else {
             return parent::_getTabFooter();
         }
-        
-        $str = "<p style=\"text-align:right\">\n";
-        $str.= "<button type=\"submit\" name=\"edit_finish\">".msgPool::okButton()."</button>\n";
-        $str.= "&nbsp;\n";
-        return $str;
     }
     
     private function memberInheritanceDialogAnswered()
