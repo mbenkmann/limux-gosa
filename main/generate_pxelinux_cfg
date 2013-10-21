@@ -57,7 +57,7 @@ test -z "$kern_appd" && kern_appd="vga=788 dazuko=0 nomodeset watchdog=softdog,n
 
 case "$state" in
   install*) echo "kernel $kernel
-append  initrd=$initrd nfsroot=${nfs_root},${nfs_opts} FAI_ACTION=install FAI_FLAGS=${fai_flags} ip=dhcp devfs=nomount root=/dev/nfs ${kern_appd}
+append  initrd=$initrd nfsroot=${nfs_root},${nfs_opts} FAI_ACTION=install FAI_FLAGS=${fai_flags} ip=dhcp devfs=nomount root=/dev/nfs ${kern_appd} $gotokernelparameters
 ipappend 2
 "
   ;;
@@ -65,7 +65,7 @@ ipappend 2
   error*) kernel="vmlinuz-install"    # make sure we load a kernel that can display the error
           initrd="initrd.img-install"
           echo "kernel $kernel
-append  initrd=$initrd nfsroot=${nfs_root},${nfs_opts} FAI_ACTION=sysinfo FAI_FLAGS=${fai_flags} FAI_ERROR=$(echo "$error" | base64 --wrap=0) ip=dhcp devfs=nomount root=/dev/nfs ${kern_appd}
+append  initrd=$initrd nfsroot=${nfs_root},${nfs_opts} FAI_ACTION=sysinfo FAI_FLAGS=${fai_flags} FAI_ERROR=$(echo "$error" | base64 --wrap=0) ip=dhcp devfs=nomount root=/dev/nfs ${kern_appd} $gotokernelparameters
 ipappend 2
 "
   ;;
