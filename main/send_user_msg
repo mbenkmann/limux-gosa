@@ -120,7 +120,7 @@ done
   
 for user in $users ; do
   who | grep -q "^$user " || continue
-  tempfile="$temp.$user"
+  tempfile="$temp/$user"
   echo >$tempfile "source:$source
 target:$target
 usr:$user
