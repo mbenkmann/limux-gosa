@@ -74,7 +74,15 @@ class debconf
       /* Fill description */
       if (!$got_local_description && $in_description){
         $description= preg_replace("/^ (.*)$/", "\\1", $line);
-        $this->template[$post_name]['Description'].= $description;
+        if ($this->template[$post_name]['Description'] != "") {
+          $this->template[$post_name]['Description'].= " ";
+        }
+        if ($description == ".") {
+          $description = "<br/>";
+        } else {
+          $description = htmlspecialchars($description, ENT_QUOTES, 'UTF-8');
+        }
+        $this->template[$post_name]['Description'].= "$description";
         continue;
       }
 
@@ -91,7 +99,15 @@ class debconf
       /* Fill local description */
       if ($got_local_description && $in_description){
         $description= preg_replace("/^ (.*)$/", "\\1", $line);
-        $this->template[$post_name]['Description'].= $description;
+        if ($this->template[$post_name]['Description'] != "") {
+          $this->template[$post_name]['Description'].= " ";
+        }
+        if ($description == ".") {
+          $description = "<br/>";
+        } else {
+          $description = htmlspecialchars($description, ENT_QUOTES, 'UTF-8');
+        }
+        $this->template[$post_name]['Description'].= "$description";
         continue;
       }
 
