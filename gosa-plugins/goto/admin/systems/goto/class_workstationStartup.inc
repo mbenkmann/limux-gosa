@@ -424,8 +424,10 @@ class workstartup extends plugin
             if($this->acl_is_writeable("FAIdebianMirror")) {
                 if(isset($_POST['FAIdebianMirror_auto_submitted'])) {
                     if(isset($_POST['FAIdebianMirror_auto'])) {
-                        $this->FAIdebianMirrorSaved = $this->FAIdebianMirror;
-                        $this->FAIdebianMirror = array('auto');
+                        if ($this->FAIdebianMirror !== array('auto')) {
+                            $this->FAIdebianMirrorSaved = $this->FAIdebianMirror;
+                            $this->FAIdebianMirror = array('auto');
+                        }
                     } elseif ($this->FAIdebianMirror === array('auto')) {
                         $this->FAIdebianMirror = $this->FAIdebianMirrorSaved;
                     }
