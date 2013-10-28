@@ -72,6 +72,7 @@
       <type>entry</type>
       <image>plugins/goto/images/select_device.png[new]</image>
       <label>Device</label>
+      <acl>devices/deviceGeneric[c]</acl>
      </action>
     </action>
 

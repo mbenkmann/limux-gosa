@@ -241,7 +241,7 @@
       <type>entry</type>
       <image>images/lists/edit.png</image>
       <label>Device</label>
-      <acl>devices/deviceGeneric[c]</acl> 
+      <acl>terminal/termgeneric[c]</acl> 
       <depends>Device</depends>
      </action>
 
