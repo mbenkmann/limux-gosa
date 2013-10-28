@@ -481,7 +481,7 @@ class sortableListing {
             }
         }
 
-        if(isset($_POST["massdelete_active"]) && $_POST["massdelete_active"]!="") {
+        if(isset($_POST["massdelete_active"]) && isset($_POST["massdelete"]) && $_POST["massdelete_active"]!="") {
             $t= get_post("massdelete");
             $targets= array();
             foreach ($t as $id) {
