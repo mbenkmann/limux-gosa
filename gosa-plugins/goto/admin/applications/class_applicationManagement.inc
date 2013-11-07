@@ -131,13 +131,16 @@ class applicationManagement extends management
    */
   function editEntry($action="",$target=array(),$all=array(), $altTabClass ="", $altTabType = "", $altAclCategory="")
   {
-    management::editEntry($action,$target,$all,$altTabClass,$altTabType,$altAclCategory);
+    $parentReturnValue = management::editEntry($action,$target,$all,$altTabClass,$altTabType,$altAclCategory);
+    
     if($this->tabObject){
       if(isset($this->tabObject->by_object['application']->attrs['FAIstate'][0])){
         $state = $this->tabObject->by_object['application']->attrs['FAIstate'][0];
         $this->tabObject->setReadOnly(preg_match("/freeze/i", $state));
       }
     }
+    
+    return $parentReturnValue;
   }
 
 
