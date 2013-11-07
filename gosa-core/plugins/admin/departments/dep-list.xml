@@ -96,6 +96,7 @@
      <type>sub</type>
      <image>images/lists/folder.png[new]</image>
      <label>Create</label>
+     <acl>department[c]</acl>
 
      <action>
       <name>new_domain</name>
@@ -158,6 +159,7 @@
       <type>entry</type>
       <image>images/lists/trash.png</image>
       <label>Remove</label>
+      <acl>department[d]</acl>
     </action>
 
   </actionmenu>
