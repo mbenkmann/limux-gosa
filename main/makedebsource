@@ -144,6 +144,7 @@ build:
 	go build main/go-susi.go
 	go build main/sibridge.go
 	go build main/encrypt.go
+	go build main/decrypt.go
 	# DO NOT STRIP BINARIES! THIS BREAKS THEM WITH GO 1.1 (AT LEAST ON ARM)
 	chmod a+rx main/gosa-si-server main/generate_* main/send_* main/update_config_files
 	mkdir -p dist/etc/gosa-si dist/etc/logrotate.d dist/usr/lib/go-susi/ dist/usr/sbin
@@ -163,6 +164,7 @@ build:
 	cp main/fai_progress main/fai_savelog dist/usr/lib/go-susi/
 	cp go-susi dist/usr/lib/go-susi/gosa-si-server
 	cp encrypt dist/usr/lib/go-susi/encrypt
+	cp decrypt dist/usr/lib/go-susi/decrypt
 	cp main/gosa-si-server dist/usr/sbin
 	cp main/gosa-si.init dist/etc/init.d/gosa-si
 	echo DEBUG=-vvv >dist/etc/default/gosa-si
