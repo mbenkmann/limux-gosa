@@ -86,8 +86,7 @@ class appgroup extends plugin
              */  
             $ldap = $this->config->get_ldap_link();
             $ldap->cd($this->config->current['BASE']);
-            $ou = get_ou("application", "applicationRDN");
-            $ldap->search(substr($ou,0,-1),array("dn"));
+            $ldap->search(get_ou("application", "applicationRDN"),array("dn"));
             $app_deps = array();
             while($attrs = $ldap->fetch()){
                 $app_deps[] = $attrs['dn'];
