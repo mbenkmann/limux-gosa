@@ -3373,8 +3373,11 @@ msgstr "Kann keine RIDBASE für '%s' finden!"
 
 #: plugins/admin/groups/class_group.inc:876
 #, php-format
-msgid "The gidNumber '%s' is already in use by %s!"
-msgstr "Die Gruppen ID-Nummer '%s' wird bereits von %s verwendet!"
+msgid "The gidNumber '%s' is already in use by other groups in the same department: %s"
+msgstr "Die Gruppen ID-Nummer '%s' wird bereits von anderen Gruppen in der selben Abteilung verwendet: %s"
+
+msgid "The gidNumber '%s' is already in use by groups in other departments: %s"
+msgstr "Die Gruppen ID-Nummer '%s' wird bereits von Gruppen in anderen Abteilungen verwendet: %s"
 
 #: plugins/admin/groups/class_group.inc:981
 msgid ""

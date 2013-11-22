@@ -877,21 +877,6 @@ class group extends plugin
             $ldap->create_missing_trees(preg_replace('/^[^,]+,/', '', $this->dn));
         }
 
-        /* Check generated gidNumber, it may be used by another group. 
-         */
-        if($this->gidNumber != ""){
-            $ldap->cd($this->config->current['BASE']);
-            $ldap->search("(&(!(cn=".$this->cn."))(objectClass=posixGroup)(gidNumber=".$this->gidNumber."))",array("cn"));
-            if($ldap->count()){
-                $cns = "";
-                while($attrs = $ldap->fetch()){
-                    $cns .= $attrs['cn'][0].", ";
-                }
-                $cns = rtrim($cns,", ");
-                msg_dialog::display(_("Warning"),sprintf(_("The gidNumber '%s' is already in use by %s!"),$this->gidNumber,$cns) , WARNING_DIALOG );
-            }
-        }
-
         /* Write back to ldap */
         $ldap->cd($this->dn);
         $this->cleanup();
@@ -926,6 +911,18 @@ class group extends plugin
         $this->handle_post_events($mode);
 
         return ($ret);
+    }
+    
+    protected function getGIDConflictingGroups()
+    {
+        $ldap = $this->config->get_ldap_link();
+        $ldap->cd($this->config->current['BASE']);
+        $ldap->search("(&(!(cn=".$this->cn."))(objectClass=posixGroup)(gidNumber=".$this->gidNumber."))",array("dn", "cn"));
+        $groups = array();
+        while($attrs = $ldap->fetch()){
+            $groups[] = $attrs;
+        }
+        return $groups;
     }
 
     function check()
@@ -1013,6 +1010,40 @@ class group extends plugin
 
             }
         }
+        
+
+        /* Check generated gidNumber, it may be used by another group. 
+         */
+        if($this->gidNumber != ""){
+            $conflictingGroups = $this->getGIDConflictingGroups();
+            $conflictingGroupsInSameDepartment = array();
+            $conflictingGroupsInOtherDepartments = array();
+            $sameDepartmentGroupsOU = get_groups_ou() . $this->base;
+            
+            foreach ($conflictingGroups as $group) {
+                if (preg_match('/' . preg_quote($sameDepartmentGroupsOU) . '$/', $group['dn'])) {
+                    $conflictingGroupsInSameDepartment[] = $group;
+                } else {
+                    $conflictingGroupsInOtherDepartments[] = $group;
+                }
+            }
+            
+            if(!empty($conflictingGroupsInSameDepartment)) {
+                $extractCN = function ($group) { return $group['cn'][0]; };
+                $cns = array_map($extractCN, $conflictingGroupsInSameDepartment);
+                $warningMessage = sprintf(_("The gidNumber '%s' is already in use by other groups in the same department: %s"), $this->gidNumber, implode(', ', $cns));
+                msg_dialog::display(_("Warning"), $warningMessage, WARNING_DIALOG);
+            }
+            if(!empty($conflictingGroupsInOtherDepartments)) {
+                $extractDN = function ($group) { return $group['dn']; };
+                $dns = array_map($extractDN, $conflictingGroupsInOtherDepartments);
+                $groupList = '<ul><li>' . implode('</li><li>', $dns) . '</li></ul>';
+                $warningMessage = sprintf(_("The gidNumber '%s' is already in use by groups in other departments: %s"), $this->gidNumber, $groupList);
+                msg_dialog::display(_("Warning"), $warningMessage, WARNING_DIALOG);
+            }
+            
+        }
+        
 
         /* Check if we are allowed to create or move this object 
          */
