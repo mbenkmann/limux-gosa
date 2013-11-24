@@ -25,7 +25,6 @@ import (
          "fmt"
          "net"
          "time"
-         "bytes"
          "regexp"
          "strings"
          "crypto/md5"
@@ -162,45 +161,53 @@ func SendLn(conn net.Conn, s string, timeout time.Duration) error {
 }
 
 // Reads from the connection until \n is seen (or timeout or error) and
-// returns the first line with trailing \n and \r removed.
-// If timeout > 0, then the connection will be terminated after at most this duration.
-func ReadLn(conn net.Conn, timeout time.Duration) string {
-  var buf = make([]byte, 65536)
-  i := 0
-  n := 1
-
+// returns the read data without any trailing \n or \r.
+//
+// If timeout > 0, then reading will stop after at most this duration and
+// the function will return with an error. If timeout <= 0 there will be
+// no timeout (any pre-existing read deadline will be cleared).
+//
+// If an error (or timeout) occurs before \n is seen, the data read up to
+// the error is returned (without any trailing \r).
+//
+// You should probably give special treatment to the case of an io.EOF error
+// being returned. This happens when the last line of the connection is not
+// terminated by \n. It often makes sense to not treat this as an error.
+//
+// NOTE: This function reads individual bytes which means that data following
+// the line read is still available for reading (in particular you can read
+// subsequent lines by calling ReadLn() again). The drawback, however, is
+// lower throughput compared to reading in chunks.
+func ReadLn(conn net.Conn, timeout time.Duration) (string, error) {
   var deadline time.Time // zero value means "no deadline"
   if timeout > 0 { deadline = time.Now().Add(timeout) }
   conn.SetReadDeadline(deadline)  
   
+  var buf = make([]byte, 128)
+  var i int
+  var n int
   var err error
-  for n != 0 {
-    n, err = conn.Read(buf[i:])
-    if err != nil && err != io.EOF {
-      Log(0, "ERROR! Read: %v", err)
-    }
-    if err == io.EOF && i != 0 {
-      Log(0, "ERROR! Incomplete message (i.e. not terminated by \"\\n\") of %v bytes", i)
-    }
-
-    i += n
-    
+  
+  for err == nil {
     if i == len(buf) {
-      buf_new := make([]byte, len(buf)+65536)
+      buf_new := make([]byte, len(buf)<<1)
       copy(buf_new, buf)
       buf = buf_new
     }
+    
+    n, err = conn.Read(buf[i:i+1]) // read one byte
+    
+    i += n
 
-    // Find complete line terminated by '\n' and return it
-    eol := bytes.IndexByte(buf[0:i], '\n')
-      
-    if eol >= 0 {
-      for ; eol >= 0 && (buf[eol] == '\n' || buf[eol] == '\r') ; { eol-- }
-      return string(buf[0:eol+1])
+    // Did we read \n ?
+    if i > 0 && buf[i-1] == '\n' {
+      for ; i > 0 && (buf[i-1] == '\n' || buf[i-1] == '\r') ; { i-- }
+      return string(buf[0:i]), nil
     }
   }
   
-  return ""
+  for ; i > 0 && buf[i-1] == '\r' ; { i-- }
+  return string(buf[0:i]), err
 }
 
 // Sends a UDP wake-on-lan packet coded for the given macaddress to the

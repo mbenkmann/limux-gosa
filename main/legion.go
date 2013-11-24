@@ -2056,8 +2056,11 @@ func gosa(typ string, x *xml.Hash) *xml.Hash {
   }
   defer conn.Close()
   util.SendLn(conn, message.GosaEncrypt(x.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
-  reply := message.GosaDecrypt(util.ReadLn(conn, config.Timeout), config.ModuleKey["[GOsaPackages]"])
-  x, err = xml.StringToHash(reply)
+  reply, err := util.ReadLn(conn, config.Timeout)
+  if err == nil || err == io.EOF {
+    reply = message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
+    x, err = xml.StringToHash(reply)
+  }
   if err != nil { x = xml.NewHash("error") }
   return x
 }

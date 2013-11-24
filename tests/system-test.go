@@ -293,8 +293,11 @@ func SystemTest(daemon string, is_gosasi bool) {
   check(err, nil)
   encrypted_msg := message.GosaEncrypt("<xml><header>gosa_query_jobdb</header><where></where><source>GOSA</source><target>GOSA</target></xml>", config.ModuleKey["[GOsaPackages]"])
   util.SendLn(conn, encrypted_msg + ";"+listen_address , config.Timeout)
-  reply := message.GosaDecrypt(util.ReadLn(conn, config.Timeout), config.ModuleKey["[GOsaPackages]"])
-  x, err = xml.StringToHash(reply)
+  reply, err := util.ReadLn(conn, config.Timeout)
+  if err == nil {
+    reply = message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
+    x, err = xml.StringToHash(reply)
+  }
   if err != nil { x = xml.NewHash("error") }
   if conn != nil { conn.Close() }
   check(checkTags(x, "header,source,target,answer1,answer2,session_id?"),"")
@@ -306,7 +309,8 @@ func SystemTest(daemon string, is_gosasi bool) {
     encrypted_msg := "<xml><header>gosa_query_jobdb</header><where></where><source>GOSA</source><target>GOSA</target></xml>"
     if repcount == 1 { encrypted_msg = message.GosaEncrypt(encrypted_msg, "dummy-key") }
     util.SendLn(conn, encrypted_msg, config.Timeout)
-    reply := message.GosaDecrypt(util.ReadLn(conn, config.Timeout), "dummy-key")
+    reply, err := util.ReadLn(conn, config.Timeout)
+    reply = message.GosaDecrypt(reply, "dummy-key")
     check(strings.Contains(reply,"<error_string>"), true)
     if conn != nil { conn.Close() }
   }
@@ -383,7 +387,8 @@ func run_gosa_ping_tests() {
     reply = err.Error()
   } else {
     util.SendLn(conn, message.GosaEncrypt("<xml><header>gosa_ping</header><source>GOSA</source><target>"+mac+"</target></xml>", config.ModuleKey["[GOsaPackages]"]), config.Timeout)
-    reply = message.GosaDecrypt(util.ReadLn(conn, config.Timeout), config.ModuleKey["[GOsaPackages]"])
+    reply, _ = util.ReadLn(conn, config.Timeout)
+    reply = message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
     if reply != "" { reply = "" } else { reply = "error" }
     conn.Close()
   }
@@ -395,7 +400,8 @@ func run_gosa_ping_tests() {
     reply = err.Error()
   } else {
     util.SendLn(conn, message.GosaEncrypt("<xml><header>gosa_ping</header><source>GOSA</source><target>0f:C3:d2:Aa:11:22</target></xml>", config.ModuleKey["[GOsaPackages]"]), config.Timeout)
-    reply = message.GosaDecrypt(util.ReadLn(conn, config.Timeout), config.ModuleKey["[GOsaPackages]"])
+    reply,_ = util.ReadLn(conn, config.Timeout)
+    reply = message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
     conn.Close()
   }
   
@@ -1594,8 +1600,12 @@ func run_here_i_am_tests() {
   check(err,nil)
   defer conn.Close()
   util.SendLn(conn, message.GosaEncrypt("<xml><header>gosa_query_jobdb</header></xml>", keys[len(keys)-1]), config.Timeout)
-  reply := message.GosaDecrypt(util.ReadLn(conn, config.Timeout), keys[len(keys)-1])
-  x, err := xml.StringToHash(reply)
+  reply, err := util.ReadLn(conn, config.Timeout)
+  var x *xml.Hash
+  if err == nil {
+    reply = message.GosaDecrypt(reply, keys[len(keys)-1])
+    x, err = xml.StringToHash(reply)
+  }
   if check(err, nil) {
     // This test fails on gosa-si because it AFAIK it can't understand
     // GOsa messages encrypted with client keys.
@@ -2285,8 +2295,12 @@ func check_multiple_requests_over_one_connection() {
   for i :=0 ; i < 3; i++ {
     util.SendLn(conn, "\n\n\r\r\r\n\r\r\n", config.Timeout) // test that empty lines don't hurt
     util.SendLn(conn, message.GosaEncrypt(get_all_jobs.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
-    reply := message.GosaDecrypt(util.ReadLn(conn, config.Timeout), config.ModuleKey["[GOsaPackages]"])
-    x, err := xml.StringToHash(reply)
+    var x *xml.Hash
+    reply, err := util.ReadLn(conn, config.Timeout)
+    if err == nil {
+      reply = message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
+      x, err = xml.StringToHash(reply)
+    }
     check(err, nil)
     check(checkTags(x,"header,source,target,session_id?,answer1,answer2"), "")
   }
@@ -2304,8 +2318,11 @@ func check_connection_drop_on_error1() {
   defer conn.Close()
   
   util.SendLn(conn, message.GosaEncrypt(x.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
-  reply := message.GosaDecrypt(util.ReadLn(conn, config.Timeout), config.ModuleKey["[GOsaPackages]"])
-  x, err = xml.StringToHash(reply)
+  reply, err := util.ReadLn(conn, config.Timeout)
+  if err == nil {
+    reply = message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
+    x, err = xml.StringToHash(reply)
+  }
   check(err, nil)
   
   check(len(x.Text("error_string")) > 0, true)
@@ -2332,7 +2349,7 @@ func check_connection_drop_on_error2() {
   defer conn.Close()
   
   util.SendLn(conn, message.GosaEncrypt(x.String(), "wuseldusel"), config.Timeout)
-  reply := util.ReadLn(conn, config.Timeout)
+  reply,_ := util.ReadLn(conn, config.Timeout)
   x, err = xml.StringToHash(reply)
   check(err, nil)
   

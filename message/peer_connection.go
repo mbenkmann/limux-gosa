@@ -20,6 +20,7 @@ MA  02110-1301, USA.
 package message
 
 import (
+         "io"
          "fmt"
          "net"
          "sync"
@@ -167,7 +168,11 @@ func (conn *PeerConnection) Ask(request, key string) <-chan string {
       err = util.SendLn(tcpconn, GosaEncrypt(request, key), config.Timeout)
       // make sure handleConnection()/monitorConnection() notice that the peer is unreachable
       if err != nil && conn.tcpConn != nil { conn.tcpConn.Close() }
-      reply := GosaDecrypt(util.ReadLn(tcpconn, config.Timeout), key)
+      reply, err := util.ReadLn(tcpconn, config.Timeout)
+      if err != nil && err != io.EOF {
+        util.Log(0, "ERROR! ReadLn(): ", err)
+      }
+      reply = GosaDecrypt(reply, key)
       if reply == "" { 
         reply = ErrorReply("Communication error in Ask()") 
         // make sure handleConnection()/monitorConnection() notice that the peer is unreachable

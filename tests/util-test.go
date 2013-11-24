@@ -304,35 +304,63 @@ func Util_test() {
   time.Sleep(200*time.Millisecond) // make sure log message is written out
   check(buffy.String(), "")
   
+  // Test that ReadLn() times out properly
   go func() {
     _, err := net.Dial("tcp", "127.0.0.1:39390")
     if err != nil { panic(err) }
   }()
   conn, err := listener.Accept()
   if err != nil { panic(err) }
-  buffy.Reset()
   t0 = time.Now()
-  util.ReadLn(conn, 5 * time.Second)
+  st, err := util.ReadLn(conn, 5 * time.Second)
   duration = time.Since(t0)
   check(duration > 4 * time.Second && duration < 6 * time.Second, true)
-  time.Sleep(200*time.Millisecond) // make sure log message is written out
-  check(strings.Contains(buffy.String(), "ERROR"), true)
+  check(st,"")
+  check(hasWords(err,"timeout"), "")
+  
+  // Test that ReadLn() returns io.EOF if last line not terminated by \n
+  go func() {
+    conn, err := net.Dial("tcp", "127.0.0.1:39390")
+    if err != nil { panic(err) }
+    conn.Write([]byte("foo\r"))
+    conn.Close()
+  }()
+  conn, err = listener.Accept()
+  if err != nil { panic(err) }
+  st, err = util.ReadLn(conn, 5 * time.Second)
+  check(err, io.EOF)
+  check(st,"foo")
   
   go func() {
     conn, err := net.Dial("tcp", "127.0.0.1:39390")
     if err != nil { panic(err) }
-    conn.Write([]byte{1,2,3,4})
+    conn.Write([]byte("\r\r\n\rfo\ro\nbar\r\nfoxtrott"))
+    conn.Close()
   }()
   conn, err = listener.Accept()
   if err != nil { panic(err) }
-  buffy.Reset()
-  t0 = time.Now()
-  util.ReadLn(conn, 5 * time.Second)
-  duration = time.Since(t0)
-  check(duration > 4 * time.Second && duration < 6 * time.Second, true)
-  time.Sleep(200*time.Millisecond) // make sure log message is written out
-  check(strings.Contains(buffy.String(), "ERROR"), true)
+  // Test proper trimming of multiple \r
+  st, err = util.ReadLn(conn,0)
+  check(err,nil)
+  check(st,"")
+  // Test that the empty first line has actually been read 
+  // and that the next ReadLn() reads the 2nd line
+  // Also test that negative timeouts work the same as timeout==0
+  // Also test that \r is not trimmed at start and within line.
+  st, err = util.ReadLn(conn, -1*time.Second)
+  check(err,nil)
+  check(st,"\rfo\ro") 
+  // Check 3rd line
+  st, err = util.ReadLn(conn,0)
+  check(err,nil)
+  check(st,"bar") 
+  // Check 4th line and io.EOF error
+  st, err = util.ReadLn(conn,0)
+  check(err,io.EOF)
+  check(st,"foxtrott") 
   
+  
+  // Test that delayed reads work with timeout==0
   go func() {
     conn, err := net.Dial("tcp", "127.0.0.1:39390")
     if err != nil { panic(err) }
@@ -343,13 +371,12 @@ func Util_test() {
   }()
   conn, err = listener.Accept()
   if err != nil { panic(err) }
-  buffy.Reset()
   t0 = time.Now()
-  st := util.ReadLn(conn, time.Duration(0))
+  st,err = util.ReadLn(conn, time.Duration(0))
   duration = time.Since(t0)
   check(duration < 2 * time.Second, true)
   check(duration > 800 * time.Millisecond, true)
-  check(buffy.String(), "")
+  check(err, nil)
   check(st, "foo")
   
   counter := util.Counter(13)

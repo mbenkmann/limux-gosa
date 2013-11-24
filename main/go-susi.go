@@ -382,7 +382,7 @@ func printStats() int {
     fmt.Fprintf(os.Stderr, "Error sending to %v: %v\n", config.ServerSourceAddress, err)
     return 1
   }
-  reply := util.ReadLn(conn, 10*time.Second)
+  reply,_ := util.ReadLn(conn, 10*time.Second)
   decrypted := message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
   x,_ := xml.StringToHash(decrypted)
   x = x.First("answer1")
