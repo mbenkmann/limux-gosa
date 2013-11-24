@@ -192,7 +192,7 @@ func here_i_am(xmlmsg *xml.Hash) {
     client_ip := client_addr[0]
     client_port := ""
     if len(client_addr) > 1 { client_port = client_addr[1] }
-    client_name := db.SystemNameForIPAddress(client_ip)
+    client_name := strings.ToLower(db.SystemNameForIPAddress(client_ip))
     new_name := strings.SplitN(client_name,".",2)[0]
     if config.FullQualifiedCN { new_name = client_name }
     uses_standard_port := false
@@ -205,7 +205,7 @@ func here_i_am(xmlmsg *xml.Hash) {
     
     update_name := false
     update_ip := false
-    cn := system.Text("cn")
+    cn := strings.ToLower(system.Text("cn"))
     if client_name != "none" && cn != client_name && cn != strings.SplitN(client_name,".",2)[0] {
       if !uses_standard_port {
         util.Log(1, "INFO! Client cn (%v) does not match DNS name (%v) but client runs on non-standard port (%v) => Assuming test and will not update cn", cn, new_name, client_port)
