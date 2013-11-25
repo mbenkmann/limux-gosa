@@ -62,7 +62,7 @@ var ActiveConnections int32 = 0
 
 // Whenever a request has been handled, the time it took to process it
 // (a time.Duration) is Push()ed into this Deque at the top and the Next() element
-// is taken from the Deque at the bottom. The difference is then added atomically 
+// is taken from the Deque at the bottom. The difference is then added atomically
 // to message.RequestProcessingTime, so that message.RequestProcessingTime always
 // corresponds to the sum of the durations in RequestProcessingTimes.
 var RequestProcessingTimes deque.Deque
