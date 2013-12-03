@@ -32,7 +32,7 @@ import "runtime"
 import "errors"
 
 const mAX_GROW_SIZE = 1024*1024
-const maxInt = int(^uint(0) >> 1) 
+const size2GB = int(^uint32(0) >> 1) 
 
 // ErrTooLarge is passed to panic if memory cannot be allocated to store data in a buffer.
 var ErrTooLarge = errors.New("bytes.Buffer: too large")
@@ -85,7 +85,7 @@ func (b *Buffer) Grow(n int) int {
 func (b* Buffer) Write0(n int) {
   if n <= 0 { return }
   b.Grow(n);
-  data := ((*[maxInt]byte)(b.ptr))[b.sz:b.capa]
+  data := ((*[size2GB]byte)(b.ptr))[b.sz:b.capa]
   for i := 0; i < n; i++ { data[i] = 0 }
   b.sz += n
 }
@@ -95,7 +95,7 @@ func (b* Buffer) Write0(n int) {
 // WriteByte. If the buffer becomes too large, WriteByte will panic with ErrTooLarge.
 func (b *Buffer) WriteByte(c byte) error {
   b.Grow(1)
-  ((*[maxInt]byte)(b.ptr))[b.sz] = c
+  ((*[size2GB]byte)(b.ptr))[b.sz] = c
   b.sz++
   return nil
 }
@@ -106,7 +106,7 @@ func (b *Buffer) WriteByte(c byte) error {
 func (b *Buffer) Write(p []byte) (n int, err error) {
   if len(p) == 0 { return 0, nil }
   b.Grow(len(p))
-  b.sz += copy(((*[maxInt]byte)(b.ptr))[b.sz:b.capa], p)
+  b.sz += copy(((*[size2GB]byte)(b.ptr))[b.sz:b.capa], p)
   return len(p),nil
 }
 
@@ -116,7 +116,7 @@ func (b *Buffer) Write(p []byte) (n int, err error) {
 func (b *Buffer) WriteString(s string) (n int, err error) {
   if len(s) == 0 { return 0, nil }
   b.Grow(len(s))
-  b.sz += copy(((*[maxInt]byte)(b.ptr))[b.sz:b.capa], s)
+  b.sz += copy(((*[size2GB]byte)(b.ptr))[b.sz:b.capa], s)
   return len(s),nil
 }
 
@@ -134,14 +134,14 @@ func (b *Buffer) String() string {
 // buffer is empty. The function never returns nil.
 func (b *Buffer) Bytes() []byte {
   if b.ptr == nil { return []byte{} }
-  return ((*[maxInt]byte)(b.ptr))[0:b.sz]
+  return ((*[size2GB]byte)(b.ptr))[0:b.sz]
 }
 
 // Return true if the buffer contains the string s. Returns true if s == "".
 func (b *Buffer) Contains(s string) bool {
   if s == "" { return true }
   if b.sz == 0 { return false }
-  data := ((*[maxInt]byte)(b.ptr))[0:b.sz]
+  data := ((*[size2GB]byte)(b.ptr))[0:b.sz]
   for i := 0; i <= b.sz - len(s); i++ {
     if data[i] == s[0] {
       k := 0
@@ -157,7 +157,7 @@ func (b *Buffer) Contains(s string) bool {
 // removes all characters <= ' ' from both ends of the buffer.
 func (b *Buffer) TrimSpace() {
   if b.ptr == nil { return }
-  data := ((*[maxInt]byte)(b.ptr))[0:b.sz]
+  data := ((*[size2GB]byte)(b.ptr))[0:b.sz]
   i := 0
   for ; i < len(data); i++ { if data[i] > ' ' { break } }
   switch i {
@@ -193,7 +193,7 @@ func (b *Buffer) Trim(start, end int) {
   b.sz = end
   
   if start > 0 {
-    data := ((*[maxInt]byte)(b.ptr))[0:b.sz]
+    data := ((*[size2GB]byte)(b.ptr))[0:b.sz]
     b.sz = copy(data, data[start:])
   }
 }
@@ -207,7 +207,7 @@ func (b *Buffer) Split(sep string) []string {
   if b.sz == 0 { return []string{} }
   
   result := make([]string,0,2)
-  buf := ((*[maxInt]byte)(b.ptr))[0:b.sz]
+  buf := ((*[size2GB]byte)(b.ptr))[0:b.sz]
   last_idx := 0
   idx := 0
   ch := sep[0]
