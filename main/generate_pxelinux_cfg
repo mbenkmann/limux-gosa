@@ -52,6 +52,26 @@ test -z "$nfs_opts" && nfs_opts="nfs4,union"
 nfs_root=$(echo "$conf" | sed -n -r 's/^nfs_root=(.*)/\1/p' | tail -n 1)
 test -z "$nfs_root" && nfs_root="/nfsroot"
 
+# For a release called "foo/bar/bla", test if there are NFS exports
+# * ${nfs_root}-foo-bar-bla
+# * ${nfs_root}-foo-bar
+# * ${nfs_root}-foo
+# The first one found in /etc/exports is used as nfs_root.
+# If none is found, nfs_root stays at its default value.
+release=$(echo "$faiclass" | sed 's/^.*://;s/\//-/g')
+while test -n "$release"; do
+  grep -q "^[^#]*${nfs_root}-$release\\b" /etc/exports && {
+    nfs_root="${nfs_root}-$release"
+    test "$kernel" = "vmlinuz-install" && {
+      kernel="$kernel-$release"
+      initrd="initrd.img-${kernel#vmlinuz-}"
+    }
+    break
+  }
+  test "$release" = "${release%-*}" && break
+  release="${release%-*}"
+done
+
 kern_appd=$(echo "$conf" | sed -n -r 's/^kern_appd=(.*)/\1/p' | tail -n 1)
 test -z "$kern_appd" && kern_appd=""
 
