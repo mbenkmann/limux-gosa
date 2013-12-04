@@ -44,7 +44,7 @@ test $? != 0 -a "$state" != error -a "$state" != localboot && {
 }
   
 fai_flags=$(echo "$conf" | sed -n -r 's/^fai_flags=(.*)/\1/p' | tail -n 1)
-test -z "$fai_flags" && fai_flags="syslogd,verbose,sshd,poweroff"
+test -z "$fai_flags" && fai_flags="syslogd,verbose,sshd,poweroff,skipusb"
 
 nfs_opts=$(echo "$conf" | sed -n -r 's/^nfs_opts=(.*)/\1/p' | tail -n 1)
 test -z "$nfs_opts" && nfs_opts="nfs4,union"
