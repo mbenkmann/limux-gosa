@@ -53,7 +53,7 @@ nfs_root=$(echo "$conf" | sed -n -r 's/^nfs_root=(.*)/\1/p' | tail -n 1)
 test -z "$nfs_root" && nfs_root="/nfsroot"
 
 kern_appd=$(echo "$conf" | sed -n -r 's/^kern_appd=(.*)/\1/p' | tail -n 1)
-test -z "$kern_appd" && kern_appd="vga=788 dazuko=0 nomodeset watchdog=softdog,nowayout=1 panic=poweroff:120 quiet"
+test -z "$kern_appd" && kern_appd=""
 
 case "$state" in
   install*) echo "kernel $kernel
