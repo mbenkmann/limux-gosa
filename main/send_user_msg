@@ -51,7 +51,7 @@ while read -r line ; do
     if [ "$susionly" = "true" ]; then
       continue
     fi
-    result="$(echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc -q 1 "${server%:*}" "${server#*:}")"
+    result="$(echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc -w 60 -q 1 "${server%:*}" "${server#*:}")"
     if test -n "$result" ; then
       echo 1>&2 "Message successfully passed to non-go-susi server $server"
       susionly=true
@@ -60,7 +60,7 @@ while read -r line ; do
     fi
   else
     echo 1>&2 "Passing message to go-susi server $server"
-    echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc "${server%:*}" "${server#*:}" >/dev/null
+    echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc -w 60 "${server%:*}" "${server#*:}" >/dev/null
   fi
 done
   
@@ -106,8 +106,8 @@ while read -r line ; do
 "
   
     echo 1>&2 "Sending message to $user at $client"
-    echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc "${client%:*}" "${client#*:}"
-  done
+    echo "$msg" | /usr/lib/go-susi/encrypt "$key" 
+  done | nc -w 10 "${client%:*}" "${client#*:}"
   ) &
  
 done
