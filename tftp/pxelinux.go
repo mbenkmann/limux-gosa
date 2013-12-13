@@ -200,7 +200,11 @@ func getFile(name string, files map[string]string, pxelinux_hook string) (cacheE
       sys, err := db.SystemGetAllDataForMAC(mac, true)
       
       if err != nil {
-        util.Log(0, "ERROR! TFTP: %v", err)
+        if _, not_found := err.(db.SystemNotFoundError); not_found {
+          util.Log(1, "INFO! TFTP: %v", err)
+        } else {
+          util.Log(0, "ERROR! TFTP: %v", err)
+        }
         // Don't abort. The hook will generate a default config.
         env = append(env,"macaddress="+mac)
       } else {
