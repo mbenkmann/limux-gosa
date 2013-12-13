@@ -12,6 +12,7 @@ class application extends plugin
   var $gotoLogonScript	="";
   var $gotoLogoffScript	="";
   var $iconData;
+  var $iconPath;
   var $view_logged = FALSE;
 
   /* Headpage attributes */
@@ -32,6 +33,7 @@ class application extends plugin
   var $FAIstate ="";
 
   var $baseSelector;
+  var $use_picture_path;
 
   function application (&$config, $dn= NULL, $parent= NULL)
   {
@@ -44,9 +46,18 @@ class application extends plugin
       $this->iconData= $ldap->get_attribute($dn, "gosaApplicationIcon");
       $this->saved_attributes['gosaApplicationIcon'] = $this->iconData;
     }
+
+    $img_from_string = @imagecreatefromstring($this->iconData);
+    if ($this->iconData != "" and $img_from_string == FALSE) {
+        $this->iconData = "";
+        $this->saved_attributes['gosaApplicationIcon'] = "";
+        $this->use_picture_path = TRUE;
+    } 
+
     if ($this->iconData == ""){
-      $this->set_picture("");
+        $this->set_picture("");
     }
+
     session::set('binary',$this->iconData);
     session::set('binarytype',"image/jpeg");
     $this->gosaApplicationIcon= $this->iconData;
@@ -164,6 +175,10 @@ class application extends plugin
     session::set('binarytype',"image/jpeg");
     
     $smarty->assign("rand", rand(0, 10000));
+
+    $smarty->assign("picture_path", $this->iconPath);
+    $smarty->assign("use_picture_path", ($this->use_picture_path) ? "checked" : "");
+
     $head = $this->generateTemplate();
     $this->gotoLogonScript= $this->generateTemplate().preg_replace('/.*### END HEADER ###/s', '', $this->gotoLogonScript);
     $this->gotoLogoffScript= $this->generateTemplate().preg_replace('/.*### END HEADER ###/s', '', $this->gotoLogoffScript);
@@ -340,10 +355,17 @@ class application extends plugin
       if(isset($_POST['remove_picture'])){
         $this->set_picture("");
       }
+  
+      if (isset($_POST["use_picture_path"])) {
+        $this->use_picture_path = TRUE;
+      }
+      if (!isset($_POST["use_picture_path"]) && $this->use_picture_path) {
+          $this->use_picture_path = FALSE;
+      }
+
 
       /* Check for picture upload */
       if (isset($_FILES['picture_file']['name']) && $_FILES['picture_file']['name'] != ""){
-
         $filename = gosa_file_name($_FILES['picture_file']['tmp_name']);
         if (!is_readable($filename)) {
           msg_dialog::display(_("Error"), msgPool::incorrectUpload(), ERROR_DIALOG);
@@ -400,7 +422,13 @@ class application extends plugin
 
         /* Activate new picture */
         $this->set_picture($filename);
+        // Disable text field
+        $this->use_picture_path = FALSE;
       }	
+    }
+        
+    if (isset($_POST["picture_path"]) && $_POST["picture_path"] != "" && isset($_POST["use_picture_path"])) {
+        $this->iconPath = get_post("picture_path");
     }
   }
 
@@ -411,12 +439,30 @@ class application extends plugin
     /* Call common method to give check the hook */
     $message= plugin::check();
 
-
     if ($this->gosaApplicationExecute == ""){
       $message[]= msgPool::required(_("Execute"));
     }
     elseif(!preg_match("#^/#",$this->gosaApplicationExecute)){
       $message[]= msgPool::invalidPath(_("Execute"));
+    }
+
+    if ($this->iconPath != "" and preg_match("#^/#", $this->iconPath)) {
+      // A path was supplied, check for reasonable character set
+      if(preg_match("/[^a-zA-Z0-9_\-.\/]/",$this->iconPath)) {
+        $message[]= msgPool::invalid(_("Filename"), $this->iconPath,"/^[a-zA-Z0-9_\-.\/]*$/");
+      }
+    } 
+    elseif ($this->iconPath != "") {
+      // Check for XDG Icon Spec name: "all icon names may only contain
+      // lowercase letters, numbers, underscore, dash, or period characters"
+      // (http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#guidelines)
+      if (preg_match("/[^a-z0-9_\-.]/",$this->iconPath)) {
+        $message[]= msgPool::invalid(_("Filename"), $this->iconPath,"/^[a-z0-9_\-.]*$/");
+      }
+    }
+    // Check if filename checkbox is active, but no filename is supplied
+    if ($this->use_picture_path == "checked" && $this->iconPath == "") {
+        $message[]= msgPool::required(_("Filename"));
     }
 
     // Check if a wrong base was supplied
@@ -475,7 +521,6 @@ class application extends plugin
       }
     }
 
-
     return $message;
   }
 
@@ -501,6 +546,10 @@ class application extends plugin
       if (isset($this->attrs[$script_attribute])) {
         $this->attrs[$script_attribute] = preg_replace('/\\r\\n/', "\n", $this->attrs[$script_attribute]);
       }
+    }
+
+    if ($this->iconPath != "" && $this->use_picture_path) {
+        $this->attrs["gosaApplicationIcon"] = $this->iconPath;
     }
 
     /* Write back to ldap */
@@ -568,7 +617,7 @@ class application extends plugin
   {
     if (!is_file($filename)){
       $filename= "./plugins/goto/images/default_icon.png";
-      $this->gosaApplicationIcon= "*removed*";
+      $this->gosaApplicationIcon= "";
     }
 
     if (file_exists($filename)){

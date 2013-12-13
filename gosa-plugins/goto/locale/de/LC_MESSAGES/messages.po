@@ -4498,3 +4498,7 @@ msgstr "Von Gruppe übernehmen"
 
 msgid "Choose automatically"
 msgstr "Automatisch auswählen"
+
+#: admin/applications/generic.tpl:91
+msgid "Specify a path to an icon or an XDG icon specification filename instead"
+msgstr "Alternativ Dateipfad des Icons oder XDG Icon-Spec kompatibler Dateiname"

@@ -82,11 +82,18 @@
 {/render}
 {render acl=$gosaApplicationIconACL}
 <button type='submit' name='remove_picture' title="{t}Remove picture from LDAP{/t}">{t}Remove picture{/t}</button>
-
-{/render}
     </td>
-    </tr>
+    <td>
    </table>
+<br>
+{/render}
+{render acl=$gosaApplicationIconACL}
+{t}Specify a path to an icon or an XDG icon specification filename instead{/t}
+<br>
+<input name="use_picture_path" onChange="document.mainform.submit()" type="checkbox" {$use_picture_path}>
+{t}Filename{/t}
+<input name="picture_path" type="text" size="20" {if !$use_picture_path}disabled{/if} value="{$picture_path}"></button>
+{/render}
   </td>
  </tr>
 </table>

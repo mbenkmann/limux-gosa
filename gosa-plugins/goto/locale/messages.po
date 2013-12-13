@@ -4341,3 +4341,7 @@ msgid ""
 "Define and parametrize desktop applications for using them in desktop "
 "profiles"
 msgstr ""
+
+#: admin/applications/generic.tpl:91
+msgid "Specify a path to an icon or an XDG icon specification filename instead"
+msgstr ""
