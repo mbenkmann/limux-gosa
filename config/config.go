@@ -108,12 +108,13 @@ var ActivatedHookPath = "/usr/lib/go-susi/activated"
 // in LDIF format.
 var DetectHardwareHookPath = "/usr/lib/go-susi/detect_hardware"
 
-// Path to a file from which FAI progress events will be read and
-// then converted to CLMSG_* messages.
+// Path to a hook whose output will be read and converted to
+// CLMSG_* messages.
 var FAIProgressHookPath = "/usr/lib/go-susi/fai_progress"
 
-// Path to a file from which FAI progress events will be read and
-// then converted to CLMSG_* messages.
+// Path to a hook called when "TASKEND savelog" is seen in the output
+// from the FAIProgressHookPath program. The output from the hook is
+// sent to the server as CLMSG_save_fai_log message.
 var FAISavelogHookPath = "/usr/lib/go-susi/fai_savelog"
 
 // Path where log files from CLMSG_save_fai_log are stored.
