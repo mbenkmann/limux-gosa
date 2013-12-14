@@ -183,7 +183,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
     go faimon(":"+config.FAIMonPort)
   
     util.Log(1, "INFO! Accepting TFTP requests on UDP port %v", config.TFTPPort)
-    go tftp.ListenAndServe(":"+config.TFTPPort, config.TFTPFiles, config.PXELinuxCfgHookPath)
+    go tftp.ListenAndServe(":"+config.TFTPPort, config.TFTPRegexes, config.TFTPReplies)
 
     go message.CheckPossibleClients()
     go message.Broadcast_new_server()

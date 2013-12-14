@@ -29,10 +29,12 @@ import (
          "fmt"
          "time"
          "bufio"
+         "regexp"
          "strings"
          "crypto/aes"
          
          "../util"
+         "../util/deque"
        )
 
 // The initialization vector for the AES encryption of GOsa messages.
@@ -86,9 +88,6 @@ var PackageListHookPath = "/usr/lib/go-susi/generate_package_list"
 // Called when a job_send_user_msg job is executed.
 var UserMessageHookPath = "/usr/lib/go-susi/send_user_msg"
 
-// Called to generate a pxelinux.cfg file for a system.
-var PXELinuxCfgHookPath = "/usr/lib/go-susi/generate_pxelinux_cfg"
-
 // Called whenever a new_foo_config message is received.
 var NewConfigHookPath = "/usr/lib/go-susi/update_config_files"
 
@@ -135,11 +134,11 @@ var TFTPPort = "69"
 // NOTE: The server port is appended to this list by ReadConfig().
 var ClientPorts = []string{"20083"}
 
-// Maps a file name as contained in a TFTP request to the actual path on
-// the local filesystem for satisfying that request.
-// Only files contained in this map will be served, in addition to
-// files matching "pxelinux.cfg/<MAC>".
-var TFTPFiles = map[string]string{}
+// TFTPRegexes and TFTPReplies are lists of equal length.
+// They correspond to the request_re and reply arguments of
+// tftp.ListenAndServe(). See there for a detailed explanation.
+var TFTPRegexes = []*regexp.Regexp{}
+var TFTPReplies = []string{}
 
 // Temporary directory only accessible by the user running go-susi.
 // Used e.g. for storing password files. Deleted in config.Shutdown().
@@ -388,6 +387,9 @@ func ReadArgs(args []string) {
 func ReadConfig() {
   conf := map[string]map[string]string{"":map[string]string{}}
   
+  var tftp_mappings deque.Deque
+  pxeLinuxCfgHookPath := "/usr/lib/go-susi/generate_pxelinux_cfg"
+  
   for _, configfile := range []string{ClientConfigPath, ServerConfigPath} {
     if configfile == "" { continue }
     file, err := os.Open(configfile)
@@ -408,6 +410,10 @@ func ReadConfig() {
       line, err = input.ReadString('\n')
       if err != nil { break }
       
+      if comment := strings.Index(line, "#"); comment >= 0 {
+        line = line[0:comment]
+      }
+      
       line = strings.TrimSpace(line)
       if len(line) > 2 && line[0] == '[' && line[len(line)-1] == ']' {
         current_section = line
@@ -421,7 +427,12 @@ func ReadConfig() {
         key := strings.TrimSpace(line[0:i])
         value := strings.TrimSpace(line[i+1:])
         if key != "" {
-          conf[current_section][key] = value
+          if current_section == "[tftp]" && key[0] == '/' && len(key) >= 2 {
+            tftp_mappings.Push(key[1:])
+            tftp_mappings.Push(value)
+          } else {
+            conf[current_section][key] = value
+          }
         }
       }
     }
@@ -456,7 +467,7 @@ func ReadConfig() {
       UserMessageHookPath = user_msg_hook
     }
     if pxelinux_cfg_hook, ok := general["pxelinux-cfg-hook"]; ok {
-      PXELinuxCfgHookPath = pxelinux_cfg_hook
+      pxeLinuxCfgHookPath = pxelinux_cfg_hook
     }
     if new_config_hook, ok := general["new-config-hook"]; ok {
       NewConfigHookPath = new_config_hook
@@ -538,11 +549,27 @@ func ReadConfig() {
     if port,ok := tftp["port"]; ok {
       TFTPPort = port
     }
-    
-    for tftp_path, real_path := range tftp {
-      if len(tftp_path) > 1 && tftp_path[0] == '/' {
-        TFTPFiles[tftp_path[1:]] = real_path
-      }
+  }
+  
+  // Backwards compatibility: Convert [general]/pxelinux-cfg-hook to patterns
+  // as described in manual.
+  if pxeLinuxCfgHookPath != "" {
+    tftp_mappings.Insert("|"+pxeLinuxCfgHookPath)
+    tftp_mappings.Insert("^pxelinux.cfg/01-(?P<macaddress>[0-9a-f]{2}(-[0-9a-f]{2}){5})$")
+    tftp_mappings.Insert("")
+    tftp_mappings.Insert("/^pxelinux.cfg/[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$")
+  }
+  
+  for !tftp_mappings.IsEmpty() {
+    file := tftp_mappings.Pop().(string)
+    pattern := tftp_mappings.Pop().(string)
+    if pattern[0] != '^' { pattern = "^" + regexp.QuoteMeta(pattern) + "$" }
+    re, err := regexp.Compile(pattern)
+    if err != nil {
+      util.Log(0, "ERROR! ReadConfig: In section [tftp]: Error compiling regex \"%v\": %v", pattern, err)
+    } else {
+      TFTPRegexes = append(TFTPRegexes, re)
+      TFTPReplies = append(TFTPReplies, file)
     }
   }
   

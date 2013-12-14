@@ -318,6 +318,17 @@ Templates: foo
   generate_pxelinux_cfg := tempdir+"/generate_pxelinux_cfg"
   ioutil.WriteFile(generate_pxelinux_cfg, []byte(`#!/bin/bash
 echo $macaddress
+echo $tftp_request
+`), 0755)
+
+  foo_sh := tempdir+"/foo.sh"
+  ioutil.WriteFile(foo_sh, []byte(`#!/bin/bash
+echo $macaddress
+echo $mac
+echo $#
+echo $1$cn
+echo $2
+echo $tftp_request
 `), 0755)
 
   send_user_msg := tempdir+"/send_user_msg"
@@ -373,6 +384,8 @@ port = 20997, 20998  20999
 [tftp]
 port = 20069
 /pxelinux.0 = `+tempdir+`/pxelinux.txt
+/^foo-(?P<mac>(?P<macaddress>.*)) = |`+tempdir+`/foo.sh fox hound
+/^blarg =  
 
 [faimon]
 port = 24711

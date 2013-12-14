@@ -42,13 +42,33 @@ import (
        )
 
 // Accepts UDP connections for TFTP requests on listen_address, serves read requests
-// for path P by sending the file at local path files[P], with a special case
-// for every path of the form "pxelinux.cfg/01-ab-cd-ef-gh-ij-kl" where the latter
-// part is a MAC address. For these requests the LDAP object is extracted and passed
-// via environment variables to the executable at path pxelinux_hook. Its stdout is
-// sent to the requestor.
-func ListenAndServe(listen_address string, files map[string]string, pxelinux_hook string) {
-  util.Log(1, "INFO! TFTP: Serving actual files %v and virtual files pxelinux.cfg/01-MM-AA-CA-DD-RE-SS via hook %v", files, pxelinux_hook)
+// for path P based on request_re and reply as follows:
+//
+// request_re and reply have to be lists of
+// equal length. Let request_re[i] be the first entry in request_re that
+// matches P, then reply[i] specifies the data to return for the request.
+// If reply[i] == "", then a file not found error is returned to the requestor.
+// If reply[i] starts with the character '|', the remainder is taken as the path
+// of a hook to execute and its stdout is returned to the requestor.
+// Otherwise reply[i] is taken as the path of the file whose contents to send to
+// the requestor.
+//
+// When executing a hook, an environment variable called "tftp_request"
+// is passed containing P. If request_re[i] has a capturing
+// group named "macaddress", the captured substring will be converted to
+// a MAC address by converting to lowercase, removing all characters
+// except 0-9a-f, left-padding to length 12 with 0s or truncating to length 12
+// and inserting ":"s. The result will be added to
+// the hook environment in a variable named "macaddress" and if there
+// is an LDAP object for that macaddress, its attributes will be added
+// to the environment, too.
+//
+// Named subexpressions in request_re[i] other than "macaddress" will be
+// exported to the hook verbatim in like-named environment variables.
+func ListenAndServe(listen_address string, request_re []*regexp.Regexp, reply []string) {
+  for i := range request_re {
+    util.Log(1, "INFO! TFTP: %v -> %v", request_re[i], reply[i])
+  }
   
   udp_addr,err := net.ResolveUDPAddr("udp", listen_address)
   if err != nil {
@@ -75,7 +95,7 @@ func ListenAndServe(listen_address string, files map[string]string, pxelinux_hoo
     // overwriting the buffer.
     payload := string(readbuf[:n])
     
-    go util.WithPanicHandler(func(){handleConnection(return_addr, payload, files, pxelinux_hook)})
+    go util.WithPanicHandler(func(){handleConnection(return_addr, payload, request_re, reply)})
     
   }
 }
@@ -122,128 +142,178 @@ func (f *bufCacheEntry) Bytes() []byte {
 var cache = map[string]*bufCacheEntry{}
 var cacheMutex sync.Mutex
 
-var pxelinux_cfg_mac_regexp = regexp.MustCompile("^pxelinux.cfg/01-[0-9a-f]{2}(-[0-9a-f]{2}){5}$")
+func getCacheEntry(key string, afterlife time.Duration) *bufCacheEntry {
+  cacheMutex.Lock()
+  defer cacheMutex.Unlock()
+  entry, have_entry := cache[key]
+  if !have_entry {
+    entry = &bufCacheEntry{Afterlifetime: afterlife}
+    cache[key] = entry
+  }
+  return entry
+}
 
-// Returns the data for the request "name" either from a mapping files[name]
-// gives the real filesystem path, or by generating data using pxelinux_hook.
+// Returns the data for the given request. request_re and reply are lists of
+// equal length. If request matches request_re[i], then reply[i] specifies the
+// data to return for the request. If reply[i] == "",
+// then this function returns (nil,nil). If reply[i] starts with the
+// character '|', the remainder is taken as the path of a hook to execute
+// to generate the data. Otherwise reply[i] is taken as the path of the
+// file whose contents to return as data.
+//
+// When executing a hook, an environment variable called "tftp_request"
+// is passed containing the request string. If request_re[i] has a capturing
+// group named "macaddress", the captured substring will be converted to
+// a MAC address by converting to lowercase, removing all characters
+// except 0-9a-f, left-padding to
+// length 12 with 0s or truncating to length 12 and inserting ":"s. The
+// result will be added to
+// the hook environment in a variable named "macaddress" and if there
+// is an LDAP object for that macaddress, its attributes will be added
+// to the environment, too.
+// Other named subexpressions in request_re[i] will be exported to the hook
+// verbatim in like-named environment variables.
 //
 // ATTENTION! Do not forget to call Release() on the returned cacheEntry when you're
 // done using it.
-func getFile(name string, files map[string]string, pxelinux_hook string) (cacheEntry,error) {
-  cacheMutex.Lock()
-  defer cacheMutex.Unlock()
+func getFile(request string, request_re []*regexp.Regexp, reply []string) (cacheEntry,error) {
   
-  if fpath, found := files[name]; found {
-    util.Log(1, "INFO! TFTP mapping \"%v\" => \"%v\"", name, fpath)
-    
-    // We use fpath as cache key because multiple names may map to
-    // the same fpath and we want to avoid caching the same file
-    // multiple times. Additionally this reduces the danger of
-    // having a collision with the MAC keys used by the other branch.
-    // Usually a MAC is not a valid path because it would be a relative
-    // path relative to go-susi's working directory which makes little sense.
-    entry, have_entry := cache[fpath]
-    if !have_entry {
-      entry = &bufCacheEntry{Afterlifetime: 60 * time.Second}
-      cache[fpath] = entry
-    }
-    
-    entry.Mutex.Lock()
-    defer entry.Mutex.Unlock()
-    
-    if entry.LoadCount == 0 {
-      file, err := os.Open(fpath) 
-      entry.Err = err
-      if err == nil {
-        defer file.Close()
+  for i := range request_re {
+    if subs := request_re[i].FindStringSubmatch(request); subs != nil {
+      if reply[i] == "" { return nil, nil }
+      
+      if reply[i][0] != '|' { // plain file
+        fpath := reply[i]
+        util.Log(1, "INFO! TFTP mapping \"%v\" => \"%v\"", request, fpath)
         
-        buffy := make([]byte,65536)
-        for {
-          n, err := file.Read(buffy)
-          entry.Data.Write(buffy[0:n])
-          if err == io.EOF { break }
-          if err != nil { 
-            entry.Data.Reset()
-            entry.Err = err
+        // We use fpath as cache key instead of request because
+        // multiple requests may map to the same fpath and we want to avoid
+        // caching the same file multiple times.
+        entry := getCacheEntry(fpath, 60*time.Second)
+        
+        entry.Mutex.Lock()
+        defer entry.Mutex.Unlock()
+        
+        if entry.LoadCount == 0 {
+          file, err := os.Open(fpath) 
+          entry.Err = err
+          if err == nil {
+            defer file.Close()
+            
+            buffy := make([]byte,65536)
+            for {
+              n, err := file.Read(buffy)
+              entry.Data.Write(buffy[0:n])
+              if err == io.EOF { break }
+              if err != nil { 
+                entry.Data.Reset()
+                entry.Err = err
+              }
+              if n == 0 {
+                util.Log(0, "WARNING! Read returned 0 bytes but no error. Assuming EOF")
+                break
+              }
+            }
           }
-          if n == 0 {
-            util.Log(0, "WARNING! Read returned 0 bytes but no error. Assuming EOF")
-            break
-          }
-        }
-      }
-    }
-    
-    entry.LoadCount++
-    
-    return entry, entry.Err
-    
-  } else if pxelinux_cfg_mac_regexp.MatchString(name) {
-    mac := strings.Replace(name[16:],"-",":",-1)
-    
-    entry, have_entry := cache[mac]
-    if !have_entry {
-      entry = new(bufCacheEntry)
-      cache[mac] = entry
-      // We need a few seconds afterlife to deal with multiple requests in
-      // short succession by the same loader due to delayed UDP packets.
-      entry.Afterlifetime = 5 * time.Second
-    }
-    
-    entry.Mutex.Lock()
-    defer entry.Mutex.Unlock()
-    
-    if entry.LoadCount == 0 {
-      util.Log(1, "INFO! TFTP: Calling %v to generate pxelinux.cfg for %v", pxelinux_hook, mac)
-    
-      env := config.HookEnvironment()
-      sys, err := db.SystemGetAllDataForMAC(mac, true)
-      
-      if err != nil {
-        if _, not_found := err.(db.SystemNotFoundError); not_found {
-          util.Log(1, "INFO! TFTP: %v", err)
         } else {
-          util.Log(0, "ERROR! TFTP: %v", err)
+          util.Log(1, "INFO! TFTP: Serving %v from cache", fpath)
         }
-        // Don't abort. The hook will generate a default config.
-        env = append(env,"macaddress="+mac)
-      } else {
-        // Add environment variables with system's data for the hook
-        for _, tag := range sys.Subtags() {
-          env = append(env, tag+"="+strings.Join(sys.Get(tag),"\n"))
-        }
-      }
-      
-      cmd := exec.Command(pxelinux_hook)
-      cmd.Env = append(env, os.Environ()...)
-      var errbuf bytes.Buffer
-      defer errbuf.Reset()
-      cmd.Stdout = &entry.Data
-      cmd.Stderr = &errbuf
-      err = cmd.Run()
-      if err != nil {
-        util.Log(0, "ERROR! TFTP: error executing %v: %v (%v)", pxelinux_hook, err, errbuf.String())
-        entry.Err = err
-      } else {
-        util.Log(1, "INFO! TFTP: Generated %v:\n%v", name, entry.Data.String())
-      }
-    } else {
-      util.Log(1, "INFO! TFTP: Serving pxelinux.cfg for %v from cache", mac)
-    }
-    
-    entry.LoadCount++
-    
-    return entry, entry.Err
+        
+        entry.LoadCount++
+        
+        return entry, entry.Err
+        
+      } else { // hook
+        hook := reply[i][1:] // cut off '|'
+        
+        // We need a few seconds afterlife to deal with multiple requests in
+        // short succession by the same loader due to delayed UDP packets.
+        entry := getCacheEntry(request, 5*time.Second)
+        
+        entry.Mutex.Lock()
+        defer entry.Mutex.Unlock()
+        
+        if entry.LoadCount == 0 {
+          util.Log(1, "INFO! TFTP: Calling %v to generate %v", hook, request)
+        
+          env := config.HookEnvironment()
+          env = append(env, "tftp_request="+request)
+          
+          for k, varname := range request_re[i].SubexpNames() {
+            if varname == "" { continue }
 
+            value := subs[k]
+            
+            if varname == "macaddress" {
+              format_mac := func(r rune) rune {
+                switch {
+                case r >= 'a' && r <= 'f': return r
+                case r >= '0' && r <= '9': return r
+                case r >= 'A' && r <= 'F': return 'a'+(r-'A')
+                }
+                return -1
+              }
+              
+              value = "000000000000" + strings.Map(format_mac, value)
+              value = value[len(value)-12:]
+              value = value[0:2] + ":" + value[2:4] + ":" + value[4:6] + ":" + value[6:8] + ":" + value[8:10] + ":" + value[10:12]
+              
+              sys, err := db.SystemGetAllDataForMAC(value, true)
+              
+              if err != nil {
+                if _, not_found := err.(db.SystemNotFoundError); not_found {
+                  util.Log(1, "INFO! TFTP: %v", err)
+                } else {
+                  util.Log(0, "ERROR! TFTP: %v", err)
+                }
+                // Don't abort. The hook will generate a default config.
+              } else {
+                // Add environment variables with system's data for the hook
+                for _, tag := range sys.Subtags() {
+                  env = append(env, tag+"="+strings.Join(sys.Get(tag),"\n"))
+                }
+              }
+            }
+            
+            env = append(env, varname+"="+value)
+          }
+          
+          hook_fields := strings.Fields(hook)
+          cmd := exec.Command(hook_fields[0], hook_fields[1:]...)
+          cmd.Env = append(env, os.Environ()...)
+          var errbuf bytes.Buffer
+          defer errbuf.Reset()
+          cmd.Stdout = &entry.Data
+          cmd.Stderr = &errbuf
+          err := cmd.Run()
+          if err != nil {
+            util.Log(0, "ERROR! TFTP: error executing %v: %v (%v)", hook, err, errbuf.String())
+            entry.Err = err
+          } else {
+            util.Log(1, "INFO! TFTP: Generated %v:\n%v", request, entry.Data.String())
+          }
+        } else {
+          util.Log(1, "INFO! TFTP: Serving %v from cache", request)
+        }
+        
+        entry.LoadCount++
+        
+        return entry, entry.Err
+      }
+    }
   }
   
-  errentry := &bufCacheEntry{LoadCount:1000, Err:fmt.Errorf("TFTP not configured to serve file \"%v\"", name)}
+  errentry := &bufCacheEntry{LoadCount:1000, Err:fmt.Errorf("TFTP not configured to serve file \"%v\"", request)}
   return errentry, errentry.Err
 }
 
 // Sends a TFTP ERROR to addr with the given error code and error message emsg.
 func sendError(udp_conn *net.UDPConn, addr *net.UDPAddr, code byte, emsg string) {
   util.Log(0, emsg)
+  sendErrorWithoutLogging(udp_conn, addr, code, emsg)
+}
+
+func sendErrorWithoutLogging(udp_conn *net.UDPConn, addr *net.UDPAddr, code byte, emsg string) {
   sendbuf := make([]byte, 5+len(emsg))
   sendbuf[0] = 0
   sendbuf[1] = 5 // 5 => opcode for ERROR
@@ -348,7 +418,7 @@ func sendAndWaitForAck(udp_conn *net.UDPConn, peer_addr *net.UDPAddr, sendbuf []
   return false
 }
 
-func handleConnection(peer_addr *net.UDPAddr, payload string, files map[string]string, pxelinux_hook string) {
+func handleConnection(peer_addr *net.UDPAddr, payload string, request_re []*regexp.Regexp, reply []string) {
   retransmissions := 0
   dups := 0
   strays := 0
@@ -379,7 +449,13 @@ func handleConnection(peer_addr *net.UDPAddr, payload string, files map[string]s
   options := request[2:]
   util.Log(1, "INFO! TFTP read: %v requests %v with options %v", peer_addr, request[0], options)
   
-  filedata, err := getFile(request[0], files, pxelinux_hook)
+  filedata, err := getFile(request[0], request_re, reply)
+  if filedata == nil {
+    util.Log(1, "INFO! TFTP: Returning \"File not found\" as configured for \"%v\"", request[0])
+    sendErrorWithoutLogging(udp_conn, peer_addr, 1, "File not found") // 1 => File not found
+    return
+  }
+  
   defer filedata.Release()
   if err != nil {
     emsg := fmt.Sprintf("ERROR! TFTP read error: %v", err)

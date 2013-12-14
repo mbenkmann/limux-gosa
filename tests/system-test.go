@@ -643,6 +643,15 @@ func run_tftp_tests() {
       check(buf[0:4], []byte{0,5,0,1})
     }
     
+    _, err = conn.WriteToUDP([]byte("\000\001blarg\000octet\000"), tftp_addr)
+    check(err,nil)
+    conn.SetReadDeadline(time.Now().Add(3*time.Second))
+    n, _, err = conn.ReadFromUDP(buf)
+    check(err,nil)
+    if check(n >= 4, true) {
+      check(buf[0:4], []byte{0,5,0,1})
+    }
+    
     _,err = conn.WriteToUDP([]byte("\000\001pxelinux.cfg/01-0a-0b-0c-0d-0e-0f\000octet\000"),tftp_addr)
     check(err,nil)
     conn.SetReadDeadline(time.Now().Add(3*time.Second))
@@ -650,7 +659,31 @@ func run_tftp_tests() {
     check(err,nil)
     if check(n >= 4, true) {
       check(buf[0:4], []byte{0,3,0,1})
-      check(string(buf[4:n]), "0a:0b:0c:0d:0e:0f\n")
+      check(string(buf[4:n]), "0a:0b:0c:0d:0e:0f\npxelinux.cfg/01-0a-0b-0c-0d-0e-0f\n")
+      // send ACK to avoid error log entry
+      conn.WriteToUDP([]byte{0,4,0,1}, remote_addr)
+    }
+    
+    _,err = conn.WriteToUDP([]byte("\000\001foo-wAfFel\000octet\000"),tftp_addr)
+    check(err,nil)
+    conn.SetReadDeadline(time.Now().Add(3*time.Second))
+    n, remote_addr, err = conn.ReadFromUDP(buf)
+    check(err,nil)
+    if check(n >= 4, true) {
+      check(buf[0:4], []byte{0,3,0,1})
+      check(string(buf[4:n]), "00:00:00:00:af:fe\nwAfFel\n2\nfox\nhound\nfoo-wAfFel\n")
+      // send ACK to avoid error log entry
+      conn.WriteToUDP([]byte{0,4,0,1}, remote_addr)
+    }
+    
+    _,err = conn.WriteToUDP([]byte("\000\001foo-33000011110000\000octet\000"),tftp_addr)
+    check(err,nil)
+    conn.SetReadDeadline(time.Now().Add(3*time.Second))
+    n, remote_addr, err = conn.ReadFromUDP(buf)
+    check(err,nil)
+    if check(n >= 4, true) {
+      check(buf[0:4], []byte{0,3,0,1})
+      check(string(buf[4:n]), "00:00:11:11:00:00\n33000011110000\n2\nfoxnotebook-template\nhound\nfoo-33000011110000\n")
       // send ACK to avoid error log entry
       conn.WriteToUDP([]byte{0,4,0,1}, remote_addr)
     }
