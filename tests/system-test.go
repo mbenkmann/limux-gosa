@@ -643,6 +643,15 @@ func run_tftp_tests() {
       check(buf[0:4], []byte{0,5,0,1})
     }
     
+    _, err = conn.WriteToUDP([]byte("\000\001false\000octet\000"), tftp_addr)
+    check(err,nil)
+    conn.SetReadDeadline(time.Now().Add(3*time.Second))
+    n, _, err = conn.ReadFromUDP(buf)
+    check(err,nil)
+    if check(n >= 4, true) {
+      check(buf[0:4], []byte{0,5,0,1})
+    }
+    
     _, err = conn.WriteToUDP([]byte("\000\001blarg\000octet\000"), tftp_addr)
     check(err,nil)
     conn.SetReadDeadline(time.Now().Add(3*time.Second))

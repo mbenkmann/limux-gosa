@@ -290,7 +290,11 @@ func getFile(request string, request_re []*regexp.Regexp, reply []string) (cache
             util.Log(0, "ERROR! TFTP: error executing %v: %v (%v)", hook, err, errbuf.String())
             entry.Err = err
           } else {
-            util.Log(1, "INFO! TFTP: Generated %v:\n%v", request, entry.Data.String())
+            if entry.Data.Len() > 512 {
+              util.Log(1, "INFO! TFTP: Generated %v: %v bytes", request, entry.Data.Len())
+            } else {
+              util.Log(1, "INFO! TFTP: Generated %v:\n%v", request, entry.Data.String())
+            }
           }
         } else {
           util.Log(1, "INFO! TFTP: Serving %v from cache", request)

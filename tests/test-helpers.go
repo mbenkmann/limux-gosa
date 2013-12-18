@@ -386,6 +386,7 @@ port = 20069
 /pxelinux.0 = `+tempdir+`/pxelinux.txt
 /^foo-(?P<mac>(?P<macaddress>.*)) = |`+tempdir+`/foo.sh fox hound
 /^blarg =  
+/false = |/bin/false
 
 [faimon]
 port = 24711
