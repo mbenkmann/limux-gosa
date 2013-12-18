@@ -1,0 +1,73 @@
+#!/bin/bash
+
+test -z "$tftp_request" && { echo 1>&2 "tftp_request not set!"; exit 1 ; }
+
+test $# = 2 || { echo 1>&2 "USAGE: $0 <tftp_dir> <extract_dir>" ;   exit 1 ; }
+
+# $tftp_dir/$tftp_request is the initrd archive
+tftp_dir="$1"
+# $extract_dir/${tftp_request##*/} is the root dir of the 
+# extracted $tftp_dir/$tftp_request
+# $extract_dir/${tftp_request##*/}.cfg is a file that stores
+# config data (e.g. which compression to use) for $tftp_dir/$tftp_request
+extract_dir="$2"
+
+mkdir -p "$tftp_dir"
+mkdir -p "$extract_dir"
+
+# set default config
+md5=0
+packer=gzip
+
+determine_packer() {
+  test -f "$1" || return 1
+  case "$(file "$1")" in
+    *"cpio archive"*) echo cat ;;
+    *"lzop compressed data"*) echo lzop ;;
+    *"gzip compressed data"*) echo gzip ;;
+    *"bzip2 compressed data"*) echo bzip2 ;;
+    *"XZ compressed data"*) echo xz ;;
+    *) lzmainfo "$1" &>/dev/null && echo lzma || return 1 ;;
+  esac
+}
+
+# if config file does not exist, create it
+test -f "$extract_dir/${tftp_request##*/}.cfg" || {
+  current_packer="$(determine_packer "$tftp_dir/$tftp_request")"
+  test -n "$current_packer" && packer=$current_packer
+  echo "packer=$packer" >"$extract_dir/${tftp_request##*/}.cfg"
+}
+
+# source config  
+. "$extract_dir/${tftp_request##*/}.cfg" || exit 1
+
+# if there is currently no extracted copy of initrd, extract it
+test -d "$extract_dir/${tftp_request##*/}" || {
+  mkdir -p "$extract_dir/${tftp_request##*/}" || exit 1
+  current_packer="$(determine_packer "$tftp_dir/$tftp_request")"
+  case "$current_packer" in
+    "cat") cat "$tftp_dir/$tftp_request" | ( cd "$extract_dir/${tftp_request##*/}" && cpio --no-absolute-filenames -id ) ;;
+    "") echo 1>&2 "Cannot extract initrd"; exit 1 ;;
+    *) cat "$tftp_dir/$tftp_request" | $current_packer -dc | ( cd "$extract_dir/${tftp_request##*/}" && cpio --no-absolute-filenames -id ) ;;
+  esac
+  md5="$(cd "$extract_dir/${tftp_request##*/}" && find . -not -name '*~' -printf '%p %m %l %s %t %y\n'|md5sum)"
+  md5=${md5%% *}
+  echo "md5=${md5}" >>"$extract_dir/${tftp_request##*/}.cfg"
+}
+
+current_md5="$(cd "$extract_dir/${tftp_request##*/}" && find . -not -name '*~' -printf '%p %m %l %s %t %y\n'|md5sum)"
+current_md5=${current_md5%% *}
+
+# if initrd archive is missing, we need to build it in any case
+test -f "$tftp_dir/$tftp_request" || md5=0
+
+# if the extracted dir has changed, we need to rebuild the initrd archive
+test "$md5" != "$current_md5" && {
+  rm -f "$tftp_dir/$tftp_request"
+  (cd "$extract_dir/${tftp_request##*/}" && find . -not -name '*~' | cpio --owner root:root -H newc -o) | $packer >"$tftp_dir/$tftp_request"
+  echo "packer=$packer" >"$extract_dir/${tftp_request##*/}.cfg"
+  echo "md5=${current_md5}" >>"$extract_dir/${tftp_request##*/}.cfg"
+}
+
+# Finally, print the archive to stdout
+cat "$tftp_dir/$tftp_request"
