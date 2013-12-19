@@ -9,7 +9,7 @@ if [ $? -ne 0 ] || [ ! -d ".hg" ]; then
   exit 0
 fi
 
-logdata="$(LC_ALL=C hg --config alias.log=log log --style=compact -I main/go-susi.go -I main/makedebsource -I main/send_user_msg -I "main/generate_*" -I util/deque/deque.go -I "message/*.go" -I "action/*.go" -I "bytes/*.go" -I "util/*.go" -I "config/*.go" -I "db/*.go" -I "xml/*.go" -I "tftp/*.go")"
+logdata="$(LC_ALL=C hg --config alias.log=log log --style=compact -I main/go-susi.go -I main/makedebsource -I main/send_user_msg -I main/initrd_autopack -I "main/generate_*" -I util/deque/deque.go -I "message/*.go" -I "action/*.go" -I "bytes/*.go" -I "util/*.go" -I "config/*.go" -I "db/*.go" -I "xml/*.go" -I "tftp/*.go")"
 echo "$logdata" | tac | tr 'A-Z' 'a-z' | sed 's/\([[#]\)/\n\1/g' |
 (
   milestone=-1
