@@ -263,7 +263,7 @@ class group extends plugin
 
         /* Add objects? */
         if (isset($_POST["edit_membership"]) && preg_match("/w/",$this->getacl("memberUid"))){
-            $member_dns = array_map(function ($x) { return $x['dn']; }, array_values($this->members));
+            $member_dns = array_map(function ($x) { if (isset($x['dn'])) return $x['dn']; }, array_values($this->members));
             $this->userSelect= new userSelect($this->config, get_userinfo(), $member_dns);
         }
 
@@ -759,8 +759,8 @@ class group extends plugin
         }
         
         if (isset($this->parent->by_object['environment'])) {
-          $previous_member_dns = array_map(function ($x) { return $x['dn']; }, array_values($this->previous_members));
-          $member_dns = array_map(function ($x) { return $x['dn']; }, array_values($this->members));
+          $previous_member_dns = array_map(function ($x) { if (isset($x['dn'])) return $x['dn']; }, array_values($this->previous_members));
+          $member_dns = array_map(function ($x) { if (isset($x['dn'])) return $x['dn']; }, array_values($this->members));
           $removed_member_dns = array_diff($previous_member_dns, $member_dns);
           $this->parent->by_object['environment']->handle_removed_group_member_dns($removed_member_dns);
         }

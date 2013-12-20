@@ -3529,6 +3529,10 @@ msgstr ""
 "In Ihrer Konfiguration befindet sich bereits ein Profil, das eine "
 "Partitionstabelle enthält!"
 
+#: admin/systems/goto/class_workstationStartup.inc:460
+msgid "Multi-repository is not yet implemented!"
+msgstr "Multi-Repository wird derzeit noch nicht unterstützt!"
+
 #: admin/systems/goto/class_workstationStartup.inc:559
 #, php-format
 msgid ""

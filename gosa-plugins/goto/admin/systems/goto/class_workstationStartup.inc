@@ -455,6 +455,11 @@ class workstartup extends plugin
                         $this->FAIdebianMirror[] = $new_FAIdebianMirror;
                     }
                 }
+
+               if(count($this->FAIdebianMirror)>1 && isset($_POST['add_FAIdebianMirror'])){
+                   msg_dialog::display(_("Warning"), _("Multi-repository is not yet implemented!") , WARNING_DIALOG);
+               }
+
             }
             
 
@@ -760,7 +765,7 @@ class workstartup extends plugin
 
         $this->faiList->setAcl('rwcdm');
         $this->faiList->setDeleteable($this->FAIdebianMirror !== array("inherited"));
-        $this->faiList->setReorderable($this->FAIdebianMirror !== array("inherited"));
+        //$this->faiList->setReorderable($this->FAIdebianMirror !== array("inherited"));
         $this->faiList->setListData($data,$lData);
         $this->faiList->update();
         
