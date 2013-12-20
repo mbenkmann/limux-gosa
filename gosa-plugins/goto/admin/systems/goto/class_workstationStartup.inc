@@ -455,6 +455,11 @@ class workstartup extends plugin
                         $this->FAIdebianMirror[] = $new_FAIdebianMirror;
                     }
                 }
+
+               if(count($this->FAIdebianMirror)>1 && isset($_POST['add_FAIdebianMirror'])){
+                   msg_dialog::display(_("Warning"), _("Multi-repository is not yet implemented!") , WARNING_DIALOG);
+               }
+
             }
             
 
