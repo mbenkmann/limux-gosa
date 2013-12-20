@@ -760,7 +760,7 @@ class workstartup extends plugin
 
         $this->faiList->setAcl('rwcdm');
         $this->faiList->setDeleteable($this->FAIdebianMirror !== array("inherited"));
-        $this->faiList->setReorderable($this->FAIdebianMirror !== array("inherited"));
+        //$this->faiList->setReorderable($this->FAIdebianMirror !== array("inherited"));
         $this->faiList->setListData($data,$lData);
         $this->faiList->update();
         
