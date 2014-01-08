@@ -49,6 +49,7 @@ class application extends plugin
 
     $img_from_string = @imagecreatefromstring($this->iconData);
     if ($this->iconData != "" and $img_from_string == FALSE) {
+        $this->iconPath = $this->iconData;
         $this->iconData = "";
         $this->saved_attributes['gosaApplicationIcon'] = "";
         $this->use_picture_path = TRUE;
