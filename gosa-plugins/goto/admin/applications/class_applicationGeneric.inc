@@ -428,7 +428,7 @@ class application extends plugin
       }	
     }
         
-    if (isset($_POST["picture_path"]) && $_POST["picture_path"] != "" && isset($_POST["use_picture_path"])) {
+    if (isset($_POST["picture_path"])) {
         $this->iconPath = get_post("picture_path");
     }
   }
@@ -447,23 +447,25 @@ class application extends plugin
       $message[]= msgPool::invalidPath(_("Execute"));
     }
 
-    if ($this->iconPath != "" and preg_match("#^/#", $this->iconPath)) {
-      // A path was supplied, check for reasonable character set
-      if(preg_match("/[^a-zA-Z0-9_\-.\/]/",$this->iconPath)) {
-        $message[]= msgPool::invalid(_("Filename"), $this->iconPath,"/^[a-zA-Z0-9_\-.\/]*$/");
-      }
-    } 
-    elseif ($this->iconPath != "") {
-      // Check for XDG Icon Spec name: "all icon names may only contain
-      // lowercase letters, numbers, underscore, dash, or period characters"
-      // (http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#guidelines)
-      if (preg_match("/[^a-z0-9_\-.]/",$this->iconPath)) {
-        $message[]= msgPool::invalid(_("Filename"), $this->iconPath,"/^[a-z0-9_\-.]*$/");
-      }
-    }
-    // Check if filename checkbox is active, but no filename is supplied
-    if ($this->use_picture_path == "checked" && $this->iconPath == "") {
-        $message[]= msgPool::required(_("Filename"));
+    if ($this->use_picture_path) {
+        if ($this->iconPath != "" and preg_match("#^/#", $this->iconPath)) {
+          // A path was supplied, check for reasonable character set
+          if(preg_match("/[^a-zA-Z0-9_\-.\/]/",$this->iconPath)) {
+            $message[]= msgPool::invalid(_("Filename"), $this->iconPath,"/^[a-zA-Z0-9_\-.\/]*$/");
+          }
+        } 
+        elseif ($this->iconPath != "") {
+          // Check for XDG Icon Spec name: "all icon names may only contain
+          // lowercase letters, numbers, underscore, dash, or period characters"
+          // (http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#guidelines)
+          if (preg_match("/[^a-z0-9_\-.]/",$this->iconPath)) {
+            $message[]= msgPool::invalid(_("Filename"), $this->iconPath,"/^[a-z0-9_\-.]*$/");
+          }
+        }
+        // Check if filename checkbox is active, but no filename is supplied
+        if ($this->use_picture_path == "checked" && $this->iconPath == "") {
+            $message[]= msgPool::required(_("Filename"));
+        }
     }
 
     // Check if a wrong base was supplied

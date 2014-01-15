@@ -34,7 +34,17 @@
 		<td><button type='submit' name='edit_reset_image'>{t}Reset{/t}</button>
 </td>
 	</tr>
-</table>
+	<tr>
+		<td>{t}Specify a path to an icon or an XDG icon specification filename instead{/t}
+	</tr>
+	<tr>
+		<td>
+		<input type="hidden" name="icon_path_submitted" value="1">
+		<input name="use_icon_path" onChange="document.mainform.submit()" type="checkbox" {$use_icon_path}>
+		{t}Filename{/t}
+		<input name="icon_path" type="text" size=20 {if !$use_icon_path}disabled{/if} value="{$icon_path}">
+    </td>
+	</table>
 <br>
 {/if}
 

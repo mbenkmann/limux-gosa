@@ -326,9 +326,24 @@ class appgroup extends plugin
                         $type = "FOLDER";
 
                         $data['ICON'] = "";
+                        $data['ICON_PATH'] = "";
+                        $data['USE_ICON_PATH'] = FALSE;
+
                         if(isset($attrs['gosaApplicationIcon'])){
-                            $data['ICON'] = $ldap->get_attribute($attrs['dn'],"gosaApplicationIcon");
-                        }
+                            $icon = $ldap->get_attribute($attrs['dn'],"gosaApplicationIcon");
+
+                            $img_from_string = @imagecreatefromstring($icon);
+
+                            if($icon != "" and $img_from_string == FALSE) {
+                                // Icon should be an xdg-sepc
+                                $data['ICON_PATH'] = $icon;
+                                $data['USE_ICON_PATH'] = TRUE;
+                            } else if ($icon != "" and $img_from_string == TRUE) {
+                                $data['ICON'] = $icon;
+                                $data['ICON_PATH'] = "";
+                                $data['USE_ICON_PATH'] = FALSE;
+                            } 
+                        } 
 
                         /* Add a menu entry 
                          */
@@ -377,6 +392,7 @@ class appgroup extends plugin
                     $data['UNIQID']   = uniqid();
                     $data['PARENT']   = $parent_id;
                     $data['STATUS']   = "LOADED";
+
                     $cur[$priority]   = $data;
                     ksort($cur);
                 }
@@ -440,12 +456,18 @@ class appgroup extends plugin
                 return($display);
             }
             if($this->edit_entry['TYPE'] == "FOLDER"){
-
                 session::set("binarytype" , "image/jpeg");
                 session::set("binary" , $this->edit_entry['ICON']);
 
                 $smarty->assign("rand", microtime(TRUE));
-                $smarty->assign("image_set" , strlen($this->edit_entry['ICON']) > 0); 
+
+                $use_icon_path  = $this->edit_entry['USE_ICON_PATH'];
+                $icon_path      = $this->edit_entry['ICON_PATH'];
+                $smarty->assign("image_set" , strlen($this->edit_entry['ICON']) > 0);
+
+                $smarty->assign("use_icon_path", ($use_icon_path) ? "checked": "");
+                $smarty->assign("icon_path", $icon_path);
+
                 $smarty->assign("type", "FOLDER");
                 $smarty->assign("entry",$this->edit_entry);
                 $display= $smarty->fetch (get_template_path('edit_entry.tpl', TRUE, dirname(__FILE__)));
@@ -505,6 +527,8 @@ class appgroup extends plugin
             $data[$key] = array('TYPE'=>'APP','ID'=> $app);
             $lData[$key] = array('data' => array($img,$chk,$name));
         }
+
+        
         $this->applicationList->setListData($data,$lData);
         $this->applicationList->update();
 
@@ -590,6 +614,39 @@ class appgroup extends plugin
         return(array());
     }
 
+    /*! \brief Check input in edit entry maskk */
+    function _check_entry_edit()
+    {
+        $msgs = array();
+
+        if (isset($this->edit_entry['USE_ICON_PATH']) and ($this->edit_entry['USE_ICON_PATH'] == TRUE)) {
+            if ($this->edit_entry['ICON_PATH']!= "" and preg_match("#^/#", $this->edit_entry['ICON_PATH'])) {
+              // A path was supplied, check for reasonable character set
+              if(preg_match("/[^a-zA-Z0-9_\-.\/]/",$this->edit_entry['ICON_PATH'])) {
+                $msgs[]= msgPool::invalid(_("Filename"), $this->edit_entry['ICON_PATH'],"/^[a-zA-Z0-9_\-.\/]*$/");
+              }
+            } 
+            elseif ($this->edit_entry['ICON_PATH'] != "") {
+              // Check for XDG Icon Spec name: "all icon names may only contain
+              // lowercase letters, numbers, underscore, dash, or period characters"
+              // (http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#guidelines)
+              if (preg_match("/[^a-z0-9_\-.]/",$this->edit_entry['ICON_PATH'])) {
+                $msgs[]= msgPool::invalid(_("Filename"), $this->edit_entry['ICON_PATH'],"/^[a-z0-9_\-.]*$/");
+              }
+            }
+            // Check if filename checkbox is active, but no filename is supplied
+            if ($this->edit_entry['USE_ICON_PATH'] == "checked" && $this->edit_entry['ICON_PATH'] == "") {
+                $msgs[]= msgPool::required(_("Filename"));
+            }
+        }
+
+        if(count($msgs)) {
+            msg_dialog::displayChecks($msgs);
+            return FALSE;
+        }
+
+        return TRUE;
+    }
 
     /*! \brief Save the currently edited entry 
      */
@@ -599,13 +656,20 @@ class appgroup extends plugin
         $entry  = $this->edit_entry;
         $r_entry= &$all[$entry['UNIQID']];
 
-
         if($entry['TYPE'] == "ENTRY"){
             $r_entry['PARAMETER'] = $this->app_parameter;
             $r_entry['FLAGS'] = $this->gosaApplicationFlags;
         }
         if($entry['TYPE'] == "FOLDER"){
             $r_entry['ICON']   = $this->edit_entry['ICON'];
+            if (isset($entry['USE_ICON_PATH']) && $entry['USE_ICON_PATH'] ==  TRUE) {
+                $r_entry['ICON_PATH'] = $entry['ICON_PATH'];
+                $r_entry['USE_ICON_PATH'] = $entry['USE_ICON_PATH'];
+                $r_entry['ICON'] = '';
+            } else if (isset($entry['USE_ICON_PATH']) && $entry['USE_ICON_PATH'] ==  FALSE) {
+                $r_entry['ICON_PATH'] = '';
+                $r_entry['USE_ICON_PATH'] = FALSE;
+            }
         }
         if($r_entry['STATUS'] != "ADDED"){
             $r_entry['STATUS'] = "EDITED";
@@ -983,6 +1047,22 @@ class appgroup extends plugin
                 $this->_add_sub_folder($folder,$name);
             }
         }
+
+        if (isset($_POST["icon_path_submitted"])) {
+            if ((!isset($_POST["use_icon_path"])) && isset($this->edit_entry['USE_ICON_PATH']) && ($this->edit_entry['USE_ICON_PATH'])) {
+                $this->edit_entry['USE_ICON_PATH'] = FALSE;
+            }
+        }
+
+        if (isset($_POST["use_icon_path"])) {
+            $this->edit_entry['USE_ICON_PATH'] = TRUE;
+        }
+
+        if (isset($_POST["icon_path"])) {
+#            $this->edit_entry['USE_ICON_PATH'] = TRUE;
+            $this->edit_entry['ICON_PATH'] = get_post("icon_path");
+        }
+
         if(isset($_POST['app_entry_save'])){ 
            foreach($this->app_flags as $name => $flag) {
              if($this->acl_is_writeable($name)) {
@@ -993,14 +1073,18 @@ class appgroup extends plugin
                }
              }
            }
+           if ($this->_check_entry_edit()) {
             $this->_save_entry_edit();
+           }
         }
 
         if(isset($_FILES['folder_image']) && isset($_POST['folder_image_upload'])){
             if($_FILES['folder_image']['error'] == 0 && $_FILES['folder_image']['size'] > 0){
                 $this->edit_entry['ICON'] = file_get_contents(gosa_file_name($_FILES['folder_image']['tmp_name']));
+                $this->edit_entry['USE_ICON_PATH'] = FALSE;
             }
         }
+
 
         if(isset($_POST['edit_reset_image'])){
             $this->edit_entry['ICON'] = "";
@@ -1065,6 +1149,8 @@ class appgroup extends plugin
             $a_folder['PARENT'] = $folder;      
             $a_folder['TYPE']   = "FOLDER";
             $a_folder['ICON']   = "";
+            $a_folder['ICON_PATH']   = "";
+            $a_folder['USE_ICON_PATH']   = FALSE;
             $all[$folder]['ENTRIES'][] = $a_folder;
         }
     }
@@ -1281,6 +1367,7 @@ class appgroup extends plugin
                 }
             }
         }
+
         return($ret);
     }
 
@@ -1369,6 +1456,8 @@ class appgroup extends plugin
 
                     if(!empty($entry['ICON'])){
                         $attrs['gosaApplicationIcon']     = $entry['ICON'];
+                    } else if (!empty($entry['ICON_PATH'])) {
+                        $attrs['gosaApplicationIcon']     = $entry['ICON_PATH'];
                     }
                 }
                 break;
