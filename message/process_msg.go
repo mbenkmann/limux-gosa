@@ -168,6 +168,11 @@ func tryToReestablishCommunicationWith(ip string) {
   util.Log(0, "WARNING! Will try to re-establish communication with %v", ip)
   ConfirmRegistration() // 1)
   
+  ip, err := util.Resolve(ip, config.IP)
+  if err != nil {
+    util.Log(0, "ERROR! Resolve(): %v", err)
+  }
+  
   if config.RunServer { // 2)
     sendmuell := true
     for _, server := range db.ServerAddresses() {
@@ -181,7 +186,9 @@ func tryToReestablishCommunicationWith(ip string) {
     if sendmuell {
       for _, port := range config.ClientPorts {
         addr := ip + ":" + port
-        go util.SendLnTo(addr, "Müll", config.Timeout)
+        if addr != config.ServerSourceAddress { // never send "Müll" to our own server
+          go util.SendLnTo(addr, "Müll", config.Timeout)
+        }
       }
     }
   }
