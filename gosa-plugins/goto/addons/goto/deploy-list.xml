@@ -60,7 +60,7 @@
       <label>Status</label>
       <sortAttribute>STATUS,PLAINNAME,HEADERTAG</sortAttribute>
       <sortType>string,string,string</sortType>
-      <value>%{filter:filterStatus(STATUS,MACADDRESS,HEADERTAG,PROGRESS)}</value>
+      <value>%{filter:filterStatus(STATUS,MACADDRESS,HEADERTAG,PROGRESS,RESULT)}</value>
       <export>true</export>
     </column>
 

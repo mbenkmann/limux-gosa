@@ -164,19 +164,20 @@ class gotomasses extends management
     }
 
 
-    static function filterStatus($status, $mac,$headertag, $progress)
+    static function filterStatus($status, $mac, $headertag, $progress, $result)
     {
 
         $mac = $mac[0];
         $status = $status[0];
         $progress = $progress[0];
         $headertag = $headertag[0];
+        $result = $result[0];
 
         if($status == "waiting"){
             $status = "<img class='center' src='plugins/goto/images/clock.png' alt=''>&nbsp;"._("Waiting");
         }
         if($status == "error"){
-            $status = "<img class='center' src='images/false.png' alt=''>&nbsp;"._("Error");
+            $status = "<span title='$result'><img class='center' src='images/false.png' alt=''>&nbsp;"._("Error")."</span>";
         }
         if($status == "processed"){
             $status = "<img class='center' src='images/true.png' alt=''>&nbsp;"._("Processed");
