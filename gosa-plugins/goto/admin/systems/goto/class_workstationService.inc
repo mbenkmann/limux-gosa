@@ -86,12 +86,7 @@ class workservice extends plugin
         /* Get list of available xdrivers */
         $this->XDrivers = $this->getListOfXDrivers();
 
-        if (isset($this->attrs['gosaGroupObjects'])) {
-          array_unshift($this->XDrivers, "["._("manual/auto")."]");
-        }
-        else {
-          array_unshift($this->XDrivers, "["._("unknown")."]");
-        }
+        array_unshift($this->XDrivers, "["._("manual/auto")."]");
 
         $this->XColordepths= array( 
                 "8"        => "8 " ._("bit"), 
@@ -192,7 +187,7 @@ class workservice extends plugin
             $this->InheritXYSync = FALSE;
           }
         } else {
-          if ($this->dn == "new") {
+          if ($this->dn == "new" && isset($_POST['SelectedOgroup']) && $_POST['SelectedOgroup'] == "") {
             $this->InheritXYSync = FALSE;
           }
         }

@@ -89,6 +89,11 @@ class workstartup extends plugin
                 $this->o_group_dn = $attrs['dn'];
             }
 
+            /* Create object with an object group as a template */
+            if (isset($_POST['SelectedOgroup']) && $_POST['SelectedOgroup'] != "" || isset($_POST['ObjectGroup']) && $_POST['ObjectGroup'] != "none"){
+                $this->member_of_ogroup = TRUE;
+            }
+
             if ($ldap->count() > 1) { 
                 $ogroups = array(); 
                 array_push($ogroups, $attrs['dn']); 

@@ -3058,7 +3058,6 @@ msgid "Create FAI CD"
 msgstr "FAI CD erstellen"
 
 #: admin/systems/goto/Device/class_Device.inc:163
-#: admin/systems/goto/class_workstationService.inc:93
 #: admin/systems/goto/workstationService.tpl:192
 #: admin/systems/goto/class_terminalService.inc:609
 msgid "unknown"
@@ -3590,7 +3589,7 @@ msgstr "FAI-Status-Flag"
 msgid "'repositoryBranchHook' returned no result!"
 msgstr "'repositoryBranchHook' hat kein Ergebnis zurückgeliefert!"
 
-#: admin/systems/goto/class_workstationService.inc:90
+#: admin/systems/goto/class_workstationService.inc:89
 msgid "manual/auto"
 msgstr "manuell/auto"
 
