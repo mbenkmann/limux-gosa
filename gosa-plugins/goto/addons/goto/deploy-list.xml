@@ -22,7 +22,7 @@
   </definition>
 
   <table>
-    <layout>||120px|80px|120px|100px|160px|180px;r|</layout>
+    <layout>||120px|80px|120px|160px|100px|180px;r|</layout>
 
     <column>
       <label>Target</label>
@@ -57,18 +57,18 @@
     </column>
 
     <column>
-      <label>Status</label>
-      <sortAttribute>STATUS,PLAINNAME,HEADERTAG</sortAttribute>
-      <sortType>string,string,string</sortType>
-      <value>%{filter:filterStatus(STATUS,MACADDRESS,HEADERTAG,PROGRESS,RESULT)}</value>
-      <export>true</export>
-    </column>
-
-    <column>
       <label>SI-Server</label>
       <sortAttribute>PLAINNAME</sortAttribute>
       <sortType>string</sortType>
       <value>%{filter:hostName(SISERVER)}</value>
+      <export>true</export>
+    </column>
+
+    <column>
+      <label>Status</label>
+      <sortAttribute>STATUS,PLAINNAME,HEADERTAG</sortAttribute>
+      <sortType>string,string,string</sortType>
+      <value>%{filter:filterStatus(STATUS,MACADDRESS,HEADERTAG,PROGRESS,RESULT)}</value>
       <export>true</export>
     </column>
 
