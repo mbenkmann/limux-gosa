@@ -25,6 +25,7 @@ import "C"
 
 import "unsafe"
 import "fmt"
+import "time"
 
 var pcap_filter = C.CString("udp port 40000")
 
@@ -54,7 +55,7 @@ func main() {
     data := make([]byte, pkt_header.caplen)
     copy(data, (*(*[10000000]byte)(unsafe.Pointer(pkt_data)))[0:])
     from_mac,to_mac := checkwol(data)
-    if from_mac != "" { fmt.Println(from_mac+" sends WOL to "+to_mac) }
+    if from_mac != "" { fmt.Printf("%v: %v sends WOL to %v\n",time.Now(), from_mac, to_mac) }
   }
   
 }
