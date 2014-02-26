@@ -27,7 +27,7 @@ import (
          "../message"
        )
 
-// Wakes up the machine with the MAC addres job.Text("macaddress"). No other
+// Wakes up the machine with the MAC address job.Text("macaddress"). No other
 // elements from job are used.
 func Wake(job *xml.Hash) {
   macaddress := job.Text("macaddress")
@@ -54,7 +54,7 @@ func Wake(job *xml.Hash) {
     
     // Now spam all networks with our WOL packet.
     for _, network := range db.SystemNetworksKnown() {
-      util.Log(1, "INFO! Spamming network %v with Wake-On-LAN for %v", network, macaddress)
+      util.Log(1, "INFO! Spamming network %v with Wake-On-LAN for MAC %v", network, macaddress)
       if err := util.Wake(macaddress, network); err != nil { 
         util.Log(0, "ERROR! Could not send Wake-On-LAN for MAC %v to %v: %v", macaddress,network,err)
       }
