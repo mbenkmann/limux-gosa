@@ -8,7 +8,6 @@ class termgroup extends plugin
     /* Stores a list of the member dn's */
     var $member_dn = array();
 
-    var $gotoMode           = "locked";
     var $gotoSyslogServer   = "";
     var $gotoNtpServer      = array();
     var $gotoTerminalPath   = array();
@@ -27,7 +26,7 @@ class termgroup extends plugin
             "localboot"       => "localboot"
             );
 
-    var $attributes     = array("gotoMode","gotoSyslogServer", "gotoNtpServer", "gotoTerminalPath", "gotoSwapServer");
+    var $attributes     = array("gotoSyslogServer", "gotoNtpServer", "gotoTerminalPath", "gotoSwapServer");
     var $objectclasses  = array("gotoWorkstationTemplate");
     var $CopyPasteVars  = array("gotoNtpServers","modes","inheritTimeServer","members");
     var $view_logged    = FALSE;
@@ -252,7 +251,7 @@ class termgroup extends plugin
         }
 
         /* Variables */
-        foreach(array("gotoMode","gotoNtpServer") as $val){
+        foreach(array("gotoNtpServer") as $val){
             $smarty->assign($val."_select", set_post($this->$val));
         }
 
@@ -386,7 +385,6 @@ class termgroup extends plugin
                     "plSection"     => array("administration"),
                     "plCategory"    => array("ogroups"),
                     "plProvidedAcls"=> array(
-                        "gotoMode"          => _("Mode"),     
                         "gotoSyslogServer"  => _("Syslog server"), 
                         "FAIstate"          => _("Action flag"), 
                         "gotoNtpServer"     => _("NTP server"),
@@ -412,7 +410,7 @@ class termgroup extends plugin
         $this->gotoNtpServer= array();
 
         $source_o = new termgroup ($this->config, $source['dn']);
-        foreach(array("gotoTerminalPath","gotoSwapServer","gotoSyslogServer","gotoMode") as $attr){
+        foreach(array("gotoTerminalPath","gotoSwapServer","gotoSyslogServer") as $attr){
             $this->$attr = $source_o->$attr;
         }
 
