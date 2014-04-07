@@ -60,6 +60,6 @@ func Send_set_activated_for_installation(client_addr string, system *xml.Hash) {
   // to do it twice. Better safe than sorry.
   Send_new_ldap_config(client_addr, system)
   set_activated_for_installation := "<xml><header>set_activated_for_installation</header><set_activated_for_installation></set_activated_for_installation><source>"+ config.ServerSourceAddress +"</source><target>"+ client_addr +"</target></xml>"
-  Client(client_addr).Tell(set_activated_for_installation, config.LocalClientMessageTTL)
+  Client(client_addr).Tell(set_activated_for_installation, config.NormalClientMessageTTL)
   Send_new_ldap_config(client_addr, system)
 }

@@ -65,7 +65,7 @@ func Init() { // not init() because we need to call it from go-susi.go
                 client_addr := client.Text("client")
                 util.Log(1, "INFO! Sending %v to %v", headertag, client_addr)
                 trigger_action := "<xml><header>"+headertag+"</header><"+headertag+"></"+headertag+"><source>"+config.ServerSourceAddress+"</source><target>"+client_addr+"</target></xml>"
-                message.Client(client_addr).Tell(trigger_action, config.LocalClientMessageTTL)
+                message.Client(client_addr).Tell(trigger_action, config.ActionAnnouncementTTL)
               }
             }
             

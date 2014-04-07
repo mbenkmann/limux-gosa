@@ -179,7 +179,7 @@ func Message_test() {
   buffy.Reset()
   t0 = time.Now()
   message.Client(listen_address).Tell("<xml><header>Alle meine Häschen</header></xml>", 3*time.Second)
-  time.Sleep(2500*time.Millisecond)
+  time.Sleep(1500*time.Millisecond)
   listen()
   time.Sleep(1*time.Second)
   x := get(t0)
@@ -187,7 +187,7 @@ func Message_test() {
     check(x[0].XML.Text("header"),"Alle meine Häschen")
     check(x[0].Key, keys[len(keys)-1])
   }
-  check(hasWords(buffy.String(),"Attempt #1","Attempt #2","Attempt #3","Successfully sent message"),"")
+  check(hasWords(buffy.String(),"Attempt #1","Attempt #2","Successfully sent message"),"")
   
   buffy.Reset()
   t0 = time.Now()  

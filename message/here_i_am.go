@@ -144,7 +144,7 @@ func here_i_am(xmlmsg *xml.Hash) {
     registered += "<ldap_available>true</ldap_available>"
   }
   registered += "</xml>"
-  Client(client_addr).Tell(registered, config.LocalClientMessageTTL)
+  Client(client_addr).Tell(registered, config.RegisteredMessageTTL)
   atomic.AddInt32(&TotalRegistrations, 1)
   if !checkTime(start, macaddress) { atomic.AddInt32(&MissedRegistrations, 1) }
   
@@ -163,7 +163,7 @@ func here_i_am(xmlmsg *xml.Hash) {
       util.Log(1, "INFO! %v => Creating install job and sending detect_hardware to %v", err, macaddress)
     
       detect_hardware := message_start + "<header>detect_hardware</header><detect_hardware></detect_hardware></xml>"
-      Client(client_addr).Tell(detect_hardware, config.LocalClientMessageTTL)
+      Client(client_addr).Tell(detect_hardware, config.NormalClientMessageTTL)
     
       makeSureWeHaveAppropriateProcessingJob(macaddress, "trigger_action_reinstall", "hardware-detection")
     }

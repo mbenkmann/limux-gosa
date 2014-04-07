@@ -75,23 +75,23 @@ type ClientConnection struct {
 }
 
 // Tell(msg, ttl): Tries to send text to the client.
-//                 If the client is locally
-//                 registered the message will be sent directly (encrypted with
-//                 the client's key), otherwise it
-//                 will be forwarded via the server responsible for the client.
 //                 The ttl determines how long the message will be buffered for
-//                 resend attempts if sending fails. ttl==0 (or some other
-//                 small ttl) should be set for
-//                 messages that are only of interest to locally registered
-//                 clients (like "registered", or "new_ldap_config")
+//                 resend attempts if sending fails. ttl values smaller than
+//                 100ms will be treated as 100ms.
 func (conn *ClientConnection) Tell(text string, ttl time.Duration) {
+  if ttl < 100*time.Millisecond {
+    ttl = 100*time.Millisecond
+  }
   util.Log(2, "DEBUG! Tell(): Queuing message for client %v with TTL %v: %v", conn.addr, ttl, text)
 
   msg := &ClientMessage{text, time.Now().Add(ttl)}
   
   go util.WithPanicHandler(func(){
     var try uint = 0
-  
+    
+    if msg.Expires.Before(time.Now()) {
+      util.Log(0, "ERROR! Scheduling of goroutine for sending message to %v delayed more than TTL %v => Message will not be sent", conn.addr, ttl)
+    } else {
     for {
       if try > 0 {
         expiry := msg.Expires.Sub(time.Now())
@@ -100,7 +100,10 @@ func (conn *ClientConnection) Tell(text string, ttl time.Duration) {
         }
         delay := (1 << try) * time.Second
         if delay > 60*time.Second { delay = 60*time.Second }
-        if delay > expiry { delay = expiry }
+        if delay > expiry { delay = expiry-1*time.Second }
+        if delay <= 0 {
+          break
+        }
         util.Log(2, "DEBUG! Sleeping %v before next send attempt", delay)
         time.Sleep(delay)
       }
@@ -146,6 +149,11 @@ func (conn *ClientConnection) Tell(text string, ttl time.Duration) {
           continue
         }
         
+        if msg.Expires.Before(time.Now()) {
+          util.Log(0, "ERROR! Connection to %v established, but TTL %v has expired in the meantime => Message will not be sent", conn.addr, ttl)
+          break
+        }
+        
         err = tcpConn.(*net.TCPConn).SetKeepAlive(true)
         if err != nil {
           util.Log(0, "ERROR! SetKeepAlive: %v", err)
@@ -163,6 +171,7 @@ func (conn *ClientConnection) Tell(text string, ttl time.Duration) {
         }
       }
     }  
+    }
     
     util.Log(0, "ERROR! Cannot send message to %v: %v", conn.addr, msg.Text)
   })

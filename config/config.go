@@ -190,9 +190,22 @@ var Timeout = 5 * time.Minute
 // in this time, a standard detected_hardware message will be sent to the server.
 var DetectHardwareTimeout = 30 * time.Second
 
-// Maximum time to buffer and retry sending a message that is of interest only
-// to a local client, such as new_ldap_config. This TTL is very short.
-var LocalClientMessageTTL = 0 * time.Second
+// Maximum time to buffer and retry sending a message that informs the client
+// of an action that is about to be performed (i.e. "trigger_action_*")
+// This TTL is very short to avoid the situation where a client is off when
+// the message is scheduled and then turns on due to a WOL and then gets
+// the delayed message even though the client is already performing the
+// operation that is being announced. See issue #169.
+var ActionAnnouncementTTL = 15 * time.Second
+
+// Maximum time to buffer and retry sending a "registered" message.
+// This time is short because the client will not accept a registered
+// message delayed more than 10s anyway.
+var RegisteredMessageTTL = 10 * time.Second
+
+// Maximum time to buffer and retry sending a client message without special
+// properties (e.g. a "detect_hardware" message).
+var NormalClientMessageTTL = 60 * time.Second
 
 // If a peer is down for more than this time, its jobs are removed from the
 // database and the connection to the peer is dropped. No reconnect will be

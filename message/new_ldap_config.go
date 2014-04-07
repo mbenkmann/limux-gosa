@@ -118,7 +118,7 @@ func Send_new_ldap_config(client_addr string, system *xml.Hash) {
         new_ntp_config += "<server>" + ntp + "</server>"
       }
       new_ntp_config += "</xml>"
-      Client(client_addr).Tell(new_ntp_config, config.LocalClientMessageTTL)
+      Client(client_addr).Tell(new_ntp_config, config.NormalClientMessageTTL)
     }
     
     // We always send a new_ldap_config message. If a gotoLdapServer attribute
@@ -165,7 +165,7 @@ func Send_new_ldap_config(client_addr string, system *xml.Hash) {
       new_ldap_config.Add("release", release)
     }
     
-    Client(client_addr).Tell(new_ldap_config.String(), config.LocalClientMessageTTL)
+    Client(client_addr).Tell(new_ldap_config.String(), config.NormalClientMessageTTL)
   }
 }
 
