@@ -21,6 +21,7 @@ MA  02110-1301, USA.
 package action
 
 import (
+         "math/rand"
          "time"
          
          "../db"
@@ -65,7 +66,7 @@ func Wake(job *xml.Hash) {
     }
     
     for k:=0; k<3; k++ {
-      time.Sleep(10*time.Second)
+      time.Sleep(time.Duration(10+rand.Intn(5))*time.Second)
       if message.GosaPing(macaddress) {
         util.Log(1, "INFO! Wake-On-LAN for MAC %v successful. Client is awake.", macaddress)
         goto confirmed_awake
