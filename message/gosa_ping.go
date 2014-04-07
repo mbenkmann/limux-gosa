@@ -31,7 +31,14 @@ import (
 //  unencrypted reply 
 func gosa_ping(xmlmsg *xml.Hash) string {
   macaddress := xmlmsg.Text("target")
+  if GosaPing(macaddress) { 
+    return "<xml><header>got_new_ping</header><got_new_ping></got_new_ping></xml>"
+  }
   
+  return ""
+}
+
+func GosaPing(macaddress string) bool {
   portscan := false
   target := ""
   if system := db.ClientWithMAC(macaddress); system != nil {
@@ -50,7 +57,7 @@ func gosa_ping(xmlmsg *xml.Hash) string {
   
   if target == "" {
     util.Log(0, "ERROR! gosa_ping can't determine IP for MAC \"%v\"", macaddress)
-    return ""
+    return false
   }
   
   reachable := make(chan bool, 2)
@@ -105,9 +112,9 @@ func gosa_ping(xmlmsg *xml.Hash) string {
     
   if <-reachable { 
     util.Log(1, "INFO! gosa_ping says client %v/%v is ON", macaddress, target) 
-    return "<xml><header>got_new_ping</header><got_new_ping></got_new_ping></xml>"
+    return true
   }
   
   util.Log(1, "INFO! gosa_ping says client %v/%v is OFF", macaddress, target) 
-  return ""
+  return false
 }
