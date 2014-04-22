@@ -59,7 +59,7 @@ func Init() { // not init() because we need to call it from go-susi.go
             if headertag != "send_user_msg" { // send_user_msg does not target a machine
               client := db.ClientWithMAC(macaddress)
               if client == nil {
-                util.Log(0, "ERROR! Client with MAC %v unknown. Cannot send %v", macaddress, headertag)
+                util.Log(0, "ERROR! Client with MAC %v not in clientdb. Cannot send %v", macaddress, headertag)
                 // Don't abort. Some jobs work even if we can't reach the client.
               } else { 
                 client_addr := client.Text("client")
