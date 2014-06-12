@@ -1,0 +1,515 @@
+#!/usr/bin/awk -f
+
+# Copyright (C) 2004 Matthias S. Benkmann <msbREMOVE-THIS@winterdrache.de>
+#
+#This program is free software; you can redistribute it and/or
+#modify it under the terms of the GNU General Public License
+#as published by the Free Software Foundation; version 2
+#of the License (ONLY THIS VERSION).
+#
+#This program is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+#
+#You should have received a copy of the GNU General Public License
+#along with this program; if not, write to the Free Software
+#Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+#Parameters 
+# (must be passed AFTER input file name, e.g. focss2xsl input.focss --param):
+#  --debug: Output debugging information on /dev/stderr
+#  --kill-attr <attr>: remove attribute <attr> from all nodes (unless
+#    attribute added via CSS-rule)
+#    (useful for class-attributes, which have no meaning in fo)
+
+#Limitations:
+#  Right now, [foo] is supported but [foo="bar"], [foo~="bar"] and
+#    [foo|="bar"] are not. Extend output() to fix.
+#  Selectors break when strings in a [...] selector 
+#    or tag/attribute names contain
+#    ":", ",", "~", "=", "#", ".", "[", "]", "+" or ">".
+#    To fix, replace the gsub()s in output() with something smarter that
+#    does not process string contents. To fix the probles with ",", change
+#    disentangle().
+#    Allowing special characters in
+#    tag/attribute names is more difficult to fix.
+#  Property-values and selectors are no translated in any way 
+#    (e.g. "<" => "&lt;")
+#  There is no way to limit the application of a rule to tags within a
+#    certain namespace. A rule "a {...}" applies to all tags with 
+#    local name "a".
+
+BEGIN {
+  NON_WHITESPACE_CHAR_re="([^\1-\x20])"
+  NON_EMPTY_WHITESPACE_re="[\1-\x20]+"
+  OPEN_BRACE_re= "{"
+  CLOSE_BRACE_re= "}"
+  EOL_re="\n"
+  COMMENT_START_re="(/\\*)";
+  COMMENT_END_re="(\\*/)";
+  SELECTOR_TAG_re="(([a-zA-Z_][a-zA-Z_0-9.-]*)|\\*)" #NO ":" ALLOWED!!
+  ATTR_re="([a-zA-Z_:][a-zA-Z_:0-9.-]*)"
+  CLASS_re=SELECTOR_TAG_re;
+  ID_re=SELECTOR_TAG_re;
+
+  STOP_re="(\"|;|:|" EOL_re "|" COMMENT_START_re "|" COMMENT_END_re "|" OPEN_BRACE_re "|" CLOSE_BRACE_re ")"
+  
+  line=1;
+  parsing="selector";
+  oldparsing="";
+  current="";
+  rules_count=0;
+  delete rule;
+  allow_attr="true()";
+  
+  debug=0;
+}  
+
+function normalize_space(str)
+{
+  gsub(NON_EMPTY_WHITESPACE_re," ",str);
+  sub("^"NON_EMPTY_WHITESPACE_re,"",str);
+  sub(NON_EMPTY_WHITESPACE_re"$","",str);
+  return str;
+};
+
+function parse(      rest,scanstart,rstart,rlength,found,append_to_current,prop_count,dbg)
+{
+  current="";
+  rest=$0;
+  scanstart=1;
+  append_to_current=1;
+  prop_count=0;
+  while (match(rest,STOP_re))
+  {
+    found=substr(rest,RSTART,RLENGTH)
+    if (debug) 
+    {
+      dbg="Found '" found "' while parsing " parsing;
+      gsub("\n","\\n",dbg);
+      print dbg >"/dev/stderr";
+    }
+    rstart=RSTART
+    rlength=RLENGTH
+    if (append_to_current) 
+      current=current substr(rest,1,rstart-1);
+    rest=substr(rest,rstart+rlength)
+    scanstart=scanstart+rstart-1+rlength
+    
+    if (found ~ EOL_re )
+    {
+      ++line;
+      if (append_to_current) current=current " ";
+    }
+    else if (found ~ COMMENT_START_re)
+    {
+      if (parsing!="comment" && parsing!="string")
+      {
+        oldparsing=parsing;
+        parsing="comment";
+        append_to_current=0;
+      }
+      else
+      {
+        if (append_to_current) current=current found;
+      }
+    }
+    else if (found ~ "\"")
+    {
+      if (append_to_current) current=current found;
+      
+      if (parsing=="string")
+      {
+        parsing=oldparsing;
+      }
+      else
+      if (parsing!="comment")
+      {
+        oldparsing=parsing;
+        parsing="string";
+      };
+    }  
+    else if (found ~ COMMENT_END_re)
+    {
+      if (parsing=="comment")
+      {
+        parsing=oldparsing;
+        append_to_current=1;
+      }
+      else
+      {
+        if (append_to_current) current=current found;
+      };
+    }
+    else if (found ~ OPEN_BRACE_re)
+    {
+      if (parsing=="selector")
+      {
+        parsing="property-name";
+        rule[rules_count,"selector"]=normalize_space(current);
+        current="";
+      }
+      else
+      {
+        if (append_to_current) current=current found;
+      };
+    }
+    else if (found ~ ":" )
+    {
+      if (parsing=="property-name")
+      {
+        parsing="property-value";
+        rule[rules_count,"property-name",prop_count]=normalize_space(current);
+        current="";
+      }
+      else
+      {
+        if (append_to_current) current=current found;
+      };
+    }
+    else if (found ~ ";")
+    {
+      if (parsing=="property-value")
+      {
+        current=normalize_space(current);
+        if (rule[rules_count,"property-name",prop_count]=="display")
+        {
+          rule[rules_count,"display"]=current;
+        }
+        else
+        {
+          rule[rules_count,"property-value",prop_count]=current;
+          ++prop_count;
+        };
+        current="";
+        parsing="property-name";
+      }
+      else
+      {
+        if (append_to_current) current=current found;
+      };
+    }
+    else if (found ~ CLOSE_BRACE_re)
+    {
+      if (parsing=="property-name" || parsing=="property-value")
+      {
+        if (parsing=="property-value")
+        {
+          current=normalize_space(current);
+          if (rule[rules_count,"property-name",prop_count]=="display")
+          {
+            rule[rules_count,"display"]=current;
+          }
+          else
+          {
+            rule[rules_count,"property-value",prop_count]=current;
+            ++prop_count;
+          };
+        };
+        
+        rule[rules_count,"#properties"]=prop_count;
+        ++rules_count;
+        prop_count=0;
+        parsing="selector";
+        current="";
+      }
+      else
+      {
+        if (append_to_current) current=current found;
+      };
+    }
+    
+    
+  }
+  
+}
+
+function disentangle(  rule2,i,j,k,sel,selstr,count)
+{
+  delete rule2;
+  for (i in rule) rule2[i]=rule[i];
+  rules_count2=rules_count;
+  rules_count=0;
+  delete rule;
+  for (i=0; i<rules_count2; ++i)
+  {
+    selstr=rule2[i,"selector"];
+    count=split(selstr,sel,",");
+    if (count==0)
+    {
+      sel[1]=selstr;
+      count=1;
+    };
+    for (j=1; j<=count; ++j)
+    {
+      rule[rules_count,"selector"]=sel[j];
+      rule[rules_count,"#properties"]=rule2[i,"#properties"];
+
+      for (k=0; k<rule2[i,"#properties"]; ++k)
+      {
+        rule[rules_count,"property-name",k]=rule2[i,"property-name",k];
+        rule[rules_count,"property-value",k]=rule2[i,"property-value",k];
+      };
+
+      if (rule2[i,"display"]!=null) 
+        rule[rules_count,"display"]=rule2[i,"display"];
+        
+      ++rules_count;
+    };
+  };
+};
+
+function precedence(idx  ,a,b,c)
+{
+ a="0" rule[idx,"prec-a"];
+ while (length(a)<4) a="0" a;
+ b="0" rule[idx,"prec-b"];
+ while (length(b)<4) b="0" b;
+ c="0" rule[idx,"prec-c"];
+ while (length(c)<4) c="0" c;
+ return a b c ;
+};
+
+function output(   idx,i,j,k,ruletrans,ruletrans2,ruleprec,temp,sel,selstr,combine,level,display,propname,propval)
+{
+  print "<xsl:template match='*'>";
+  
+  for (idx=0; idx<rules_count; ++idx)
+  {
+    rule[idx,"prec-a"]=0;
+    rule[idx,"prec-b"]=0;
+    rule[idx,"prec-c"]=0;
+    selstr=rule[idx,"selector"];
+    gsub(":"NON_EMPTY_WHITESPACE_re,":",selstr);
+    gsub("#"NON_EMPTY_WHITESPACE_re,"#",selstr);
+    gsub("\\["NON_EMPTY_WHITESPACE_re,"[",selstr);
+    gsub(NON_EMPTY_WHITESPACE_re"\\]","]",selstr);
+    gsub("\\."NON_EMPTY_WHITESPACE_re,".",selstr);
+    gsub("="NON_EMPTY_WHITESPACE_re"\"","=\"",selstr);
+    gsub(NON_EMPTY_WHITESPACE_re"=","=",selstr);
+    gsub(NON_EMPTY_WHITESPACE_re"~","~",selstr);
+    gsub("\\+"," + ",selstr);
+    gsub(">"," > ",selstr);
+    gsub("\\."," .",selstr);
+    gsub("#"," #",selstr);
+    gsub(":"," :",selstr);
+    gsub("\\["," [",selstr);
+    gsub("]","] ",selstr);
+    j=split(selstr,sel,NON_EMPTY_WHITESPACE_re)+1;
+    
+    xpath="./self::*[true()";
+    level=1;
+    
+    combine="self";
+    while (j>1)
+    {
+      i=j-1;
+      while (i>=1 && !(sel[i] ~ "^"SELECTOR_TAG_re"$"))
+      {
+        if (sel[i]=="+") combine="preceding-sibling";
+        if (sel[i]==">") combine="parent";
+        --i;
+      };
+      
+      if (i<1) 
+      {
+        if (combine=="self") # if no other element name, imply *
+          sel[i]="*";
+        else
+          break;
+      };
+      
+      
+      ++level;
+      if (sel[i]!="*") 
+      {
+        ++rule[idx,"prec-c"];
+        xpath=xpath " and " combine "::*[local-name(.)=\"" sel[i] "\"";
+        if (combine=="preceding-sibling") xpath=xpath " and position()=1";
+      }
+      else #if (sel[i]=="*")
+      {
+        xpath=xpath " and " combine "::*[true()";
+      }
+      
+      while (--j>i)
+      {
+        if (sel[j] ~ "^:first-child$")
+        {
+          xpath=xpath " and (count(preceding-sibling::*)=0)";
+          ++rule[idx,"prec-b"];
+        }
+        else if (sel[j] ~ "^\\["ATTR_re"]$")
+        {
+          match(sel[j],ATTR_re);
+          xpath=xpath " and @" substr(sel[j],RSTART,RLENGTH);
+          ++rule[idx,"prec-b"];
+        }
+        else if (sel[j] ~ "^\\." CLASS_re "$")
+        {
+          xpath=xpath " and (@class=\"" substr(sel[j],2) "\")";
+          ++rule[idx,"prec-b"];
+        }
+        else if (sel[j] ~ "^#" ID_re "$")
+        {
+          xpath=xpath " and (@id=\"" substr(sel[j],2) "\")";
+          ++rule[idx,"prec-a"];
+        }
+      };
+      
+      combine="ancestor";
+    };
+    
+    while (level>0)
+    {
+      xpath=xpath "]";
+      --level;
+    };
+    
+    rule[idx,"xpath"]=xpath;
+    
+  };
+  
+  for (i=0; i<rules_count; ++i)
+    ruletrans[i]=i;
+  
+  for (j=rules_count-1; j>0; --j)
+    for (i=0; i<j; ++i)
+      if (precedence(ruletrans[i])>precedence(ruletrans[i+1]))
+      {
+        temp=ruletrans[i];
+        ruletrans[i]=ruletrans[i+1];
+        ruletrans[i+1]=temp;
+      };
+  #ruletrans now translates indices so that rule[ruletrans[0]] is the rule
+  #with the lowest precedence
+  
+  j=0;
+  for (i=rules_count-1; i>=0; --i)
+    if (rule[ruletrans[i],"display"]!=null)
+    {
+      ruletrans2[j]=ruletrans[i];
+      ++j;
+    };
+  for (i=rules_count-1; i>=0; --i)
+    if (rule[ruletrans[i],"display"]==null)
+    {
+      ruletrans2[j]=ruletrans[i];
+      ++j;
+    };
+  #rulestrans2 now translates indices in opposite order compared to ruletrans,
+  #with the additional condition that indices of rules that have a "display"
+  #component are listed before all those that have none.
+  
+  print "  <xsl:choose>";
+  for (i=0; i<rules_count; ++i)
+  {
+    print "";
+    print "    <xsl:when test='" rule[ruletrans2[i],"xpath"] "'>";
+    if (rule[ruletrans2[i],"display"]!=null)
+      display="\"" rule[ruletrans2[i],"display"] "\"";
+    else
+      display="local-name(.)";
+    print "      <xsl:variable name='name' select='" display "'/>";
+    print "      <xsl:variable name='ns' select='namespace-uri(.)'/>";
+    print "      <xsl:element name='{$name}' namespace='{$ns}'>";
+      
+      for (j=0; j<rules_count; ++j)
+      {
+        print "";
+        print "        <xsl:if test='" rule[ruletrans[j],"xpath"]  "'>";
+        for (k=0; k<rule[ruletrans[j],"#properties"]; ++k)
+        {
+          propname=rule[ruletrans[j],"property-name",k];
+          propval=rule[ruletrans[j],"property-value",k];
+          print "          <xsl:attribute name='" propname "'>" propval "</xsl:attribute>";
+        };
+        print "        </xsl:if>";
+      };
+      
+      print "        <xsl:for-each select='@*'><xsl:if test='"allow_attr"'><xsl:attribute name='{local-name(.)}'><xsl:value-of select='.'/></xsl:attribute></xsl:if></xsl:for-each>";
+      print "        <xsl:apply-templates/>";
+    print "      </xsl:element>";
+    print "      </xsl:when>";
+  };
+  
+  print "";
+  print "    <xsl:otherwise>";
+    print "      <xsl:copy>";
+      print "      <xsl:for-each select='@*'><xsl:if test='"allow_attr"'><xsl:copy/></xsl:if></xsl:for-each>";
+      print "      <xsl:apply-templates/>";
+    print "      </xsl:copy>";
+  print "    </xsl:otherwise>";
+  print "  </xsl:choose>";
+    
+  print "</xsl:template>";
+};
+
+
+function debug_rules(   i,j,dis)
+{
+  print "" >"/dev/stderr";
+  print "#rules: " rules_count  >"/dev/stderr";
+  for (i=0; i<rules_count; ++i)
+  {
+    print "Rule " i ":" >"/dev/stderr";
+    print "  Selector: " rule[i,"selector"] >"/dev/stderr";
+    if (rule[i,"display"]==null) 
+      dis="n/a"
+    else
+      dis=rule[i,"display"];
+    print "  Display: " dis >"/dev/stderr";
+    print "  #properties: " rule[i,"#properties"] >"/dev/stderr";
+    for (j=0; j<rule[i,"#properties"]; ++j)
+    {
+      print "    " rule[i,"property-name",j] ":"rule[i,"property-value",j] >"/dev/stderr";
+    };
+    
+    print "" >"/dev/stderr";
+  }
+};
+
+function parse_commandline(   i)
+{
+  i=1
+  while (i<ARGC)
+  {
+    if (ARGV[i]=="--debug")
+    {
+      debug=1;
+    }
+    else if (ARGV[i]=="--kill-attr")
+    {
+      ++i
+      if (i>=ARGC) error("Attribute name missing after --kill-attr!");
+      allow_attr=allow_attr " and not(local-name(.)=\"" ARGV[i] "\")";
+    }
+    
+    ++i 
+  }
+}
+
+function error(str)
+{
+  print "ERROR(line " line "): " str >"/dev/stderr";
+  exit 1
+}
+
+
+BEGIN {
+  RS="ThisStRinGNEvErOCCUrsiNinPUt";
+  FS="ThisStRinGNEvErOCCUrsiNinPUt";
+  parse_commandline();
+  getline;
+  print "<?xml version='1.0' encoding='iso-8859-1'?>";
+  print "<xsl:stylesheet version='1.0' xmlns:xsl='http://www.w3.org/1999/XSL/Transform'>"
+  print "<xsl:output method='xml' version='1.0' encoding='iso-8859-1' indent='no'/>";
+  parse();
+  if (debug) debug_rules();
+  disentangle();
+  if (debug) debug_rules();
+  output();
+  print "</xsl:stylesheet>";
+}
+
