@@ -130,6 +130,8 @@
   <xsl:text>&#10;.br</xsl:text>
   <xsl:text>&#10;.BR &quot;sibridge&quot; &quot;(1)       -  remote control for an si-server&quot;</xsl:text>
   <xsl:text>&#10;.br</xsl:text>
+  <xsl:text>&#10;.BR &quot;initrd_autopack&quot; &quot;(5)-  a godsend for developers of initrd.img&quot;</xsl:text>
+  <xsl:text>&#10;.br</xsl:text>
   <xsl:text>&#10;.BR &quot;server.conf&quot; &quot;(5)    -  configuration file&quot;</xsl:text>
   <xsl:text>&#10;.br</xsl:text>
   <xsl:text>&#10;.BR &quot;gosa-si-jobs&quot; &quot;(5)   -  jobs database, job-related messages&quot;</xsl:text>
