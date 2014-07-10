@@ -1,4 +1,0 @@
-# Should we start the client
-START_CLIENT=1
-# Level of debugging for the client
-DEBUG=-vvvvvvv

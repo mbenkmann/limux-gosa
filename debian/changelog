@@ -1,3 +1,9 @@
+gosa (2.8.1) unstable; urgency=medium
+
+  * Version bump to account for all the LHM fixes
+
+ -- Matthias S. Benkmann <matthias.benkmann@muenchen.de>  Thu, 10 Jul 2014 13:37:43 +0200
+
 gosa (2.7-1) unstable; urgency=low
 
   * New upstream release

@@ -44,7 +44,7 @@ if(!isset($_SERVER['CONFIG_FILE'])){
 }
 
 /* Define common locatitions */
-define ("CONFIG_TEMPLATE_DIR", "../contrib");
+define ("CONFIG_TEMPLATE_DIR", "/usr/share/doc/gosa");
 define ("TEMP_DIR","/var/cache/gosa/tmp");
 
 /* Define get_list flags */
@@ -75,7 +75,7 @@ define('DES3_CBC_MD5',5);
 define('DES3_CBC_SHA1',16);
 
 /* Include required files */
-include_once("class_location.inc");
+require_once("/var/cache/gosa/class.cache");
 require_once ("functions_debug.inc");
 require_once ("accept-to-gettext.inc");
 

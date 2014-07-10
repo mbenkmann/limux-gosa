@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-define ("LOCALE_DIR", dirname(dirname(__FILE__))."/locale/compiled");
+define ("LOCALE_DIR", "/var/cache/gosa/locale");
 
 function gosaRaiseError($errno, $errstr, $errfile, $errline)
 {
@@ -295,7 +295,11 @@ ini_set("report_memleaks",1);
 ini_set("include_path",".:$BASE_DIR/include:$BASE_DIR/include/utils/excel:/usr/share/php");
 
 /* Do smarty setup */
-require("smarty/Smarty.class.php");
+if (file_exists("/usr/share/php/smarty3/Smarty.class.php")){
+	require("/usr/share/php/smarty3/Smarty.class.php");
+} else {
+	require("/usr/share/php/smarty3/libs/Smarty.class.php");
+}
 $smarty = new Smarty;
 $smarty->template_dir = $BASE_DIR.'/ihtml/';
 $smarty->caching= false;

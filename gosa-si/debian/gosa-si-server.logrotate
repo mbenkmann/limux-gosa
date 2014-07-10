@@ -1,9 +1,0 @@
-/var/log/gosa-si-server.log {
-    weekly
-    rotate 4
-    compress
-    missingok
-    postrotate
-    endscript
-}
-

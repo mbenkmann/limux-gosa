@@ -1,4 +1,0 @@
-server/events/opsi_com.pm			usr/lib/gosa-si/server/GosaPackages
-server/events/opsi_com.pm			usr/lib/gosa-si/server/ServerPackages
-contrib/90_gosa.conf					usr/share/doc/gosa-si-server-opsi
-contrib/README								usr/share/doc/gosa-si-server-opsi

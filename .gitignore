@@ -4,5 +4,6 @@
 *.changes
 *.upload
 *.dsc
+*~
 gosa-2.7+git*
 gosa-si-2.7+git*
