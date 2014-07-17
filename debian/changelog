@@ -1,3 +1,11 @@
+gosa (2.8.2) trusty; urgency=medium
+
+  * Removed smarty3 and smarty3-gettext from the build as they are provided by Ubuntu
+  * changed source/format to quilt
+  * debian/rules:override_dh_auto_clean auto-builds .orig.tar.gz if not present
+
+ -- Matthias S. Benkmann <matthias.benkmann@muenchen.de>  Thu, 17 Jul 2014 11:54:09 +0200
+
 gosa (2.8.1) unstable; urgency=medium
 
   * Version bump to account for all the LHM fixes
