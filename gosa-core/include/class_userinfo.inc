@@ -763,7 +763,8 @@ class userinfo
   function ignore_acl_for_current_user()
   {
     if($this->ignoreACL === NULL){
-        $this->ignoreACL = ($this->config->get_cfg_value("core","ignoreAcl") == $this->dn);
+        $ignore_dn = LDAP::convert($this->config->get_cfg_value("core","ignoreAcl"));
+        $this->ignoreACL = ($ignore_dn == $this->dn);
     }
     return($this->ignoreACL);
   }
