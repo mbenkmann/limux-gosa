@@ -18,3 +18,4 @@ override_dh_auto_clean:
 	find -maxdepth 1 -type l -exec rm {} \;
 	dh_auto_clean
 	test -f ../gosa_$(GOSAVERSION).orig.tar.gz || tar -czf ../gosa_$(GOSAVERSION).orig.tar.gz --transform='s/^./gosa-$(GOSAVERSION)/' --exclude='./.git*' --exclude='debian*' .
+	sed -i /GOSAVERSION/d debian/rules #remove ugliness from debian source package
