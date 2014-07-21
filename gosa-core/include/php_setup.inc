@@ -175,6 +175,9 @@ function gosaRaiseError($errno, $errstr, $errfile, $errline)
           if(is_object($arg)){
             $arg = "CLASS:&nbsp;".get_class($arg);
           }
+          if(is_array($arg)){
+            $arg = "[Array data]";
+          }
   
           $args.= htmlentities("\"$arg\", ");
         }
