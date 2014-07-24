@@ -232,8 +232,10 @@ class department extends plugin
                 }
             }
         }
-        $this->baseSelector->setBases($tmp);
-        $this->baseSelector->update(TRUE);
+        if ($tmp) {
+            $this->baseSelector->setBases($tmp);
+            $this->baseSelector->update(TRUE);
+        }
 
         foreach ($this->attributes as $val){
             $smarty->assign("$val", set_post($this->$val));
