@@ -3,5 +3,4 @@ gosa: extra-license-file usr/share/gosa/setup/license.txt
 gosa: extra-license-file usr/share/gosa/setup/setup_license.tpl
 gosa: embedded-javascript-library usr/share/gosa/html/include/prototype.js
 gosa: embedded-javascript-library usr/share/gosa/html/include/scriptaculous.js
-gosa: embedded-php-library usr/share/gosa/include/smarty/Smarty.class.php
 

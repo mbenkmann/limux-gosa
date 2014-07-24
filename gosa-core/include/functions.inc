@@ -24,7 +24,7 @@
  * Common functions and named definitions. */
 
 /* Define globals for revision comparing */
-$svn_path = '$HeadURL: LHM $';
+$svn_path = '2.8';
 $svn_revision = '$Revision$';
 
 /* Configuration file location */

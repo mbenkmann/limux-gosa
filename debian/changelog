@@ -1,3 +1,11 @@
+gosa (2.8.3) trusty; urgency=medium
+
+  * Removed outdated copies of files included in smarty3 package
+  * Removed redundant copies from gosa package of files included in gosa-smarty-plugins
+  * Updated GOsa version to 2.8 in functions.inc
+
+ -- msb <msb@build.tvc.muenchen.de>  Thu, 24 Jul 2014 09:48:06 +0200
+
 gosa (2.8.2) trusty; urgency=medium
 
   * Removed smarty3 and smarty3-gettext from the build as they are provided by Ubuntu
