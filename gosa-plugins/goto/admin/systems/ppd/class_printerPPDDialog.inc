@@ -498,6 +498,16 @@ class printerPPDDialog extends plugin
         return($str) ; 
     }
 
+    function convert_charset($item)
+    {
+        if(($string = preg_replace("/\<([A-Za-z0-9]+)\>/", "%$1", $item)) != $item)
+        {
+            return utf8_encode(urldecode($string));
+        } else {
+            return $item;
+        }
+    }
+
     /* Display all options from the selected ppd file */
     function generateProperties()
     { 
@@ -526,7 +536,15 @@ class printerPPDDialog extends plugin
                 if ($feed == ""){
                     $feed= "<br>";
                 }
-                $str .= "<b>"._("Section")." '".$cat."'&nbsp;</b><br>";
+
+                if(!isset($obj["_name"]))
+                {
+                    $str .= ($cat != "NO_SECTION") ? "<b>".$cat."</b><hr>" : "<hr>";
+
+                } else {
+                    $str .= "<b>".$this->convert_charset($obj['_name'])."</b><hr>";
+                }
+
                 $str .= "</td></tr>";       
 
                 /* Add attributes of the current category */
@@ -537,7 +555,7 @@ class printerPPDDialog extends plugin
 
                     /* Prepare data */
                     $values   = array();
-                    $name     = $settings['_name'];
+                    $name     = $this->convert_charset($settings['_name']);
 
                     if (!isset($settings['_default'])){
                         $default  = "";
@@ -555,7 +573,7 @@ class printerPPDDialog extends plugin
                     /* Get all values */ 
                     foreach( $settings as $vname => $value){
                         if($vname[0] != "_"){
-                            $values[$vname]= $value;
+                            $values[$vname]= $this->convert_charset($value);
                         }
                     }
 

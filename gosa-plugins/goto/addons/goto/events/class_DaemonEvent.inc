@@ -315,7 +315,7 @@ class DaemonEvent
         if($this->target_listing == NULL){ 
             $this->target_listing = new EventAddSystemDialog($this->config,$this);
         }
-        $target_dns = array_map(function ($x) { return $x['dn']; }, $this->a_targets);
+        $target_dns = array_map(function ($x) { if (isset($x['dn'])) return $x['dn']; }, $this->a_targets);
         $this->target_listing->setExcludeDns($target_dns);
 
         $smarty = get_smarty();

@@ -1245,7 +1245,7 @@ class environment extends plugin
   {
     if (isset($this->parent->by_object['group'])) {
       $group = $this->parent->by_object['group'];
-      return array_map(function ($x) { return $x['dn']; }, array_values($group->members));
+      return array_map(function ($x) { if (isset($x['dn'])) return $x['dn']; }, array_values($group->members));
     } else {
       return $this->parent->by_object['ogroup']->member;
     }

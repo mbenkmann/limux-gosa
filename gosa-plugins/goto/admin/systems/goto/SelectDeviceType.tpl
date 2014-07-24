@@ -34,7 +34,7 @@
     <tr>
      <td> 
       {t}Choose an object group as template{/t}&nbsp;
-	  <select name="ObjectGroup" title="{t}Object group{/t}" style="width:120px;" size=1>
+	  <select name="ObjectGroup" title="{t}Object group{/t}" style="width:220px;" size=1>
 		{if $dns_cnt == 1}
 		<option value='none'>{t}none{/t}</option>	
 		{/if}

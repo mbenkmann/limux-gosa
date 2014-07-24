@@ -8,24 +8,19 @@
 <br>
 </p>
 
-<p class="seperator">
-<br>
- <b>{t}Select object group{/t}
-<br>
-<br>
-</p>
 <table summary="" style='width:100%'>
  <tr>
   <td style='width:49%'>
    <table summary="">
    <tr>
       <td>
-      {t}Choose an object group as template{/t}&nbsp;
-      <select name="SelectedOgroup" title="{t}Select object group{/t}" style="width:120px;">
+      <b>{t}Choose an object group as template{/t}&nbsp;</b>
+      <select name="SelectedOgroup" title="{t}Select object group{/t}" style="width:220px;">
       {html_options options=$ogroups}
      </td>
     </tr>
   </table>
+  <br>
   <hr>
   <p style="text-align:right">
   <button type="submit" name="edit_continue">{t}Continue{/t}</button>&nbsp

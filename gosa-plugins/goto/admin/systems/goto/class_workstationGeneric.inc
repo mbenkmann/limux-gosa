@@ -3,7 +3,7 @@
 class workgeneric extends plugin
 {
     /* Generic terminal attributes */
-    var $gotoMode= "locked";
+    var $gotoMode= "active";
     var $initial_gotoMode= "locked";
     var $gotoSyslogServer= "";
     var $gotoSyslogServers= array();
@@ -533,7 +533,7 @@ class workgeneric extends plugin
 
         /* Only systems with a valid ldap handle can be activated 
          */
-        if($this->gotoMode == "active" && $this->initial_gotoMode != "active"){
+        if($this->gotoMode == "active"){
 
             if(isset($this->parent->by_object['workstartup']) &&
                     !count($this->parent->by_object['workstartup']->gotoLdapServers) && 
@@ -541,9 +541,9 @@ class workgeneric extends plugin
 
                 $message[] = _("A valid LDAP server assignment is missing!");
             }
-        }else{
+
             /* Warn the user, that this host is currently installing */
-            if($this->currently_installing && !$this->currently_installing_warned && 
+            if($this->currently_installing && !$this->currently_installing_warned && $this->initial_gotoMode != "locked" &&
                     !preg_match("/".preg_quote(get_ou("ArpNewDevice", "systemIncomingRDN"), '/')."/i",$this->orig_dn)){
 
                 /* Force aborting without message dialog */

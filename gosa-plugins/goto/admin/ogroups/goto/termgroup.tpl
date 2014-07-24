@@ -47,16 +47,6 @@
 
    <table summary="{t}Goto settings{/t}"> 
     <tr>
-     <td>{t}Mode{/t}</td>
-     <td>
-      {render acl=$gotoModeACL}
-       <select name="gotoMode" title="{t}Select terminal mode{/t}" size=1>
-        {html_options options=$modes selected=$gotoMode_select}
-       </select>
-      {/render}
-     </td>
-    </tr>
-    <tr>
      <td><LABEL for="gotoSyslogServer">{t}Syslog server{/t}</LABEL></td>
      <td>
       {render acl=$gotoSyslogServerACL}
