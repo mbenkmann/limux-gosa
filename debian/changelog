@@ -1,10 +1,19 @@
+gosa (2.8.4) trusty; urgency=medium
+
+  * merge LHM changes
+  * make generateLdif() work again (LHM Trac #9480)
+  * fix PHP complaining about missing property isPluginModified
+  * fix PHP error on edit department dialog if no bases for moving to are available
+
+ -- Matthias S. Benkmann <matthias.benkmann@muenchen.de>  Thu, 24 Jul 2014 13:03:22 +0200
+
 gosa (2.8.3) trusty; urgency=medium
 
   * Removed outdated copies of files included in smarty3 package
   * Removed redundant copies from gosa package of files included in gosa-smarty-plugins
   * Updated GOsa version to 2.8 in functions.inc
 
- -- msb <msb@build.tvc.muenchen.de>  Thu, 24 Jul 2014 09:48:06 +0200
+ -- Matthias S. Benkmann <matthias.benkmann@muenchen.de>  Thu, 24 Jul 2014 09:48:06 +0200
 
 gosa (2.8.2) trusty; urgency=medium
 
