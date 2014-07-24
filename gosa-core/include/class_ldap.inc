@@ -1105,7 +1105,13 @@ class LDAP
         $host = escapeshellarg($this->hostname);
         $admin = escapeshellarg($this->binddn);
         $filter = escapeshellarg($filter);
-        $cmd = "ldapsearch -x -LLLL -D {$admin} {$filter} {$limit} {$scope} -H {$host} -b {$dn} -W ";
+
+        $pwdfname = tempnam("/tmp", "gosa-ldapsearch-");
+        $handle = fopen($pwdfname, "w");
+        fwrite($handle, $pwd);
+        fclose($handle);
+        
+        $cmd = "ldapsearch -x -LLLL -D {$admin} {$filter} {$limit} {$scope} -H {$host} -b {$dn} -y {$pwdfname}";
 
         // Create list of process pipes  
         $descriptorspec = array(
@@ -1116,15 +1122,14 @@ class LDAP
         // Try to open the process 
         $process = proc_open($cmd, $descriptorspec, $pipes);
         if (is_resource($process)) {
-
-            // Write the password to stdin
-            fwrite($pipes[0], $pwd);
             fclose($pipes[0]);
 
             // Get results from stdout and stderr
             $res = stream_get_contents($pipes[1]);
             $err = stream_get_contents($pipes[2]);
             fclose($pipes[1]);
+            
+            unlink($pwdfname);
 
             // Close the process and check its return value
             if(proc_close($process) != 0){
@@ -1132,6 +1137,7 @@ class LDAP
                 return(NULL);
             }
         }
+        @unlink($pwdfname);
         return($res);
     }
 
