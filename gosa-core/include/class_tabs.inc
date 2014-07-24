@@ -27,6 +27,7 @@ class tabs
   var $acl;
   var $is_template;
   var $is_new= FALSE;
+  var $isPluginModified = FALSE;
 
   var $last= "";
   var $current= "";
