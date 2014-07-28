@@ -3123,20 +3123,6 @@ function generate_smb_nt_hash($password)
         return(array());
     }
 
-  }elseif ($config->get_cfg_value("core","gosaSupportURI") != ""){
-
-    // Try using gosa-si
-  	$res= gosaSupportDaemon::send("gosa_gen_smb_hash", "GOSA", array("password" => $password), TRUE);
-    if (isset($res['XML']['HASH'])){
-    	$hash= $res['XML']['HASH'];
-    } else {
-      $hash= "";
-    }
-
-    if ($hash == "") {
-      msg_dialog::display(_("Configuration error"), _("Cannot generate SAMBA hash!"), ERROR_DIALOG);
-      return ("");
-    }
   } else {
 	  $tmp = $config->get_cfg_value("core",'sambaHashHook');
       $tmp = preg_replace("/%userPassword/", escapeshellarg($password), $tmp);
