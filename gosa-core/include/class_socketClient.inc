@@ -211,8 +211,10 @@ class Socket_Client
       fclose($this->handle);
     }
 
-    /* Terminate decryption handle and close module */
-    @mcrypt_generic_deinit($this->td);
+    /* Terminate decryption handle. Module is closed automatically at end of script. */
+    if ($this->td) {
+      mcrypt_generic_deinit($this->td);
+    }
   }
 }
 // vim:tabstop=2:expandtab:shiftwidth=2:filetype=php:syntax:ruler:
