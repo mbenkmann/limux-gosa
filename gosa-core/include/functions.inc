@@ -3143,13 +3143,13 @@ function generate_smb_nt_hash($password)
       $tmp = preg_replace("/%password/", escapeshellarg($password), $tmp);
 	  @DEBUG (DEBUG_LDAP, __LINE__, __FUNCTION__, __FILE__, $tmp, "Execute");
 
-	  exec($tmp, $ar);
+	  exec($tmp, $ar, $retval);
 	  flush();
 	  reset($ar);
 	  $hash= current($ar);
 
-    if ($hash == "") {
-      msg_dialog::display(_("Configuration error"), sprintf(_("Generating SAMBA hash by running %s failed: check %s!"), bold($config->get_cfg_value("core",'sambaHashHook'), bold("sambaHashHook"))), ERROR_DIALOG);
+    if ($hash == "" || $retval != 0) {
+      msg_dialog::display(_("Configuration error"), sprintf(_("Generating SAMBA hash by running %s failed: check %s!"), bold($config->get_cfg_value("core",'sambaHashHook')), bold("sambaHashHook")), ERROR_DIALOG);
       return(array());
     }
   }
