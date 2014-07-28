@@ -2961,7 +2961,6 @@ function change_password ($dn, $password, $mode=FALSE, $hash= "", $old_password 
         if (!$mode && !empty($tmp)){
             $attrs= generate_smb_nt_hash($password);
             if(!count($attrs) || !is_array($attrs)){
-                msg_dialog::display(tr("Error"),tr("Cannot generate SAMBA hash!"),ERROR_DIALOG);
                 return(FALSE);    
             }else{
                 $shadow = (isset($attrs["shadowLastChange"][0]))?(int)(date("U") / 86400):0;
