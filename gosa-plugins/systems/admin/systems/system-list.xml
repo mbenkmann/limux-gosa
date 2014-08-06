@@ -236,14 +236,14 @@
      <image>images/lists/element.png[new]</image>
      <label>Create</label>
 
-     <action>
+     <!-- <action>
       <name>new_device</name>
       <type>entry</type>
       <image>images/lists/edit.png</image>
       <label>Device</label>
       <acl>terminal/termgeneric[c]</acl> 
       <depends>Device</depends>
-     </action>
+     </action> -->
 
      <action>
       <name>new_goServer</name>
