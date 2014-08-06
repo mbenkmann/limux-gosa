@@ -1,6 +1,7 @@
 gosa (2.8.5) trusty; urgency=medium
 
-  * fix PHP error
+  * fix PHP errors
+  * remove non-working generic Device creation from Systems/Actions
 
  -- msb <msb@build.tvc.muenchen.de>  Mon, 04 Aug 2014 13:58:55 +0200
 
