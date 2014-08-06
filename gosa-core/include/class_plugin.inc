@@ -1647,6 +1647,7 @@ class plugin
     $ogroups = get_list(
       "(&(objectClass=gosaGroupOfNames)(member=".LDAP::prepare4filter($this->dn)."))", 
       "ogroups",
+      "",
       array('dn')
     );
     if (isset($ogroups[0])) {
