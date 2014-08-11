@@ -8,3 +8,5 @@ gosa-core/contrib/openldap/gofon.schema         /etc/ldap/schema/gosa
 gosa-core/contrib/openldap/goserver.schema      /etc/ldap/schema/gosa
 gosa-core/contrib/openldap/goto.schema          /etc/ldap/schema/gosa
 gosa-core/contrib/openldap/gosystem.schema      /etc/ldap/schema/gosa
+gosa-core/contrib/openldap/convert_schema.sh    /etc/ldap/schema/gosa
+gosa-core/contrib/openldap/install_all_ldif.sh  /etc/ldap/schema/gosa
