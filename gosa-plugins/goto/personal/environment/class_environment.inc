@@ -1523,6 +1523,7 @@ class environment extends plugin
     if (! $this->useProfile) {
       $this->attrs['gotoProfileServer'] = array(); 
       $this->attrs['gotoProfileFlags'] = array();
+      $this->attrs['gotoProfileQuota'] = "";
     } else {
       $string_flags = ($this->gotoProfileFlagI ? "I" : "") . ($this->gotoProfileFlagC ? "C" : "");
       $this->attrs['gotoProfileFlags'] = empty($string_flags) ? array() : array($string_flags);
