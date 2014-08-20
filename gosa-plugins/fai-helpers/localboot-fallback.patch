@@ -1,0 +1,20 @@
+With this patch applied, if the server providing the boot files (ldlinux.c32) is
+down, instead of waiting and rebooting, pxelinux will instead perform "localboot", i.e.
+try the next boot option.
+This patch is useful if the server providing pxelinux.0 is a high-availability server,
+but the server providing the rest of the boot files (ldlinux.c32, pxelinux.cfg) is not
+and your machines are all set up to boot from the network by default. It prevents
+confused users from staring at a cryptic pxelinux.0 error message and not knowing
+what to do.
+
+--- syslinux-6.03~pre18+dfsg/core/elflink/load_env32.c	2014-06-25 02:30:34.000000000 +0200
++++ syslinux-6.03-patched/core/elflink/load_env32.c	2014-08-14 17:07:05.218177000 +0200
+@@ -170,6 +170,8 @@
+ out:
+ 	writestr("\nFailed to load ");
+ 	writestr(LDLINUX);
++	writestr("\n\r\n");
++	local_boot(-1);
+ }
+ 
+ static const char *__cmdline;

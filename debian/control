@@ -177,6 +177,16 @@ Description: LDAP schema for GOsa² fai plugin
  GOsa² is a combination of system-administrator and end-user web
  interface, designed to handle LDAP based setups.
 
+Package: gosa-fai-helpers
+Architecture: all
+Depends: ${misc:Depends}, php5-ldap 
+Description: PHP scripts useful when using GOsa²+FAI
+ This package includes PHP scripts useful when deploying
+ GOsa²+FAI.
+ .
+ GOsa² is a combination of system-administrator and end-user web
+ interface, designed to handle LDAP based setups.
+
 Package: gosa-plugin-gofax
 Architecture: all
 Depends: ${misc:Depends}, gosa, gosa-plugin-systems

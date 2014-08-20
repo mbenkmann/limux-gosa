@@ -1,3 +1,9 @@
+gosa (2.8.7) trusty; urgency=medium
+
+  * new package gosa-fai-helpers with ldap2fai.php and pxelinux.php
+
+ -- Matthias S. Benkmann <matthias.benkmann@muenchen.de>  Wed, 20 Aug 2014 17:44:46 +0200
+
 gosa (2.8.6) trusty; urgency=medium
 
   * Added initial version of gosa-quickstart

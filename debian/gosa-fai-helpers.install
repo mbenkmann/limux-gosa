@@ -1,0 +1,3 @@
+gosa-plugins/fai-helpers/*.php    /usr/share/gosa/fai-helpers
+gosa-plugins/fai-helpers/*.patch  /usr/share/doc/gosa-fai-helpers
+gosa-plugins/fai-helpers/*.conf   /etc/gosa

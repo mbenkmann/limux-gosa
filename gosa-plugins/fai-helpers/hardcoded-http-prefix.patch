@@ -1,0 +1,36 @@
+ATTENTION!! Replace "insert-your-server-here" below with your own server name before
+applying this patch!!
+
+This patch hardcodes a http server path into pxelinux to use as prefix for all
+files downloaded by pxelinux.0. This includes boot files like ldlinux.c32 and
+extends to pxelinux.cfg as well as kernels and initrds.
+The prefix can be overridden using the DHCP vendor option 210 as described here:
+http://www.syslinux.org/wiki/index.php/PXELINUX#using_vendor_options
+
+By default, pxelinux.0 will try to download files via TFTP from the same server
+that delivered pxelinux.0 itself. This patch changes this default to an HTTP server.
+It is desirable to use TFTP as little as possible, because it is an inefficient
+protocol and does not offer all the load-balancing and redirection options you have
+with HTTP.
+
+NOTE: The package gosa-fai-helpers includes pxelinux.php which generates a pxelinux.cfg
+dynamically based on the FAI attributes stored in LDAP by GOsa. You should install
+this package on a web server (which can but need not be the same as your GOsa server)
+and point the prefix in this patch to that server.
+
+
+--- syslinux-6.03~pre18+dfsg/core/fs/pxe/pxe.c	2014-06-25 02:30:34.000000000 +0200
++++ syslinux-6.03-patched/core/fs/pxe/pxe.c	2014-08-14 15:49:28.418177000 +0200
+@@ -348,6 +348,12 @@
+     char c;
+ 
+     if (!(DHCPMagic & 0x04)) {
++        /* No path prefix option, use hardcoded default */
++        strlcpy(path_prefix, "http://insert-your-server-here/fai-helpers/pxelinux/", sizeof path_prefix);
++        DHCPMagic |= 0x04; // prevent code below from overwriting path prefix
++    }
++
++    if (!(DHCPMagic & 0x04)) {
+ 	/* No path prefix option, derive from boot file */
+ 
+ 	strlcpy(path_prefix, boot_file, sizeof path_prefix);
