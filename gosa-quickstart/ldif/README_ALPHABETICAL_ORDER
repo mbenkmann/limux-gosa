@@ -1,0 +1,2 @@
+The ldifs in this directory are installed in alphabetical order, therefore
+it is important that dependencies between them are properly reflected in the names.

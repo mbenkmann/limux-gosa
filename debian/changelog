@@ -1,3 +1,9 @@
+gosa (2.8.6) trusty; urgency=medium
+
+  * Added initial version of gosa-quickstart
+  
+ -- Matthias S. Benkmann <matthias.benkmann@muenchen.de>  Thu, 14 Aug 2014 11:08:12 +0200
+
 gosa (2.8.5) trusty; urgency=medium
 
   * fix PHP errors

@@ -1,0 +1,14 @@
+dn: ou=${department1},${suffix}
+ou: ${department1}
+objectClass: organizationalUnit
+
+dn: cn=gosa user,ou=${department1},${suffix}
+cn: user
+givenName: gosa
+sn: user
+userPassword:: ${password_hash}
+uid: user
+objectClass: person
+objectclass: gosaAccount
+objectclass: inetOrgPerson
+objectclass: organizationalPerson

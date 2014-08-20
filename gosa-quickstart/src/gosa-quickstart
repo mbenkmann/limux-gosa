@@ -1,0 +1,51 @@
+#!/bin/bash
+
+set -e
+
+password="admin"
+echo "=== Preseeding... ==="
+echo "slapd   slapd/password1 password $password" | debconf-set-selections
+echo "slapd   slapd/password2 password $password" | debconf-set-selections
+export DEBIAN_FRONTEND=noninteractive
+
+echo "=== Installing LDAP packages... ==="
+apt-get -q -y install slapd ldap-utils gosa-schema gosa-plugin-fai-schema
+
+umask 022
+
+echo "=== Adding GOsa schemata to LDAP config... ==="
+cd /etc/ldap/schema/gosa
+./convert_schema.sh *.schema
+./install_all_ldif.sh
+
+echo "=== Preparing /srv/ldap/gosa... ==="
+mkdir -p /srv/ldap/gosa
+chown openldap: /srv/ldap/gosa
+echo -n >>/etc/apparmor.d/local/usr.sbin.slapd '
+/srv/ldap/gosa/ rwk,
+/srv/ldap/gosa/** rwk,
+'
+
+service apparmor restart
+
+# MUST BEGIN WITH o=gosa, because the ldif won't work otherwise.
+# This is because the respective node has objectClass organization 
+# and an attribute "o: gosa". This is not a requirement of GOsa itself,
+# just of the gosa-quickstart scripts.
+suffix="o=gosa"
+department1="department1"
+password_hash="$(slappasswd -u -s "$password"|base64)"
+
+echo "=== Populating LDAP with FAI/GOsa objects... ==="
+
+cd /usr/share/gosa-quickstart/ldif
+
+for ldif in *.ldif ; do
+  echo "=== Installing $ldif... ==="
+  sed -e "
+s/\\\${password_hash}/$password_hash/g
+s/\\\${suffix}/$suffix/g
+s/\\\${department1}/$department1/g
+" "$ldif" | ldapadd -Y EXTERNAL -H ldapi:///
+done
+

@@ -1,0 +1,2 @@
+gosa-quickstart/ldif/*.ldif	/usr/share/gosa-quickstart/ldif
+gosa-quickstart/src/gosa-quickstart /usr/sbin

@@ -1,0 +1,12 @@
+dn: olcDatabase=ldif,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcLdifConfig
+olcDatabase: ldif
+olcDbDirectory: /srv/ldap/gosa
+olcSuffix: ${suffix}
+olcAccess: {0}to attrs=userPassword,shadowLastChange by self write by anonymous auth by  dn="cn=admin,${suffix}" write by * none
+olcAccess: {1}to dn.base="" by * read
+olcAccess: {2}to * by self write by dn="cn=admin,${suffix}" write by * read
+olcLastMod: TRUE
+olcRootDN: cn=admin,${suffix}
+olcRootPW:: ${password_hash}

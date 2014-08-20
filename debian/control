@@ -548,3 +548,13 @@ Description: webdav plugin for GOsa²
  GOsa² is a combination of system-administrator and end-user web
  interface, designed to handle LDAP based setups.
 
+Package: gosa-quickstart
+Architecture: all
+Depends: ${misc:Depends}
+Description: Quickly set up OpenLDAP+GOsa²+FAI for system and user administration
+ Scripts and example files for quickly setting up the server infrastructure for
+ unattended system installation as well as configuration and user management
+ based on an OpenLDAP directory.
+ .
+ GOsa² is a combination of system-administrator and end-user web
+ interface, designed to handle LDAP based setups.
