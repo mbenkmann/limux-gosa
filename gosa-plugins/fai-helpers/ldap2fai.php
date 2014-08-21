@@ -43,6 +43,9 @@
 /*
  * Close LDAP connection, log error and return 500 Internal Server Error.
  */
+
+//xdebug_start_trace("/tmp/trace.log");
+
 function ldapdie($ldap, $msg)
 {
     // http_response_code(500);
@@ -495,25 +498,28 @@ foreach ($paths as $path) {
     }
 }
 
+// Create temporary directory for building config space
 $tmp = sprintf("/tmp/ldap2fai-%d-%d", getmypid(), rand());
 while (mkdir($tmp, 0700) === FALSE) {
     $tmp = sprintf("/tmp/ldap2fai-%d-%d", getmypid(), rand());
 }
 
-$basedir = "/tmp/config";
-deltree($basedir);
-mkdir($basedir);
+$basedir = $tmp;
 
-foreach ($config_space as $path => $contents) {
-    @mkdir(dirname("$basedir/$path"), 0700, TRUE);
-    $fh = fopen("$basedir/$path", "a");
-    fwrite($fh, $contents);
-    fclose($fh);
-    if (strpos($path, "scripts/") === 0) {
-        chmod("$basedir/$path", 0755);
-    }
+if (! isset($_SERVER['REMOTE_ADDR'])) {
+    // script execution for testing, use fixed directory name
+
+    $basedir = "/tmp/ldap2fai";
+    @mkdir($basedir); // because deltree complains if it doesn't exist
+    deltree($basedir);
+    mkdir($basedir);
 }
 
+// The following is pure PHP tarball creation code using PharData.
+// It has turned out to be terribly slow, taking seconds to build
+// the archive whereas calling the external tar program takes only
+// tenths of seconds.
+//
 // $p = new PharData("$tmp/config.tar");
 // foreach ($config_space as $path => $contents) {
 // $p->addFromString($path, $contents);
@@ -526,14 +532,28 @@ foreach ($config_space as $path => $contents) {
 // $tarball = "$tmp/config.tar.gz";
 // unset($p);
 
-// header('Content-Description: File Transfer');
-// header('Content-Type: application/octet-stream');
-// header('Content-Disposition: attachment; filename=' . basename($tarball));
-// header('Expires: 0');
-// header('Cache-Control: must-revalidate');
-// header('Pragma: public');
-// header('Content-Length: ' . filesize($tarball));
-// readfile($tarball);
-// delTree($tmp);
+// Write config space to $basedir
+umask(0022);
+foreach ($config_space as $path => $contents) {
+    @mkdir(dirname("$basedir/$path"), 0755, TRUE);
+    $fh = fopen("$basedir/$path", "a");
+    fwrite($fh, $contents);
+    fclose($fh);
+    if (strpos($path, "scripts/") === 0) {
+        chmod("$basedir/$path", 0755);
+    }
+}
 
+if (isset($_SERVER['REMOTE_ADDR'])) {
+    header('Content-Description: File Transfer');
+    header('Content-Type: application/octet-stream');
+    header('Content-Disposition: attachment; filename=config.tar.gz');
+    header('Expires: 0');
+    header('Cache-Control: must-revalidate');
+    header('Pragma: public');
+    passthru("cd $basedir && tar --owner=0 --group=0 -czf - .");
+}
+
+// delete temporary directory
+delTree($tmp);
 ?>
