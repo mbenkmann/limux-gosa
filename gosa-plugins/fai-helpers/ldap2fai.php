@@ -44,8 +44,7 @@
  * Close LDAP connection, log error and return 500 Internal Server Error.
  */
 
-//xdebug_start_trace("/tmp/trace.log");
-
+// xdebug_start_trace("/tmp/trace.log");
 function ldapdie($ldap, $msg)
 {
     // http_response_code(500);
@@ -146,9 +145,10 @@ function FAIpackageList(&$config_space, &$faiobject)
     $packages = implode("\n", $faiobject["faipackage"]);
     $config_space["package_config/$classname"] = "PACKAGES $faiinstallmethod\n$packages\n";
     unset($faiobject["faidebiansection"]["count"]);
-    $sections = implode(" ", $faiobject["faidebiansection"]);
+    $arr = $faiobject["faidebiansection"];
     $release = aget($faiobject, "faidebianrelease");
-    $config_space["deb"] = (isset($config_space["deb"]) ? $config_space["deb"] : "") . "$release $sections\n";
+    array_unshift($arr, $release);
+    $config_space["deb"][] = $arr;
 }
 
 function FAIdebconfInfo(&$config_space, &$faiobject)
@@ -270,15 +270,16 @@ function find_fai_ou($ldap, $ldap_base_top, $machine_dn)
 
 /**
  * Takes a release like "tramp/5.0.0" and a dn like "ou=fai,ou=configs,ou=systems,..." and returns
- * ["ou=tramp,ou=fai,ou=configs,ou=systems,...", "ou=5.0.0,ou=tramp,ou=fai,ou=configs,ou=systems,..."].
+ * the release hierarchy as an array like this
+ * ["ou=5.0.0,ou=tramp,ou=fai,ou=configs,ou=systems,...", "ou=tramp,ou=fai,ou=configs,ou=systems,..." ].
  */
 function resolve_release($fai_dn, $release)
 {
-    $r = array(- 1 => $fai_dn);
+    $r = array($fai_dn);
     foreach (explode("/", $release) as $component) {
-        $r[] = "ou=$component," . end($r);
+        array_unshift($r, "ou=$component," . $r[0]);
     }
-    unset($r[- 1]);
+    unset($r[count($r) - 1]);
     return $r;
 }
 
@@ -326,8 +327,37 @@ function get_effective_faiclass($ldap, $release_hierarchy, $prefix, $mustexist =
         return FALSE;
 }
 
+function get_next_effective_faiclass($ldap, $release_hierarchy, $faiobject_dn)
+{
+    foreach ($release_hierarchy as $i => $release_dn) {
+        $len = strlen($release_dn);
+        if (substr($faiobject_dn, - $len) != $release_dn || $i + 1 >= count($release_hierarchy))
+            continue;
+
+        $prefix = substr($faiobject_dn, 0, strlen($faiobject_dn) - $len - 1);
+        $release_dn = $release_hierarchy[$i + 1];
+
+        @$result = ldap_read($ldap, "$prefix,$release_dn", "objectClass=*");
+        if (! $result) {
+            if (ldap_errno($ldap) == 0x20) // NO SUCH OBJECT
+                continue;
+            else
+                ldapdie($ldap, "ldap_read()");
+        }
+        $entries = ldap_get_entries($ldap, $result);
+        $entries or ldapdie($ldap, "ldap_get_entries()");
+        if ($entries["count"] != 0) {
+            if (array_key_exists("faistate", $entries[0]) and strpos($entries[0]["faistate"][0], "removed") !== /* important to use !== and not != here*/ FALSE)
+                return FALSE;
+
+            return $entries[0];
+        }
+    }
+    return FALSE;
+}
+
 $machine_dn = $machine["dn"];
-$hostname = preg_replace('/([^.]+).*/', '\1', $machine['cn'][0]);
+$hostname = strtolower(preg_replace('/([^.]+).*/', '\1', $machine['cn'][0]));
 
 $faiclasses = array();
 $release = "";
@@ -350,9 +380,12 @@ for ($i = count($faiclasses) - 1; $i >= 0; $i --) {
     $cls = $faiclasses[$i];
     $profile = get_effective_faiclass($ldap, $release_hierarchy, "cn=$cls,ou=profiles", FALSE);
     if ($profile) {
-        foreach (explode(" ", $profile["faiclass"][0]) as $faiclass)
+        $new_classes = explode(" ", $profile["faiclass"][0]);
+        for ($k = count($new_classes) - 1; $k >= 0; $k --) {
+            $faiclass = $new_classes[$k];
             if ($faiclass != "" && ! in_array($faiclass, $fc_new))
                 array_unshift($fc_new, $faiclass);
+        }
     } else {
         if (! in_array($cls, $fc_new))
             array_unshift($fc_new, $cls);
@@ -364,6 +397,7 @@ $faiclasses = $fc_new;
 
 // Build the config space in memory. Maps file path to file contents.
 $config_space = array(); // maps relative file path to string contents of file
+$config_space["deb"] = array(); // special key that will be filled with arrays that start with the release followed by sections
 
 $config_space["class/$hostname"] = implode(" ", $faiclasses);
 
@@ -373,38 +407,48 @@ $faiclasses[] = "LAST"; // always the last FAI class
 
 foreach ($faiclasses as $cls) {
     foreach (array("scripts","hooks","templates","variables","packages","disk") as $type) {
+        $skiplist = array();
         $faiobject = get_effective_faiclass($ldap, $release_hierarchy, "cn=$cls,ou=$type", FALSE);
-        if ($faiobject) {
-            handle($ldap, $config_space, $faiobject);
+        $children_only = FALSE;
+        while ($faiobject) {
+            handle($ldap, $config_space, $faiobject, $skiplist, $children_only);
+            $faiobject = get_next_effective_faiclass($ldap, $release_hierarchy, $faiobject["dn"]);
+            $children_only = TRUE;
         }
     }
 }
 
-function handle($ldap, &$config_space, &$faiobject)
+function handle($ldap, &$config_space, &$faiobject, &$skiplist, $children_only)
 {
     $dn = $faiobject['dn'];
     if (! isset($faiobject['..'])) {
         $faiobject['..'] = array('dn' => substr($dn, strpos($dn, ',') + 1),'count' => 0); // dummy parent reference
     }
-    foreach (array("FAIpartitionEntry","FAIpartitionDisk","FAIpartitionTable","FAIpackageList","FAIdebconfInfo","FAIscriptEntry","FAIscript","FAItemplateEntry","FAItemplate","FAIvariableEntry","FAIvariable","FAIhookEntry","FAIhook") as $oc) {
-        if (in_array($oc, $faiobject['objectclass'])) {
-            call_user_func_array($oc, array(&$config_space,&$faiobject));
-            $result = ldap_list($ldap, $dn, 'objectClass=*');
-            $result or ldapdie($ldap, "ldap_list()");
-            $entries = ldap_get_entries($ldap, $result);
-            $entries or ldapdie($ldap, "ldap_get_entries()");
-            for ($i = 0; $i < $entries["count"]; $i ++) {
-                $child = $entries[$i];
-                $child['..'] = $faiobject;
-                handle($ldap, $config_space, $child);
-            }
 
-            break;
+    if (! $children_only) {
+        foreach (array("FAIpartitionEntry","FAIpartitionDisk","FAIpartitionTable","FAIpackageList","FAIdebconfInfo","FAIscriptEntry","FAIscript","FAItemplateEntry","FAItemplate","FAIvariableEntry","FAIvariable","FAIhookEntry","FAIhook") as $oc) {
+            if (in_array($oc, $faiobject['objectclass'])) {
+                call_user_func_array($oc, array(&$config_space,&$faiobject));
+                break;
+            }
         }
     }
+    $result = ldap_list($ldap, $dn, 'objectClass=*');
+    $result or ldapdie($ldap, "ldap_list()");
+    $entries = ldap_get_entries($ldap, $result);
+    $entries or ldapdie($ldap, "ldap_get_entries()");
+    for ($i = 0; $i < $entries["count"]; $i ++) {
+        $child = $entries[$i];
+        $rdn = substr($child["dn"], 0, strpos($child["dn"], ","));
+        if (isset($skiplist[$rdn]))
+            continue;
+        $skiplist[$rdn] = TRUE;
+        if (array_key_exists("faistate", $child) and strpos($child["faistate"][0], "removed") !== /* important to use !== and not != here*/ FALSE)
+            continue;
+        $child['..'] = $faiobject;
+        handle($ldap, $config_space, $child, $skiplist, FALSE);
+    }
 }
-
-ldap_close($ldap);
 
 function delTree($dirPath)
 {
@@ -426,24 +470,81 @@ function delTree($dirPath)
 }
 
 // Generate sources.list from the data collected in FAIPackageList().
-$deblines = explode("\n", isset($config_space["deb"]) ? $config_space["deb"] : "");
+//
+// Turns out this doesn't work because sections written into package lists as well as releases
+// don't mean anything. GOsa would have to be fixed to maintain the respective attributes properly.
+//
+// $release2section2bool = array();
+// foreach ($config_space["deb"] as $debline) {
+// $section2bool = isset($release2section2bool[$debline[0]]) ? $release2section2bool[$debline[0]] : array();
+// //$rel = $debline[0];
+// $rel = $release; // the release extracted from the FAI class means nothing because it may be an inherited FAI class whose release is the parent release
+// unset($debline[0]);
+// foreach ($debline as $section) {
+// $section2bool[$section] = TRUE;
+// }
+// $release2section2bool[$rel] = $section2bool;
+// }
+
+// $sourceslist = "files/etc/apt/sources.list/LAST";
+// $config_space[$sourceslist] = "";
+// $mirror = $machine["faidebianmirror"][0];
+// if ($mirror == "auto") {
+// // not implemented
+// } else {
+// foreach ($release2section2bool as $rel => $section2bool) {
+// $wellknown = "";
+// // add well known sections in canonical order
+// foreach (array("main","contrib","non-free","restricted","universe","multiverse","lhm") as $wks) {
+// if (isset($section2bool[$wks])) {
+// unset($section2bool[$wks]);
+// $wellknown = "$wellknown$wks ";
+// }
+// }
+// $config_space[$sourceslist] .= "deb $mirror $rel $wellknown" . implode(" ", array_keys($section2bool)) . "\n";
+// }
+// }
+
 unset($config_space["deb"]);
-$sourceslist = "files/etc/apt/sources.list/LAST";
-$config_space[$sourceslist] = "";
+
+// Generated sources.list
+
+// we specify multiple object classes to make it more likely we hit one that is indexed.
+$repo_server = search($ldap, $ldap_base_top, "(&(objectClass=GOhard)(objectClass=goServer)(objectClass=FAIrepositoryServer)(fairepository=*))", array("fairepository"), 0);
+$server2sections = array();
+for ($i = $repo_server['count']; $i > 0; $i --) {
+    $rs = $repo_server[$i - 1];
+    unset($rs["fairepository"]["count"]);
+    foreach ($rs["fairepository"] as $repoline) {
+        $repoparts = explode("|", $repoline);
+        if (count($repoparts) != 4)
+            continue;
+        if ($repoparts[2] != $release)
+            continue;
+        $server2sections[rtrim($repoparts[0], '/')] = explode(",", $repoparts[3]);
+    }
+}
+
+ldap_close($ldap);
+
 $mirror = $machine["faidebianmirror"][0];
-$sorted_components = array();
-foreach ($deblines as $debline) {
-    $debline = trim($debline);
-    if (empty($debline))
-        continue;
-    $components = explode(" ", $debline);
-    unset($components[0]);
-    sort($components);
-    $components = implode(" ", $components);
-    if (isset($sorted_components[$components]))
-        continue; // avoid duplicate lines
-    $sorted_components[$components] = TRUE;
-    $config_space[$sourceslist] .= "deb $mirror $debline\n";
+$sourceslist = "files/etc/apt/sources.list/LAST";
+if (isset($server2sections[rtrim($mirror, '/')])) {
+    $config_space[$sourceslist] = "deb $mirror $release " . implode(" ", $server2sections[rtrim($mirror, '/')]) . "\n";
+} else {
+    // Need to try a littler harder to find a server
+    $servers = array_keys($server2sections);
+    shuffle($servers);
+    foreach ($servers as $s) {
+        // Find a server that is reachable and can send Release in less than 1.0s.
+        $opts = array('http' => array('timeout' => 1.0));
+        $context = stream_context_create($opts);
+        if (file_get_contents("$s/dists/$release/Release", FALSE, $context) !== FALSE) {
+            $config_space[$sourceslist] = "deb $s $release " . implode(" ", $server2sections[$s]) . "\n";
+            break;
+        }
+    }
+    // If we get here without finding a server we do not generate a sources.list => Shit happens. Sad day for you.
 }
 
 $config_space["class/release.var"] = "LHMclientRelease='$release'\n";
@@ -534,6 +635,13 @@ if (! isset($_SERVER['REMOTE_ADDR'])) {
 
 // Write config space to $basedir
 umask(0022);
+mkdir("$basedir/class", 0755, TRUE);
+mkdir("$basedir/debconf", 0755, TRUE);
+mkdir("$basedir/disk_config", 0755, TRUE);
+mkdir("$basedir/files", 0755, TRUE);
+mkdir("$basedir/hooks", 0755, TRUE);
+mkdir("$basedir/package_config", 0755, TRUE);
+mkdir("$basedir/scripts", 0755, TRUE);
 foreach ($config_space as $path => $contents) {
     @mkdir(dirname("$basedir/$path"), 0755, TRUE);
     $fh = fopen("$basedir/$path", "a");
