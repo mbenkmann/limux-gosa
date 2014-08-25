@@ -224,8 +224,8 @@ function FAIhook(&$config_space, &$faiobject)
 
 // Determine the ou=fai for the machine. We do this by going through all ou=fai and taking the
 // one whose dn starts with "ou=fai,ou=configs,ou=systems," and continues with a suffix of
-// $machine_dn. If there are multiple such ou=fai entries, we take the one with the longest
-// dn, i.e. the one closest to the $machine_dn in the LDAP tree.
+// $machine_dn. All DNs of these ou=fai that match will be returned in an array that is sorted so that the
+// longest DN is element 0 of the array.
 function find_fai_ou($ldap, $ldap_base_top, $machine_dn)
 {
     $results = ldap_search($ldap, $ldap_base_top, "(&(objectClass=organizationalUnit)(ou=fai))", array("dn"));
@@ -234,8 +234,7 @@ function find_fai_ou($ldap, $ldap_base_top, $machine_dn)
     $count = ldap_count_entries($ldap, $results);
 
     $entry = ldap_first_entry($ldap, $results);
-    $fai_dn = "";
-    $match_len = 0;
+    $fai_dn = array();
     $got = 0;
     while ($entry) {
         $dn = ldap_get_dn($ldap, $entry);
@@ -250,18 +249,18 @@ function find_fai_ou($ldap, $ldap_base_top, $machine_dn)
                 goto next_entry;
         }
 
-        $i = - 1 - $i;
-        if ($i > $match_len) {
-            $fai_dn = $dn;
-            $match_len = $i;
+        for ($i = 0; $i < count($fai_dn); $i ++) {
+            if (strlen($dn) > strlen($fai_dn[$i]))
+                break;
         }
+        array_splice($fai_dn, $i, 0, array($dn));
 
         next_entry:
         $got ++;
         $entry = ldap_next_entry($ldap, $entry);
     }
 
-    ($match_len > 0) or ldapdie($ldap, "Could not find ou=fai");
+    (count($fai_dn) > 0) or ldapdie($ldap, "Could not find ou=fai");
 
     ($got == $count) or ldapdie($ldap, "ldap_*_entry()");
 
@@ -269,17 +268,23 @@ function find_fai_ou($ldap, $ldap_base_top, $machine_dn)
 }
 
 /**
- * Takes a release like "tramp/5.0.0" and a dn like "ou=fai,ou=configs,ou=systems,..." and returns
+ * Takes a release like "tramp/5.0.0" and an array of ou=fai DNs like "ou=fai,ou=configs,ou=systems,..." and returns
  * the release hierarchy as an array like this
  * ["ou=5.0.0,ou=tramp,ou=fai,ou=configs,ou=systems,...", "ou=tramp,ou=fai,ou=configs,ou=systems,..." ].
+ * If the $fai_dn array contains more than 1 entry, the returned array will first have the release hierarchy with
+ * the first entry in $fai_dn as suffix and only after the complete release hierarchy (in the example tramp/5.0.0 followed
+ * by tramp) has been listed with that suffix will be the release hierarchy with the next suffix from $fai_dn.
  */
 function resolve_release($fai_dn, $release)
 {
-    $r = array($fai_dn);
-    foreach (explode("/", $release) as $component) {
-        array_unshift($r, "ou=$component," . $r[0]);
+    $r = array();
+    for ($i = count($fai_dn) - 1; $i >= 0; $i --) {
+        $prev = $fai_dn[$i];
+        foreach (explode("/", $release) as $component) {
+            $prev = "ou=$component,$prev";
+            array_unshift($r, $prev);
+        }
     }
-    unset($r[count($r) - 1]);
     return $r;
 }
 
@@ -539,7 +544,7 @@ if (isset($server2sections[rtrim($mirror, '/')])) {
         // Find a server that is reachable and can send Release in less than 1.0s.
         $opts = array('http' => array('timeout' => 1.0));
         $context = stream_context_create($opts);
-        if (file_get_contents("$s/dists/$release/Release", FALSE, $context) !== FALSE) {
+        if (@file_get_contents("$s/dists/$release/Release", FALSE, $context) !== FALSE) {
             $config_space[$sourceslist] = "deb $s $release " . implode(" ", $server2sections[$s]) . "\n";
             break;
         }
