@@ -1,0 +1,139 @@
+#!/bin/bash
+
+
+# This code is part of GOsa (http://www.gosa-project.org)
+#
+# Copyright (C) 2014 Landeshauptstadt München
+# Author: Matthias S. Benkmann
+#
+# This program is free software;
+# you can redistribute it and/or modify it under the terms of the
+# GNU General Public License as published by the Free Software Foundation;
+# either version 2 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+
+
+# This script replaces bin/nfsmount and bin/mount.nfs4 within an initrd with
+# a shell wrapper that does the following:
+# - check if /proc/cmdline contains an option httproot=...
+#   If there is no such option, the original mount.nfs4/nfsmount is called
+# - If the httproot option starts with a "/", the NFS server as passed in the
+#   args to mount.nfs4/nfsmount is prepended to httproot
+# - wget $httproot
+# - extraction of the wgetted file based on the extension (.tar.gz, .tar.bz2 or .tar.xz)
+#   into a tmpfs mounted at the directory passed as mount point to mount.nfs4/nfsmount.
+# - If wget/extraction does not produce a filesystem with .THIS_IS_THE_FAI_NFSROOT
+#   the tmpfs is unmounted again and the script calls the original mount.nfs4/nfsmount.
+#
+# Summary: Run apply-httproot on the initrd you use for your FAI installation.
+#          Pass a kernel parameter httproot=http://<server>/.../nfsroot.tar.gz
+#          in addition to the usual nfsroot parameters.
+#          If your <server> is the same as the NFS server, you can leave out the
+#          http://<server> part and use httproot=/.../nfsroot.tar.gz.
+#          ATTENTION! <server> must be an IP address if your initrd does not
+#          support DNS (typical initrds miss the libnss_dns.so library and have no
+#          code to build /etc/resolv.conf)
+
+
+test $# = 1 || { 
+  echo "USAGE: $0 <initrd.img>"
+  echo "Modifies <initrd.img> (may be compressed) to support httproot in addition to nfsroot"
+  exit 1
+}
+
+initrd_img="$1"
+test -f "${initrd_img}" || {
+  echo 1>&2 "${initrd_img} does not exist"
+  exit 1
+}
+
+extract_dir=/tmp/apply-httproot.$$.$RANDOM
+while ! mkdir --mode=u=rwx,go= "$extract_dir" ; do
+  extract_dir=/tmp/apply-httproot.$$.$RANDOM
+done
+  
+trap "rm -rf $extract_dir" EXIT
+
+determine_packer() {
+  test -f "$1" || return 1
+  case "$(file "$1")" in
+    *"cpio archive"*) echo cat ;;
+    *"lzop compressed data"*) echo lzop ;;
+    *"gzip compressed data"*) echo gzip ;;
+    *"bzip2 compressed data"*) echo bzip2 ;;
+    *"XZ compressed data"*) echo xz ;;
+    *) lzmainfo "$1" &>/dev/null && echo lzma || return 1 ;;
+  esac
+}
+
+# extract initrd
+packer="$(determine_packer "$initrd_img")"
+case "$packer" in
+  "cat") cat "$initrd_img" | ( cd "$extract_dir/" && cpio --no-absolute-filenames -id ) ;;
+  "") echo 1>&2 "Cannot extract initrd"; exit 1 ;;
+  *) cat "$initrd_img" | $packer -dc | ( cd "$extract_dir/" && cpio --no-absolute-filenames -id ) ;;
+esac
+
+mv "$initrd_img" "${initrd_img}.old"
+
+mv "$extract_dir/bin/mount.nfs4" "$extract_dir/bin/mount.nfs4.orig"
+mv "$extract_dir/bin/nfsmount" "$extract_dir/bin/nfsmount.orig"
+cat >"$extract_dir/bin/mount.nfs4" <<"EOF"
+#!/bin/sh
+
+exec 2>/dev/console >/dev/console
+
+# -t nfs4 -o ro -o retrans=10 172.16.1.118:/nfsroot /root
+
+target=""
+server=""
+for arg in "$@" ; do
+  case "$arg" in
+    /*) target="$arg"
+        ;;
+    *.*.*.*:/*) server="${arg%%:/*}"
+        ;;
+  esac
+done
+
+echo "$0" "$@"
+httproot="$(cat /proc/cmdline)"
+test "$httproot" != "${httproot##*httproot=}" && {
+  httproot="${httproot##*httproot=}"
+  httproot="${httproot%% *}"
+  test "$httproot" != "${httproot#/}" && httproot="http://$server$httproot"
+  test "$target" != "" -a "${httproot#http*://}" != "$httproot" && {
+                 mount -t tmpfs nfsroot "$target"
+                 case "$httproot" in
+                   *.tar.gz)
+                         ( cd "$target" && wget "$httproot" -O - | zcat | tar xf - )
+                         ;;
+                   *.tar.bz2)
+                         ( cd "$target" && wget "$httproot" -O - | bzcat | tar xf - )
+                         ;;
+                   *.tar.xz)
+                         ( cd "$target" && wget "$httproot" -O - | xzcat | tar xf - )
+                         ;;
+                 esac
+                 test -f "$target/.THIS_IS_THE_FAI_NFSROOT" && exit 0
+                 echo
+                 echo "DOWNLOAD OF HTTP ROOT FAILED! TRYING FALLBACK TO NFSROOT IN 60s"
+                 sleep 60
+                 umount "$target"
+  }
+}
+
+exec "$0.orig" "$@"
+echo "exec failed" >/dev/console
+sleep 300
+EOF
+chmod a+rx "$extract_dir/bin/mount.nfs4"
+cp -a "$extract_dir/bin/mount.nfs4" "$extract_dir/bin/nfsmount"
+
+(cd "$extract_dir/" && find . -not -name '*~' | cpio --owner root:root -H newc -o) | $packer >"$initrd_img"
+
