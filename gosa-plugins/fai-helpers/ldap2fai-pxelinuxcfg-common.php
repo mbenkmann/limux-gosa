@@ -30,7 +30,8 @@ if (! isset($_SERVER['REMOTE_ADDR'])) {
     $ip = $_SERVER['REMOTE_ADDR'];
     $requesturi = $_SERVER['REQUEST_URI'];
 }
-$macaddress = strtolower(preg_replace('/^.*([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])$/', '\1:\2:\3:\4:\5:\6', $requesturi));
+$requesturi = strtolower($requesturi);
+$macaddress = preg_replace('/^.*([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])$/', '\1:\2:\3:\4:\5:\6', $requesturi);
 if ($macaddress == $requesturi) {
     // No MAC was passed in the URL => try arp to determine the requestor's MAC.
     $arpinfo = shell_exec("arp -n $ip");
