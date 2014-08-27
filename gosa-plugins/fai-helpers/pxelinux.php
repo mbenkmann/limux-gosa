@@ -54,18 +54,18 @@
 // append nfsroot=/nfsroot,nfs4,union FAI_ACTION=install FAI_FLAGS=syslogd,verbose,sshd,poweroff,skipusb ip=dhcp devfs=nomount root=/dev/nfs
 // ipappend 2
 //
+// # Config if OS to be installed is "lucid"
+// [lucid]
+// kernel vmlinuz-install-lucid
+// initrd initrd.img-install-lucid
+// append nfsroot=/nfsroot,nfs4,union FAI_ACTION=install FAI_FLAGS=syslogd,verbose,sshd,poweroff,skipusb ip=dhcp devfs=nomount root=/dev/nfs
+// ipappend 2
+//
 // # Configuration used if FAIstate=error:details...  pxelinux.php automatically appends FAI_ERROR=details as base64...
 // # to the append line.
 // [error]
 // kernel vmlinuz-install
 // initrd initrd.img-install
-// append nfsroot=/nfsroot,nfs4,union FAI_ACTION=sysinfo FAI_FLAGS=syslogd,verbose,sshd,poweroff,skipusb ip=dhcp devfs=nomount root=/dev/nfs
-// ipappend 2
-//
-// # Config if OS to be installed is "lucid"
-// [lucid]
-// kernel vmlinuz-install-lucid
-// initrd initrd.img-install-lucid
 // append nfsroot=/nfsroot,nfs4,union FAI_ACTION=sysinfo FAI_FLAGS=syslogd,verbose,sshd,poweroff,skipusb ip=dhcp devfs=nomount root=/dev/nfs
 // ipappend 2
 //
