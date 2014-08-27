@@ -93,11 +93,11 @@ find . -type f -printf "%i %p\n" | grep -vFf $temp/used-inodes.txt | sed 's/^[0-
 # Remove /lib/firmware and /lib/modules from unused files
 sed -i '/^\.\/lib\/firmware\//d;/^\.\/lib\/modules\//d;' $temp/unused-files.txt
 
-echo "Copying $fat => $slim"
+echo "Copying $fat => $slim ..."
 
 test -d "$slim" && error "$slim already exists"
 cp -a "$fat" "$slim" || exit 1
 
-echo "Deleting unused files from $slim"
+echo "Deleting unused files from $slim ..."
 cd "$slim" || exit 1
 xargs -a $temp/unused-files.txt rm
