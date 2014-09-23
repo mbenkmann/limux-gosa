@@ -2,7 +2,16 @@
 
 set -e
 
+# MUST BEGIN WITH o=gosa, because the ldif won't work otherwise.
+# This is because the respective node has objectClass organization 
+# and an attribute "o: gosa". This is not a requirement of GOsa itself,
+# just of the gosa-quickstart scripts.
+suffix="o=gosa"
+department1="department1"
 password="admin"
+susipassword="susi"
+ldapserver="localhost"
+
 echo "=== Preseeding... ==="
 echo "slapd   slapd/password1 password $password" | debconf-set-selections
 echo "slapd   slapd/password2 password $password" | debconf-set-selections
@@ -28,18 +37,12 @@ echo -n >>/etc/apparmor.d/local/usr.sbin.slapd '
 
 service apparmor restart
 
-# MUST BEGIN WITH o=gosa, because the ldif won't work otherwise.
-# This is because the respective node has objectClass organization 
-# and an attribute "o: gosa". This is not a requirement of GOsa itself,
-# just of the gosa-quickstart scripts.
-suffix="o=gosa"
-department1="department1"
-password_hash="$(slappasswd -u -s "$password"|base64)"
 
 echo "=== Populating LDAP with FAI/GOsa objects... ==="
 
 cd /usr/share/gosa-quickstart/ldif
 
+password_hash="$(slappasswd -u -s "$password"|base64)"
 for ldif in *.ldif ; do
   echo "=== Installing $ldif... ==="
   sed -e "
@@ -49,3 +52,30 @@ s/\\\${department1}/$department1/g
 " "$ldif" | ldapadd -Y EXTERNAL -H ldapi:///
 done
 
+echo "=== Installing GOsa² and plugins ==="
+apt-get -q -y install gosa gosa-plugin-systems gosa-plugin-fai
+
+echo "=== Activating /gosa site in Apache configurations ==="
+ln -snf /etc/gosa/gosa-apache.conf /etc/apache2/conf-available/
+ln -snf ../conf-available/gosa-apache.conf /etc/apache2/conf-enabled/
+
+/etc/init.d/apache2 restart
+
+echo "=== Configuring GOsa² ==="
+cd /usr/share/gosa-quickstart/conf
+cp resolutions /etc/gosa
+cp menus /etc/gosa
+sed -e "
+s/\\\${susipassword}/$susipassword/g
+s/\\\${password}/$password/g
+s/\\\${suffix}/$suffix/g
+s/\\\${ldapserver}/$ldapserver/g
+s/\\\${department1}/$department1/g
+" gosa.conf >/etc/gosa/gosa.conf
+
+chgrp www-data gosa.conf
+chmod u=rw,g=r,o= gosa.conf
+
+mkdir -p /var/cache/gosa/compiled-tpl/
+chgrp -R www-data /var/cache/gosa
+chmod -R g+rwX /var/cache/gosa/

@@ -1,2 +1,5 @@
 gosa-quickstart/ldif/*.ldif	/usr/share/gosa-quickstart/ldif
+gosa-quickstart/conf/*.conf	/usr/share/gosa-quickstart/conf
+gosa-quickstart/conf/resolutions	/usr/share/gosa-quickstart/conf
+gosa-quickstart/conf/menus	/usr/share/gosa-quickstart/conf
 gosa-quickstart/src/gosa-quickstart /usr/sbin
