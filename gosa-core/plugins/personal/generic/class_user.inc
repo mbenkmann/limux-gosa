@@ -1223,7 +1223,7 @@ class user extends plugin
   
   function update_new_dn()
   {
-      $pattern= $this->config->get_cfg_value("user","accountRDN");
+      $pattern= $this->config->get_cfg_value("core","accountRDN");
       if ($pattern == "") {
           /* If no pattern configured, emulate old way of building DN */
           $primaryAttr = $this->config->get_cfg_value("core","accountPrimaryAttribute");
