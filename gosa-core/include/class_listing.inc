@@ -919,6 +919,7 @@ function processElementFilter($data, $config, $row, $get_sort_column=FALSE)
             }
 
             // LDAP variables get replaced by their objects
+            $found = 0;
             for ($i= 0; $i<$config['count']; $i++) {
                 if ($param == $config[$i]) {
                     $values= $config[$config[$i]];
@@ -926,8 +927,12 @@ function processElementFilter($data, $config, $row, $get_sort_column=FALSE)
                         unset($values['count']);
                     }
                     $params[]= $values;
+                    $found = 1;
                     break;
                 }
+            }
+            if (!$found) {
+                $params[] = array("");
             }
         }
 
