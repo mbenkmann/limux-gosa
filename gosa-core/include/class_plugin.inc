@@ -707,38 +707,6 @@ class plugin
     return ("none");
   }
 
-
-  /*! \brief Create unique DN */
-  function create_unique_dn($attribute, $base)
-  {
-    $ldap= $this->config->get_ldap_link();
-    $base= preg_replace("/^,*/", "", $base);
-
-    /* Try to use plain entry first */
-    $dn= "$attribute=".$this->$attribute.",$base";
-    $ldap->cat ($dn, array('dn'));
-    if (!$ldap->fetch()){
-      return ($dn);
-    }
-
-    /* Look for additional attributes */
-    foreach ($this->attributes as $attr){
-      if ($attr == $attribute || $this->$attr == ""){
-        continue;
-      }
-
-      $dn= "$attribute=".$this->$attribute."+$attr=".$this->$attr.",$base";
-      $ldap->cat ($dn, array('dn'));
-      if (!$ldap->fetch()){
-        return ($dn);
-      }
-    }
-
-    /* None found */
-    return ("none");
-  }
-
-
   function rebind($ldap, $referral)
   {
     $credentials= LDAP::get_credentials($referral, $this->config->current['REFERRAL']);

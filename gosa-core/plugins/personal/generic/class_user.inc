@@ -1191,7 +1191,7 @@ class user extends plugin
       return "";
     }
 
-    // Sort attributes for length
+    // Sort attributes longest name first so that %abcd is replaced before %abc
     $attrl= array();
     foreach ($this->attributes as $attr) {
       $attrl[$attr]= strlen($attr);
@@ -1211,6 +1211,9 @@ class user extends plugin
       }
     }
 
+    // normalize space
+    $pattern = preg_replace('/\s{2,}/', ' ', trim($pattern));
+    $pattern = preg_replace('/=\s+/', '=', $pattern);
     // Internally assign value
     $this->$attribute= preg_replace('/^[^=]+=/', '', $pattern);
 
@@ -1220,9 +1223,24 @@ class user extends plugin
   
   function update_new_dn()
   {
-    // Alternative way to handle DN
-    $pattern= $this->config->get_cfg_value("user","accountRDN");
-    if ($pattern != "") {
+      $pattern= $this->config->get_cfg_value("user","accountRDN");
+      if ($pattern == "") {
+          /* If no pattern configured, emulate old way of building DN */
+          $primaryAttr = $this->config->get_cfg_value("core","accountPrimaryAttribute");
+          if ($primaryAttr == "") {
+              $primaryAttr == "uid";
+          }
+          if ($primaryAttr == "cn") {
+              if($this->config->get_cfg_value("core","personalTitleInDN") == "true") {
+                  $pattern = "cn=%personalTitle %givenName %sn";
+              } else {
+                  $pattern = "cn=%givenName %sn";
+              }
+          } else {
+              $pattern = "$primaryAttr=%$primaryAttr";
+          }
+      }
+
       $rdn= $this->create_initial_rdn($pattern);
       $attribute= preg_replace('/=.*$/', '', $rdn);
       $value= preg_replace('/^[^=]+=$/', '', $rdn);
@@ -1234,32 +1252,6 @@ class user extends plugin
       } else {
         $this->new_dn= $this->create_unique_dn2($rdn, get_people_ou().$this->base);
       }
-
-    // Original way to handle DN
-    } else {
-
-      $pt= "";
-      if($this->config->get_cfg_value("core","personalTitleInDN") == "true"){
-        if(!empty($this->personalTitle)){
-          $pt = $this->personalTitle." ";
-        }
-      }
-
-      $this->cn= $pt.$this->givenName." ".$this->sn;
-
-      /* Permissions for that base? */
-      if ($this->config->get_cfg_value("core","accountPrimaryAttribute") == "uid"){
-        $this->new_dn= 'uid='.$this->uid.','.get_people_ou().$this->base;
-      } else {
-        /* Don't touch dn, if cn hasn't changed */
-        if (isset($this->saved_attributes['cn']) && $this->saved_attributes['cn'] == $this->cn &&
-            $this->orig_base == $this->base ){
-          $this->new_dn= $this->dn;
-        } else {
-          $this->new_dn= $this->create_unique_dn('cn', get_people_ou().$this->base);
-        }
-      }
-    }
   }
   
 
