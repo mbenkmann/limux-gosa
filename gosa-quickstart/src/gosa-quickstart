@@ -10,6 +10,7 @@ suffix="o=gosa"
 department1="department1"
 password="admin"
 susipassword="susi"
+language="de_DE"
 ldapserver="localhost"
 
 echo "=== Preseeding... ==="
@@ -52,6 +53,9 @@ s/\\\${department1}/$department1/g
 " "$ldif" | ldapadd -Y EXTERNAL -H ldapi:///
 done
 
+echo "=== Making sure desired locale is available ==="
+locale-gen "$language.utf8"
+
 echo "=== Installing GOsa² and plugins ==="
 apt-get -q -y install gosa gosa-plugin-systems gosa-plugin-fai
 
@@ -71,6 +75,7 @@ s/\\\${password}/$password/g
 s/\\\${suffix}/$suffix/g
 s/\\\${ldapserver}/$ldapserver/g
 s/\\\${department1}/$department1/g
+s/\\\${language}/$language/g
 " gosa.conf >/etc/gosa/gosa.conf
 
 chgrp www-data gosa.conf
