@@ -159,7 +159,7 @@ class departmentManagement extends management
   static function filterDepLabel($row,$dn,$params,$ou,$pid,$base)
   {
     $ou = $ou[0];
-    if(LDAP::convert($dn) == $base){
+    if($params != "notrans" && LDAP::convert($dn) == $base){
       $ou =".";
     }
     $dn= LDAP::fix(func_get_arg(1));

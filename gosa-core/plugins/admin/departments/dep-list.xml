@@ -71,7 +71,7 @@
       <label>Department</label>
       <sortAttribute>ou</sortAttribute>
       <sortType>string</sortType>
-      <value>%{filter:depLabel(row,dn,"%s",ou,pid,base)}</value>
+      <value>%{filter:depLabel(row,dn,"",ou,pid,base)}</value>
       <export>true</export>
     </column>
 
@@ -79,7 +79,7 @@
       <label>Description</label>
       <sortAttribute>description,ou</sortAttribute>
       <sortType>string,string</sortType>
-      <value>%{filter:depLabel(row,dn,"%s",description,pid,base)}</value>
+      <value>%{filter:depLabel(row,dn,"notrans",description,pid,base)}</value>
       <export>true</export>
     </column>
 
