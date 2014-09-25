@@ -1,5 +1,6 @@
 dn: ou=${department1},${suffix}
 ou: ${department1}
+description: ${department1}
 objectClass: organizationalUnit
 
 dn: uid=user,ou=${department1},${suffix}
