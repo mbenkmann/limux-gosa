@@ -1,0 +1,22 @@
+#!/bin/bash
+
+logdir=/var/log/fai/localhost/last
+
+test -d "$logdir" || logdir=/tmp/fai
+test -d "$logdir" || exit 1
+
+for f in "$logdir"/* ; do
+  name="${f##*/}"
+  echo -n "log_file:$name:"
+  base64 -w 0 "$f"
+  echo
+done
+
+case "$(readlink -f "$logdir")" in
+  *softupdate*) echo softupdate ;;
+  *) echo install ;;
+esac
+
+read
+
+touch /var/run/gosa-si-client.faiend

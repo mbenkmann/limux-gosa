@@ -1,0 +1,24 @@
+version: 1
+
+#
+# LDAPv3
+# base <ou=Direktorium,o=Landeshauptstadt München,c=de> with scope subtree
+# filter: (&(objectClass=GOHard)(macaddress=1c:6f:65:08:b5:4d))
+# requesting: cn objectclass faistate 
+#
+
+# nova, workstations, systems, Direktorium, Landeshauptstadt M\C3\BCnchen, de
+dn:: Y249bm92YSxvdT13b3Jrc3RhdGlvbnMsb3U9c3lzdGVtcyxvdT1EaXJla3Rvcml1bSxvPUxhb
+ mRlc2hhdXB0c3RhZHQgTcO8bmNoZW4sYz1kZQ==
+objectClass: GOhard
+objectClass: top
+objectClass: gotoWorkstation
+objectClass: FAIobject
+objectClass: gosaAdministrativeUnitTag
+cn: nova
+FAIstate: localboot
+
+# search result
+
+# numResponses: 2
+# numEntries: 1

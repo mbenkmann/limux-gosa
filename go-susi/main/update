@@ -1,0 +1,22 @@
+#!/bin/bash
+export PATH="$PATH:$GOROOT/bin"
+
+make clean
+mkdir -p deploy
+hg pull --update || exit 1
+main/makeversion
+test "$(<deploy/version.go)" = "$(<config/version.go)" && exit 0
+oldrev="$(sed -n 's/^.*Revision.*= *"\(.*\)"/\1/p' deploy/version.go)"
+test -z "$oldrev" && oldrev=0
+logdata="$(LC_ALL=C hg --config alias.log=log log -r $oldrev:tip -v  --style=compact -I main/go-susi.go -I main/makedebsource -I main/send_user_msg -I main/initrd_autopack -I "main/generate_*" -I util/deque/deque.go -I "message/*.go" -I "action/*.go" -I "bytes/*.go" -I "util/*.go" -I "config/*.go" -I "db/*.go" -I "xml/*.go" -I "tftp/*.go")"
+echo "$logdata" | sed '/^changeset:/d;/^user:/d;/^date:/d;/^files:/d;/^description:/d' >testdata/citest.log
+make clean
+make test &>>testdata/citest.log || exit $?
+make deb &>>testdata/citest.log
+rm -rf deploy/deb
+mv deb deploy
+rm -f deploy/gosa-si-server  # remove so that we can cleanly replace it even if running
+cp -a go-susi deploy/gosa-si-server
+cp config/version.go deploy/
+logdir="$(sed -n 's%Log file directory: \(/tmp/system-test-.*\)%\1%p' testdata/citest.log)"
+cat "$logdir/go-susi+panic.log" >>testdata/citest.log

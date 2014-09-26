@@ -1,0 +1,2 @@
+Remember that Go treats filenames ending in "_test.go" specially.
+Do not name files like that!

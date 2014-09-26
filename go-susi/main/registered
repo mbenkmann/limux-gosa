@@ -1,0 +1,8 @@
+#!/bin/bash
+
+echo >/var/run/gosa-si-client.opts "MAC=$MAC
+IPADDRESS=$IPADDRESS
+HOSTNAME=$HOSTNAME
+FQDN=$FQDN"
+
+test "$ldap_available" = true && echo >>/var/run/gosa-si-client.opts "LDAP_AVAILABLE=true"

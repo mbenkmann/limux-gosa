@@ -1,0 +1,8 @@
+#!/bin/bash
+
+echo >/var/run/gosa-si-client.activated "<xml>
+<header>set_activated_for_installation</header>
+<source>GOSA</source>
+<target>$IPADDRESS:$SERVERPORT</target>
+</xml>"
+

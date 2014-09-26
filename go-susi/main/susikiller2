@@ -1,0 +1,32 @@
+#!/bin/bash
+
+keyid="GOsaPackages"
+key="$(sed -n "/\\[$keyid\\]/,\$s/key *= *\(.*\)/\1/p" /etc/gosa-si/server.conf | head -n 1)"
+test -z "$key" && {
+  echo 2>&1 "Could not read key from section [$keyid] from /etc/gosa-si/server.conf"
+  exit 1
+}
+
+trap "exit 1" HUP INT
+
+msg='
+<xml>
+<header>gosa_query_packages_list</header>
+<target>GOSA</target>
+<source>GOSA</source>
+<select>distribution</select>
+<select>package</select>
+<select>version</select>
+<select>section</select>
+<select>description</select>
+<select>timestamp</select>
+<select>template</select>
+<where>
+</where>
+</xml>
+'
+
+msg="$(go run main/encrypt.go "$key" "$msg")"
+test -z "$msg" && exit 1
+
+for i in $(seq 1 10000) ; do echo -n "$i => " ; echo "$msg" | nc -q 5 localhost 20081 | wc -c  ; done

@@ -1,0 +1,661 @@
+#!/usr/bin/awk -f
+
+# Copyright (C) 2002 Matthias S. Benkmann <m.s.b@gmx.net>
+#
+#This program is free software; you can redistribute it and/or
+#modify it under the terms of the GNU General Public License
+#as published by the Free Software Foundation; version 2
+#of the License (ONLY THIS VERSION).
+#
+#This program is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+#
+#You should have received a copy of the GNU General Public License
+#along with this program; if not, write to the Free Software
+#Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+
+# Syntax summary:
+# tag{ attr1 "string1" attr2 "string2" ... }   
+#    is converted to
+# <xsl:tag attr1="string1" attr2="string2">...</xsl:tag>
+# (string1 and string2 are run through STRING PROCESSING 1(see below))
+#
+# tag
+#    is converted to
+# <xsl:tag/>
+#
+# <...>  
+#    is copied verbatim to the output with the exception of strings 
+#    surrounded by double-quotes ". These strings are run through
+#    STRING PROCESSING 1(see below)
+#    NOTE: < and > must be properly nested (unless they occur in "...")
+#
+# "string"
+#    is converted to
+# <xsl:text>string</xsl:text>
+# after string has been run through STRING PROCESSING 2(see below)
+#
+# /* ... */
+#    is removed from the input
+#
+# STRING PROCESSING 1:
+# "\\" is converted to "\"
+# "\n" is converted to "&#10;"
+# "\"" is converted to "&quot;"
+# "&" when it doesn't start an entity reference is converted to "&amp;"
+# "<" is converted to "&lt;"
+#
+# STRING PROCESSING 2:
+# like STRING PROCESSING 1 but "\"" is converted to """
+# !!!NOTE!!! This is not implemented, yet. Right now 2 is exactly like 1
+
+{
+  DEBUG=0;
+  ++line;
+  outputLine="";
+  dispatchStates();
+  print outputLine;
+}
+
+function dispatchStates()
+{
+  while ($0!="")
+  {
+    if (DEBUG) 
+    {
+      print "    ------ State: " currentState() "/"currentSubstate() " Line: " line " -------" > "/dev/stderr";
+      print "    --in:" $0 > "/dev/stderr";
+      print "    --out:" outputLine > "/dev/stderr";
+    }
+    if (currentState()=="normal") doNormalState(); else
+    if (currentState()=="text") doText(); else
+    if (currentState()=="<text") doAngleBracketText(); else
+    if (currentState()=="<") doAngleBracket(); else
+    if (currentState()=="/*") doComment(); else
+    if (currentState()=="attributes") doAttributes(); 
+    else
+    {
+      print "ERROR(line "line"): Internal Error (unknown state" currentState() ")"  >"/dev/stderr"
+      exit 1
+    }
+  }  
+}
+
+function doComment()
+{
+  if (match($0,"\\*/"))
+  {
+    extract(RSTART-1+RLENGTH);
+    leaveState();
+  }
+  else $0="";
+}
+
+function doNormalState(           name)
+{
+  processWhitespace();
+  
+  if ($0=="") return;
+  
+  if (match($0,"^" XMLTAG_RE "{"))
+  {
+    name=extract(RLENGTH-1); #extract all but "{"
+    extract(1); #extract "{"
+    checkValidXSLTag(name);
+    
+    outputLine=outputLine "<xsl:" name;
+    pushTag(name);
+    enterState("attributes");
+  }
+  else
+  if (match($0,"^}"))
+  {
+    extract(RLENGTH);
+    name=popTag();
+    if (name=="")
+    {
+      print "ERROR(line "line"): Unexpected '}'! Maybe you forgot a '{' somewhere."  >"/dev/stderr"
+      exit 1
+    }
+    outputLine=outputLine "</xsl:" name ">";
+  }
+  else
+  if (match($0,"^" XMLTAG_RE))
+  {
+    name=extract(RLENGTH);
+    checkValidXSLTag(name);
+    outputLine=outputLine "<xsl:" name "/>";
+  }
+  else
+  if (match($0,"^<"))
+  {
+    outputLine=outputLine extract(RLENGTH);
+    enterState("<");
+    enterSubstate(1);
+  }
+  else
+  if (match($0,"^\""))
+  {
+    extract(RLENGTH);
+    outputLine=outputLine "<xsl:text>";
+    stringBuffer="";
+    enterState("text");
+  }
+  else
+  if (match($0,"^/\\*"))
+  {
+    extract(RLENGTH);
+    enterState("/*");
+  }
+  else
+  {
+    print "ERROR(line "line"): Syntax error:" substr($0,1,20) "..."  >"/dev/stderr"
+    exit 1
+  }
+}
+
+function doText()
+{
+  if (processString2()=="finished")
+  {
+    outputLine=outputLine "</xsl:text>";
+    leaveState();
+  }
+}
+
+function doAngleBracketText()
+{
+  if (processString1()=="finished")
+  {
+    outputLine=outputLine "\"";
+    leaveState();
+  }
+}
+
+function doAngleBracket()
+{
+  match($0,"^[^\"><]*");
+  if (RLENGTH>0)
+  {
+    outputLine=outputLine extract(RLENGTH);
+  }
+  
+  if ($0=="") return;
+  
+  if (match($0,"^\""))
+  {
+    outputLine=outputLine extract(RLENGTH);
+    enterState("<text");
+  }
+  else
+  if (match($0,"^<"))
+  {
+    outputLine=outputLine extract(RLENGTH);
+    enterSubstate(currentSubstate()+1);
+  }
+  if (match($0,"^>"))
+  {
+    outputLine=outputLine extract(RLENGTH);
+    enterSubstate(currentSubstate()-1);
+    if (currentSubstate()==0) leaveState();
+  }
+}
+
+function doAttributes(           name,regex,rlength)
+{
+  skipWhitespace(); #not processWhitespace(), to get attribute="foo" 
+                    #instead of attribute=<whitespace>"foo" !
+  
+  if ($0=="") return;
+  
+  if (currentSubstate()=="")
+  {  
+    if (match($0,"^/\\*"))
+    {
+      extract(RLENGTH);
+      enterState("/*");
+    }
+    else
+    {
+      if (match($0,"^" XMLTAG_RE))  #yes, XMLTAG_RE
+      {
+        rlength=RLENGTH;
+        name=substr($0,RSTART,rlength);
+        regex=getAttributeSyntax(currentTag(),name);
+        if (regex!="")
+        {
+          extract(rlength);
+          outputLine=outputLine " " name "=";
+          enterSubstate("wait4string" SUBSEP regex);
+        }
+      }
+    
+      if (currentSubstate()=="") #if we have not entered wait4string substate
+      {
+        outputLine=outputLine ">"
+        leaveState();
+      }  
+    }  
+  }
+  else
+  if (match(currentSubstate(),"^wait4string"))
+  {
+    if (match($0,"^/\\*"))
+    {
+      extract(RLENGTH);
+      enterState("/*");
+    }
+    if (!match($0,"^\""))
+    {
+      print "ERROR(line "line"): \" expected parsing attribute for tag " currentTag() >"/dev/stderr"
+      exit 1
+    }
+    outputLine=outputLine extract(RLENGTH);
+    stringBuffer=""
+    enterSubstate("instring" SUBSEP substr(currentSubstate(),index(currentSubstate(),SUBSEP)+1));
+  }
+  else
+  if (match(currentSubstate(),"^instring"))
+  {
+    if (processString1()=="finished")
+    {
+      regex=substr(currentSubstate(),index(currentSubstate(),SUBSEP)+1);
+      if (!match(stringBuffer,"^"regex"$")) 
+      {
+        print "ERROR(line "line"): " stringBuffer " does not match /" regex "/" >"/dev/stderr"
+        exit 1
+      }
+      outputLine=outputLine "\"";
+      enterSubstate("");
+    }
+  }
+  else
+  {
+    print "ERROR(line "line"): Internal Error (unknown substate: " currentSubstate()  ")"  >"/dev/stderr"
+    exit 1
+  }
+}
+
+function processWhitespace()
+{
+  match($0,"^" WHITESPACE_RE);
+  if (RLENGTH>0)
+  {
+    outputLine=outputLine substr($0,RSTART,RLENGTH);
+    $0=substr($0,RSTART+RLENGTH);
+  }
+}
+
+function skipWhitespace()
+{
+  match($0,"^" WHITESPACE_RE);
+  if (RLENGTH>0) $0=substr($0,RSTART+RLENGTH);
+}
+
+function processString2()
+{
+  return processString1();
+}
+
+# returns "finished" when closing " is encountered
+function processString1(         temp)
+{
+  match($0,/^[^\\\"&<]*/);  #"
+  if (RLENGTH>0)
+  {
+    temp=extract(RLENGTH);
+    outputLine=outputLine temp;
+    stringBuffer=stringBuffer temp;
+  }
+  
+  if ($0=="") return "";
+  
+  if (match($0,"^" ENTITYREF_RE))
+  {
+    temp=extract(RLENGTH);
+    outputLine=outputLine temp;
+    stringBuffer=stringBuffer temp;
+  }
+  else
+  if (match($0,"^<"))
+  {
+    extract(RLENGTH);
+    outputLine=outputLine "&lt;";
+    stringBuffer=stringBuffer "&lt;";
+  }
+  else
+  if (match($0,"^&"))
+  {
+    extract(RLENGTH);
+    outputLine=outputLine "&amp;";
+    stringBuffer=stringBuffer "&amp;";
+  }
+  else
+  if (match($0,"^\\\\"))
+  {
+    extract(RLENGTH);
+    if (match($0,"^\\\\"))
+    {
+      extract(RLENGTH);
+      outputLine=outputLine "\\";
+      stringBuffer=stringBuffer "\\";
+    }
+    else
+    if (match($0,"^n"))
+    {
+      extract(RLENGTH);
+      outputLine=outputLine "&#10;";
+      stringBuffer=stringBuffer "&#10;";
+    }
+    else
+    if (match($0,"^\""))
+    {
+      extract(RLENGTH);
+      outputLine=outputLine "&quot;";
+      stringBuffer=stringBuffer "&quot;";
+    }
+    else
+    {
+      print "ERROR(line "line"): Unknown backslash escape: \\" substr($0,1,1)  >"/dev/stderr"
+      exit 1
+    }
+  }
+  else
+  if (match($0,"^\""))
+  {
+    extract(RLENGTH);
+    return "finished";
+  }
+  
+  return "";
+}
+
+function extract(rlength,           ret)
+{
+  ret=substr($0,1,rlength);
+  $0=substr($0,1+rlength);
+  return ret;
+}
+
+function pushTag(name)
+{
+  tagstack[tagstacktop]=name;
+  ++tagstacktop;
+}
+
+function popTag()
+{
+  if (tagstacktop==0) return "";
+  --tagstacktop;
+  return tagstack[tagstacktop];
+}
+
+function checkValidXSLTag(name,     i)
+{
+  if (tag[name]==1) return;
+  
+  print "ERROR(line "line"): Not a valid XSL tag: " name  >"/dev/stderr";
+  exit 1;
+}
+
+function getAttributeSyntax(tag,attr        ,i,A)
+{
+  if (match(attr,"^xmlns:") || match(attr,"^xmlns$")) return ".*";
+  for (i in syntax)
+  {
+    split(i,A,SUBSEP);
+    if (A[1]==tag && A[2]==attr) return syntax[i];
+  }
+  return "";
+}
+
+function enterState(state)
+{
+  statestack[statestacktop]=state;
+  substatestack[statestacktop]="";
+  ++statestacktop;
+}
+
+function leaveState()
+{
+  --statestacktop;
+}
+
+function enterSubstate(state)
+{
+  substatestack[statestacktop-1]=state;
+}
+
+function currentState()
+{
+  return statestack[statestacktop-1];
+}
+
+function currentSubstate()
+{
+  return substatestack[statestacktop-1];
+}
+
+function currentTag()
+{
+  if (tagstacktop==0) return "";
+  return tagstack[tagstacktop-1];
+}
+
+function parse_commandline(   i)
+{
+#  i=1 
+#  while (i<ARGC)
+#  {
+#    if (ARGV[i]=="--tag-paras")
+#    {
+#      tagparas=1
+#    }
+#    ++i 
+#  }
+}
+
+
+BEGIN {
+  NON_WHITESPACE_CHAR_RE="([^\1-\x20])"
+  WHITESPACE_RE="[\1-\x20]*"
+
+  ENTITYREF_RE="((&#[0-9]+;)|(&#x[0-9a-fA-F]+;)|(&[a-zA-Z][a-zA-Z0-9]*;))"
+  XMLTAG_RE="([a-zA-Z_:][a-zA-Z_:0-9.-]*)";
+  
+  line=0;
+  tagstacktop=0;
+  statestacktop=1;
+  statestack[0]="normal";
+  substatestack[0]="";
+  
+  stringBuffer="";
+  outputLine="";
+    
+  tag["apply-imports"]=1
+  tag["apply-templates"]=1
+  tag["attribute"]=1
+  tag["attribute-set"]=1
+  tag["call-template"]=1
+  tag["choose"]=1
+  tag["comment"]=1
+  tag["copy"]=1
+  tag["copy-of"]=1
+  tag["decimal-format"]=1
+  tag["element"]=1
+  tag["fallback"]=1
+  tag["for-each"]=1
+  tag["if"]=1
+  tag["import"]=1
+  tag["include"]=1
+  tag["key"]=1
+  tag["message"]=1
+  tag["namespace-alias"]=1
+  tag["number"]=1
+  tag["otherwise"]=1
+  tag["output"]=1
+  tag["param"]=1
+  tag["preserve-space"]=1
+  tag["processing-instruction"]=1
+  tag["sort"]=1
+  tag["strip-space"]=1
+  tag["stylesheet"]=1
+  tag["template"]=1
+  tag["text"]=1
+  tag["transform"]=1
+  tag["value-of"]=1
+  tag["variable"]=1
+  tag["when"]=1
+  tag["with-param"]=1
+  
+  
+  NODE_SET_EXPRESSION_RE=".*";
+  QNAME_RE=".*";
+  B_QNAME_RE=".*";
+  B_URI_REFERENCE_RE=".*";
+  QNAMES_RE=".*";
+  EXPRESSION_RE=".*";
+  PATTERN_RE=".*";
+  CHAR_RE=".*";
+  STRING_RE=".*";
+  BOOLEAN_EXPRESSION_RE=".*";
+  URI_REFERENCE_RE=".*";
+  YES_NO_RE=".*";
+  PREFIX_OR_DEFAULT_RE=".*";
+  SINGLE_MULTIPLE_ANY_RE=".*";
+  NUMBER_EXPRESSION_RE=".*";
+  B_STRING_RE=".*";
+  NMTOKEN_RE=".*";
+  B_NMTOKEN_RE=".*";
+  B_ALPHABETIC_TRADITIONAL_RE=".*";
+  B_CHAR_RE=".*";
+  B_NUMBER_RE=".*";
+  XML_HTML_TEXT_QNAME_BUT_NOT_NCNAME_RE=".*";
+  TOKENS_RE=".*";
+  B_NCNAME_RE=".*";
+  STRING_EXPRESSION_RE=".*";
+  B_TEXT_NUMBER_QNAME_BUT_NOT_NCNAME_RE=".*";
+  B_ASCENDING_DESCENDING_RE=".*";
+  B_UPPER_FIRST_LOWER_FIRST_RE=".*";
+  NUMBER_RE=".*";
+  
+  syntax["apply-templates","select"]=NODE_SET_EXPRESSION_RE
+  syntax["apply-templates","mode"]=QNAME_RE
+  
+  syntax["attribute","name"]=B_QNAME_RE
+  syntax["attribute","namespace"]=B_URI_REFERENCE_RE
+  
+  syntax["attribute-set","name"]=QNAME_RE
+  syntax["attribute-set","use-attribute-sets"]=QNAMES_RE
+  
+  syntax["call-template","name"]=QNAME_RE
+  
+  syntax["copy","use-attribute-sets"]=QNAMES_RE
+  
+  syntax["copy-of","select"]=EXPRESSION_RE
+  
+  syntax["decimal-format","name"]=QNAME_RE
+  syntax["decimal-format","decimal-separator"]=CHAR_RE
+  syntax["decimal-format","grouping-separator"]=CHAR_RE
+  syntax["decimal-format","infinity"]=STRING_RE
+  syntax["decimal-format","minus-sign"]=CHAR_RE
+  syntax["decimal-format","NaN"]=STRING_RE
+  syntax["decimal-format","percent"]=CHAR_RE
+  syntax["decimal-format","per-mille"]=CHAR_RE
+  syntax["decimal-format","zero-digit"]=CHAR_RE
+  syntax["decimal-format","digit"]=CHAR_RE
+  syntax["decimal-format","pattern-separator"]=CHAR_RE
+  
+  syntax["element","name"]=B_QNAME_RE
+  syntax["element","namespace"]=B_URI_REFERENCE_RE
+  syntax["element","use-attribute-sets"]=QNAMES_RE
+  
+  syntax["for-each","select"]=NODE_SET_EXPRESSION_RE
+  
+  syntax["if","test"]=BOOLEAN_EXPRESSION_RE
+  
+  syntax["import","href"]=URI_REFERENCE_RE
+  
+  syntax["include","href"]=URI_REFERENCE_RE
+  
+  syntax["key","name"]=QNAME_RE
+  syntax["key","match"]=PATTERN_RE
+  syntax["key","use"]=EXPRESSION_RE
+
+  syntax["message","terminate"]=YES_NO_RE
+
+  syntax["namespace-alias","stylesheet-prefix"]=PREFIX_OR_DEFAULT_RE
+  syntax["namespace-alias","result-prefix"]=PREFIX_OR_DEFAULT_RE
+  
+  syntax["number","level"]=SINGLE_MULTIPLE_ANY_RE
+  syntax["number","count"]=PATTERN_RE
+  syntax["number","from"]=PATTERN_RE
+  syntax["number","value"]=NUMBER_EXPRESSION_RE
+  syntax["number","format"]=B_STRING_RE
+  syntax["number","lang"]=B_NMTOKEN_RE
+  syntax["number","letter-value"]=B_ALPHABETIC_TRADITIONAL_RE
+  syntax["number","grouping-separator"]=B_CHAR_RE
+  syntax["number","grouping-size"]=B_NUMBER_RE
+  
+  syntax["output","method"]=XML_HTML_TEXT_QNAME_BUT_NOT_NCNAME_RE
+  syntax["output","version"]=NMTOKEN_RE
+  syntax["output","encoding"]=STRING_RE
+  syntax["output","omit-xml-declaration"]=YES_NO_RE
+  syntax["output","standalone"]=YES_NO_RE
+  syntax["output","doctype-public"]=STRING_RE
+  syntax["output","doctype-system"]=STRING_RE
+  syntax["output","cdata-section-elements"]=QNAMES_RE
+  syntax["output","indent"]=YES_NO_RE
+  syntax["output","media-type"]=STRING_RE
+
+  syntax["param","name"]=QNAME_RE  
+  syntax["param","select"]=EXPRESSION_RE
+  
+  syntax["preserve-space","elements"]=TOKENS_RE
+  
+  syntax["processing-instruction","name"]=B_NCNAME_RE
+  
+  syntax["sort","select"]=STRING_EXPRESSION_RE
+  syntax["sort","lang"]=B_NMTOKEN_RE
+  syntax["sort","data-type"]=B_TEXT_NUMBER_QNAME_BUT_NOT_NCNAME_RE
+  syntax["sort","order"]=B_ASCENDING_DESCENDING_RE
+  syntax["sort","case-order"]=B_UPPER_FIRST_LOWER_FIRST_RE
+  
+  syntax["strip-space","elements"]=TOKENS_RE
+  
+  syntax["stylesheet","id"]=ID_RE
+  syntax["stylesheet","extension-element-prefixes"]=TOKENS_RE
+  syntax["stylesheet","exclude-result-prefixes"]=TOKENS_RE
+  syntax["stylesheet","version"]=NUMBER_RE
+  
+  syntax["template","match"]=PATTERN_RE
+  syntax["template","name"]=QNAME_RE
+  syntax["template","priority"]=NUMBER_RE
+  syntax["template","mode"]=QNAME_RE
+  
+  syntax["text","disable-output-escaping"]=YES_NO_RE
+  
+  syntax["transform","id"]=ID_RE
+  syntax["transform","extension-element-prefixes"]=TOKENS_RE
+  syntax["transform","exclude-result-prefixes"]=TOKENS_RE
+  syntax["transform","version"]=NUMBER_RE
+  
+  syntax["value-of","select"]=STRING_EXPRESSION_RE
+  syntax["value-of","disable-output-escaping"]=YES_NO_RE
+  
+  syntax["variable","name"]=QNAME_RE  
+  syntax["variable","select"]=EXPRESSION_RE
+  
+  syntax["when","test"]=BOOLEAN_EXPRESSION_RE
+  
+  syntax["with-param","name"]=QNAME_RE  
+  syntax["with-param","select"]=EXPRESSION_RE
+}
+
+BEGIN {
+  parse_commandline()
+}
+

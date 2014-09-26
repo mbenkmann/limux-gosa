@@ -1,0 +1,36 @@
+#!/bin/bash
+
+test $UID != 0 && {
+  exec fakeroot "$0"
+  echo 2>&1 "Must be run by root or the command fakeroot must be available"
+  exit 1
+}
+
+temp=/tmp/makedeb.$$.$RANDOM
+while ! mkdir "$temp" ; do
+  temp=/tmp/makedeb.$$.$RANDOM
+done
+
+trap "rm -rf $temp" EXIT
+
+version="$(./go-susi --version | sed -n 's/^go-susi \([^ ]*\).*/\1/p')"
+
+g=$temp/go-susi-$version
+
+mkdir -p $g/DEBIAN $g/usr/sbin $g/usr/lib
+cp -a go-susi $g/usr/sbin
+cp -a go-susi $g/usr/lib/gosa-si-server
+cp -a main/gosa-si-server $g/usr/sbin/gosa-si-server.sh
+echo >$g/DEBIAN/control "Package: go-susi
+Version: $version
+Architecture: all
+Maintainer: Matthias S. Benkmann <matthias@winterdrache.de>
+Description: go-susi
+ go-susi
+"
+chown -R root: $g
+chmod -R a+rX $g
+
+deb="$(readlink -f .)/go-susi_$version.deb"
+
+dpkg-deb -b "$g" "$deb"

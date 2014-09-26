@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ $# != 4 ]; then
+  echo "USAGE: sicmd <server> <keyid> <header> <body>"
+  echo "Example: sicmd localhost GOsaPackages gosa_query_jobdb '<where></where>'"
+  echo
+  echo "<server> may include a port. If it doesn't 20081 is assumed."
+  exit 0
+fi
+
+server=$1
+port=${server##*:}
+test "$port" = "$server" && port=20081
+server=${server%%:*}
+keyid=$2
+key="$(sed -n "/\\[$keyid\\]/,\$s/key *= *\(.*\)/\1/p" /etc/gosa-si/server.conf | head -n 1)"
+test -z "$key" && {
+  echo 2>&1 "Could not read key from section [$keyid] from /etc/gosa-si/server.conf"
+  exit 1
+}
+header=$3
+msg=$4
+go run main/decrypt.go "$key" "$(go run main/encrypt.go "$key" "<xml><header>$header</header>$msg</xml>" | nc -q 2 $server $port)" | tidy -indent -quiet -xml

@@ -1,0 +1,140 @@
+#!/bin/bash
+
+exec 2>/var/log/send_user_msg.log
+
+date 1>&2
+echo 1>&2 "Processing message $subject from $from"
+
+test -z "$send_user_msg_do_not_recurse" && 
+
+################### forward to all servers in serverdb ########################
+(
+
+keyid="GOsaPackages"
+key="$(sed -n "/\\[$keyid\\]/,\$s/key *= *\(.*\)/\1/p" /etc/gosa-si/server.conf | head -n 1)"
+test -z "$key" && {
+  echo 1>&2 "Could not read key from section [$keyid] from /etc/gosa-si/server.conf"
+  exit 1
+}
+
+users_xml=""
+for usr in $user ; do
+  users_xml="${users_xml}<user>$usr</user>"
+done
+for g in $group ; do
+  users_xml="${users_xml}<group>$g</group>"
+done
+  
+msg="<xml>
+<header>job_send_user_msg</header>
+<source>GOSA</source>
+<target>GOSA</target>
+<from>$from</from>
+<subject>$subject</subject>
+<message>$message</message>
+<timestamp>$timestamp</timestamp>
+<delivery_time>$delivery_time</delivery_time>
+<periodic>$periodic</periodic>
+<macaddress>GOSA</macaddress>
+${users_xml}
+<send_user_msg_do_not_recurse>1</send_user_msg_do_not_recurse>
+</xml>
+"
+
+susionly=false
+cat /var/lib/go-susi/serverdb.xml | tr -d '[ \t\r\n\v]' | sed 's/xml>/\n/g' | 
+while read -r line ; do
+  server="${line##*<source>}"
+  server="${server%%</source>*}"  
+  test "$server" = "$line" && continue
+  if [ "${line#*goSusi}" = "$line" ]; then
+    if [ "$susionly" = "true" ]; then
+      continue
+    fi
+    result="$(echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc -w 60 -q 1 "${server%:*}" "${server#*:}")"
+    if test -n "$result" ; then
+      echo 1>&2 "Message successfully passed to non-go-susi server $server"
+      susionly=true
+    else
+      echo 1>&2 "Message could not be passed to non-go-susi server $server"
+    fi
+  else
+    echo 1>&2 "Passing message to go-susi server $server"
+    echo "$msg" | /usr/lib/go-susi/encrypt "$key" | nc -w 60 "${server%:*}" "${server#*:}" >/dev/null
+  fi
+done
+  
+) &
+
+
+############################ resolve groups into individual users ###################
+
+users="$user"
+
+for g in $group ; do
+  users="$users $(ldapsearch -x -LLL "(&(cn=$g)(objectClass=posixGroup))" memberUid | sed -n 's/memberUid: //p')"
+done
+
+############################## send to all clients on our server ####################
+sed 's/xml>/\n/g' /var/lib/go-susi/clientdb.xml | 
+while read -r line ; do
+  client="${line##*<client>}"
+  client="${client%%</client>*}"
+  test "$client" = "$line" && continue
+  server="${line##*<source>}"
+  server="${server%%</source>*}"
+  key="${line%%</key>*}"
+  key="${key##*<key>}"
+  
+  test "$server" != "$IPADDRESS:$SERVERPORT" && continue  # skip foreign clients
+  test "$client" == "$server" && continue  # skip client built into server
+
+  test "$key" = "$line" && continue
+
+  (
+  for user in $users ; do
+    msg="<xml>
+<header>usr_msg</header>
+<source>$server</source>
+<target>$client</target>
+<subject>$subject</subject>
+<message>$message</message>
+<usr>$user</usr>
+<usr_msg></usr_msg>
+<send_user_msg_do_not_recurse>1</send_user_msg_do_not_recurse>
+</xml>
+"
+  
+    echo 1>&2 "Sending message to $user at $client"
+    echo "$msg" | /usr/lib/go-susi/encrypt "$key" 
+  done | nc -w 10 "${client%:*}" "${client#*:}"
+  ) &
+ 
+done
+
+############################## send to all users on our machine ####################
+
+temp=/tmp/goto-notify.d
+while ! mkdir --mode=u=rwx,go= "$temp" ; do
+  temp=/tmp/goto-notify.d.$$.$RANDOM
+done
+  
+for user in $users ; do
+  who | grep -q "^$user " || continue
+  tempfile="$temp/$user"
+  echo >$tempfile "source:$source
+target:$target
+usr:$user
+subject:$subject
+message:$message
+"
+
+echo 1>&2 "Notifying logged in user $user"
+          
+LANG=de_DE.UTF-8 /usr/bin/goto-notify -b user-message "$user" "$subject" "$message" "$tempfile" &
+              
+done
+
+wait
+
+rm -rf "$temp"

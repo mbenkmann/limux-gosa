@@ -1,0 +1,47 @@
+#!/usr/bin/expect -f
+
+# Script for testing the wakeup command.
+
+set testserver "SERVER"
+set testclient "CLIENT_TO_WAKE_UP"
+
+
+# If any of the expected output does not appear within 180s, abort with error
+# This may seem like a long time, but waking up can take this long!
+set timeout 180
+
+puts "Connecting to the test server...\n"
+spawn ./sibridge $testserver
+
+# wait for the connection to be established
+expect "\n"
+
+puts "Connection established\n"
+
+puts "Sending halt command for test machine...\n"
+send "halt $testclient\n"
+expect "OK"
+
+puts "Waiting for the test machine to be shut down...\n"
+send "xx\n"
+
+expect {
+  "x_x active" {} 
+  timeout    { puts "TEST FAILED!" ; exit 1; }
+}
+
+puts "Sending wake up command and waiting for machine to be awake.\n"
+puts "This may take a while. Please be patient...\n"
+send "wake\n"
+expect "OK"
+send "xx\n"
+expect {
+    # \n is in the pattern to prevent ^ from being treated as anchor
+  "\n^_^ active" {}
+  timeout    { puts "TEST FAILED!" ; exit 1; }
+}  
+
+puts "TEST SUCCESSFUL!\n"
+puts "Shutting down the test machine again...\n"
+send "halt\n"
+expect "OK"

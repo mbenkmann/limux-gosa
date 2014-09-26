@@ -1,0 +1,95 @@
+#!/bin/bash
+
+test -z "$macaddress" && { echo "# Environment variables not properly set" ; exit 1 ; }
+
+# If faistate is empty, that may either mean there is no LDAP object or that
+# the LDAP server is having trouble. Make sure we only start a reinstall if
+# there actually is no such object.
+test -z "$faistate" && {
+  result="$(ldapsearch -x -L "macaddress=$macaddress" dn)"
+  test $? = 0 && { # exit code 0 => LDAP okay
+    echo "$result" | grep -q "# numEntries:"
+    test $? != 0 && { # exit code not 0 => "# numEntries" not found
+      echo "$result" | grep -q "# numResponses: 1"
+      test $? = 0 && { # exit code 0 => "# numResponses: 1" found
+        faistate=install
+      }
+    }
+  }
+}
+
+# Alternatively if faistate is empty and the system is in ou=incoming,
+# it's also proper to install it
+test -z "$faistate" && { 
+  echo "$dn" | grep -q ",ou=incoming,"
+  test $? = 0 && faistate=install
+}
+
+echo "default fai-generated"
+echo
+echo "label fai-generated"
+
+state=${faistate%%:*}
+error=${faistate#*:}
+kernel="$gotobootkernel"
+test -z "$kernel" -o "$kernel" = "default" && kernel="vmlinuz-install"
+initrd="initrd.img-${kernel#vmlinuz-}"
+
+conf="$(cat /etc/gosa-si/server.conf | tr '\t' ' ' | tr -s ' ' | sed 's/^ //;s/ $//;s/^\([^=]*\) =/\1=/;s/^\([^=]*\)= /\1=/')"
+
+echo "$conf" | grep -q "/$kernel=" 
+test $? != 0 -a "$state" != error -a "$state" != localboot && { 
+  state="error"
+  error="boot:666:ultra:The selected kernel $kernel is not available on the boot server"
+}
+  
+fai_flags=$(echo "$conf" | sed -n -r 's/^fai_flags=(.*)/\1/p' | tail -n 1)
+test -z "$fai_flags" && fai_flags="syslogd,verbose,sshd,poweroff,skipusb"
+
+nfs_opts=$(echo "$conf" | sed -n -r 's/^nfs_opts=(.*)/\1/p' | tail -n 1)
+test -z "$nfs_opts" && nfs_opts="nfs4,union"
+
+nfs_root=$(echo "$conf" | sed -n -r 's/^nfs_root=(.*)/\1/p' | tail -n 1)
+test -z "$nfs_root" && nfs_root="/nfsroot"
+
+# For a release called "foo/bar/bla", test if there are NFS exports
+# * ${nfs_root}-foo-bar-bla
+# * ${nfs_root}-foo-bar
+# * ${nfs_root}-foo
+# The first one found in /etc/exports is used as nfs_root.
+# If none is found, nfs_root stays at its default value.
+release=$(echo "$faiclass" | sed 's/^.*://;s/\//-/g')
+while test -n "$release"; do
+  grep -q "^[^#]*${nfs_root}-$release\\b" /etc/exports && {
+    nfs_root="${nfs_root}-$release"
+    test "$kernel" = "vmlinuz-install" && {
+      kernel="$kernel-$release"
+      initrd="initrd.img-${kernel#vmlinuz-}"
+    }
+    break
+  }
+  test "$release" = "${release%-*}" && break
+  release="${release%-*}"
+done
+
+kern_appd=$(echo "$conf" | sed -n -r 's/^kern_appd=(.*)/\1/p' | tail -n 1)
+test -z "$kern_appd" && kern_appd=""
+
+case "$state" in
+  install*) echo "kernel $kernel
+append  initrd=$initrd nfsroot=${nfs_root},${nfs_opts} FAI_ACTION=install FAI_FLAGS=${fai_flags} ip=dhcp devfs=nomount root=/dev/nfs ${kern_appd} $gotokernelparameters
+ipappend 2
+"
+  ;;
+  
+  error*) kernel="vmlinuz-install"    # make sure we load a kernel that can display the error
+          initrd="initrd.img-install"
+          echo "kernel $kernel
+append  initrd=$initrd nfsroot=${nfs_root},${nfs_opts} FAI_ACTION=sysinfo FAI_FLAGS=${fai_flags} FAI_ERROR=$(echo "$error" | base64 --wrap=0) ip=dhcp devfs=nomount root=/dev/nfs ${kern_appd} $gotokernelparameters
+ipappend 2
+"
+  ;;
+  
+  *) echo "localboot 0"
+  ;;
+esac

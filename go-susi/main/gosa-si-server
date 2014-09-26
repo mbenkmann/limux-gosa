@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# limit stack size because it limits the number of possible threads
+ulimit -s 512
+
+# lift process limit if it is set
+ulimit -u unlimited
+
+# lift limit on open files (each socket connection requires one)
+ulimit -n 9999
+
+# see operator's manual section "TCP Keep-Alive"
+echo 30 >/proc/sys/net/ipv4/tcp_keepalive_time
+echo 10 >/proc/sys/net/ipv4/tcp_keepalive_intvl
+echo 5 >/proc/sys/net/ipv4/tcp_keepalive_probes
+
+# This determines the permissions of directories created in /var/log/fai
+# as well as those for files created by hooks (e.g. /etc/ldap/ldap.conf)
+umask 022
+
+pidfile="$(sed 2>/dev/null -n 's/^pid-file *= *\([^ ]*\)/\1/p' /etc/gosa-si/client.conf /etc/gosa-si/server.conf | tail -n 1)"
+test -z "$pidfile" && pidfile=/var/run/gosa-si-server.pid
+
+crashlog="/var/log/gosa-si-server-crash.log"
+
+foreground="0"
+
+faus=0
+
+args=()
+while [ $# != 0 ]; do
+  case "$1" in
+   -f)
+      foreground="1"
+      shift
+      continue
+      ;;
+   -v*)
+      faus=$(($faus + ${#1} - 1))
+      shift
+      continue
+      ;;
+  esac
+  args=("${args[@]}" "$1")
+  shift
+done
+
+case $faus in
+  0) ;;
+  1|2|3|4|5) args=("-v" "${args[@]}") ;;
+  *) args=("-vv" "${args[@]}") ;;
+esac
+
+rm -f "$pidfile"
+
+# We must call /usr/lib/go-susi/gosa-si-server because the binary has to be named gosa-si-server,
+# because start-stop-daemon tests this name.
+# It is not enough to pass argv[0]=gosa-si-server via exec.
+
+if [ $foreground = 1 ]; then
+  echo "$BASHPID" >"$pidfile"
+  exec /usr/lib/go-susi/gosa-si-server "${args[@]}"
+else
+  (
+    echo >>"$crashlog"
+    echo "================================================================" >>"$crashlog"
+    echo >>"$crashlog"
+    
+    trap "" SIGHUP
+    echo "$BASHPID" >"$pidfile"
+    exec </dev/null setsid /usr/lib/go-susi/gosa-si-server "${args[@]}" 2>&1 
+  ) | exec -a gosa-si-server-crash-monitor tail -n 10000 >>"$crashlog" &
+fi

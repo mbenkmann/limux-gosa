@@ -1,0 +1,48 @@
+#!/bin/bash
+
+test -f ../config/config.go && cd ..
+test -f config/config.go || exit 1
+
+which hg >/dev/null 2>&1
+if [ $? -ne 0 ] || [ ! -d ".hg" ]; then
+  test -f config/version.go || exit 1
+  exit 0
+fi
+
+logdata="$(LC_ALL=C hg --config alias.log=log log --style=compact -I main/go-susi.go -I main/makedebsource -I main/send_user_msg -I main/initrd_autopack -I "main/generate_*" -I util/deque/deque.go -I "message/*.go" -I "action/*.go" -I "bytes/*.go" -I "util/*.go" -I "config/*.go" -I "db/*.go" -I "xml/*.go" -I "tftp/*.go")"
+echo "$logdata" | tac | tr 'A-Z' 'a-z' | sed 's/\([[#]\)/\n\1/g' |
+(
+  milestone=-1
+  minor=0
+  tick=0
+  while read -r line ; do
+    case "$line" in
+      [0-9]*) set -- $line
+              tick=$(($tick + 1))
+              test $tick = 100 && tick=991
+              test $tick = 1000 && tick=9991
+              test $tick = 10000 && tick=99991
+              test $tick = 100000 && tick=999991
+              ;;
+      '[milestone]'*) milestone=$(($milestone + 1))
+                      minor=0
+                      tick=-1
+                      ;;
+      '[experimental]'*) tick=89
+                          ;;
+      '[feature]'*|'#'[0-9]*) minor=$(($minor + 1))
+                     test $tick -ge 90 && tick=89 || tick=-1
+                     ;;
+    esac
+  done
+  
+  revision=$(echo "$logdata" | head -n 1 | sed 's/^[^ ]*  *\([a-zA-Z0-9]*\) .*/\1/')
+  
+  echo "// WARNING! THIS FILE IS AUTO-GENERATED AND WILL BE OVERWRITTEN!
+
+package config
+
+const Version = \"$milestone.$minor.$tick\"
+const Revision = \"$revision\"
+" >config/version.go
+)

@@ -1,0 +1,11 @@
+dn: ou=x-men
+ou: x-men
+objectClass: organizationalUnit
+objectClass: FAIbranch
+structuralObjectClass: organizationalUnit
+entryUUID: d9327baa-24e5-1032-8591-d718854dbd5c
+creatorsName: cn=admin,o=go-susi,c=de
+createTimestamp: 20130319133712Z
+entryCSN: 20130319133712.060777Z#000000#000#000000
+modifiersName: cn=admin,o=go-susi,c=de
+modifyTimestamp: 20130319133712Z

@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE xsl:stylesheet [ 
+<!ENTITY nbsp   "&#160;">
+<!ENTITY copy   "&#169;">  <!-- copyright sign, U+00A9 ISOnum -->
+<!ENTITY ensp   "&#8194;"> <!-- en space, U+2002 ISOpub -->
+<!ENTITY thinsp "&#8201;"> <!-- thin space, U+2009 ISOpub -->
+<!ENTITY and  "&#8743;">   <!-- logical and = wedge, U+2227 ISOtech -->
+<!ENTITY neq   "&#8800;">
+<!ENTITY leq   "&#8804;">
+]>
+
+stylesheet{ version "1.0" xmlns:xsl "http://www.w3.org/1999/XSL/Transform"
+                          xmlns "http://www.w3.org/1999/xhtml"
+                          xmlns:str "http://exslt.org/strings"
+                          xmlns:h "http://www.w3.org/1999/xhtml"
+                          xmlns:set "http://exslt.org/sets"
+
+output{
+  method "text" 
+  encoding "utf-8" 
+  indent "no"
+  media-type "text/plain"
+}
+
+/* Name of the subject of the manpage. */
+param{ name "name" select "'NAME'" }
+
+/* Manpage section (1=commands, 5=config files/protocols. */
+param{ name "section" select "'1'" }
+
+/* go-susi version for which this is the manual. */
+param{ name "version" select "'4.5.6'" }
+
+/* id of <a> tag before 1st node to be included in manpage */
+param{ name "start_id" select "'id.jes9sqqlstzn'" }
+
+/* id of <a> tag after last node to be included in manpage */
+param{ name "stop_id" select "'id.sj4np8e9wdb8'" }
+
+variable{ name "css" select "normalize-space(/h:html/h:head/h:style)" }
+param{ name "ltr" select "string(//h:a[@id='id.hjmnt8awkh8s']/following-sibling::*[1]/@class)" }
+param{ name "mono" select "string(//h:a[@id='id.w63fd9fui69z']/following-sibling::*[1]/child::h:span[1]/@class)" }
+variable{ name "btemp" select "str:split(substring-before($css,'{font-weight:bold}'),'.')" }
+param{ name "bold" select "string($btemp[count($btemp)])" }
+variable{ name "itemp" select "str:split(substring-before($css,'{font-style:italic}'),'.')" }
+param{ name "italic" select "string($itemp[count($itemp)])" }
+param{ name "monobold" select "string(//h:a[@id='id.7rmu3qjxnnyy']/following-sibling::*[1]/child::h:span[1]/@class)" }
+param{ name "indent" select "string(//h:a[@id='id.f852w3yjg198']/following-sibling::*[1]/@class)" }
+param{ name "indentmore" select "string(//h:a[@id='id.3uhjxiaklp5d']/following-sibling::*[1]/@class)" }
+param{ name "indent3" select "string(//h:a[@id='id.i03t6xrtz85y']/following-sibling::*[1]/@class)" }
+param{ name "indent4" select "string(//h:a[@id='id.vbpk5t3411tq']/following-sibling::*[1]/@class)" }
+variable{ name "ctemp" select "str:split(substring-before($css,'{text-align:center}'),'.')" }
+param{ name "center" select "string($ctemp[count($ctemp)])" }
+param{ name "indentedbull" select "string(//h:a[@id='id.fhvqu6w21q56']/following-sibling::h:ol[1]/@class)" }
+
+
+/****************************************************************************
+
+
+            D E F A U L T     R U L E S
+            
+            
+*****************************************************************************/
+
+/* All tags for which no specific rule exists should not appear in the 
+   output, but their contents should be processed. */
+template{ match "*" priority "-10" 
+  apply-templates 
+}
+
+/* Normalize space on all text contents
+   and escape characters that have a special meaning to groff
+   See groff_char(7) manpage for character escape list */
+template{ match "text()" priority "-7" 
+  value-of{ select "str:replace(str:replace(str:replace(str:replace(normalize-space(.),'\\','\\[char92]'),'\"','\\[char34]'),'.','\\[char46]'),'-','\\-')" } /*  " */
+}
+
+/* Whitespace-only text nodes are reduced to a single space */
+template{ match "text()[normalize-space(.)='']" priority "-6" 
+  value-of{ select "' '" } 
+}
+
+/* Translate <br/> to \p */
+template{ match "*[local-name(.)='br']" "\\p " }
+
+/****************************************************************************
+
+
+             B O D Y     R U L E S
+            
+            
+*****************************************************************************/
+
+/*** NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE ****/
+/* We use name tests via local-name() because this works no matter if the
+input has a default namespace declaration or not */
+
+/* Output manpage header */
+template{ match "*[local-name(.)='html']"
+  /* Code for dumping the classes as comment at the beginning of the manpage */
+  /*
+  "\\\" ltr: " value-of{select "$ltr"}
+  " italic: " value-of{select "$italic"}
+  " bold: " value-of{select "$bold"}
+  " mono: " value-of{select "$mono"}
+  " center: " value-of{select "$center"}
+  " monobold: " value-of{select "$monobold"}
+  " indent: " value-of{select "$indent"}
+  " indentmore: " value-of{select "$indentmore"}
+  " indentedbull: " value-of{select "$indentedbull"}
+  "\n"
+  */
+  
+  value-of{ select "concat('.TH ',$name,' ',$section,' \"VERSION ',$version,'\"',' ','\"(C) MATTHIAS S. BENKMANN\"',' ','\"GO-SUSI OPERATOR',\"'\",'S MANUAL\"')" }
+  "\n"
+  ".nh\n" /* no hyphenation*/
+  ".ad l" /* left justify */
+  
+  /* set standard paragraph distance 
+  possible units: 
+    http://m.linuxjournal.com/files/linuxjournal.com/linuxjournal/articles/043/4375/4375t1.html)
+  */
+  ".PD 1m" 
+  apply-templates 
+  
+  "\n.PD 1m\n.SH SEE ALSO"
+  "\n.BR \"go-susi\" \"(1)        -  main description, API basics, XML message basics\""
+  "\n.br"
+  "\n.BR \"gosa-si-server\" \"(1) -  the preferred way to launch go-susi\""
+  "\n.br"
+  "\n.BR \"sibridge\" \"(1)       -  remote control for an si-server\""
+  "\n.br"
+  "\n.BR \"initrd_autopack\" \"(5)-  a godsend for developers of initrd.img\""
+  "\n.br"
+  "\n.BR \"server.conf\" \"(5)    -  configuration file\""
+  "\n.br"
+  "\n.BR \"gosa-si-jobs\" \"(5)   -  jobs database, job-related messages\""
+  "\n.br"
+  "\n.BR \"gosa-si-s2s\" \"(5)    -  server-server communication\""
+  "\n.br"
+  "\n.BR \"gosa-si-client\" \"(5) -  client registration, new clients, job triggers\""
+  "\n.br"
+  "\n.BR \"gosa-si-fai\" \"(5)    -  FAI installation and update\""
+  "\n.br"
+  "\n.BR \"gosa-si-query\" \"(5)  -  query releases, kernels, packages, FAI logs\""
+  "\n.br"
+  "\n.BR \"gosa-si-misc\" \"(5)   -  miscellaneous messages\""
+  "\n.br"
+  "\n.BR \"gosa-si-deprecated\" \"(5) - messages not supported by go-susi\""
+}
+
+/* Do not output anything for HTML <head> */
+template{ match "*[local-name(.)='head']" }
+
+/* Skip TOC, only process first h1 and all following elements */
+template{ match "*[local-name(.)='body']" 
+  apply-templates{ select "set:intersection(child::*[@id=$start_id]/following-sibling::*, child::*[@id=$stop_id]/preceding-sibling::*)" }
+}
+
+/* H1 */
+template{ match "*[local-name(.)='h1']" 
+  "\n.PD 1m\n.SH " 
+  value-of{ select "translate(normalize-space(.),'abcdefghijklmnopqrstuvwxyz','ABCDEFGHIJKLMNOPQRSTUVWXYZ')" }
+}
+
+/* H2 */
+template{ match "*[local-name(.)='h2']"
+  "\n.PD 1m\n.SS "
+  value-of{ select "normalize-space(.)" }
+}
+
+/* H3 */
+template{ match "*[local-name(.)='h3']"
+  "\n.PD 1m\n.SS "
+  value-of{ select "normalize-space(.)" }
+}
+
+/* Paragraph */
+template{ match "*[local-name(.)='p']" priority "1"
+  variable{ name "prev" select "normalize-space(preceding-sibling::h:p[1]/attribute::class)" }
+  variable{ name "prevspan" select "normalize-space(preceding-sibling::h:p[1]/child::*[1]/attribute::class)" }
+  variable{ name "myspan" select "normalize-space(child::*[1]/attribute::class)" }
+  
+  choose{
+    /* 1-level indented paragraph */
+    when{ test "@class=$indent" 
+          if{ test "$prev!=$ltr and $prev!=$indent" "\n.PD 1m" }
+          if{ test "$prev=$ltr or $prev=$indent" "\n.PD 0" }
+          if{ test "$prevspan=$monobold and $myspan=$monobold" "\n.PD 0" }
+          "\n.IP \"\" 4"
+    }
+    
+    /* 2-level indented paragraph */
+    when{ test "@class=$indentmore" 
+          "\n.IP \"\" 8"
+    }
+    
+    /* 3-level indented paragraph */
+    when{ test "@class=$indent3" 
+          "\n.IP \"\" 12"
+    }
+    
+    /* 4-level indented paragraph */
+    when{ test "@class=$indent4" 
+          "\n.IP \"\" 16"
+    }
+    
+    /* centered paragraph */
+    when{ test "@class=concat($center,' ',$ltr) or @class=concat($ltr,' ',$center)" 
+          "\n.PD 1m\n.IP \"\" 16"
+    }
+    
+    /* Paragraph default */
+    otherwise{ 
+          if{ test "$prevspan=$monobold and $myspan=$monobold" "\n.PD 0" }
+          if{ test "$prevspan!=$monobold or $myspan!=$monobold" "\n.PD 1m" }
+          "\n.P"
+    }
+  }
+  apply-templates
+}
+
+/* Span */
+template{ match "*[local-name(.)='span']"
+  choose{
+    /* Monospace span surrounded by differently formatted text */
+    when{ test "@class=$mono and (count(preceding-sibling::node())>0 or count(following-sibling::node())>0)" 
+          "\n.IR \"" apply-templates "\""
+    }
+
+    /* Monospace span which is the only element of its paragraph */
+    when{ test "@class=$mono and (count(preceding-sibling::node())=0 and count(following-sibling::node())=0)" 
+          "\n.PD 0\n.BR \"" apply-templates "\""
+    }
+    
+    /* Italic span surrounded by differently formatted text */
+    when{ test "@class=$italic and (count(preceding-sibling::node())>0 or count(following-sibling::node())>0)" 
+          "\n.IR \"" apply-templates "\""
+    }
+
+    /* Italic span which is the only element of its paragraph */
+    when{ test "@class=$italic and (count(preceding-sibling::node())=0 and count(following-sibling::node())=0)" 
+          "\n.PD 0\n.BR \"" apply-templates "\""
+    }
+    
+    /* Monospace bold span surrounded by differently formatted text */
+    when{ test "@class=$monobold and (count(preceding-sibling::node())>0 or count(following-sibling::node())>0)" 
+          "\n.BR \"" apply-templates "\""
+    }
+
+    /* Monospace bold span which is the only element of its paragraph */
+    when{ test "@class=$monobold and (count(preceding-sibling::node())=0 and count(following-sibling::node())=0)" 
+          "\n.PD 0\n.BR \"" apply-templates "\""
+    }
+    
+    /* Bold span surrounded by differently formatted text */
+    when{ test "@class=$bold and (count(preceding-sibling::node())>0 or count(following-sibling::node())>0)" 
+          "\n.BR \"" apply-templates "\""
+    }
+
+    /* Bold span which is the only element of its paragraph */
+    when{ test "@class=$bold and (count(preceding-sibling::node())=0 and count(following-sibling::node())=0)" 
+          "\n.PD 0\n.BR \"" apply-templates "\""
+    }
+
+    /* Span default */
+    otherwise{ 
+         "\n.R " apply-templates
+    }
+  }
+}
+
+/* Bullet list */
+template{ match "*[local-name(.)='ol']" 
+  /* 1-level indented bullet list */
+  choose{ 
+    when{ test "@class=$indentedbull" 
+          "\n.RS"
+          apply-templates 
+          "\n.RE"
+    }
+    otherwise{
+      apply-templates
+    }
+  }
+}
+template{ match "*[local-name(.)='li']" "\n.TP 4\n.B \\[bu]"  apply-templates }
+
+
+}

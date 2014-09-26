@@ -1,0 +1,10 @@
+dn: ou=disk
+ou: disk
+objectClass: organizationalUnit
+structuralObjectClass: organizationalUnit
+entryUUID: d932b55c-24e5-1032-8594-d718854dbd5c
+creatorsName: cn=admin,o=go-susi,c=de
+createTimestamp: 20130319133712Z
+entryCSN: 20130319133712.062256Z#000000#000#000000
+modifiersName: cn=admin,o=go-susi,c=de
+modifyTimestamp: 20130319133712Z

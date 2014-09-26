@@ -1,0 +1,34 @@
+<jobdb>
+ <job>
+   <plainname>grisham</plainname>
+   <progress>none</progress>
+   <status>done</status>
+   <siserver>1.2.3.4:20081</siserver>
+   <modified>1</modified>
+   <targettag>00:0c:29:50:a3:52</targettag>
+   <macaddress>00:0c:29:50:a3:52</macaddress>
+   <timestamp>20120906164734</timestamp>
+   <periodic>7_days</periodic>
+   <id>2</id>
+   <original_id>12</original_id>
+   <headertag>trigger_action_wake</headertag>
+   <result>none</result>
+   <xmlmessage></xmlmessage>
+ </job>
+ <job>
+   <plainname>john</plainname>
+   <progress>none</progress>
+   <status>waiting</status>
+   <siserver>LOCAL</siserver>
+   <modified>1</modified>
+   <targettag>FF:11:22:EE:CC:77</targettag>
+   <macaddress>FF:11:22:EE:CC:77</macaddress>
+   <timestamp>20000102030405</timestamp>
+   <periodic>none</periodic>
+   <id>4</id>
+   <original_id>4</original_id>
+   <headertag>trigger_action_lock</headertag>
+   <result>none</result>
+   <xmlmessage></xmlmessage>
+ </job>
+</jobdb>

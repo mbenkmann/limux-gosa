@@ -1,0 +1,14 @@
+dn: cn=TURTLE
+objectClass: top
+objectClass: FAIclass
+objectClass: FAIpartitionTable
+objectClass: gosaAdministrativeUnitTag
+cn: TURTLE
+gosaUnitTag: 7
+structuralObjectClass: FAIclass
+entryUUID: d933179a-24e5-1032-8599-d718854dbd5c
+creatorsName: cn=admin,o=go-susi,c=de
+createTimestamp: 20130319133712Z
+entryCSN: 20130319133712.064770Z#000000#000#000000
+modifiersName: cn=admin,o=go-susi,c=de
+modifyTimestamp: 20130319133712Z

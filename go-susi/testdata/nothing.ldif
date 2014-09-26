@@ -1,0 +1,12 @@
+version: 1
+
+#
+# LDAPv3
+# base <ou=Direktorium,o=Landeshauptstadt München,c=de> with scope subtree
+# filter: (&(objectClass=GOHard)(macaddress=foo))
+# requesting: cn objectclass faistate 
+#
+
+# search result
+
+# numResponses: 1

@@ -1,0 +1,679 @@
+dn: c=de
+c: de
+objectClass: country
+
+dn: o=go-susi,c=de
+o: go-susi
+objectClass: organization
+
+dn: cn=admin,o=go-susi,c=de
+cn: admin	
+sn: admin
+objectClass: person
+
+dn: ou=groups,o=go-susi,c=de
+ou: groups
+gosaUnitTag: 7
+objectClass: organizationalUnit
+objectClass: gosaAdministrativeUnitTag
+
+dn: ou=systems,o=go-susi,c=de
+ou: systems
+objectClass: organizationalUnit
+
+dn: ou=incoming,o=go-susi,c=de
+ou: incoming
+objectClass: organizationalUnit
+
+dn: ou=workstations,ou=systems,o=go-susi,c=de
+ou: workstations
+objectClass: organizationalUnit
+
+dn: ou=configs,ou=systems,o=go-susi,c=de
+ou: configs
+objectClass: organizationalUnit
+
+dn: ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: fai
+objectClass: organizationalUnit
+
+dn: cn=Objektgruppe,ou=groups,o=go-susi,c=de
+faiclass: Modul_Standard :plophos/4.1.0
+faidebianmirror: http://warmachine.tvc.example.com/repository-all
+cn: Objektgruppe
+gofonhardware: automatic
+gosagroupobjects: [W]
+gosaunittag: 7
+gotobootkernel: default
+gotoldapserver: 1:ldap01.tvc.example.com:ldap://ldap01.tvc.example.com/o=go-susi,c=de
+gotoldapserver: 2:ldap02.tvc.example.com:ldap://ldap02.tvc.example.com:389/o=go-susi,c=de
+gotomode: locked
+gotontpserver: ntp01.example.com
+gotontpserver: ntp02.example.com
+gotoxcolordepth: 8
+gotoxdriver: 0
+gotoxhsync: 30+55
+gotoxkblayout: de
+gotoxkbmodel: btc9000
+gotoxkbvariant: nodeadkeys
+gotoxmousetype: auto
+gotoxmouseport: /dev/input/mice
+gotoxresolution: 640x480
+gotoxvsync: 50+70
+member: cn=ogmember1,ou=workstations,ou=systems,o=go-susi,c=de
+member: cn=ogmember2,ou=workstations,ou=systems,o=go-susi,c=de
+objectclass: FAIobject
+objectclass: gosaAdministrativeUnitTag
+objectclass: gosaGroupOfNames
+objectclass: gotoWorkstationTemplate
+objectclass: top
+
+dn: cn=Notebooks,ou=groups,o=go-susi,c=de
+faiclass: Modul_Standard NOTEBOOK HARDENING :plophos/4.1.0
+faidebianmirror: http://warmachine.example.com/repository-all
+cn: Notebooks
+description: object group for notebooks
+gofonhardware: automatic
+gosagroupobjects: [W]
+gosaunittag: 7
+gotobootkernel: default
+gotoldapserver: 1:ldap01.tvc.example.com:ldap://ldap01.tvc.example.com/o=go-susi,c=de
+gotomode: active
+gotontpserver: time001.tvc.example.com
+gotoxcolordepth: 24
+gotoxdriver: 0
+gotoxhsync: 30+55
+gotoxkblayout: de
+gotoxkbmodel: pc105
+gotoxkbvariant: nodeadkeys
+gotoxmousetype: ImPS/2
+gotoxmouseport: /dev/input/mice
+gotoxresolution: 1280x800
+gotoxvsync: 50+70
+member: cn=notebook-template,ou=workstations,ou=systems,o=go-susi,c=de
+objectclass: FAIobject
+objectclass: gosaAdministrativeUnitTag
+objectclass: gosaGroupOfNames
+objectclass: gotoWorkstationTemplate
+objectclass: top
+
+dn: cn=Desktops,ou=groups,o=go-susi,c=de
+faiclass: Modul_Standard :plophos/4.1.0
+faidebianmirror: http://warmachine.example.com/repository-all
+cn: Desktops
+description: 4.1.0 Modul_Standard
+gofonhardware: automatic
+gosagroupobjects: [W]
+gosaunittag: 7
+gotobootkernel: default
+gotoldapserver: 1:ldap01.tvc.example.com:ldap://ldap01.tvc.example.com/o=go-susi,c=de
+gotomode: active
+gotontpserver: pool.ntp.org
+gotoxcolordepth: 8
+gotoxdriver: 0
+gotoxhsync: 30+55
+gotoxkblayout: de
+gotoxkbmodel: btc9000
+gotoxkbvariant: nodeadkeys
+gotoxmousetype: auto
+gotoxmouseport: /dev/input/mice
+gotoxresolution: 640x480
+gotoxvsync: 50+70
+member: cn=desktop-template,ou=workstations,ou=systems,o=go-susi,c=de
+objectclass: FAIobject
+objectclass: gosaAdministrativeUnitTag
+objectclass: gosaGroupOfNames
+objectclass: gotoWorkstationTemplate
+objectclass: top
+
+dn: cn=desktop-template,ou=workstations,ou=systems,o=go-susi,c=de
+cn: desktop-template
+description: Template for desktop auto installs
+ghcputype: -
+ghgfxadapter: -
+ghmemsize: -
+ghsoundadapter: -
+ghusbsupport: -
+gocomment:: VGVtcGxhdGUgZm9yDQpnaGNwdXR5cGU9fi9HZW51aW5lSW50ZWwgXC8gSW50ZWwvDQp4PX4veC95PX4veS8gej1+L3ovIHc9fi93Lw0KZ290b3hkcml2ZXIhfi9ub3RlbXBsYXRlLw==
+gofonhardware: automatic
+gosaunittag: 7
+gotolastuser: -
+gotomode: locked
+gotoxcolordepth: 8
+gotoxdriver: 0
+gotoxkblayout: de
+gotoxkbmodel: btc9000
+gotoxkbvariant: nodeadkeys
+gotoxmousetype: auto
+gotoxmouseport: /dev/input/mice
+gotoxresolution: 640x480
+macaddress: 00:00:22:22:00:00
+objectclass: FAIobject
+objectclass: GOhard
+objectclass: gosaAdministrativeUnitTag
+objectclass: gotoWorkstation
+objectclass: top
+
+dn: cn=notebook-template,ou=workstations,ou=systems,o=go-susi,c=de
+cn: notebook-template
+description: Template for notebook auto install
+ghcputype: -
+ghgfxadapter: -
+ghmemsize: -
+ghsoundadapter: -
+ghusbsupport: -
+gocomment:: VGVtcGxhdGUgZm9yDQpjbj1+L15ub3RlfF50ZWxlLw0KY24hfi9ub3RlMTAxfG4yMDIvDQpnb3RveGRyaXZlciF+L25vdGVtcGxhdGUvDQpjbn49L1swLTldKyQv
+gosaunittag: 7
+gotolastuser: -
+macaddress: 00:00:11:11:00:00
+objectclass: FAIobject
+objectclass: GOhard
+objectclass: gosaAdministrativeUnitTag
+objectclass: gotoWorkstation
+objectclass: top
+
+dn: cn=systest1,ou=workstations,ou=systems,o=go-susi,c=de
+objectClass: GOhard
+objectClass: gotoWorkstation
+objectClass: FAIobject
+objectClass: gosaAdministrativeUnitTag
+macAddress: 01:02:03:04:05:06
+cn: systest1
+gotoSysStatus: new-system
+ipHostNumber: 10.1.1.1
+gosaUnitTag: 7
+gotoSndModule: snd_hda_intel
+ghSoundAdapter: Intel 82801JD/DO (ICH10 Family) HD Audio Controller
+ghCpuType: GenuineIntel / Intel(R) Celeron(R) CPU E3300 @ 2.50GHz - 2500.000
+ghMemSize: 3355324
+ghUsbSupport: false
+gotoXMonitor: BELINEA 101911
+gotoHardwareChecksum: noVmheW0c0JqyAx4jj3Y/g
+gotoMode: active
+description: Test
+ghGfxAdapter: -
+gotoLastUser: -
+l: Nowhere
+goFonHardware: automatic
+FAIdebianMirror: http://dl.google.com/linux/chrome/deb/
+gotoNtpServer: cool.ntp.org
+gotoBootKernel: default
+gotoXDriver: intel
+gotoXResolution: 1280x1024
+gotoXColordepth: 24
+gotoXHsync: 30+55
+gotoXVsync: 50+70
+gotoXKbModel: btc9000
+gotoXKbLayout: de
+gotoXKbVariant: nodeadkeys
+gotoXMouseType: auto
+gotoXMouseport: /dev/input/mice
+gotoLdapServer: 1:localhost:ldap://127.0.0.1:20088/o=go-susi,c=de
+FAIstate: localboot
+ghScsiDev: HL-DT-ST DVD-RAM GH60N
+ghIdeDev: ST3160318AS
+ghNetNic: Intel 82567LM-3 Gigabit Network Connection
+FAIclass: Modul_Standard :plophos
+gotoModules: async_memcpy
+gotoModules: async_pq
+gotoModules: async_tx
+gotoModules: async_xor
+gotoModules: aufs
+gotoModules: auth_rpcgss
+gotoModules: bitblit
+gotoModules: drm
+gotoModules: floppy
+gotoModules: font
+gotoModules: i2c_algo_bit
+gotoModules: i915
+gotoModules: lockd
+gotoModules: multipath
+gotoModules: output
+gotoModules: raid1
+gotoModules: raid456
+gotoModules: serio_raw
+gotoModules: softcursor
+gotoModules: sunrpc
+gotoModules: tpm_bios
+gotoModules: tpm_tis
+gotoModules: video
+
+dn: cn=systest2,ou=workstations,ou=systems,o=go-susi,c=de
+objectClass: GOhard
+objectClass: gotoWorkstation
+objectClass: FAIobject
+objectClass: gosaAdministrativeUnitTag
+macAddress: 11:22:33:44:55:6F
+cn: systest2
+gotoSysStatus: new-system
+ipHostNumber: 10.1.1.2
+gosaUnitTag: 7
+gotoSndModule: snd_hda_intel
+ghSoundAdapter: Intel 82801JD/DO (ICH10 Family) HD Audio Controller
+ghCpuType: GenuineIntel / Intel(R) Celeron(R) CPU E3300 @ 2.50GHz - 2500.000
+ghMemSize: 3355324
+ghUsbSupport: false
+gotoXMonitor: BELINEA 101911
+gotoHardwareChecksum: noVmheW0c0JqyAx4jj3Y/g
+gotoMode: active
+description: Test
+ghGfxAdapter: -
+gotoLastUser: -
+l: Nowhere
+goFonHardware: automatic
+FAIdebianMirror: http://dl.google.com/linux/chrome/deb/
+gotoNtpServer: pool.ntp.org
+gotoBootKernel: default
+gotoXDriver: intel
+gotoXResolution: 1280x1024
+gotoXColordepth: 24
+gotoXHsync: 30+55
+gotoXVsync: 50+70
+gotoXKbModel: btc9000
+gotoXKbLayout: de
+gotoXKbVariant: nodeadkeys
+gotoXMouseType: auto
+gotoXMouseport: /dev/input/mice
+gotoLdapServer: 1:localhost:ldap://127.0.0.1:20088/o=go-susi,c=de
+FAIstate: localboot
+ghScsiDev: HL-DT-ST DVD-RAM GH60N
+ghIdeDev: ST3160318AS
+ghNetNic: Intel 82567LM-3 Gigabit Network Connection
+FAIclass: Modul_Standard :plophos
+gotoModules: async_memcpy
+gotoModules: async_pq
+gotoModules: async_tx
+gotoModules: async_xor
+gotoModules: aufs
+gotoModules: auth_rpcgss
+gotoModules: bitblit
+gotoModules: drm
+gotoModules: floppy
+gotoModules: font
+gotoModules: i2c_algo_bit
+gotoModules: i915
+gotoModules: lockd
+gotoModules: multipath
+gotoModules: output
+gotoModules: raid1
+gotoModules: raid456
+gotoModules: serio_raw
+gotoModules: softcursor
+gotoModules: sunrpc
+gotoModules: tpm_bios
+gotoModules: tpm_tis
+gotoModules: video
+
+dn: cn=systest3,ou=workstations,ou=systems,o=go-susi,c=de
+objectClass: GOhard
+objectClass: gotoWorkstation
+objectClass: FAIobject
+objectClass: gosaAdministrativeUnitTag
+macAddress: 77:66:55:44:33:2a
+cn: systest3
+gotoSysStatus: new-system
+ipHostNumber: 10.1.1.3
+gosaUnitTag: 7
+gotoSndModule: snd_hda_intel
+ghSoundAdapter: Intel 82801JD/DO (ICH10 Family) HD Audio Controller
+ghCpuType: GenuineIntel / Intel(R) Celeron(R) CPU E3300 @ 2.50GHz - 2500.000
+ghMemSize: 3355324
+ghUsbSupport: false
+gotoXMonitor: BELINEA 101911
+gotoHardwareChecksum: noVmheW0c0JqyAx4jj3Y/g
+gotoMode: active
+description: Test
+ghGfxAdapter: -
+gotoLastUser: -
+l: Nowhere
+goFonHardware: automatic
+FAIdebianMirror: http://dl.google.com/linux/chrome/deb/
+gotoNtpServer: pool.ntp.org
+gotoBootKernel: default
+gotoXDriver: intel
+gotoXResolution: 1280x1024
+gotoXColordepth: 24
+gotoXHsync: 30+55
+gotoXVsync: 50+70
+gotoXKbModel: btc9000
+gotoXKbLayout: de
+gotoXKbVariant: nodeadkeys
+gotoXMouseType: auto
+gotoXMouseport: /dev/input/mice
+gotoLdapServer: 1:localhost:ldap://127.0.0.1:20088/o=go-susi,c=de
+FAIstate: localboot
+ghScsiDev: HL-DT-ST DVD-RAM GH60N
+ghIdeDev: ST3160318AS
+ghNetNic: Intel 82567LM-3 Gigabit Network Connection
+FAIclass: Modul_Standard :plophos
+gotoModules: async_memcpy
+gotoModules: async_pq
+gotoModules: async_tx
+gotoModules: async_xor
+gotoModules: aufs
+gotoModules: auth_rpcgss
+gotoModules: bitblit
+gotoModules: drm
+gotoModules: floppy
+gotoModules: font
+gotoModules: i2c_algo_bit
+gotoModules: i915
+gotoModules: lockd
+gotoModules: multipath
+gotoModules: output
+gotoModules: raid1
+gotoModules: raid456
+gotoModules: serio_raw
+gotoModules: softcursor
+gotoModules: sunrpc
+gotoModules: tpm_bios
+gotoModules: tpm_tis
+gotoModules: video
+
+dn: ou=servers,ou=systems,o=go-susi,c=de
+ou: servers
+objectClass: organizationalUnit
+
+dn: cn=www.mit.edu,ou=servers,ou=systems,o=go-susi,c=de
+objectClass: GOhard
+objectClass: FAIobject
+objectclass: FAIrepositoryServer
+objectclass: goServer
+objectclass: gosaAdministrativeUnitTag
+objectclass: gotoWorkstationTemplate
+objectclass: top
+macAddress: 0f:C3:d2:Aa:11:22
+cn: www.mit.edu
+gotoSysStatus: new-system
+ipHostNumber: 18.9.22.169
+gosaUnitTag: 99
+gotoSndModule: snd_hda_intel
+ghSoundAdapter: Intel 82801JD/DO (ICH10 Family) HD Audio Controller
+ghCpuType: GenuineIntel / Intel(R) Celeron(R) CPU E3300 @ 2.50GHz - 2500.000
+ghMemSize: 3355324
+ghUsbSupport: false
+gotoXMonitor: BELINEA 101911
+gotoHardwareChecksum: noVmheW0c0JqyAx4jj3Y/g
+gotoMode: active
+description: Test
+ghGfxAdapter: -
+gotoLastUser: -
+l: Nowhere
+goFonHardware: automatic
+gotoNtpServer: pool.ntp.org
+gotoBootKernel: default
+gotoXDriver: intel
+gotoXResolution: 1280x1024
+gotoXColordepth: 24
+gotoXHsync: 30+55
+gotoXVsync: 50+70
+gotoXKbModel: btc9000
+gotoXKbLayout: de
+gotoXKbVariant: nodeadkeys
+gotoXMouseType: auto
+gotoXMouseport: /dev/input/mice
+gotoLdapServer: 1:localhost:ldap://127.0.0.1:20088/o=go-susi,c=de
+FAIstate: localboot
+ghScsiDev: HL-DT-ST DVD-RAM GH60N
+ghIdeDev: ST3160318AS
+ghNetNic: Intel 82567LM-3 Gigabit Network Connection
+faiclass: Verteilserver-Produktiv :plophos/4.1.0
+faidebianmirror: http://de.archive.ubuntu.com/ubuntu/
+fairepository: http://www.mit.edu/repo3|de.archive.ubuntu.com|tramp/5.0.0|cool,super,geil
+fairepository: http://www.mit.edu/repo2|de.archive.ubuntu.com|plophos|dusch,gel
+gotoModules: async_memcpy
+gotoModules: async_pq
+gotoModules: async_tx
+gotoModules: async_xor
+gotoModules: aufs
+gotoModules: auth_rpcgss
+gotoModules: bitblit
+gotoModules: drm
+gotoModules: floppy
+gotoModules: font
+gotoModules: i2c_algo_bit
+gotoModules: i915
+gotoModules: lockd
+gotoModules: multipath
+gotoModules: output
+gotoModules: raid1
+gotoModules: raid456
+gotoModules: serio_raw
+gotoModules: softcursor
+gotoModules: sunrpc
+gotoModules: tpm_bios
+gotoModules: tpm_tis
+gotoModules: video
+
+dn: cn=wikipedia-lb,ou=servers,ou=systems,o=go-susi,c=de
+objectClass: GOhard
+objectClass: FAIobject
+objectclass: FAIrepositoryServer
+objectclass: goServer
+objectclass: gosaAdministrativeUnitTag
+objectclass: gotoWorkstationTemplate
+objectclass: top
+macAddress: 00:C4:d2:10:10:20
+cn: wikipedia-lb
+gotoSysStatus: new-system
+ipHostNumber: 91.198.174.225
+gosaUnitTag: 7
+gotoSndModule: snd_hda_intel
+ghSoundAdapter: Intel 82801JD/DO (ICH10 Family) HD Audio Controller
+ghCpuType: GenuineIntel / Intel(R) Celeron(R) CPU E3300 @ 2.50GHz - 2500.000
+ghMemSize: 3355324
+ghUsbSupport: false
+gotoXMonitor: BELINEA 101911
+gotoHardwareChecksum: noVmheW0c0JqyAx4jj3Y/g
+gotoMode: active
+description: Test
+ghGfxAdapter: -
+gotoLastUser: -
+l: Nowhere
+goFonHardware: automatic
+gotoNtpServer: pool.ntp.org
+gotoBootKernel: default
+gotoXDriver: intel
+gotoXResolution: 1280x1024
+gotoXColordepth: 24
+gotoXHsync: 30+55
+gotoXVsync: 50+70
+gotoXKbModel: btc9000
+gotoXKbLayout: de
+gotoXKbVariant: nodeadkeys
+gotoXMouseType: auto
+gotoXMouseport: /dev/input/mice
+gotoLdapServer: 1:localhost:ldap://127.0.0.1:20088/o=go-susi,c=de
+FAIstate: localboot
+ghScsiDev: HL-DT-ST DVD-RAM GH60N
+ghIdeDev: ST3160318AS
+ghNetNic: Intel 82567LM-3 Gigabit Network Connection
+faiclass: Verteilserver-Produktiv :plophos/4.1.0
+faidebianmirror: http://de.archive.ubuntu.com/ubuntu/
+fairepository: http://www.mit.edu/repo|de.archive.ubuntu.com|plophos/4.1.0|main,restricted,universe,multiverse
+gotoModules: async_memcpy
+gotoModules: async_pq
+gotoModules: async_tx
+gotoModules: async_xor
+gotoModules: aufs
+gotoModules: auth_rpcgss
+gotoModules: bitblit
+gotoModules: drm
+gotoModules: floppy
+gotoModules: font
+gotoModules: i2c_algo_bit
+gotoModules: i915
+gotoModules: lockd
+gotoModules: multipath
+gotoModules: output
+gotoModules: raid1
+gotoModules: raid456
+gotoModules: serio_raw
+gotoModules: softcursor
+gotoModules: sunrpc
+gotoModules: tpm_bios
+gotoModules: tpm_tis
+gotoModules: video
+
+dn: cn=nackt,ou=workstations,ou=systems,o=go-susi,c=de
+cn: nackt
+ghcputype: -
+ghgfxadapter: -
+ghmemsize: -
+ghsoundadapter: -
+ghusbsupport: -
+gofonhardware: automatic
+gosaunittag: 7
+gotolastuser: -
+gotomode: locked
+gotoxcolordepth: 8
+gotoxdriver: 0
+gotoxhsync: 30+55
+gotoxkblayout: de
+gotoxkbmodel: btc9000
+gotoxkbvariant: nodeadkeys
+gotoxmousetype: auto
+gotoxmouseport: /dev/input/mice
+gotoxresolution: 640x480
+gotoxvsync: 50+70
+iphostnumber: 10.10.12.34
+macaddress: ee:ee:ee:aa:aa:aa
+objectclass: FAIobject
+objectclass: GOhard
+objectclass: gosaAdministrativeUnitTag
+objectclass: gotoWorkstation
+objectclass: top
+
+dn: cn=ogmember1,ou=workstations,ou=systems,o=go-susi,c=de
+cn: ogmember1
+ghcputype: -
+ghgfxadapter: -
+ghmemsize: -
+ghsoundadapter: -
+ghusbsupport: -
+gofonhardware: automatic
+gosaunittag: 7
+gotolastuser: -
+gotomode: locked
+gotoxcolordepth: 8
+gotoxdriver: 0
+gotoxhsync: 30+55
+gotoxkblayout: de
+gotoxkbmodel: btc9000
+gotoxkbvariant: nodeadkeys
+gotoxmousetype: auto
+gotoxmouseport: /dev/input/mice
+gotoxresolution: 640x480
+gotoxvsync: 50+70
+iphostnumber: 10.10.99.99
+macaddress: fe:ce:5f:ec:e5:00
+objectclass: FAIobject
+objectclass: GOhard
+objectclass: gosaAdministrativeUnitTag
+objectclass: gotoWorkstation
+objectclass: top
+
+dn: cn=ogmember2,ou=workstations,ou=systems,o=go-susi,c=de
+cn: ogmember2
+ghcputype: -
+ghgfxadapter: -
+ghmemsize: -
+ghsoundadapter: -
+ghusbsupport: -
+gofonhardware: automatic
+gosaunittag: 7
+gotolastuser: -
+gotomode: locked
+gotontpserver: override-ntp1.example.com
+gotontpserver: override-ntp2.example.com
+gotoxdriver: 0
+iphostnumber: 10.10.123.123
+macaddress: 10:10:12:31:23:ff
+objectclass: FAIobject
+objectclass: GOhard
+objectclass: gosaAdministrativeUnitTag
+objectclass: gotoWorkstation
+objectclass: top
+
+dn: ou=configs,ou=systems,o=go-susi,c=de
+ou: configs
+objectClass: organizationalUnit
+
+dn: ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: fai
+objectClass: organizationalUnit
+
+dn: ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: xavier
+objectClass: organizationalUnit
+objectClass: FAIbranch
+
+dn: ou=charles,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: charles
+objectClass: organizationalUnit
+objectClass: FAIbranch
+
+dn: ou=prof,ou=charles,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: prof
+objectClass: organizationalUnit
+objectClass: FAIbranch
+
+dn: ou=x-men,ou=prof,ou=charles,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: x-men
+objectClass: organizationalUnit
+objectClass: FAIbranch
+
+dn: ou=disk,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: disk
+objectClass: organizationalUnit
+
+dn: ou=disk,ou=charles,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: disk
+objectClass: organizationalUnit
+
+dn: ou=disk,ou=prof,ou=charles,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+ou: disk
+objectClass: organizationalUnit
+
+dn: cn=WORLD,ou=disk,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+objectClass: top
+objectClass: FAIclass
+objectClass: FAIpartitionTable
+objectClass: gosaAdministrativeUnitTag
+faistate: |freeze
+cn: WORLD
+gosaUnitTag: 7
+
+dn: cn=WORLD,ou=disk,ou=prof,ou=charles,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+objectClass: top
+objectClass: FAIclass
+objectClass: FAIpartitionTable
+objectClass: gosaAdministrativeUnitTag
+cn: WORLD
+gosaUnitTag: 7
+
+dn: cn=TURTLE,ou=disk,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+objectClass: top
+objectClass: FAIclass
+objectClass: FAIpartitionTable
+objectClass: gosaAdministrativeUnitTag
+faistate: freeze|
+cn: TURTLE
+gosaUnitTag: 7
+
+dn: cn=TURTLE,ou=disk,ou=charles,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+objectClass: top
+objectClass: FAIclass
+objectClass: FAIpartitionTable
+objectClass: gosaAdministrativeUnitTag
+faistate: |remove
+cn: TURTLE
+gosaUnitTag: 7
+
+dn: cn=TURTLE,ou=disk,ou=prof,ou=charles,ou=xavier,ou=fai,ou=configs,ou=systems,o=go-susi,c=de
+objectClass: top
+objectClass: FAIclass
+objectClass: FAIpartitionTable
+objectClass: gosaAdministrativeUnitTag
+cn: TURTLE
+gosaUnitTag: 7

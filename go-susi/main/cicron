@@ -1,0 +1,89 @@
+#!/bin/bash
+
+umask 022
+#export GOROOT="/opt/go"
+export GOPATH="/home/limux/devel/go"
+export PATH="$GOROOT/bin:$PATH:/sbin:/usr/sbin:/bin:/usr/bin"
+
+susi_dir=/home/limux/devel/go/susi
+
+cd "$susi_dir" || exit 1
+
+tester=""
+developer=""
+
+while [ $# != 0 ]; do
+  case "$1" in
+    --tester=*) tester="$tester ${1#--tester=}"
+                ;;
+    --developer=*) developer="$developer ${1#--developer=}"
+                  ;;
+  esac
+  shift
+done
+
+rm testdata/citest.log
+sudo -H -E -u limux main/update
+result=$?
+
+oldpid="$(pgrep gosa-si-server)"
+
+(
+
+"$susi_dir"/main/sicmd localhost GOsaPackages sistats ""
+
+echo "Log file size (too large indicates problems)"
+ls -lah /var/log/gosa-si-server.log*
+
+echo Current PID
+pgrep gosa-si-server
+echo "Number of running threads"
+ls /proc/$(pgrep gosa-si-server)/task | wc -l
+
+echo "Dirty memory"
+sum=0 ; for i in $(sed -n 's/^.*Dirty.*: *\([0-9]*\).*/\1/p' /proc/$(pgrep gosa-si-server)/smaps); do sum=$(($sum+$i)) ; done
+echo "$sum"K
+
+free -m
+
+echo "loadavg"
+cat /proc/loadavg
+
+
+
+# if the binary is no longer being executed it means that
+# either go-susi has crashed (not very likely) or that
+# the update has successfully replaced it with a new
+# version. In either case we restart the server.
+test -z "$(fuser "$susi_dir/deploy/gosa-si-server")" && {
+  echo >>"$susi_dir/testdata/citest.log"
+  test $result != 0 && echo "ATTENTION! Restarting old version of go-susi because it's not running!"
+  test $result = 0 && echo "Starting new version of go-susi"
+  /etc/init.d/gosa-si stop
+  /etc/init.d/gosa-si start
+}
+
+
+
+) >>"$susi_dir/testdata/citest.log" 2>&1
+
+sub="go-susi Statusreport"
+newpid="$(pgrep gosa-si-server)"
+test "$oldpid" != "$newpid" -a -n "$newpid" && sub="go-susi Update erfolgreich"
+test $result != 0 && sub="go-susi Update fehlgeschlagen"
+
+echo "$sub"
+grep --color=never ion /home/limux/devel/go/susi/deploy/version.go
+
+if test "$oldpid" != "$newpid" -a -n "$newpid" -a $result == 0 ; then
+  for mail in $(echo "$tester $developer" | tr ';' ' ') ; do
+    cat "$susi_dir/testdata/citest.log" | mail -s "$sub" $mail
+  done
+  for release in plophos plophos/4.1.0 tramp ; do
+    ( umask 022 ; cd /srv/www/daily && reprepro --ignore=wrongdistribution --keepunreferencedfiles -C lhm include $release "$susi_dir"/deploy/deb/*.changes )
+  done
+else
+  for mail in $(echo "$developer" | tr ';' ' ') ; do
+    cat "$susi_dir/testdata/citest.log" | mail -s "$sub" $mail
+  done
+fi

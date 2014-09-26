@@ -1,0 +1,36 @@
+dn: cn=Desktops
+FAIclass: Modul_Standard :plophos/4.1.0
+FAIdebianMirror: http://warmachine.example.com/repository-all
+cn: Desktops
+description: 4.1.0 Modul_Standard
+goFonHardware: automatic
+gosaGroupObjects: [W]
+gosaUnitTag: 7
+gotoBootKernel: default
+gotoLdapServer: 1:ldap01.tvc.example.com:ldap://ldap01.tvc.example.com/o=go-su
+ si,c=de
+gotoMode: active
+gotoNtpServer: pool.ntp.org
+gotoXColordepth: 8
+gotoXDriver: 0
+gotoXHsync: 30+55
+gotoXKbLayout: de
+gotoXKbModel: btc9000
+gotoXKbVariant: nodeadkeys
+gotoXMouseType: auto
+gotoXMouseport: /dev/input/mice
+gotoXResolution: 640x480
+gotoXVsync: 50+70
+member: cn=desktop-template,ou=workstations,ou=systems,o=go-susi,c=de
+objectClass: FAIobject
+objectClass: gosaAdministrativeUnitTag
+objectClass: gosaGroupOfNames
+objectClass: gotoWorkstationTemplate
+objectClass: top
+structuralObjectClass: gosaGroupOfNames
+entryUUID: 23a8304a-1aef-1032-9fb4-575a10db2783
+creatorsName: cn=admin,o=go-susi,c=de
+createTimestamp: 20130306211830Z
+entryCSN: 20130306211830.826364Z#000000#000#000000
+modifiersName: cn=admin,o=go-susi,c=de
+modifyTimestamp: 20130306211830Z

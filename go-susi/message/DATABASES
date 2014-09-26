@@ -1,0 +1,14 @@
+===== jobdb =====
+
+id         INTEGER PRIMARY KEY
+timestamp  VARCHAR(14)  DEFAULT 'none'
+status     VARCHAR(255) DEFAULT 'none'
+result     TEXT
+progress   VARCHAR(255) DEFAULT 'none'
+headertag  VARCHAR(255) DEFAULT 'none'
+targettag  VARCHAR(255) DEFAULT 'none'
+xmlmessage TEXT
+macaddress VARCHAR(17)  DEFAULT 'none'
+plainname  VARCHAR(255) DEFAULT 'none'
+siserver   VARCHAR(255) DEFAULT 'none'
+modified   INTEGER DEFAULT '0'

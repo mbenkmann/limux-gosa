@@ -1,0 +1,36 @@
+dn: cn=Notebooks
+FAIclass: Modul_Standard NOTEBOOK HARDENING :plophos/4.1.0
+FAIdebianMirror: http://warmachine.example.com/repository-all
+cn: Notebooks
+description: object group for notebooks
+goFonHardware: automatic
+gosaGroupObjects: [W]
+gosaUnitTag: 7
+gotoBootKernel: default
+gotoLdapServer: 1:ldap01.tvc.example.com:ldap://ldap01.tvc.example.com/o=go-su
+ si,c=de
+gotoMode: active
+gotoNtpServer: time001.tvc.example.com
+gotoXColordepth: 24
+gotoXDriver: 0
+gotoXHsync: 30+55
+gotoXKbLayout: de
+gotoXKbModel: pc105
+gotoXKbVariant: nodeadkeys
+gotoXMouseType: ImPS/2
+gotoXMouseport: /dev/input/mice
+gotoXResolution: 1280x800
+gotoXVsync: 50+70
+member: cn=notebook-template,ou=workstations,ou=systems,o=go-susi,c=de
+objectClass: FAIobject
+objectClass: gosaAdministrativeUnitTag
+objectClass: gosaGroupOfNames
+objectClass: gotoWorkstationTemplate
+objectClass: top
+structuralObjectClass: gosaGroupOfNames
+entryUUID: 20264efc-1aef-1032-9fb2-575a10db2783
+creatorsName: cn=admin,o=go-susi,c=de
+createTimestamp: 20130306211824Z
+entryCSN: 20130306211824.942017Z#000000#000#000000
+modifiersName: cn=admin,o=go-susi,c=de
+modifyTimestamp: 20130306211824Z
