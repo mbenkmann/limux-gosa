@@ -5,6 +5,10 @@ GOSAVERSION:=$(shell dpkg-parsechangelog | sed -n 's/^Version: //p')
 %:
 	dh $@
 
+override_dh_auto_build:
+	make -C go-susi build man
+	dh_auto_build
+
 override_dh_auto_install:
 	ln -snf gosa-plugins/* .
 	mkdir -p rsyslog/contrib
@@ -16,6 +20,7 @@ override_dh_compress:
 
 override_dh_auto_clean:
 	find -maxdepth 1 -type l -exec rm {} \;
+	make -C go-susi almostclean
 	dh_auto_clean
 	test -f ../gosa_$(GOSAVERSION).orig.tar.gz || tar -czf ../gosa_$(GOSAVERSION).orig.tar.gz --transform='s/^./gosa-$(GOSAVERSION)/' --exclude='./.git*' --exclude='debian*' .
 	sed -i /GOSAVERSION/d debian/rules #remove ugliness from debian source package

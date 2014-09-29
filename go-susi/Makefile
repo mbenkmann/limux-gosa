@@ -7,21 +7,18 @@ susi:
 all: build man
 
 build:
-	main/makeversion
-	go build main/run-tests.go
 	go build main/go-susi.go
 	go build main/encrypt.go
 	go build main/decrypt.go
 	go build main/sibridge.go
-	go build main/legion.go
-	ln -snf go-susi gosa-si-server
+	ln go-susi gosa-si-server
 
 # strip is not included in "all" because this may break Go 1.1 binaries (at least on ARM)
 strip: build
 	strip $(BINARIES)
 
 .PHONY: man
-man: VERSION=$(shell main/makeversion && sed -n 's/.*Version.*=.*"\([^"]*\)".*/\1/p' config/version.go)
+man: VERSION=$(shell sed -n 's/.*Version.*=.*"\([^"]*\)".*/\1/p' config/version.go)
 man: doc/manpage.xsl
 	xsltproc >doc/go-susi.1 --stringparam name GO-SUSI --stringparam section 1 --stringparam start_id "id.jes9sqqlstzn" --stringparam stop_id "id.sj4np8e9wdb8" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
 	xsltproc >doc/gosa-si-server.1 --stringparam name GOSA-SI-SERVER --stringparam section 1 --stringparam start_id "id.anooi87iwmip" --stringparam stop_id "id.fgzi8uchaq8v" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml

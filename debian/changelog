@@ -1,3 +1,10 @@
+gosa (2.8.12) trusty; urgency=medium
+
+  * integrated go-susi into project (package is called gosa-si)
+  * updated Maintainer, Homepage etc.
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 29 Sep 2014 13:19:35 +0200
+
 gosa (2.8.11) trusty; urgency=medium
 
   * added post-commit hook script to keep version.go and debian/changelog in sync

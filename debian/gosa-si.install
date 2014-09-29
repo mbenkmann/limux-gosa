@@ -1,0 +1,16 @@
+go-susi/doc/*.1                  /usr/share/man/man1
+go-susi/doc/*.5                  /usr/share/man/man5
+go-susi/main/generate_*          /usr/lib/go-susi
+go-susi/main/send_user_msg       /usr/lib/go-susi
+go-susi/main/update_config_files /usr/lib/go-susi
+go-susi/main/trigger_action      /usr/lib/go-susi
+go-susi/main/registered          /usr/lib/go-susi
+go-susi/main/activated           /usr/lib/go-susi
+go-susi/main/detect_hardware     /usr/lib/go-susi
+go-susi/main/fai_progress        /usr/lib/go-susi
+go-susi/main/fai_savelog         /usr/lib/go-susi
+go-susi/main/initrd_autopack     /usr/lib/go-susi
+go-susi/gosa-si-server           /usr/lib/go-susi
+go-susi/*crypt                   /usr/lib/go-susi
+go-susi/main/gosa-si-server      /usr/sbin
+go-susi/sibridge                 /usr/sbin
