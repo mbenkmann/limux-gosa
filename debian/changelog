@@ -1,3 +1,9 @@
+gosa (2.8.11) trusty; urgency=medium
+
+  * added post-commit hook script to keep version.go and debian/changelog in sync
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 29 Sep 2014 11:47:38 +0200
+
 gosa (2.8.7) trusty; urgency=medium
 
   * new package gosa-fai-helpers with ldap2fai.php and pxelinux.php
@@ -138,4 +144,3 @@ gosa (2.6.1-1) unstable; urgency=low
   * New upstream release
 
  -- Cajus Pollmeier <cajus@debian.org>  Mon, 07 Apr 2008 11:18:53 +0200
-

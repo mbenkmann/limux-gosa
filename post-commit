@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Copy or symlink this file as .git/hooks/post-commit
+# It will automatically update the debian/changelog with your git commit
+# message (every line will get its own "  * line" in the debian/changelog).
+# It will also automatically update go-susi/config/version.go to match the
+# Debian package version number.
+
+
+version=2.8.$(($(git log --format=oneline|wc -l) - 1430))
+
+# If there is already a changelog entry for that version, don't do anything
+grep -q "^gosa ($version)" debian/changelog && exit 0
+
+message="$(git log -n 1 --format='%B' | sed -n '1,/^#/{/^#/d;s/^ \+//g;s/  \+$//g;/^$/d;s/^/  \* /;p}')"
+test -z "$message" && { echo 1>&2 "Empty commit message => Abort!"; exit 1 ; }
+
+
+changelog="gosa ($version) trusty; urgency=medium
+
+$message
+
+ -- $GIT_AUTHOR_NAME <$GIT_AUTHOR_EMAIL>  $(date -R)
+
+$(<debian/changelog)"
+
+echo "$changelog" >debian/changelog
+
+echo "// WARNING! THIS FILE IS AUTO-GENERATED AND WILL BE OVERWRITTEN!
+
+package config
+
+const Version = \"$version\"
+const Revision = \"$(git log -n 1 --format='%ai')\"
+" >go-susi/config/version.go
+
+
+git add -A debian/changelog
+git add -A go-susi/config/version.go
+
+git commit --amend -C HEAD --no-verify
+
