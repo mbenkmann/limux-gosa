@@ -1,3 +1,11 @@
+gosa (2.8.14) trusty; urgency=medium
+
+  * gosa-quickstart: perform gosa-si installation and config
+  * gosa-quickstart: create LDAP object for gosa-si server
+  * gosa-quickstart: refactor and extend .ldif files for department1
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 30 Sep 2014 14:44:11 +0200
+
 gosa (2.8.13) trusty; urgency=medium
 
   * fix PHP error if a system has no FAIclass attribute

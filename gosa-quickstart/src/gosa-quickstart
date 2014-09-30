@@ -13,6 +13,16 @@ susipassword="susi"
 language="de_DE"
 ldapserver="localhost"
 
+temp=/tmp/gosa-quickstart
+while ! mkdir -m 0700 $temp; do
+  temp=/tmp/gosa-quickstart.$$.$RANDOM
+done
+trap "rm -rf $temp" EXIT
+
+echo -n "$password" >$temp/ldap-password
+chmod 0600 $temp/ldap-password
+
+
 echo "=== Preseeding... ==="
 echo "slapd   slapd/password1 password $password" | debconf-set-selections
 echo "slapd   slapd/password2 password $password" | debconf-set-selections
@@ -53,6 +63,11 @@ s/\\\${department1}/$department1/g
 " "$ldif" | ldapadd -Y EXTERNAL -H ldapi:///
 done
 
+echo "=== Patching ldap.conf ==="
+cp /etc/ldap.conf /etc/ldap.conf.bak &&
+  sed "s/^[ #]*BASE.*/BASE   $suffix/;s/^[ #]*URI/URI    ldap:\/\/$ldapserver/" /etc/ldap.conf.bak >/etc/ldap.conf
+
+
 echo "=== Making sure desired locale is available ==="
 locale-gen "$language.utf8"
 
@@ -62,6 +77,9 @@ apt-get -q -y install gosa gosa-plugin-systems gosa-plugin-fai
 echo "=== Activating /gosa site in Apache configurations ==="
 ln -snf /etc/gosa/gosa-apache.conf /etc/apache2/conf-available/
 ln -snf ../conf-available/gosa-apache.conf /etc/apache2/conf-enabled/
+
+echo "=== Enabling modules required by GOsa² ==="
+php5enmod mcrypt
 
 /etc/init.d/apache2 restart
 
@@ -78,9 +96,55 @@ s/\\\${department1}/$department1/g
 s/\\\${language}/$language/g
 " gosa.conf >/etc/gosa/gosa.conf
 
-chgrp www-data gosa.conf
-chmod u=rw,g=r,o= gosa.conf
+chgrp www-data /etc/gosa/gosa.conf
+chmod u=rw,g=r,o= /etc/gosa/gosa.conf
 
 mkdir -p /var/cache/gosa/compiled-tpl/
 chgrp -R www-data /var/cache/gosa
 chmod -R g+rwX /var/cache/gosa/
+
+if dpkg --compare-versions "$(apt-cache policy pxelinux | sed -n 's/^.*Candidate: \(.*\)/\1/p')" ge "3:6.03~pre18+dfsg-1" ; then
+  echo "=== Installing pxelinux ==="
+  apt-get -q -y install pxelinux
+else
+  echo "=== Installing syslinux-common ==="
+  apt-get -q -y install syslinux-common
+fi
+
+pxelinux="$(dpkg -S '*/pxelinux.0')"
+
+echo "=== Installing GOsa² support infrastructure ==="
+cd /usr/share/gosa-quickstart/conf
+mkdir -p /etc/gosa-si
+sed -e "
+s/\\\${susipassword}/$susipassword/g
+s/\\\${password}/$password/g
+s/\\\${suffix}/$suffix/g
+s/\\\${ldapserver}/$ldapserver/g
+s/\\\${department1}/$department1/g
+s%\\\${pxelinux}%$pxelinux%g
+" server.conf >/etc/gosa-si/server.conf
+
+chown -R root:root /etc/gosa-si
+chmod u=rw,g=r,o=  /etc/gosa-si/server.conf
+
+hostname="$(hostname -f)"
+macaddress="$(ip -o link show| sed -n 's/^.*state UP.*link\/ether \([^ ]*\).*/\1/p' | tail -n 1)"
+echo "=== Creating LDAP object for this server ($hostname/$macaddress) ==="
+
+echo "dn: cn=$hostname,ou=servers,ou=systems,ou=$department1,$suffix
+cn: $hostname
+gotoMode: locked
+macAddress: $macaddress
+gotoBootKernel: default
+objectClass: GOhard
+objectClass: goServer
+objectClass: gotoWorkstationTemplate
+objectClass: FAIobject
+"| ldapadd -x -H "ldap://$ldapserver" -D "uid=admin,$suffix" -y "$temp/ldap-password"
+
+# Install gosa-si package after creating the config file, so
+# that it starts up the right way immediately. The package does not
+# contain a server.conf at this time. Should one ever be added,
+# a diversion would be the proper way to deal with it.
+apt-get -q -y install gosa-si
