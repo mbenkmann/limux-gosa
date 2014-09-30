@@ -1683,7 +1683,7 @@ class systemManagement extends management
         // If we've an own fai class, just use this
         if ($class && is_array($class)) {
             foreach (explode(' ', $class[0]) as $element) {
-                if ($element[0] == ":") {
+                if ($element != "" && $element[0] == ":") {
                     $sort_ret = mb_substr($element, 1);
                     $render_ret = $sort_ret."&nbsp;".image('images/empty.png');
                     goto sr_bailout;

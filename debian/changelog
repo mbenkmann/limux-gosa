@@ -1,3 +1,9 @@
+gosa (2.8.13) trusty; urgency=medium
+
+  * fix PHP error if a system has no FAIclass attribute
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 30 Sep 2014 14:41:33 +0200
+
 gosa (2.8.12) trusty; urgency=medium
 
   * integrated go-susi into project (package is called gosa-si)
