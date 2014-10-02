@@ -1,3 +1,9 @@
+gosa (2.8.17) trusty; urgency=medium
+
+  * go-susi: disable test that depended on Wikipedia IP addresses not changing
+
+ --  <>  Thu, 02 Oct 2014 11:36:54 +0200
+
 gosa (2.8.16) trusty; urgency=medium
 
   * go-susi: Makefile: fix make clean to work with git instead of Mercurial

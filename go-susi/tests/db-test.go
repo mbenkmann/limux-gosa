@@ -244,7 +244,7 @@ func systemdb_test() {
   time.Sleep(200*time.Millisecond) // make sure log is written to buffer
   check(strings.Index(buffy.String(),"ERROR")>0,true)
   
-  check(db.SystemFullyQualifiedNameForMAC("00:C4:d2:10:10:20"), "wikipedia-lb.esams.wikimedia.org")
+  //check(db.SystemFullyQualifiedNameForMAC("00:C4:d2:10:10:20"), "wikipedia-lb.esams.wikimedia.org")
   
   check(db.SystemCommonNameForMAC("foobar"),"")
   check(db.SystemCommonNameForMAC("11:22:33:33:22:11"),"")
