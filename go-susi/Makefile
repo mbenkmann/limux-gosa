@@ -64,4 +64,4 @@ almostclean:
 	test -d deb && rmdir deb || true
 
 clean:  almostclean
-	hg revert --no-backup testdata/ldif
+	git checkout testdata/ldif
