@@ -1,3 +1,9 @@
+gosa (2.8.15) trusty; urgency=medium
+
+  * go-susi: remove cruft related to old Debian packaging
+
+ --  <>  Thu, 02 Oct 2014 11:26:55 +0200
+
 gosa (2.8.14) trusty; urgency=medium
 
   * gosa-quickstart: perform gosa-si installation and config

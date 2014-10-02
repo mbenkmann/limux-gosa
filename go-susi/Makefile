@@ -1,7 +1,6 @@
 BINARIES=run-tests go-susi encrypt decrypt sibridge legion
 
 susi:
-	main/makeversion
 	go build main/go-susi.go
 
 all: build man
@@ -43,15 +42,11 @@ doc:
 doc/manpage.xsl: doc/manpage.pxsl
 	LC_ALL=C pretty-xml/pretty-xsl doc/manpage.pxsl >doc/manpage.xsl
 	
-frankensusi:
-	main/frankensusi $$(find . /srv/www -name "gosa-si-server_*_i386.deb" -print)
-
 debug:
 	rm -f run-tests
 	go build -a -gcflags '-N -l' main/run-tests.go
 
 test:
-	main/makeversion
 	go build main/run-tests.go
 	go build main/go-susi.go
 	./run-tests --unit --system=./go-susi
@@ -70,7 +65,3 @@ almostclean:
 
 clean:  almostclean
 	hg revert --no-backup testdata/ldif
-
-deb:
-	main/makedebsource
-	cd deb/go-susi-*/ && dpkg-buildpackage -rfakeroot -sa -us -uc
