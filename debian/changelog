@@ -1,3 +1,9 @@
+gosa (2.8.18) trusty; urgency=medium
+
+  * go-susi: started work on a new generate_packages_list hook
+
+ --  <>  Thu, 02 Oct 2014 20:30:14 +0200
+
 gosa (2.8.17) trusty; urgency=medium
 
   * go-susi: disable test that depended on Wikipedia IP addresses not changing
