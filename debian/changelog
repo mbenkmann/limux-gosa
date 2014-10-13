@@ -1,3 +1,9 @@
+gosa (2.8.19) trusty; urgency=medium
+
+  * go-susi: another attempt at generate_package_list.go
+
+ --  <>  Mon, 13 Oct 2014 20:31:00 +0200
+
 gosa (2.8.18) trusty; urgency=medium
 
   * go-susi: started work on a new generate_packages_list hook

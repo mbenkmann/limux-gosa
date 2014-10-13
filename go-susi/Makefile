@@ -1,4 +1,4 @@
-BINARIES=run-tests go-susi encrypt decrypt sibridge legion
+BINARIES=run-tests go-susi encrypt decrypt sibridge legion generate_package_list
 
 susi:
 	go build main/go-susi.go
@@ -10,6 +10,7 @@ build:
 	go build main/encrypt.go
 	go build main/decrypt.go
 	go build main/sibridge.go
+	go build main/generate_package_list.go
 	ln go-susi gosa-si-server
 
 # strip is not included in "all" because this may break Go 1.1 binaries (at least on ARM)
