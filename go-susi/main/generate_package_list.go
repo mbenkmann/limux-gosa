@@ -28,8 +28,7 @@ import (
          "strings"
          "compress/gzip"
          "compress/bzip2"
-         
-         "../util"
+         "encoding/base64"
        )
 
 // Regex for parsing lines in Packages file like this:
@@ -60,7 +59,7 @@ var DebsToScan = map[string][]string{}
   
 
 type PData struct {
-  Meta []string // List of repo+","+repopath+","+compo+","+arch+","+ext+","+versioncode strings
+  Meta []string // List of versioncode+","+repo+","+repopath+","+compo+","+arch+","+ext strings
   TemplatesBase64 string
   Section string
   DescriptionBase64 string
@@ -69,7 +68,7 @@ type PData struct {
 var PackagePipeVersion2PData = map[string]*PData {}
 var PackagePipeVersion2PData_new = map[string]*PData {}
 
-const CachePath = "/home/msb/devel/go/susi/pkg.cache"
+const CachePath = "/home/m/devel/go/susi/pkg.cache"
 
 var FAIReposFromLDAP = []string{"http://de.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted",
                     "http://de.archive.ubuntu.com/ubuntu|ignored|precise|main,universe",
@@ -119,7 +118,6 @@ func readcache() {
   input := bufio.NewReader(cache)
   doing_meta := false
   var meta []string
-  var prevmeta []string 
   var metalist []string
   var repo, repopath, versioncode, compo, arch, ext string
   for {
@@ -136,11 +134,7 @@ func readcache() {
          metalist = []string{}
        }
        meta = strings.Split(line[1:], ",")
-       for i := range meta {
-         if meta[i] == "^" { meta[i] = prevmeta[i] }
-       }
-       prevmeta = meta
-       repo, repopath, compo, arch, ext, versioncode = meta[0],meta[1],meta[2],meta[3],meta[4],meta[5]
+       versioncode, repo, repopath, compo, arch, ext = meta[0],meta[1],meta[2],meta[3],meta[4],meta[5]
        metalist = append(metalist, repo+","+repopath+","+compo+","+arch+","+ext)
        if Versioncode2RepoCommaRepopathSet[versioncode] == nil {
          Versioncode2RepoCommaRepopathSet[versioncode] = map[string]bool{}
@@ -228,10 +222,14 @@ func process_releases_files() {
           if match != nil {
             if todo.Components[match[2]] && Architectures[match[3]] {
               compoarch := match[2]+","+match[3]
-              // prefer "Packages.bz2" over "Packages.gz" and "Packages.gz" over "Packages"
+              /* Disabled because it turns out that at least Go's compress/bzip2
+              is very slow
+              // Prefer "Packages.bz2" over "Packages.gz" over "Packages"
               if len(match[4]) > len(compoarch2ext[compoarch]) {
                 compoarch2ext[compoarch] = match[4]
               }
+              */
+              compoarch2ext[compoarch] = "";
             }
           }
         }
@@ -348,7 +346,7 @@ func process_packages_files() {
         } else if strings.HasPrefix(line, "Section:") {
           s = strings.Fields(line)[1]
         }  else if strings.HasPrefix(line, "Description:") {
-          d = string(util.Base64EncodeString(strings.SplitN(line,": ",2)[1]))
+          d = base64.StdEncoding.EncodeToString([]byte(strings.SplitN(line,": ",2)[1]))
         }  else if strings.HasPrefix(line, "Filename:") {
           f = strings.Fields(line)[1]
         } else if strings.HasPrefix(line, "Depends:") {
@@ -377,25 +375,44 @@ func process_packages_files() {
       if PackagePipeVersion2PData_new[ppv] == nil {
         PackagePipeVersion2PData_new[ppv] = PackagePipeVersion2PData[ppv]
       }
-      PackagePipeVersion2PData_new[ppv].Meta = append(PackagePipeVersion2PData_new[ppv].Meta, rrpcae+","+versioncode)
+      PackagePipeVersion2PData_new[ppv].Meta = append(PackagePipeVersion2PData_new[ppv].Meta, versioncode+","+rrpcae)
     }
   }
 }
 
+var extensions_to_try = []string{"", ".gz", ".bz2"}
 func handle_uri(line1 string, uri string, c chan []string) {
-  resp, err := Client.Get(uri)
-  if err != nil {
-    fmt.Fprintf(os.Stderr, "%v: %v\n", uri, err)
-    return
-  }
-  defer resp.Body.Close()
+  var err error
+  var resp *http.Response
   
-  if resp.StatusCode != 200 {
-    fmt.Fprintf(os.Stderr, "%v: %v\n", uri, resp.Status)
-    return
+  errors := []string{}
+  
+  for ext_i, extension := range extensions_to_try {
+    resp, err = Client.Get(uri+extension)
+    if err != nil {
+      fmt.Fprintf(os.Stderr, "%v: %v\n", uri, err)
+      return
+    }
+ 
+    if resp.StatusCode == 200 {
+      uri = uri+extension
+      defer resp.Body.Close()
+      break
+    }
+
+    errors = append(errors, fmt.Sprintf("%v: %v\n", uri, resp.Status))
+    resp.Body.Close()
+    if ext_i+1 == len(extensions_to_try) {
+      for _, e := range errors {
+        fmt.Fprintln(os.Stderr, e)
+      }
+      return
+    }
   }
   
   var r io.Reader = resp.Body
+  
+  fmt.Fprintln(os.Stderr, uri)
   
   if strings.HasSuffix(uri, ".bz2") {
     r = bzip2.NewReader(r)
@@ -423,31 +440,51 @@ func handle_uri(line1 string, uri string, c chan []string) {
   c <- lines
 }  
 
+type ByMeta []string
+func (a ByMeta) Len() int { return len(a) }
+func (a ByMeta) Swap(i,j int) { a[i], a[j] = a[j],a[i] }
+func (a ByMeta) Less(i, j int) bool { 
+  pdata1 := PackagePipeVersion2PData_new[a[i]]
+  pdata2 := PackagePipeVersion2PData_new[a[j]]
+  if len(pdata1.Meta) < len(pdata2.Meta) { return true }
+  if len(pdata1.Meta) > len(pdata2.Meta) { return false }
+  for k := range pdata1.Meta {
+    if pdata1.Meta[k] > pdata2.Meta[k] { return false }
+    if pdata1.Meta[k] < pdata2.Meta[k] { return true }
+  }
+  return a[i] < a[j];
+}
+
 func writecache() {
-  cache, err := os.Create(CachePath+"2")
+  cache, err := os.Create(CachePath)
   if err != nil {
     fmt.Fprintln(os.Stderr, err)
     os.Exit(1)
   }
   defer cache.Close()
 
-  currentmeta := ""
-  for ppv, pdata := range PackagePipeVersion2PData_new {
+  // sort all .Meta properties
+  for _, pdata := range PackagePipeVersion2PData_new {
     sort.Strings(pdata.Meta)
+  }
+  
+  // Now get a list of ppv keys sorted by the respective PData.Meta strings.
+  // This is done to reduce the amount of output in the cache by grouping
+  // package-pipe-version entries by their versioncode (which is at the beginning of .Meta).
+  package_pipe_version_list := make([]string, 0, len(PackagePipeVersion2PData_new))
+  for ppv := range PackagePipeVersion2PData_new {
+    package_pipe_version_list = append(package_pipe_version_list, ppv)
+  }
+  sort.Sort(ByMeta(package_pipe_version_list))
+
+  currentmeta := ""
+  for _, ppv := range package_pipe_version_list {
+    pdata := PackagePipeVersion2PData_new[ppv]
     m := strings.Join(pdata.Meta,"|")
     if m != currentmeta {
       currentmeta = m
-      prevparts := []string{"","","","","",""}
       for _, meta := range pdata.Meta {
-        parts := strings.Split(meta,",")
-        for i := range parts {
-          if parts[i] == prevparts[i] {
-            parts[i] = "^"
-          } else {
-            prevparts[i] = parts[i]
-          }
-        }
-        fmt.Fprintf(cache, "!%s\n", strings.Join(parts, ","))
+        fmt.Fprintf(cache, "!%s\n", meta)
       }
     }
     
