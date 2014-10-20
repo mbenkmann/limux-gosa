@@ -1,3 +1,9 @@
+gosa (2.8.28) trusty; urgency=medium
+
+  * go-susi: generate_packages_list: another message that should only be printed if Verbose
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 20 Oct 2014 20:36:25 +0200
+
 gosa (2.8.27) trusty; urgency=medium
 
   * go-susi: added support for new caching generate_package_list hook

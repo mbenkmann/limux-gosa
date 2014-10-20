@@ -599,7 +599,9 @@ func extract_templates(uris_to_try []string) string {
   // the number of goroutines would shoot up and sockets would not
   // be closed until the program crashed with too many open files.
   for runtime.NumGoroutine() > 300 {
-    fmt.Fprintln(os.Stderr, "Waiting for goroutines to finish...")
+    if Verbose {
+      fmt.Fprintln(os.Stderr, "Waiting for goroutines to finish...")
+    }
     Transport[0].CloseIdleConnections()
     runtime.GC()
     time.Sleep(5*time.Second)
