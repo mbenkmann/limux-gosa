@@ -1,3 +1,10 @@
+gosa (2.8.23) trusty; urgency=medium
+
+  * go-susi: remove old generate_package_list shell script
+  * gosa-si: add new generate_package_list binary to package
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 20 Oct 2014 17:34:43 +0200
+
 gosa (2.8.22) trusty; urgency=medium
 
   * gosa-quickstart: LDIFs for Ubuntu and Debian repository servers in example department

@@ -12,5 +12,6 @@ go-susi/main/fai_savelog         /usr/lib/go-susi
 go-susi/main/initrd_autopack     /usr/lib/go-susi
 go-susi/gosa-si-server           /usr/lib/go-susi
 go-susi/*crypt                   /usr/lib/go-susi
+go-susi/generate_*               /usr/lib/go-susi
 go-susi/main/gosa-si-server      /usr/sbin
 go-susi/sibridge                 /usr/sbin
