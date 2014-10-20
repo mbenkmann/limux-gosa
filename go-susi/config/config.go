@@ -79,6 +79,9 @@ var ServerDBPath = "/var/lib/go-susi/serverdb.xml"
 // Path to database of clients (foreign and our own).
 var ClientDBPath = "/var/lib/go-susi/clientdb.xml"
 
+// Directory where package-list-hook should store its cache.
+var PackageCacheDir = "/var/lib/go-susi"
+
 // Called by db.HooksExecute() to generate the kernel db.
 var KernelListHookPath = "/usr/lib/go-susi/generate_kernel_list"
 
@@ -368,6 +371,7 @@ func ReadArgs(args []string) {
       JobDBPath = testdir + "/jobdb.xml"
       ServerDBPath = testdir + "/serverdb.xml"
       ClientDBPath = testdir + "/clientdb.xml"
+      PackageCacheDir = testdir
       FAILogPath = testdir
       
     } else if arg == "-c" {

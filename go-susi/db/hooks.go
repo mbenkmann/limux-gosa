@@ -21,11 +21,13 @@ MA  02110-1301, USA.
 package db
 
 import (
+         "fmt"
          "sync"
          "time"
          "os"
          "os/exec"
          "runtime"
+         "strings"
          
          "../xml"
          "../util"
@@ -38,12 +40,14 @@ var hookMutex sync.Mutex
 
 // Run KernelListHook() and PackageListHook() to update the respective databases.
 // This happens in the background. This function does not wait for them to complete.
-func HooksExecute() {
-  go util.WithPanicHandler(runHooks)
+// startup == true => This is the initial call right after go-susi starts.
+func HooksExecute(startup bool) {
+  go util.WithPanicHandler(func(){runHooks(startup)})
   go util.WithPanicHandler(FAIReleasesListUpdate)
 }
 
-func runHooks() {
+// startup == true => This is the initial call right after go-susi starts.
+func runHooks(startup bool) {
   hookMutex.Lock()
   defer hookMutex.Unlock()
   
@@ -54,8 +58,15 @@ func runHooks() {
   runtime.GC()
   KernelListHook()
   runtime.GC()
-  PackageListHook()
-  runtime.GC()
+  if startup {
+    PackageListHook("cache")
+    runtime.GC()
+    PackageListHook("depends")
+    runtime.GC()
+  } else {
+    PackageListHook("all")
+    runtime.GC()
+  }
 }
 
 // Reads the output from the program config.KernelListHookPath (LDIF) and
@@ -129,13 +140,23 @@ var packageListFormat = []*xml.ElementInfo{
 
 // Reads the output from the program config.PackageListHookPath (LDIF) and
 // uses it to replace packagedb.
-func PackageListHook() {
+// debconf is passed as PackageListDebconf environment var to the hook.
+// See manual section on package-list-hook for more info.
+func PackageListHook(debconf string) {
   start := time.Now()
   timestamp := util.MakeTimestamp(start)
 
-  util.Log(1, "INFO! Running package-list-hook %v", config.PackageListHookPath)
+  util.Log(1, "INFO! Running package-list-hook (debconf mode \"%v\") %v", debconf, config.PackageListHookPath)
   cmd := exec.Command(config.PackageListHookPath)
   cmd.Env = append(config.HookEnvironment(), os.Environ()...)
+  
+  fairepos := []string{}
+  for repo := FAIServers().First("repository"); repo != nil; repo = repo.Next() {
+    fairepos = append(fairepos, fmt.Sprintf("%v||%v|%v", repo.Text("server"), repo.Text("fai_release"), repo.Text("sections")))
+  }
+  
+  cmd.Env = append(cmd.Env, "PackageListCacheDir="+config.PackageCacheDir, "PackageListDebconf="+debconf, "PackageListFAIrepository="+strings.Join(fairepos," "))
+
   plist, err := xml.LdifToHash("pkg", true, cmd, packageListFormat...)
   if err != nil {
     util.Log(0, "ERROR! package-list-hook %v: %v", config.PackageListHookPath, err)
@@ -159,12 +180,12 @@ func PackageListHook() {
     p := pkg.Element()
     pkgname := p.Get("package")
     if len(pkgname) == 0 {
-      util.Log(0, "ERROR! kernel-list-hook %v returned entry without \"Package\": %v", config.PackageListHookPath, p)
+      util.Log(0, "ERROR! package-list-hook %v returned entry without \"Package\": %v", config.PackageListHookPath, p)
       pkg.Remove()
       continue
     }
     if len(pkgname) > 1 {
-      util.Log(0, "ERROR! kernel-list-hook %v returned entry with multiple \"Package\" values: %v", config.PackageListHookPath, p)
+      util.Log(0, "ERROR! package-list-hook %v returned entry with multiple \"Package\" values: %v", config.PackageListHookPath, p)
       pkg.Remove()
       continue
     }

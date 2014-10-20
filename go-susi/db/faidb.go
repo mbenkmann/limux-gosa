@@ -56,7 +56,7 @@ func FAIServers() *xml.Hash {
   // tagged within the reply.
   x, err := xml.LdifToHash("repository", true, ldapSearch("(&(FAIrepository=*)(objectClass=FAIrepositoryServer))","FAIrepository","gosaUnitTag"))
   if err != nil { 
-    util.Log(0, "ERROR! LDAP error while looking for FAIrepositorServer objects: %v", err)
+    util.Log(0, "ERROR! LDAP error while looking for FAIrepositoryServer objects: %v", err)
     return xml.NewHash("faidb")
   }
 

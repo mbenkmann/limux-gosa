@@ -161,7 +161,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
     db.ServersInit() // after config.ReadNetwork()
     db.JobsInit() // after config.ReadConfig()
     db.ClientsInit() // after config.ReadConfig()
-    db.HooksExecute() // after config.ReadConfig()
+    db.HooksExecute(true) // after config.ReadConfig()
     action.Init()
   }  
   
@@ -203,7 +203,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
                       util.Log(1, "INFO! Received signal \"%v\"", sig)
                     }
                     if sig == syscall.SIGUSR2 && config.RunServer { 
-                      db.HooksExecute()
+                      db.HooksExecute(false)
                     }
                     if sig == syscall.SIGHUP || sig == syscall.SIGTERM || 
                        sig == syscall.SIGQUIT || sig == syscall.SIGINT {
