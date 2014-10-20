@@ -1,3 +1,9 @@
+gosa (2.8.24) trusty; urgency=medium
+
+  * fix debian/changelog entries with missing author name
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 20 Oct 2014 17:38:16 +0200
+
 gosa (2.8.23) trusty; urgency=medium
 
   * go-susi: remove old generate_package_list shell script
@@ -15,7 +21,7 @@ gosa (2.8.21) trusty; urgency=medium
 
   * go-susi: new generate_package_list finished (I hope :-)
 
- --  <>  Mon, 20 Oct 2014 16:37:31 +0200
+ --  Matthias S. Benkmann <mux2005@gmail.com>  Mon, 20 Oct 2014 16:37:31 +0200
 
 gosa (2.8.20) trusty; urgency=medium
 
@@ -27,31 +33,31 @@ gosa (2.8.19) trusty; urgency=medium
 
   * go-susi: another attempt at generate_package_list.go
 
- --  <>  Mon, 13 Oct 2014 20:31:00 +0200
+ --  Matthias S. Benkmann <mux2005@gmail.com>  Mon, 13 Oct 2014 20:31:00 +0200
 
 gosa (2.8.18) trusty; urgency=medium
 
   * go-susi: started work on a new generate_packages_list hook
 
- --  <>  Thu, 02 Oct 2014 20:30:14 +0200
+ --  Matthias S. Benkmann <mux2005@gmail.com>  Thu, 02 Oct 2014 20:30:14 +0200
 
 gosa (2.8.17) trusty; urgency=medium
 
   * go-susi: disable test that depended on Wikipedia IP addresses not changing
 
- --  <>  Thu, 02 Oct 2014 11:36:54 +0200
+ --  Matthias S. Benkmann <mux2005@gmail.com>  Thu, 02 Oct 2014 11:36:54 +0200
 
 gosa (2.8.16) trusty; urgency=medium
 
   * go-susi: Makefile: fix make clean to work with git instead of Mercurial
 
- --  <>  Thu, 02 Oct 2014 11:36:13 +0200
+ --  Matthias S. Benkmann <mux2005@gmail.com>  Thu, 02 Oct 2014 11:36:13 +0200
 
 gosa (2.8.15) trusty; urgency=medium
 
   * go-susi: remove cruft related to old Debian packaging
 
- --  <>  Thu, 02 Oct 2014 11:26:55 +0200
+ --  Matthias S. Benkmann <mux2005@gmail.com>  Thu, 02 Oct 2014 11:26:55 +0200
 
 gosa (2.8.14) trusty; urgency=medium
 
