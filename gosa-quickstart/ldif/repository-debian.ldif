@@ -1,0 +1,25 @@
+dn: cn=ftp.debian.org,ou=servers,ou=systems,ou=${department1},${suffix}
+cn: ftp.debian.org
+gotoMode: active
+macAddress: 00:00:00:00:00:00
+FAIrepository: http://ftp.debian.org/debian||jessie|main,contrib,non-free
+FAIrepository: http://ftp.debian.org/debian||jessie-updates|main,contrib,non-free
+FAIrepository: http://ftp.debian.org/debian||jessie-backports|main,contrib,non-free
+objectClass: top
+objectClass: GOhard
+objectClass: goServer
+objectClass: gotoWorkstationTemplate
+objectClass: FAIobject
+objectClass: FAIrepositoryServer
+
+dn: cn=security.debian.org,ou=servers,ou=systems,ou=${department1},${suffix}
+cn: security.debian.org
+gotoMode: active
+macAddress: 00:00:00:00:00:00
+FAIrepository: http://security.debian.org||jessie/updates|main,contrib,non-free
+objectClass: top
+objectClass: GOhard
+objectClass: goServer
+objectClass: gotoWorkstationTemplate
+objectClass: FAIobject
+objectClass: FAIrepositoryServer
