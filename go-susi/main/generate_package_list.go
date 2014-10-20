@@ -18,6 +18,7 @@ package main
 import (
          "io"
          "os"
+         "os/exec"
          "fmt"
          "net/http"
          "net/url"
@@ -29,7 +30,14 @@ import (
          "compress/gzip"
          "compress/bzip2"
          "encoding/base64"
-       )
+         "path/filepath"
+         "math/rand"
+         "bytes"
+         "runtime"
+      )
+
+// maximum size of templates file to be considered
+const TEMPLATES_MAX_SIZE = 1000000
 
 // Regex for parsing lines in Packages file like this:
 // 0c8a5062dee022b56afc2fca683f0748           959037 main/binary-amd64/Packages
@@ -68,11 +76,16 @@ type PData struct {
 var PackagePipeVersion2PData = map[string]*PData {}
 var PackagePipeVersion2PData_new = map[string]*PData {}
 
-const CachePath = "/home/m/devel/go/susi/pkg.cache"
+var CacheName = "generate_package_list.cache"
+var CacheDir = "/tmp"
 
-var FAIReposFromLDAP = []string{"http://de.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted",
-                    "http://de.archive.ubuntu.com/ubuntu|ignored|precise|main,universe",
-                    }
+var FAIrepository = "http://de.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted,universe,multiverse http://dk.archive.ubuntu.com/ubuntu/|ignored|trusty-updates|main,restricted,universe,multiverse http://nl.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted,universe,multiverse"
+//var FAIrepository = "http://de.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted,universe,multiverse"
+
+// "cache" => only use templates data from cache
+// "depends" => scan .deb file if it depends on something that includes the string "debconf"
+// everything else (including "") => scan all .deb files unless templates data is in cache
+var Debconf = "depends"
 
 type ReleaseTodo struct {
   Repo string
@@ -80,19 +93,51 @@ type ReleaseTodo struct {
   Components map[string]bool
   ReleaseFile []string
 }
- 
-var Client *http.Client
+
+type TaggedBlob struct {
+  Id string
+  Ext string
+  Payload bytes.Buffer
+}
+
+// http.Client(s) to use for connections in order of preference
+// If a proxy is available, the first entry in this list will use it.
+// The last entry is always a plain connection without proxy. 
+var Client []*http.Client
+// Transport[i] is the http.Transport of Client[i]
+var Transport []*http.Transport
+
+// Output informative messages.
+var Verbose = false
 
 func main() {
+  rand.Seed(316888245464693718)
+  readenv()
   initclient()
   readcache()
   process_releases_files()
-  process_packages_files() 
+  process_packages_files()
+  debconf_scan()
   writecache()
+  printldif()
+}
+
+func readenv() {
+  if cd := os.Getenv("PackageListCacheDir"); cd != "" {
+    CacheDir = cd
+  }
+  if dc := os.Getenv("PackageListDebconf"); dc != "" {
+    Debconf = dc
+  }
+  if fr := os.Getenv("PackageListFAIrepository"); fr != "" {
+    FAIrepository = fr
+  }
 }
 
 func initclient() {
   tr := &http.Transport{
+    //DisableKeepAlives: true,
+    MaxIdleConnsPerHost: 8,
     // proxy function examines Request r and decides if
     // a proxy should be used. If the returned error is non-nil,
     // the request is aborted. If the returned URL is nil,
@@ -103,14 +148,17 @@ func initclient() {
     },
   }
   
+  Transport = append(Transport, tr)
+  
   // the same Client object can (and for efficiency reasons should)
   // be used in all goroutines according to net/http docs.
-  Client = &http.Client{Transport: tr}
+  Client = append(Client, &http.Client{Transport: tr})
 }
 
 func readcache() {
-  cache, err := os.Open(CachePath)
-  if err != nil {
+  cache, err := os.Open(filepath.Join(CacheDir,CacheName))
+  if err != nil{
+    if os.IsNotExist(err.(*os.PathError).Err) { return }
     fmt.Fprintln(os.Stderr, err)
     os.Exit(1)
   }
@@ -163,10 +211,10 @@ func readcache() {
 
 func process_releases_files() {
   reporepopath2release_todo := map[string]*ReleaseTodo{}
-  for _, fairepo := range FAIReposFromLDAP {
+  for _, fairepo := range strings.Fields(FAIrepository) {
     parts := strings.Split(fairepo, "|")
-    repo := strings.TrimSpace(strings.TrimRight(parts[0],"/"))
-    repopath := strings.TrimSpace(parts[2])
+    repo := strings.TrimRight(strings.TrimSpace(parts[0]),"/")
+    repopath := strings.TrimRight(strings.TrimSpace(parts[2]),"/")
     components := map[string]bool{}
     for _, com := range strings.Fields(strings.TrimSpace(strings.Replace(parts[3],","," ",-1))) {
       components[com] = true
@@ -278,29 +326,29 @@ func process_packages_files() {
     }
   }
   
-  c := make(chan []string, len(rrpcae))
+  c := make(chan *TaggedBlob, len(rrpcae))
   
   for i := range rrpcae {
     rrpcae_i := rrpcae[i]
     parts := strings.Split(rrpcae_i,",")
     repo, repopath, compo, arch, ext := parts[0], parts[1], parts[2], parts[3], parts[4]
     
-    // sends to channel c a []string whose first string is rrpcae_i and whose
-    // following strings are the trimmed lines of the Packages file
+    // sends to channel c a TaggedBlob whose Id string is rrpcae_i, Ext is
+    // the actual autodetected extension and whose
+    // Payload is the compressed Packages file.
     uri := repo+"/dists/"+repopath+"/"+compo+"/binary-"+arch+"/Packages"+ext
-    go handle_uri(rrpcae_i, uri, c)
+    go fetch_uri(rrpcae_i, uri, c)
   }
   
-  rrpcae2packages := map[string][]string{}
+  rrpcae2taggedblob := map[string]*TaggedBlob{}
   tim := time.NewTimer(30*time.Second)
   count := len(rrpcae)
   if count == 0 { os.Exit(0) } // nothing to do
   loop:
   for {
     select {
-      case packages_lines := <- c:
-                       rrpcae := packages_lines[0]
-                       rrpcae2packages[rrpcae] = packages_lines[1:]
+      case taggedblob := <- c:
+                       rrpcae2taggedblob[taggedblob.Id] = taggedblob
                        if count--; count == 0 {
                          tim.Stop()
                          break loop
@@ -315,7 +363,12 @@ func process_packages_files() {
   for i := range rrpcae {
     rrpcae_i := rrpcae[i]
     rrpcaeparts := strings.Split(rrpcae_i, ",")
-    if packages_lines,ok := rrpcae2packages[rrpcae_i]; ok {
+    var packages_lines []string
+    if taggedblob,ok := rrpcae2taggedblob[rrpcae_i]; ok {
+      packages_lines = extract(taggedblob.Ext, &taggedblob.Payload)
+    }
+    
+    if packages_lines != nil {
       var p,v,s,d,f string
       var debconf bool
       for _, line := range packages_lines {
@@ -328,12 +381,18 @@ func process_packages_files() {
             RepoRepopathCompoArchExt2PackagePipeVersionSet_new[rrpcae_i][ppv] = true
             PackagePipeVersion2PData_new[ppv] = &PData{Section:s, DescriptionBase64:d}
             
+            PackagePipeVersion2PData_new[ppv].TemplatesBase64 = "?"
             // if we have that version in the cache already, copy templates
             if pkg, ok := PackagePipeVersion2PData[ppv]; ok {
               PackagePipeVersion2PData_new[ppv].TemplatesBase64 = pkg.TemplatesBase64
-            } else { // otherwise we (may) need to scan the .deb
-              if debconf {
-                DebsToScan[ppv] = append(DebsToScan[ppv], rrpcaeparts[0]+"/"+f)
+            } 
+            
+            // queue the .deb for scanning if necessary
+            if PackagePipeVersion2PData_new[ppv].TemplatesBase64 == "?" {
+              if Debconf != "cache" {
+                if Debconf != "depends" || debconf {
+                  DebsToScan[ppv] = append(DebsToScan[ppv], rrpcaeparts[0]+"/"+f)
+                }
               }
             }
           }
@@ -349,7 +408,7 @@ func process_packages_files() {
           d = base64.StdEncoding.EncodeToString([]byte(strings.SplitN(line,": ",2)[1]))
         }  else if strings.HasPrefix(line, "Filename:") {
           f = strings.Fields(line)[1]
-        } else if strings.HasPrefix(line, "Depends:") {
+        } else if strings.HasPrefix(line, "Depends:") || strings.HasPrefix(line, "Pre-Depends:") {
           debconf = strings.Contains(line, "debconf")
         }
       }
@@ -380,65 +439,6 @@ func process_packages_files() {
   }
 }
 
-var extensions_to_try = []string{"", ".gz", ".bz2"}
-func handle_uri(line1 string, uri string, c chan []string) {
-  var err error
-  var resp *http.Response
-  
-  errors := []string{}
-  
-  for ext_i, extension := range extensions_to_try {
-    resp, err = Client.Get(uri+extension)
-    if err != nil {
-      fmt.Fprintf(os.Stderr, "%v: %v\n", uri, err)
-      return
-    }
- 
-    if resp.StatusCode == 200 {
-      uri = uri+extension
-      defer resp.Body.Close()
-      break
-    }
-
-    errors = append(errors, fmt.Sprintf("%v: %v\n", uri, resp.Status))
-    resp.Body.Close()
-    if ext_i+1 == len(extensions_to_try) {
-      for _, e := range errors {
-        fmt.Fprintln(os.Stderr, e)
-      }
-      return
-    }
-  }
-  
-  var r io.Reader = resp.Body
-  
-  fmt.Fprintln(os.Stderr, uri)
-  
-  if strings.HasSuffix(uri, ".bz2") {
-    r = bzip2.NewReader(r)
-  } else if strings.HasSuffix(uri, ".gz") {
-    r, err = gzip.NewReader(r)
-    if err != nil {
-      fmt.Fprintf(os.Stderr, "%v: %v\n", uri, err)
-      return
-    }
-  }
-  
-  input := bufio.NewReader(r)
-  lines := []string{line1}
-  for {
-    var line string
-    line, err = input.ReadString('\n')
-    if err != nil { 
-      if err == io.EOF { break }
-      fmt.Fprintf(os.Stderr, "%v: %v", uri, err)
-      return
-    }
-    lines = append(lines, strings.TrimSpace(line))
-  }
-  
-  c <- lines
-}  
 
 type ByMeta []string
 func (a ByMeta) Len() int { return len(a) }
@@ -455,8 +455,60 @@ func (a ByMeta) Less(i, j int) bool {
   return a[i] < a[j];
 }
 
+func shuffle(a []string) {
+  for i := range a {
+    j := rand.Intn(i + 1)
+    a[i], a[j] = a[j], a[i]
+  }
+}
+
+func debconf_scan() {
+  num_scanners := 32
+  c := make(chan []string, num_scanners)
+  done := make(chan bool)
+  
+  go func() {
+    for ppv, urilist := range DebsToScan {
+      shuffle(urilist)
+      c <- append(urilist, ppv)
+    }
+    done <- true
+  }()
+  
+  c2 := make(chan []string, num_scanners)
+  for i := 0; i < num_scanners; i++ {
+    go func() {
+      for {
+        urilist := <- c
+        ppv := urilist[len(urilist)-1]
+        urilist = urilist[0:len(urilist)-1]
+        templates64 := extract_templates(urilist)
+        if templates64 != "?" {
+          c2 <- []string{ppv, templates64}
+        }
+      }
+    }()
+  }
+  
+  tim := time.NewTimer(1*time.Hour)
+  loop:
+  for {
+    select {
+      case x := <- c2:
+                       PackagePipeVersion2PData_new[x[0]].TemplatesBase64 = x[1]
+                       
+      case _ = <- tim.C:
+                       break loop
+      
+      case _ = <- done: 
+                       // Give scanners some time to process their last package
+                       tim.Reset(30*time.Second)
+    }
+  }
+}
+
 func writecache() {
-  cache, err := os.Create(CachePath)
+  cache, err := os.Create(filepath.Join(CacheDir,CacheName))
   if err != nil {
     fmt.Fprintln(os.Stderr, err)
     os.Exit(1)
@@ -490,4 +542,257 @@ func writecache() {
     
     fmt.Fprintf(cache, "%s|%s|%s|%s\n", ppv, pdata.Section, pdata.DescriptionBase64, pdata.TemplatesBase64)
   }
+}
+
+func printldif() {
+  for package_pipe_version, pdata := range PackagePipeVersion2PData_new {
+    pipe := strings.Index(package_pipe_version, "|")
+    pkg := package_pipe_version[0:pipe]
+    version := package_pipe_version[pipe+1:]
+    prev_release := ""
+    for _, meta := range pdata.Meta {
+      m := strings.Split(meta,",")
+      versioncode,repopath,section := m[0],m[2],m[3]
+      vc_slash := strings.Index(versioncode, "/")
+      release := versioncode
+      // If the repo path does not end in the release version, then
+      // we assume the release name should not include the version.
+      // E.g. "trusty/14.04" becomes "trusty" because the repo paths
+      // for trusty packages are "trusty", "trusty-backports",... which
+      // do not include version numbers.
+      // For LiMux this turns "tramp/5.0" into "tramp" but keeps
+      // "tramp/5.0.0beta7" as is.
+      if !strings.HasSuffix(repopath, versioncode[vc_slash:]) {
+        release = versioncode[0:vc_slash]
+      }
+      // Do not output 2 entries for the same package and the same release.
+      // In theory this could lose go-susi some information about repo paths,
+      // but we assume that each repo path has at least one package that
+      // justifies its existence.
+      if release == prev_release { continue }
+      prev_release = release
+    
+      fmt.Printf(`
+Release: %v
+Package: %v
+Version: %v
+Section: %v
+Description:: %v
+`,  release, pkg, version, section, pdata.DescriptionBase64)
+      if repopath != release {
+        fmt.Printf("Repository: %v\n", repopath)
+      }
+      if len(pdata.TemplatesBase64) >= 4 {
+        fmt.Printf("Templates:: %v\n", pdata.TemplatesBase64)
+      }
+    }
+  }
+}
+
+
+func extract_templates(uris_to_try []string) string {
+  var err error
+  var resp *http.Response
+  var uri string
+  
+  // Workaround for a condition I encountered during testing where
+  // the number of goroutines would shoot up and sockets would not
+  // be closed until the program crashed with too many open files.
+  for runtime.NumGoroutine() > 300 {
+    fmt.Fprintln(os.Stderr, "Waiting for goroutines to finish...")
+    Transport[0].CloseIdleConnections()
+    runtime.GC()
+    time.Sleep(5*time.Second)
+  }
+  
+  ok := false
+  for _, uri = range uris_to_try {
+    resp, err = Client[0].Get(uri)
+    if err != nil {
+      continue
+    }
+ 
+    if resp.StatusCode == 200 {
+      ok = true
+      break
+    }
+
+    // When we get here the connection succeeded but we got an HTTP level error like 404
+
+    resp.Body.Close()
+  }
+  
+  if !ok { return "?" }
+  
+  cmd := exec.Command("dpkg", "--info","/dev/stdin","templates")
+  //cmd := exec.Command("head","-c","200000")
+  cmd.Stdin = resp.Body
+  var outbuf bytes.Buffer
+  cmd.Stdout = &outbuf
+  defer outbuf.Reset()
+  var errbuf bytes.Buffer
+  cmd.Stderr = &errbuf
+  defer errbuf.Reset()
+  err = cmd.Run()
+  templates64 := "?"
+  if err != nil && 
+    // broken pipe is normal because dpkg stops reading once it has
+    // the data it needs
+    !strings.Contains(err.Error(), "broken pipe") &&
+    // exit status 2 just means that the deb package has no templates
+    !strings.Contains(err.Error(), "exit status 2") {
+    if strings.Contains(err.Error(), "too many open files") {
+      time.Sleep(60*time.Second)
+    }
+     fmt.Fprintf(os.Stderr, "dpkg --info %v: %v (%v)\n", uri, err, errbuf.String())
+  } else {
+    if outbuf.Len() > TEMPLATES_MAX_SIZE {
+      fmt.Fprintf(os.Stderr, "TOO LARGE %v\n", uri)
+    } else {
+      templates64 = base64.StdEncoding.EncodeToString(outbuf.Bytes())
+      if Verbose && templates64 != "" {
+        fmt.Fprintf(os.Stderr, "DEBCONF %v\n", uri)
+      }
+    }
+  }
+  
+  resp.Body.Close()
+  return templates64
+}
+
+var extensions_to_try = []string{"", ".gz", ".bz2"}
+func handle_uri(line1 string, uri string, c chan []string) {
+  var err error
+  var resp *http.Response
+  
+  errors := []string{}
+  
+  for ext_i, extension := range extensions_to_try {
+    resp, err = Client[0].Get(uri+extension)
+    if err != nil {
+      fmt.Fprintf(os.Stderr, "%v: %v\n", uri, err)
+      return
+    }
+ 
+    if resp.StatusCode == 200 {
+      uri = uri+extension
+      defer resp.Body.Close()
+      break
+    }
+
+    errors = append(errors, fmt.Sprintf("%v: %v\n", uri, resp.Status))
+    resp.Body.Close()
+    if ext_i+1 == len(extensions_to_try) {
+      for _, e := range errors {
+        fmt.Fprintln(os.Stderr, e)
+      }
+      return
+    }
+  }
+  
+  var r io.Reader = resp.Body
+  
+  if strings.HasSuffix(uri, ".bz2") {
+    r = bzip2.NewReader(r)
+  } else if strings.HasSuffix(uri, ".gz") {
+    r, err = gzip.NewReader(r)
+    if err != nil {
+      fmt.Fprintf(os.Stderr, "%v: %v\n", uri, err)
+      return
+    }
+  }
+  
+  input := bufio.NewReader(r)
+  lines := []string{line1}
+  for {
+    var line string
+    line, err = input.ReadString('\n')
+    if err != nil { 
+      if err == io.EOF { break }
+      fmt.Fprintf(os.Stderr, "%v: %v", uri, err)
+      return
+    }
+    lines = append(lines, strings.TrimSpace(line))
+  }
+  
+  c <- lines
+  
+  if Verbose {
+    fmt.Fprintf(os.Stderr, "OK %v\n", uri)
+  }
+}  
+
+
+func fetch_uri(rrpcae string, uri string, c chan *TaggedBlob) {
+  var err error
+  var resp *http.Response
+  
+  errors := []string{}
+  tb := &TaggedBlob{Id: rrpcae}
+  
+  for ext_i, extension := range extensions_to_try {
+    resp, err = Client[0].Get(uri+extension)
+    if err != nil {
+      fmt.Fprintf(os.Stderr, "%v: %v\n", uri, err)
+      return
+    }
+ 
+    if resp.StatusCode == 200 {
+      uri = uri+extension
+      tb.Ext = extension
+      defer resp.Body.Close()
+      break
+    }
+
+    errors = append(errors, fmt.Sprintf("%v: %v\n", uri, resp.Status))
+    resp.Body.Close()
+    if ext_i+1 == len(extensions_to_try) {
+      for _, e := range errors {
+        fmt.Fprintln(os.Stderr, e)
+      }
+      return
+    }
+  }
+  
+  _, err = tb.Payload.ReadFrom(resp.Body)
+  
+  if err != nil { 
+    fmt.Fprintf(os.Stderr, "%v: %v", uri, err)
+    return
+  }
+  
+  c <- tb
+  
+  if Verbose {
+    fmt.Fprintf(os.Stderr, "OK %v\n", uri)
+  }
+}  
+
+func extract(ext string, buf *bytes.Buffer) []string {
+  var r io.Reader = buf
+  var err error
+  
+  if ext == ".bz2" {
+    r = bzip2.NewReader(r)
+  } else if ext == ".gz" {
+    r, err = gzip.NewReader(r)
+    if err != nil {
+      fmt.Fprintf(os.Stderr, "%v\n", err)
+      return nil
+    }
+  }
+  
+  input := bufio.NewReader(r)
+  lines := []string{}
+  for {
+    var line string
+    line, err = input.ReadString('\n')
+    if err != nil { 
+      if err == io.EOF { break }
+      fmt.Fprintf(os.Stderr, "%v\n", err)
+      return nil
+    }
+    lines = append(lines, strings.TrimSpace(line))
+  }
+  return lines
 }

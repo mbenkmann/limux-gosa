@@ -1,3 +1,9 @@
+gosa (2.8.21) trusty; urgency=medium
+
+  * go-susi: new generate_package_list finished (I hope :-)
+
+ --  <>  Mon, 20 Oct 2014 16:37:31 +0200
+
 gosa (2.8.20) trusty; urgency=medium
 
   * go-susi: some optimization of generate_package_list.go
