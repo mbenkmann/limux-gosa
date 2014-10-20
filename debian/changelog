@@ -1,3 +1,10 @@
+gosa (2.8.26) trusty; urgency=medium
+
+  * go-susi: updated manual
+  * go-susi: added manpages to almostclean Makefile target
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 20 Oct 2014 19:58:00 +0200
+
 gosa (2.8.25) trusty; urgency=medium
 
   * gosa-quickstart: fix typo preventing correct patching of ldap.conf

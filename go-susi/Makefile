@@ -61,6 +61,7 @@ almostclean:
 	rm -f deb/go-susi*.changes deb/go-susi*.diff.gz deb/go-susi-?*.?*.?*/.hg*
 	rm -rf deb/go-susi-?*.?*.?*/*
 	rm -f manpage.xsl
+	rm -f doc/*.1 doc/*.5
 	test -d deb/go-susi-?*.?*.?*/ && rmdir deb/go-susi-?*.?*.?*/ || true
 	test -d deb && rmdir deb || true
 
