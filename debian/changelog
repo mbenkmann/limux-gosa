@@ -1,3 +1,10 @@
+gosa (2.8.29) trusty; urgency=medium
+
+  * go-susi: run kernel hook after package hook so that kernel hook can use package hook's data
+  * go-susi: do not abort if package list hook writes to stderr but exits with status 0
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 21 Oct 2014 14:26:39 +0200
+
 gosa (2.8.28) trusty; urgency=medium
 
   * gosa-quickstart: add the necessary hooks to gosa.conf for release creation

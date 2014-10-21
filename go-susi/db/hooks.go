@@ -32,6 +32,7 @@ import (
          "../xml"
          "../util"
          "../config"
+         "../bytes"
        )
 
 // used to prevent the hooks from being started while they are still running,
@@ -56,15 +57,17 @@ func runHooks(startup bool) {
   // call garbage collection in hopes of keeping memory usage in check.
   
   runtime.GC()
-  KernelListHook()
-  runtime.GC()
   if startup {
     PackageListHook("cache")
+    runtime.GC()
+    KernelListHook()
     runtime.GC()
     PackageListHook("depends")
     runtime.GC()
   } else {
     PackageListHook("all")
+    runtime.GC()
+    KernelListHook()
     runtime.GC()
   }
 }
@@ -157,7 +160,26 @@ func PackageListHook(debconf string) {
   
   cmd.Env = append(cmd.Env, "PackageListCacheDir="+config.PackageCacheDir, "PackageListDebconf="+debconf, "PackageListFAIrepository="+strings.Join(fairepos," "))
 
-  plist, err := xml.LdifToHash("pkg", true, cmd, packageListFormat...)
+  var outbuf bytes.Buffer
+  defer outbuf.Reset()
+  var errbuf bytes.Buffer
+  defer errbuf.Reset()
+  cmd.Stdout = &outbuf
+  cmd.Stderr = &errbuf
+  err := cmd.Run()
+  errstr := errbuf.String()
+  
+  if err != nil {
+    util.Log(0, "ERROR! package-list-hook %v: %v", config.PackageListHookPath, err)
+    return
+  } else if errstr != "" {
+    // if the command prints to stderr but does not return non-0 exit status (which
+    // would result in err != nil), we just log a WARNING, but use the stdout data
+    // anyway.
+    util.Log(0, "WARNING! package-list-hook %v: %v", config.PackageListHookPath, errstr)
+  }
+      
+  plist, err := xml.LdifToHash("pkg", true, outbuf.Bytes(), packageListFormat...)
   if err != nil {
     util.Log(0, "ERROR! package-list-hook %v: %v", config.PackageListHookPath, err)
     return
