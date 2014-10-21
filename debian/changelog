@@ -1,3 +1,9 @@
+gosa (2.8.28) trusty; urgency=medium
+
+  * gosa-quickstart: add the necessary hooks to gosa.conf for release creation
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 21 Oct 2014 11:50:05 +0200
+
 gosa (2.8.27) trusty; urgency=medium
 
   * go-susi: added support for new caching generate_package_list hook
