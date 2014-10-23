@@ -1,3 +1,11 @@
+gosa (2.8.34) trusty; urgency=medium
+
+  * go-susi: [faimon]/port now defaults to "disabled"
+  * go-susi: fix test cases that broke because of changed error message text
+  * go-susi: updated manual
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 23 Oct 2014 15:02:02 +0200
+
 gosa (2.8.33) trusty; urgency=medium
 
   * go-susi: turn LookupSRV error messages from ERROR! to INFO! because there's nothing wrong with not having any DNS entries for gosa-si servers if there is only 1

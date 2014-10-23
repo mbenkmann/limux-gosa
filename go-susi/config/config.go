@@ -125,8 +125,8 @@ var FAISavelogHookPath = "/usr/lib/go-susi/fai_savelog"
 // clients' plain names.
 var FAILogPath = "/var/log/fai"
 
-// Port for accepting FAI status updates send via /usr/lib/fai/subroutines:sendmon()
-var FAIMonPort = "4711"
+// Port for accepting FAI status updates sent via /usr/lib/fai/subroutines:sendmon()
+var FAIMonPort = "disabled"
 
 // UDP Port for receiving TFTP requests
 var TFTPPort = "69"

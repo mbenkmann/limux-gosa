@@ -179,8 +179,10 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   go util.WithPanicHandler(faiProgressWatch)
   
   if config.RunServer {
-    util.Log(1, "INFO! Accepting FAI monitoring messages on TCP port %v", config.FAIMonPort)
-    go faimon(":"+config.FAIMonPort)
+    if config.FAIMonPort != "disabled" {
+      util.Log(1, "INFO! Accepting FAI monitoring messages on TCP port %v", config.FAIMonPort)
+      go faimon(":"+config.FAIMonPort)
+    }
   
     util.Log(1, "INFO! Accepting TFTP requests on UDP port %v", config.TFTPPort)
     go tftp.ListenAndServe(":"+config.TFTPPort, config.TFTPRegexes, config.TFTPReplies)
