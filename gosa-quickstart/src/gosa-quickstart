@@ -65,7 +65,7 @@ done
 
 echo "=== Patching ldap.conf ==="
 cp /etc/ldap/ldap.conf /etc/ldap/ldap.conf.bak &&
-  sed "s/^[ #]*BASE.*/BASE   $suffix/;s/^[ #]*URI/URI    ldap:\/\/$ldapserver/" /etc/ldap.conf.bak >/etc/ldap.conf
+  sed "s/^[ #]*BASE.*/BASE   $suffix/;s/^[ #]*URI/URI    ldap:\/\/$ldapserver/" /etc/ldap/ldap.conf.bak >/etc/ldap/ldap.conf
 
 echo "=== Making sure desired locale is available ==="
 locale-gen "$language.utf8"

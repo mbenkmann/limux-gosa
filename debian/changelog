@@ -1,3 +1,9 @@
+gosa (2.8.32) trusty; urgency=medium
+
+  * gosa-quickstart: fix typo
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 23 Oct 2014 13:48:21 +0200
+
 gosa (2.8.31) trusty; urgency=medium
 
   * Merge branch 'master' of https://github.com/mbenkmann/limux-gosa
