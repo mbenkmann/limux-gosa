@@ -134,6 +134,7 @@ func KernelListHook() {
 var packageListFormat = []*xml.ElementInfo{
   &xml.ElementInfo{"package","package",false},
   &xml.ElementInfo{"release","release",false},
+  &xml.ElementInfo{"repository","repository",false},
   &xml.ElementInfo{"version","version",false},
   &xml.ElementInfo{"section","section",false},
   &xml.ElementInfo{"description","description",true},
@@ -194,6 +195,8 @@ func PackageListHook(debconf string) {
   
   plist.Rename("packagedb")
   
+  new_mapRepoPath2FAIrelease := map[string]string{}
+  
   accepted := 0
   total := 0
   
@@ -224,6 +227,10 @@ func PackageListHook(debconf string) {
       continue
     }
     release.Rename("distribution")
+    
+    for repopath := p.First("repository"); repopath != nil; repopath = repopath.Next() {
+      new_mapRepoPath2FAIrelease[repopath.Text()] = release.Text()
+    }
 
     version := p.First("version")
     if version == nil {
@@ -256,6 +263,10 @@ func PackageListHook(debconf string) {
   } else {
     util.Log(1, "INFO! package-list-hook: %v/%v entries accepted into database. Processing time: %v", accepted,total, time.Since(start))
     packagedb.Init(plist)
+    mapRepoPath2FAIrelease_mutex.Lock()
+    defer mapRepoPath2FAIrelease_mutex.Unlock()
+    mapRepoPath2FAIrelease = new_mapRepoPath2FAIrelease
+    util.Log(1, "INFO! Repository path => FAI release %v", mapRepoPath2FAIrelease)
   }
 }
 

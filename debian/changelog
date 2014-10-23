@@ -1,3 +1,11 @@
+gosa (2.8.41) trusty; urgency=medium
+
+  * distinguish between repository releases (trusty-backports) and FAI releases (trusty)
+  * Only FAI releases can be selected for installation.
+  * Repository releases create pseudo-FAI classes for the corresponding FAI release
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 23 Oct 2014 21:29:31 +0200
+
 gosa (2.8.40) trusty; urgency=medium
 
   * packaging: don't add generate_package_list.go to .deb package

@@ -31,6 +31,19 @@ import (
          "../config"
        )
 
+// We assume that there is a well-defined mapping from a repository path
+// under the dists/ directory (e.g. "trusty-backports") to the name of
+// the corresponding FAI release (e.q. "trusty"). This map is initialized
+// by PackageListHook() without any reference to LDAP data, so it may
+// contain FAI releases that do not actually exist in LDAP and may lack
+// FAI releases that do exist in LDAP. It is the responsibility of the
+// admin maintaining the LDAP data to keep his repository entries (which
+// are the basis for the hook's data) consistent with his FAI releases.
+// IOW, don't create a repository "stable" if your FAI release is called
+// "jessie".
+// DO NOT ACCESS WITHOUT HOLDING MUTEX!
+var mapRepoPath2FAIrelease = map[string]string{}
+var mapRepoPath2FAIrelease_mutex sync.Mutex
 
 // Returns a list of all known Debian software repositories as well as the
 // available releases and their sections. If none are found, the return
@@ -39,6 +52,7 @@ import (
 //    <repository>
 //      <timestamp>20130304093211</timestamp>
 //        <fai_release>halut/2.4.0</fai_release>
+//        <repopath>halut-security</repopath>
 //        <tag>1154342234048479900</tag>
 //        <server>http://vts-susi.example.de/repo</server>
 //        <sections>main,contrib,non-free,lhm,ff</sections>
@@ -63,6 +77,9 @@ func FAIServers() *xml.Hash {
   result := xml.NewHash("faidb")
   timestamp := util.MakeTimestamp(time.Now())
   
+  mapRepoPath2FAIrelease_mutex.Lock()
+  defer mapRepoPath2FAIrelease_mutex.Unlock()
+  
   for repo := x.First("repository"); repo != nil; repo = repo.Next() {
     tag := repo.Text("gosaunittag")
     
@@ -75,7 +92,12 @@ func FAIServers() *xml.Hash {
       }
       
       repository := xml.NewHash("repository", "timestamp", timestamp)
-      repository.Add("fai_release", repodat[2])
+      repository.Add("repopath", repodat[2])
+      if fairelease,ok := mapRepoPath2FAIrelease[repodat[2]]; ok {
+        repository.Add("fai_release", fairelease)
+      } else {
+        repository.Add("fai_release", repodat[2])
+      }  
       if tag != "" { repository.Add("tag", tag) }
       repository.Add("server",repodat[0])
       repository.Add("sections",repodat[3])

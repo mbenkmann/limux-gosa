@@ -1078,7 +1078,7 @@ func run_fai_query_tests() {
     
     a := answers.First("answer")
     
-    if check(checkTags(a,"timestamp,fai_release,tag,server,sections"),"") {
+    if check(checkTags(a,"timestamp,repopath,fai_release,tag,server,sections"),"") {
       check(a.Text("fai_release"),"plophos/4.1.0")
       check(a.Text("tag"),"7")
       check(a.Text("server"),"http://www.mit.edu/repo")
@@ -1086,7 +1086,7 @@ func run_fai_query_tests() {
       a = a.Next()
     }
     
-    if check(checkTags(a,"timestamp,fai_release,tag,server,sections"),"") {
+    if check(checkTags(a,"timestamp,repopath,fai_release,tag,server,sections"),"") {
       check(a.Text("fai_release"),"plophos")
       check(a.Text("tag"),"99")
       check(a.Text("server"),"http://www.mit.edu/repo2")
@@ -1094,7 +1094,7 @@ func run_fai_query_tests() {
       a = a.Next()
     }
     
-    if check(checkTags(a,"timestamp,fai_release,tag,server,sections"),"") {
+    if check(checkTags(a,"timestamp,repopath,fai_release,tag,server,sections"),"") {
       check(a.Text("fai_release"),"tramp/5.0.0")
       check(a.Text("tag"),"99")
       check(a.Text("server"),"http://www.mit.edu/repo3")

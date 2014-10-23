@@ -1176,6 +1176,10 @@ another location! */
                     $this->cache['SERVERS'][$server['SERVER']][$rel] = $rel;
                     uksort($this->cache['SERVERS']['auto'], 'strnatcasecmp');
                     uksort($this->cache['SERVERS'][$server['SERVER']], 'strnatcasecmp');
+                    if (isset($server['REPOPATH'])) {
+                      $repopath = $server['REPOPATH'];
+                      $this->cache['REPOPATHS'][$rel][$repopath] = $repopath;
+                    }
                 }
             }
         }
@@ -1229,7 +1233,7 @@ another location! */
 
         if($force || !isset($this->cache['CLASSES'][$release]) && $release != ""){
 
-            /* Get the list of available servers and their releases.
+            /* Get the list of classes from si.
              */
             $o_queue = new gosaSupportDaemon();
             $classes = $o_queue->FAI_get_classes($release);
@@ -1248,6 +1252,15 @@ another location! */
                   }
                   array_push($this->cache['CLASSES'][$release][$classname], $this->analyse_fai_object($class));
                 }
+            }
+            
+            /*
+            Add pseudo-classes for additional repositories
+            */
+            foreach ($this->cache['REPOPATHS'][$release] as $repopath) {
+              if ($release != $repopath) {
+                $this->cache['CLASSES'][$release]["+".$repopath] = array(array('Type' => 'Repository', 'Abbr' => 'Repo'));
+              }
             }
 
             /* Add object caught from external hook
@@ -1370,7 +1383,7 @@ another location! */
     }
 
 
-    /* Analyse FAI object and return an array with usefull informations like 
+    /* Analyse FAI object and return an array with useful information like 
      *  FAIobject type.
      */
     function analyse_fai_object($attr)
