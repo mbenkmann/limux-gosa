@@ -1,3 +1,9 @@
+gosa (2.8.36) trusty; urgency=medium
+
+  * go-susi: commented out profiling web server launch
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 23 Oct 2014 15:38:07 +0200
+
 gosa (2.8.35) trusty; urgency=medium
 
   * gosa-quickstart: remove [faimon]/port from server.conf because disabled is now default

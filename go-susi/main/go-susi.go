@@ -51,8 +51,8 @@ import (
           "../message"
        )
 
-import _ "net/http/pprof"
-import "net/http"
+//import _ "net/http/pprof"
+//import "net/http"
 
 // Set to true when a signal is received that triggers go-susi shutdown.
 var Shutdown = false
@@ -193,7 +193,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   }
   
   // http server for profiling
-  go func(){http.ListenAndServe("localhost:6060", nil)}()
+  //go func(){http.ListenAndServe("localhost:6060", nil)}()
   
   go message.RegistrationHandler()
 
