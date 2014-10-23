@@ -1,7 +1,7 @@
 dn: cn=de.archive.ubuntu.com,ou=servers,ou=systems,ou=${department1},${suffix}
 cn: de.archive.ubuntu.com
 gotoMode: active
-macAddress: 00:00:00:00:00:00
+macAddress: 00:00:00:00:00:03
 gotoBootKernel: default
 FAIrepository: http://de.archive.ubuntu.com/ubuntu/||trusty|main,restricted,universe,multiverse
 FAIrepository: http://de.archive.ubuntu.com/ubuntu/||trusty-backports|main,restricted,universe,multiverse

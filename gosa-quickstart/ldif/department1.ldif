@@ -19,7 +19,7 @@ dn: ou=configs,ou=systems,ou=${department1},${suffix}
 ou: configs
 objectClass: organizationalUnit
 
-dn: ou=gosalocks,ou=configs,ou=systems,${department1},${suffix}
+dn: ou=gosalocks,ou=configs,ou=systems,ou=${department1},${suffix}
 ou: gosalocks
 objectClass: organizationalUnit
 

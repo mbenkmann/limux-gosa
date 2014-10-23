@@ -1,3 +1,9 @@
+gosa (2.8.38) trusty; urgency=medium
+
+  * gosa-quickstart: some refactoring and cleanup in LDAP data
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 23 Oct 2014 18:09:43 +0200
+
 gosa (2.8.37) trusty; urgency=medium
 
   * gosa-quickstart: added LDAP server object; (empty) releases "jessie" and "trusty"
