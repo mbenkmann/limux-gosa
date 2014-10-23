@@ -1,8 +1,25 @@
+gosa (2.8.31) trusty; urgency=medium
+
+  * Merge branch 'master' of https://github.com/mbenkmann/limux-gosa
+  * Conflicts:
+  * 	debian/changelog
+  * 	go-susi/config/version.go
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 23 Oct 2014 13:08:46 +0200
+
+gosa (2.8.29) trusty; urgency=medium
+
+  * go-susi: run kernel hook after package hook so that kernel hook can use package hook's data
+  * go-susi: do not abort if package list hook writes to stderr but exits with status 0
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 21 Oct 2014 14:26:39 +0200
+
 gosa (2.8.28) trusty; urgency=medium
 
+  * gosa-quickstart: add the necessary hooks to gosa.conf for release creation
   * go-susi: generate_packages_list: another message that should only be printed if Verbose
 
- -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 20 Oct 2014 20:36:25 +0200
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 21 Oct 2014 11:50:05 +0200
 
 gosa (2.8.27) trusty; urgency=medium
 
