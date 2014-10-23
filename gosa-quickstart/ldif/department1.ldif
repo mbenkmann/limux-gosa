@@ -1,0 +1,28 @@
+dn: ${suffix}
+o: gosa
+objectClass: organization
+
+dn: ou=${department1},${suffix}
+ou: ${department1}
+description: ${department1}
+objectClass: organizationalUnit
+
+dn: ou=systems,ou=${department1},${suffix}
+ou: systems
+objectClass: organizationalUnit
+
+dn: ou=servers,ou=systems,ou=${department1},${suffix}
+ou: servers
+objectClass: organizationalUnit
+
+dn: ou=configs,ou=systems,ou=${department1},${suffix}
+ou: configs
+objectClass: organizationalUnit
+
+dn: ou=gosalocks,ou=configs,ou=systems,${department1},${suffix}
+ou: gosalocks
+objectClass: organizationalUnit
+
+dn: ou=fai,ou=configs,ou=systems,ou=${department1},${suffix}
+ou: fai
+objectClass: organizationalUnit

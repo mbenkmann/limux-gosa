@@ -1,0 +1,5 @@
+dn: ou=jessie,ou=fai,ou=configs,ou=systems,ou=${department1},${suffix}
+ou: jessie
+FAIstate: branch
+objectClass: organizationalUnit
+objectClass: FAIbranch

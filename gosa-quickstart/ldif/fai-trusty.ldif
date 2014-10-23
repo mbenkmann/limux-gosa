@@ -1,0 +1,5 @@
+dn: ou=trusty,ou=fai,ou=configs,ou=systems,ou=${department1},${suffix}
+ou: trusty
+FAIstate: branch
+objectClass: organizationalUnit
+objectClass: FAIbranch

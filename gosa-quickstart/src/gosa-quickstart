@@ -12,6 +12,8 @@ password="admin"
 susipassword="susi"
 language="de_DE"
 ldapserver="localhost"
+hostname="$(hostname -f)"
+macaddress="$(ip -o link show| sed -n 's/^.*state UP.*link\/ether \([^ ]*\).*/\1/p' | tail -n 1)"
 
 temp=/tmp/gosa-quickstart
 while ! mkdir -m 0700 $temp; do
@@ -66,6 +68,24 @@ done
 echo "=== Patching ldap.conf ==="
 cp /etc/ldap/ldap.conf /etc/ldap/ldap.conf.bak &&
   sed "s/^[ #]*BASE.*/BASE   $suffix/;s/^[ #]*URI/URI    ldap:\/\/$ldapserver/" /etc/ldap/ldap.conf.bak >/etc/ldap/ldap.conf
+
+
+echo "=== Creating LDAP object for this LDAP server ($hostname/$macaddress) ==="
+
+ldapserver=$hostname
+echo "dn: cn=$hostname,ou=servers,ou=systems,ou=$department1,$suffix
+cn: $hostname
+gotoMode: active
+macAddress: $macaddress
+gotoBootKernel: default
+goLdapBase: ldap://$ldapserver:389/$suffix
+gotoLdapServer: 1:$ldapserver:ldap://$ldapserver:389/$suffix
+objectClass: GOhard
+objectClass: goServer
+objectClass: goLdapServer
+objectClass: gotoWorkstationTemplate
+objectClass: FAIobject
+"| ldapadd -Y EXTERNAL -H ldapi:///
 
 echo "=== Making sure desired locale is available ==="
 locale-gen "$language.utf8"
@@ -129,18 +149,21 @@ chmod u=rw,g=r,o=  /etc/gosa-si/server.conf
 
 hostname="$(hostname -f)"
 macaddress="$(ip -o link show| sed -n 's/^.*state UP.*link\/ether \([^ ]*\).*/\1/p' | tail -n 1)"
-echo "=== Creating LDAP object for this server ($hostname/$macaddress) ==="
+test "$hostname" != "$ldapserver" && {
+  echo "=== Creating LDAP object for this server ($hostname/$macaddress) ==="
 
-echo "dn: cn=$hostname,ou=servers,ou=systems,ou=$department1,$suffix
+  echo "dn: cn=$hostname,ou=servers,ou=systems,ou=$department1,$suffix
 cn: $hostname
-gotoMode: locked
+gotoMode: active
 macAddress: $macaddress
 gotoBootKernel: default
+gotoLdapServer: 1:$ldapserver:ldap://$ldapserver:389/$suffix
 objectClass: GOhard
 objectClass: goServer
 objectClass: gotoWorkstationTemplate
 objectClass: FAIobject
 "| ldapadd -x -H "ldap://$ldapserver" -D "uid=admin,$suffix" -y "$temp/ldap-password"
+}
 
 # Install gosa-si package after creating the config file, so
 # that it starts up the right way immediately. The package does not
