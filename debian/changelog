@@ -1,3 +1,9 @@
+gosa (2.8.40) trusty; urgency=medium
+
+  * packaging: don't add generate_package_list.go to .deb package
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 23 Oct 2014 21:12:11 +0200
+
 gosa (2.8.39) trusty; urgency=medium
 
   * class_workstationStartup.inc: remove BAD_CLASSES filtering
