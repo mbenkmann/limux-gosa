@@ -698,7 +698,7 @@ func ReadNetwork() {
         var addrs []*net.SRV
         _, addrs, err := net.LookupSRV("gosa-si", "tcp", ifaceInfo.Domain)
         if err != nil {
-          util.Log(0, "ERROR! LookupSRV(\"gosa-si\",\"tcp\",\"%v\"): %v", ifaceInfo.Domain, err) 
+          util.Log(1, "INFO! LookupSRV(\"gosa-si\",\"tcp\",\"%v\"): %v", ifaceInfo.Domain, err) 
         } else 
         { 
           ifaceInfo.HasPeers = (len(addrs) > 0)
@@ -749,7 +749,7 @@ func ServersFromDNS() []string {
   var addrs []*net.SRV
   cname, addrs, err := net.LookupSRV("gosa-si", "tcp", Domain)
   if err != nil {
-    util.Log(0, "ERROR! LookupSRV: %v", err) 
+    util.Log(1, "INFO! LookupSRV: %v", err) 
     return []string{}
   }
   

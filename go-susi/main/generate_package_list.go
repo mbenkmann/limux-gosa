@@ -649,9 +649,7 @@ func extract_templates(uris_to_try []string) string {
      fmt.Fprintf(os.Stderr, "dpkg --info %v: %v (%v)\n", uri, err, errbuf.String())
   } else {
     if outbuf.Len() > TEMPLATES_MAX_SIZE {
-      if Verbose {
-        fmt.Fprintf(os.Stderr, "TOO LARGE %v\n", uri)
-      }
+      fmt.Fprintf(os.Stderr, "TOO LARGE %v\n", uri)
     } else {
       templates64 = base64.StdEncoding.EncodeToString(outbuf.Bytes())
       if Verbose && templates64 != "" {
