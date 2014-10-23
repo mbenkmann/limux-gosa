@@ -1110,45 +1110,6 @@ another location! */
         return($ar);
     }
 
-    /* Function to find bad classes */
-    function update_bad_classes($release)
-    {
-
-      if(!isset($this->cache['BAD_CLASSES'][$release])) {
-        /* Find "bad" classes */
-        $ui = get_userinfo();
-        $ldap = $this->config->get_ldap_link();
-
-        /* Convert release name to a valid ldap uri component */
-        $release_components = explode('/', $release);
-        $release_components = array_reverse($release_components);
-        for($i=0;$i<sizeof($release_components);$i++) {
-          $release_components[$i] = "ou=" . $release_components[$i];
-        }
-        $release_dn_part = join(',', $release_components);
-
-        /* Limit the base to the release in the faiBase */
-        $base = sprintf("%s,%s%s", $release_dn_part, get_ou('faiManagement', 'faiBaseRDN'), $this->config->current['BASE']);
-
-        /* Build a list of all fai classes, that don't have the unittag of the user
-         * and are not freezed or removed. The classes will be filtered by this
-         * list. Its needed to specify each objectClass (FAIpackageList etc.) because
-         * FAIClass would match sub-objects, too, which would lead to an array that
-         * is much bigger then needed */
-        $filter = sprintf('(&(|(objectClass=FAItemplate)(objectClass=FAIpackageList)(objectClass=FAIprofile)(objectClass=FAIscript)(objectClass=FAIpartitionTable)(objectClass=FAIHook)(objectClass=FAIvariable)(objectClass=FAItemplate))(&(!(gosaUnitTag=%s))(&(!(FAIstate=*removed*))(!(FAIstate=*freeze*)))))', $ui->gosaUnitTag);
-        $ldap->cd($base);
-        $ldap->search(sprintf("$filter", $ui->gosaUnitTag));
-          
-        $this->cache['BAD_CLASSES'][$release] = array(); 
-        while ($entry = $ldap->fetch()) {
-          $classname = $entry['cn'][0];
-          if (!in_array($classname, $this->cache['BAD_CLASSES'][$release])) {
-            array_push($this->cache['BAD_CLASSES'][$release], $classname);
-          }
-        }
-      } 
-    }
-
     /* Return plugin informations for acl handling */ 
     static function plInfo()
     {
@@ -1204,8 +1165,6 @@ another location! */
                 return;
             }else{
 
-                $base = $this->config->current['BASE'];
-                $ldap = $this->config->get_ldap_link();
                 foreach($servers as $server){
                     $ui = get_userinfo();
                     if (isset($server['TAG']) && ($ui->gosaUnitTag != $server['TAG'])) {
@@ -1284,13 +1243,6 @@ another location! */
             }else{
                 foreach($classes as $class){
                   $classname = $class['CLASS'];
-                  $this->update_bad_classes($release);
-                  if (isset($this->cache['BAD_CLASSES'][$release])) {
-                    /* Skip classes that are in the array of bad classes */
-                    if (in_array($classname, $this->cache['BAD_CLASSES'][$release])) {
-                      continue;
-                    }
-                  }
                   if (!isset($this->cache['CLASSES'][$release][$classname])) {
                     $this->cache['CLASSES'][$release][$classname] = array();
                   }

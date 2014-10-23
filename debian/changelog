@@ -1,3 +1,11 @@
+gosa (2.8.39) trusty; urgency=medium
+
+  * class_workstationStartup.inc: remove BAD_CLASSES filtering
+  * if necessary implement this by extending go-susi's reply to gosa_query_fai_...,
+  * not with direct LDAP queries.
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 23 Oct 2014 18:42:14 +0200
+
 gosa (2.8.38) trusty; urgency=medium
 
   * gosa-quickstart: some refactoring and cleanup in LDAP data
