@@ -1,3 +1,9 @@
+gosa (2.8.42) trusty; urgency=medium
+
+  * gosa-quickstart: disable dns-lookup in server.conf to avoid disturbing existing networks
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 24 Oct 2014 14:29:28 +0200
+
 gosa (2.8.41) trusty; urgency=medium
 
   * distinguish between repository releases (trusty-backports) and FAI releases (trusty)
