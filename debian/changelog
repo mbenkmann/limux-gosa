@@ -1,3 +1,9 @@
+gosa (2.8.48) trusty; urgency=medium
+
+  * Multi-repository support fully implemented
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 27 Oct 2014 19:32:59 +0100
+
 gosa (2.8.47) trusty; urgency=medium
 
   * The GOsa² side of multi-repository support is now complete. Last missing piece is ldap2fai.php

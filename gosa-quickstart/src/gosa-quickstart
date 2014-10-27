@@ -170,3 +170,10 @@ objectClass: FAIobject
 # contain a server.conf at this time. Should one ever be added,
 # a diversion would be the proper way to deal with it.
 apt-get -q -y install gosa-si
+
+echo "=== Installing GOsa² FAI helpers ==="
+apt-get -q -y install gosa-fai-helpers
+ln -snf /etc/gosa/fai-helpers-apache.conf /etc/apache2/conf-available/
+ln -snf ../conf-available/fai-helpers-apache.conf /etc/apache2/conf-enabled/
+
+service apache2 restart

@@ -364,14 +364,18 @@ function get_next_effective_faiclass($ldap, $release_hierarchy, $faiobject_dn)
 $machine_dn = $machine["dn"];
 $hostname = strtolower(preg_replace('/([^.]+).*/', '\1', $machine['cn'][0]));
 
+$repopaths = array();
 $faiclasses = array();
 $release = "";
 unset($machine["faiclass"]["count"]);
 foreach ($machine["faiclass"] as $faiclasslist) {
     foreach (explode(" ", $faiclasslist) as $faiclass)
         if ($faiclass != "")
-            if ($faiclass[0] == ':')
+            if ($faiclass[0] == ':') {
                 $release = substr($faiclass, 1);
+                $repopaths[] = $release;
+            } elseif ($faiclass[0] == '+')
+                $repopaths[] = substr($faiclass, 1);
             else
                 $faiclasses[] = $faiclass;
 }
@@ -512,11 +516,11 @@ function delTree($dirPath)
 
 unset($config_space["deb"]);
 
-// Generated sources.list
+// Generate sources.list
 
 // we specify multiple object classes to make it more likely we hit one that is indexed.
 $repo_server = search($ldap, $ldap_base_top, "(&(objectClass=GOhard)(objectClass=goServer)(objectClass=FAIrepositoryServer)(fairepository=*))", array("fairepository"), 0);
-$server2sections = array();
+$repopath2server2sections = array();
 for ($i = $repo_server['count']; $i > 0; $i --) {
     $rs = $repo_server[$i - 1];
     unset($rs["fairepository"]["count"]);
@@ -524,33 +528,53 @@ for ($i = $repo_server['count']; $i > 0; $i --) {
         $repoparts = explode("|", $repoline);
         if (count($repoparts) != 4)
             continue;
-        if ($repoparts[2] != $release)
-            continue;
-        $server2sections[rtrim($repoparts[0], '/')] = explode(",", $repoparts[3]);
+        $repopath = $repoparts[2];
+        if (!isset($repopath2server2sections[$repopath]))
+          $repopath2server2sections[$repopath] = array();
+        $repopath2server2sections[$repopath][rtrim($repoparts[0], '/')] = explode(",", $repoparts[3]);
     }
 }
 
-ldap_close($ldap);
 
-$mirror = $machine["faidebianmirror"][0];
+
 $sourceslist = "files/etc/apt/sources.list/LAST";
-if (isset($server2sections[rtrim($mirror, '/')])) {
-    $config_space[$sourceslist] = "deb $mirror $release " . implode(" ", $server2sections[rtrim($mirror, '/')]) . "\n";
-} else {
-    // Need to try a littler harder to find a server
-    $servers = array_keys($server2sections);
+$config_space[$sourceslist] = "";
+
+foreach ($repopaths as $repopath) {
+    if (!isset($repopath2server2sections[$repopath]))
+        ldapdie($ldap, "No repository server in LDAP has a '$repopath' repository.");
+    
+    // First try to find a repository with $repopath in the machine's
+    // FAIdebianMirror attributes
+    for ($i = $machine["faidebianmirror"]['count']; $i > 0; $i--) {
+      $mirror = rtrim($machine["faidebianmirror"][$i - 1], '/');
+      if (isset($repopath2server2sections[$repopath][$mirror]))
+        goto found_mirror;  
+    }
+    
+    // None of the machine's FAIdebianMirrors has $repopath.
+    // Look at all known repository servers and try to find a good one.
+    
+    $servers = array_keys($repopath2server2sections[$repopath]);
     shuffle($servers);
     foreach ($servers as $s) {
         // Find a server that is reachable and can send Release in less than 1.0s.
         $opts = array('http' => array('timeout' => 1.0));
         $context = stream_context_create($opts);
-        if (@file_get_contents("$s/dists/$release/Release", FALSE, $context) !== FALSE) {
-            $config_space[$sourceslist] = "deb $s $release " . implode(" ", $server2sections[$s]) . "\n";
-            break;
+        if (@file_get_contents("$s/dists/$repopath/Release", FALSE, $context) !== FALSE) {
+            $mirror = $s;
+            goto found_mirror;
         }
     }
-    // If we get here without finding a server we do not generate a sources.list => Shit happens. Sad day for you.
+    
+    // So we didn't find a good server. Just pick the first and pray it works.
+    $mirror = $servers[0];
+    
+found_mirror:
+    $config_space[$sourceslist] .= "deb $mirror $repopath " . implode(" ", $repopath2server2sections[$repopath][$mirror]) . "\n";
 }
+
+ldap_close($ldap);
 
 $config_space["class/release.var"] = "LHMclientRelease='$release'\n";
 $config_space["class/$hostname.var"] = "LHMclientRelease='$release'\n";
