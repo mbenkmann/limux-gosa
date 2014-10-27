@@ -460,11 +460,6 @@ class workstartup extends plugin
                         $this->FAIdebianMirror[] = $new_FAIdebianMirror;
                     }
                 }
-
-               if(count($this->FAIdebianMirror)>1 && isset($_POST['add_FAIdebianMirror'])){
-                   msg_dialog::display(_("Warning"), _("Multi-repository is not yet implemented!") , WARNING_DIALOG);
-               }
-
             }
             
 
@@ -734,6 +729,8 @@ class workstartup extends plugin
                                         "TITLE" => _('Partition table')),
                             "Pl"     => array("IMG"=> "plugins/fai/images/fai_packages.png",
                                         "TITLE" => _('Packages')),
+                            "Repo"   => array("IMG"=> "plugins/fai/images/repository.png",
+                                        "TITLE" => _('Repository')),
                             "S"          => array("IMG"=> "plugins/fai/images/fai_script.png",
                                         "TITLE" => _('Scripts')
                             ),
