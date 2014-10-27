@@ -2,6 +2,6 @@
 
 package config
 
-const Version = "2.8.42"
-const Revision = "2014-10-24 14:28:59 +0200"
+const Version = "2.8.43"
+const Revision = "2014-10-27 09:29:00 +0100"
 

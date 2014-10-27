@@ -150,7 +150,6 @@ func PackageListHook(debconf string) {
   start := time.Now()
   timestamp := util.MakeTimestamp(start)
 
-  util.Log(1, "INFO! Running package-list-hook (debconf mode \"%v\") %v", debconf, config.PackageListHookPath)
   cmd := exec.Command(config.PackageListHookPath)
   cmd.Env = append(config.HookEnvironment(), os.Environ()...)
   
@@ -159,7 +158,9 @@ func PackageListHook(debconf string) {
     fairepos = append(fairepos, fmt.Sprintf("%v||%v|%v", repo.Text("server"), repo.Text("fai_release"), repo.Text("sections")))
   }
   
-  cmd.Env = append(cmd.Env, "PackageListCacheDir="+config.PackageCacheDir, "PackageListDebconf="+debconf, "PackageListFAIrepository="+strings.Join(fairepos," "))
+  package_list_params := []string{"PackageListDebconf="+debconf, "PackageListCacheDir="+config.PackageCacheDir, "PackageListFAIrepository="+strings.Join(fairepos," ")}
+  cmd.Env = append(cmd.Env, package_list_params...)
+  util.Log(1, "INFO! Running package-list-hook: %v %v", strings.Join(package_list_params, " "), config.PackageListHookPath)
 
   var outbuf bytes.Buffer
   defer outbuf.Reset()

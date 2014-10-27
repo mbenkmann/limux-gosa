@@ -42,7 +42,9 @@ func new_ldap_config(xmlmsg *xml.Hash) {
   }
   
   if config.RunServer {
-    util.Log(0, "WARNING! Will not update internal LDAP settings because I'm not in client-only mode.")
+    if config.ServerSourceAddress != xmlmsg.Text("source") {
+      util.Log(0, "WARNING! Will not update internal LDAP settings because I'm not in client-only mode.")
+    }
   } else {
     updateInternalLdapSettings(xmlmsg)
   }
