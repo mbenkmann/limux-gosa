@@ -155,7 +155,7 @@ func PackageListHook(debconf string) {
   
   fairepos := []string{}
   for repo := FAIServers().First("repository"); repo != nil; repo = repo.Next() {
-    fairepos = append(fairepos, fmt.Sprintf("%v||%v|%v", repo.Text("server"), repo.Text("fai_release"), repo.Text("sections")))
+    fairepos = append(fairepos, fmt.Sprintf("%v||%v|%v", repo.Text("server"), repo.Text("repopath"), repo.Text("sections")))
   }
   
   package_list_params := []string{"PackageListDebconf="+debconf, "PackageListCacheDir="+config.PackageCacheDir, "PackageListFAIrepository="+strings.Join(fairepos," ")}
@@ -204,17 +204,6 @@ func PackageListHook(debconf string) {
   for pkg := plist.FirstChild(); pkg != nil; pkg = pkg.Next() {
     total++
     p := pkg.Element()
-    pkgname := p.Get("package")
-    if len(pkgname) == 0 {
-      util.Log(0, "ERROR! package-list-hook %v returned entry without \"Package\": %v", config.PackageListHookPath, p)
-      pkg.Remove()
-      continue
-    }
-    if len(pkgname) > 1 {
-      util.Log(0, "ERROR! package-list-hook %v returned entry with multiple \"Package\" values: %v", config.PackageListHookPath, p)
-      pkg.Remove()
-      continue
-    }
     
     release := p.First("release")
     if release == nil {
@@ -231,6 +220,21 @@ func PackageListHook(debconf string) {
     
     for repopath := p.First("repository"); repopath != nil; repopath = repopath.Next() {
       new_mapRepoPath2FAIrelease[repopath.Text()] = release.Text()
+    }
+    
+    pkgname := p.Get("package")
+    if len(pkgname) == 0 {
+      if p.First("repository") == nil { // Release/Repository groups without Package are okay, so only log error if there is no Repository
+        util.Log(0, "ERROR! package-list-hook %v returned entry without \"Package\": %v", config.PackageListHookPath, p)
+      }
+      pkg.Remove()
+      continue
+    }
+    
+    if len(pkgname) > 1 {
+      util.Log(0, "ERROR! package-list-hook %v returned entry with multiple \"Package\" values: %v", config.PackageListHookPath, p)
+      pkg.Remove()
+      continue
     }
 
     version := p.First("version")

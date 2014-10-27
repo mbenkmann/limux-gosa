@@ -257,12 +257,20 @@ func process_releases_files() {
   for reporepopath, todo := range reporepopath2release_todo {
     versioncode := ""
     compoarch2ext := map[string]string{}
+    debian_special_case := strings.Contains(reporepopath, "debian")
     if todo.ReleaseFile != nil {
       codename := ""
       version := ""
       for _, line := range todo.ReleaseFile {
         if strings.HasPrefix(line, "Codename: ") {
           codename = line[10:]
+          if debian_special_case {
+            // trim well known suffixes so that codename reflects
+            // the main distribution the repo is compatible with
+            codename = strings.TrimSuffix(codename, "-backports")
+            codename = strings.TrimSuffix(codename, "-updates")
+            codename = strings.TrimSuffix(codename, "-proposed-updates")
+          }
         } else if strings.HasPrefix(line, "Version: ") {
           version = line[9:]
         } else {
@@ -368,6 +376,12 @@ func process_packages_files() {
       packages_lines = extract(taggedblob.Ext, &taggedblob.Payload)
     }
     
+    // Make sure that RepoRepopathCompoArchExt2PackagePipeVersionSet_new[rrpcae_i]
+    // exists and has a dummy entry to make sure that the corresponding
+    // Release => Repository mapping exists in the output.
+    RepoRepopathCompoArchExt2PackagePipeVersionSet_new[rrpcae_i] = map[string]bool{"|"+rrpcae_i:true}
+    PackagePipeVersion2PData_new["|"+rrpcae_i] = &PData{}
+    
     if packages_lines != nil {
       var p,v,s,d,f string
       var debconf bool
@@ -375,9 +389,6 @@ func process_packages_files() {
         if line == "" {
           if p != "" && v != "" {
             ppv := p+"|"+v
-            if RepoRepopathCompoArchExt2PackagePipeVersionSet_new[rrpcae_i] == nil {
-              RepoRepopathCompoArchExt2PackagePipeVersionSet_new[rrpcae_i] = map[string]bool{}
-            }
             RepoRepopathCompoArchExt2PackagePipeVersionSet_new[rrpcae_i][ppv] = true
             PackagePipeVersion2PData_new[ppv] = &PData{Section:s, DescriptionBase64:d}
             
@@ -567,19 +578,20 @@ func printldif() {
       }
       // Do not output 2 entries for the same package and the same release.
       // In theory this could lose go-susi some information about repo paths,
-      // but we assume that each repo path has at least one package that
-      // justifies its existence.
+      // however there is at least one unique dummy entry for each repo path,
+      // to make sure each repo path gets output at least once
       if release == prev_release { continue }
       prev_release = release
     
-      fmt.Printf(`
-Release: %v
-Package: %v
+      fmt.Printf("\nRelease: %v\n", release)
+      if pkg != "" { // do not output useless data for dummy entry
+        fmt.Printf(`Package: %v
 Version: %v
 Section: %v
 Description:: %v
-`,  release, pkg, version, section, pdata.DescriptionBase64)
-      if repopath != release {
+`,  pkg, version, section, pdata.DescriptionBase64)
+      }
+      if repopath != release || pkg == "" {
         fmt.Printf("Repository: %v\n", repopath)
       }
       if len(pdata.TemplatesBase64) >= 4 {
