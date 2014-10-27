@@ -23,8 +23,8 @@ package message
 
 import ( 
          "net"
+         "sync"
          "time"
-         "math/rand"
          "strings"
          "crypto/cipher"
          "crypto/aes"
@@ -146,6 +146,9 @@ func ProcessEncryptedMessage(buf *bytes.Buffer, tcpAddr *net.TCPAddr) (reply *by
   return ErrorReplyBuffer("Could not decrypt message"), true
 }
 
+var mapIP2ReestablishDelay = map[string]time.Duration{}
+var mapIP2ReestablishDelay_mutex sync.Mutex
+
 // Tries to re-establish communication with a client/server at the given IP,
 // by 
 //   1) sending here_i_am to the server where we are registered. We do this
@@ -161,7 +164,14 @@ func tryToReestablishCommunicationWith(ip string) {
   // Wait a little to limit the rate of spam wars between
   // 2 machines that can't re-establish communication (e.g. because of changed
   // keys in server.conf).
-  delay := time.Duration(rand.Intn(60))*time.Second
+  mapIP2ReestablishDelay_mutex.Lock()
+  var delay time.Duration
+  var ok bool
+  if delay, ok = mapIP2ReestablishDelay[ip]; !ok {
+    delay = 10*time.Second
+  }
+  mapIP2ReestablishDelay[ip] = 2*delay;
+  mapIP2ReestablishDelay_mutex.Unlock()
 
   util.Log(0, "WARNING! Will try to re-establish communication with %v after waiting %v", ip, delay)
   time.Sleep(delay)
