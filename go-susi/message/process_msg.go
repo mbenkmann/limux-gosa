@@ -168,13 +168,26 @@ func tryToReestablishCommunicationWith(ip string) {
   var delay time.Duration
   var ok bool
   if delay, ok = mapIP2ReestablishDelay[ip]; !ok {
-    delay = 10*time.Second
+    delay = 1*time.Minute
   }
   mapIP2ReestablishDelay[ip] = 2*delay;
   mapIP2ReestablishDelay_mutex.Unlock()
+  
+  // if the delay exceeds 24h this means that we got multiple
+  // reestablish requests while we're still waiting to begin one
+  // in that case, bail out.
+  if delay > 24*time.Hour { return }
 
   util.Log(0, "WARNING! Will try to re-establish communication with %v after waiting %v", ip, delay)
   time.Sleep(delay)
+  
+  // if we actually completed a 10h wait, reset the timer to 1 minute
+  if delay >= 10*time.Hour {
+    mapIP2ReestablishDelay_mutex.Lock()
+    mapIP2ReestablishDelay[ip] = 1*time.Minute;
+    mapIP2ReestablishDelay_mutex.Unlock()
+  }
+  
   util.Log(0, "WARNING! Will try to re-establish communication with %v", ip)
   ConfirmRegistration() // 1)
   
