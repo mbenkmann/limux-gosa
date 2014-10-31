@@ -79,8 +79,9 @@ var PackagePipeVersion2PData_new = map[string]*PData {}
 var CacheName = "generate_package_list.cache"
 var CacheDir = "/tmp"
 
-var FAIrepository = "http://de.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted,universe,multiverse http://dk.archive.ubuntu.com/ubuntu/|ignored|trusty-updates|main,restricted,universe,multiverse http://nl.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted,universe,multiverse"
+//var FAIrepository = "http://de.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted,universe,multiverse http://dk.archive.ubuntu.com/ubuntu/|ignored|trusty-updates|main,restricted,universe,multiverse http://nl.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted,universe,multiverse"
 //var FAIrepository = "http://de.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted,universe,multiverse"
+var FAIrepository = "http://de.archive.ubuntu.com/ubuntu/||trusty|main,restricted,universe,multiverse http://de.archive.ubuntu.com/ubuntu/||trusty-backports|main,restricted,universe,multiverse http://de.archive.ubuntu.com/ubuntu/||trusty-updates|main,restricted,universe,multiverse http://de.archive.ubuntu.com/ubuntu/||trusty-security|main,restricted,universe,multiverse http://ftp.debian.org/debian||jessie|main,contrib,non-free http://ftp.debian.org/debian||jessie-updates|main,contrib,non-free http://ftp.debian.org/debian||jessie-backports|main,contrib,non-free http://security.debian.org||jessie/updates|main,contrib,non-free"
 
 // "cache" => only use templates data from cache
 // "depends" => scan .deb file if it depends on something that includes the string "debconf"
@@ -108,7 +109,7 @@ var Client []*http.Client
 var Transport []*http.Transport
 
 // Output informative messages.
-var Verbose = false
+var Verbose = true
 
 func main() {
   rand.Seed(316888245464693718)
@@ -674,49 +675,24 @@ func extract_templates(uris_to_try []string) string {
   return templates64
 }
 
-var extensions_to_try = []string{"", ".gz", ".bz2"}
 func handle_uri(line1 string, uri string, c chan []string) {
   var err error
   var resp *http.Response
   
-  errors := []string{}
+  resp, err = Client[0].Get(uri)
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "%v: %v\n", uri, err)
+    return
+  }
   
-  for ext_i, extension := range extensions_to_try {
-    resp, err = Client[0].Get(uri+extension)
-    if err != nil {
-      fmt.Fprintf(os.Stderr, "%v: %v\n", uri, err)
-      return
-    }
+  defer resp.Body.Close()
  
-    if resp.StatusCode == 200 {
-      uri = uri+extension
-      defer resp.Body.Close()
-      break
-    }
-
-    errors = append(errors, fmt.Sprintf("%v: %v\n", uri, resp.Status))
-    resp.Body.Close()
-    if ext_i+1 == len(extensions_to_try) {
-      for _, e := range errors {
-        fmt.Fprintln(os.Stderr, e)
-      }
-      return
-    }
+  if resp.StatusCode != 200 {
+    fmt.Fprintf(os.Stderr, "%v: %v\n", uri, resp.Status)
+    return
   }
   
-  var r io.Reader = resp.Body
-  
-  if strings.HasSuffix(uri, ".bz2") {
-    r = bzip2.NewReader(r)
-  } else if strings.HasSuffix(uri, ".gz") {
-    r, err = gzip.NewReader(r)
-    if err != nil {
-      fmt.Fprintf(os.Stderr, "%v: %v\n", uri, err)
-      return
-    }
-  }
-  
-  input := bufio.NewReader(r)
+  input := bufio.NewReader(resp.Body)
   lines := []string{line1}
   for {
     var line string
@@ -736,7 +712,21 @@ func handle_uri(line1 string, uri string, c chan []string) {
   }
 }  
 
-
+/*
+We want the fastest speed and low memory usage. 
+There are 2 factors that have to be considered:
+- download time
+- decompression time
+- compressed size
+Obviously bz2 gives better download time and lower memory usage (because the
+downloaded file is stored in memory). However Go's bzip2
+decompressor is very slow. Therefore ".gz" is probably the best compromise.
+We put "" at the end, even though uncompressed files would seem to offer the 
+2nd best compromise. However current Debian repositories do not offer uncompressed
+Packages files anymore and Ubuntu at least seems to have started redirecting
+requests to "Packages" to "Packages.bz2".
+*/
+var extensions_to_try = []string{".gz", ".bz2", ""}
 func fetch_uri(rrpcae string, uri string, c chan *TaggedBlob) {
   var err error
   var resp *http.Response
@@ -753,6 +743,17 @@ func fetch_uri(rrpcae string, uri string, c chan *TaggedBlob) {
  
     if resp.StatusCode == 200 {
       uri = uri+extension
+      if extension == "" {
+         if contenttype,ok := resp.Header["Content-Type"]; ok {
+           for _, ct := range contenttype {
+             if strings.Contains(ct, "gzip") { 
+               extension = ".gz" 
+             } else if strings.Contains(ct, "bzip2") { 
+               extension = ".bz2" 
+             }
+           }
+        }
+      }
       tb.Ext = extension
       defer resp.Body.Close()
       break

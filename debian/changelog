@@ -1,3 +1,9 @@
+gosa (2.8.49) trusty; urgency=medium
+
+  * go-susi: generate_package_list: fix problems with Packages->Packages.bz2 redirection in Ubuntu repo
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 31 Oct 2014 18:49:52 +0100
+
 gosa (2.8.48) trusty; urgency=medium
 
   * Multi-repository support fully implemented
