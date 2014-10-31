@@ -109,7 +109,7 @@ var Client []*http.Client
 var Transport []*http.Transport
 
 // Output informative messages.
-var Verbose = true
+var Verbose = false
 
 func main() {
   rand.Seed(316888245464693718)
@@ -375,6 +375,12 @@ func process_packages_files() {
     var packages_lines []string
     if taggedblob,ok := rrpcae2taggedblob[rrpcae_i]; ok {
       packages_lines = extract(taggedblob.Ext, &taggedblob.Payload)
+      
+      // We desperately need to keep our memory footprint small.
+      // The following 2 lines have been confirmed to improve memory
+      // usage with Go 1.4.
+      delete(rrpcae2taggedblob,rrpcae_i)
+      runtime.GC()
     }
     
     // Make sure that RepoRepopathCompoArchExt2PackagePipeVersionSet_new[rrpcae_i]
@@ -783,7 +789,9 @@ func fetch_uri(rrpcae string, uri string, c chan *TaggedBlob) {
   }
 }  
 
+// buf is Reset() after extraction!
 func extract(ext string, buf *bytes.Buffer) []string {
+  defer buf.Reset()
   var r io.Reader = buf
   var err error
   
