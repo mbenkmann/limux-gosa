@@ -32,8 +32,9 @@ import (
          "encoding/base64"
          "path/filepath"
          "math/rand"
-         "bytes"
          "runtime"
+         
+         "../bytes"
       )
 
 // maximum size of templates file to be considered
@@ -96,9 +97,9 @@ type ReleaseTodo struct {
 }
 
 type TaggedBlob struct {
+  Payload bytes.Buffer
   Id string
   Ext string
-  Payload bytes.Buffer
 }
 
 // http.Client(s) to use for connections in order of preference
@@ -235,9 +236,9 @@ func process_releases_files() {
     go handle_uri(rs2, uri, c)
   }
   
-  tim := time.NewTimer(30*time.Second)
   count := len(reporepopath2release_todo)
   if count == 0 { os.Exit(0) } // nothing to do
+  tim := time.NewTimer(time.Duration(count)*5*time.Second)
   loop:
   for {
     select {
@@ -350,9 +351,9 @@ func process_packages_files() {
   }
   
   rrpcae2taggedblob := map[string]*TaggedBlob{}
-  tim := time.NewTimer(30*time.Second)
   count := len(rrpcae)
   if count == 0 { os.Exit(0) } // nothing to do
+  tim := time.NewTimer(time.Duration(count)*5*time.Second)
   loop:
   for {
     select {
@@ -481,7 +482,7 @@ func shuffle(a []string) {
 }
 
 func debconf_scan() {
-  num_scanners := 32
+  num_scanners := 16
   c := make(chan []string, num_scanners)
   done := make(chan bool)
   
@@ -617,13 +618,15 @@ func extract_templates(uris_to_try []string) string {
   // Workaround for a condition I encountered during testing where
   // the number of goroutines would shoot up and sockets would not
   // be closed until the program crashed with too many open files.
-  for runtime.NumGoroutine() > 300 {
+  if runtime.NumGoroutine() > 300 {
     if Verbose {
       fmt.Fprintln(os.Stderr, "Waiting for goroutines to finish...")
     }
     Transport[0].CloseIdleConnections()
     runtime.GC()
-    time.Sleep(5*time.Second)
+    for runtime.NumGoroutine() > 200 {
+      time.Sleep(5*time.Second)
+    }
   }
   
   ok := false
@@ -705,7 +708,7 @@ func handle_uri(line1 string, uri string, c chan []string) {
     line, err = input.ReadString('\n')
     if err != nil { 
       if err == io.EOF { break }
-      fmt.Fprintf(os.Stderr, "%v: %v", uri, err)
+      fmt.Fprintf(os.Stderr, "%v: %v\n", uri, err)
       return
     }
     lines = append(lines, strings.TrimSpace(line))
@@ -740,52 +743,53 @@ func fetch_uri(rrpcae string, uri string, c chan *TaggedBlob) {
   errors := []string{}
   tb := &TaggedBlob{Id: rrpcae}
   
-  for ext_i, extension := range extensions_to_try {
+  for _, extension := range extensions_to_try {
     resp, err = Client[0].Get(uri+extension)
+    
     if err != nil {
-      fmt.Fprintf(os.Stderr, "%v: %v\n", uri, err)
-      return
-    }
- 
-    if resp.StatusCode == 200 {
-      uri = uri+extension
-      if extension == "" {
-         if contenttype,ok := resp.Header["Content-Type"]; ok {
-           for _, ct := range contenttype {
-             if strings.Contains(ct, "gzip") { 
-               extension = ".gz" 
-             } else if strings.Contains(ct, "bzip2") { 
-               extension = ".bz2" 
+      fmt.Fprintf(os.Stderr, "%v: %v\n", uri+extension, err)
+      
+    } else {
+      if resp.StatusCode != 200 {
+        // HTTP level errors like 404 are only reported if we don't manage
+        // to get anything. So at this point we just store the error.
+        errors = append(errors, fmt.Sprintf("%v: %v\n", uri+extension, resp.Status))
+        resp.Body.Close()
+        
+      } else {
+        if extension == "" {
+           if contenttype,ok := resp.Header["Content-Type"]; ok {
+             for _, ct := range contenttype {
+               if strings.Contains(ct, "gzip") { 
+                 extension = ".gz" 
+               } else if strings.Contains(ct, "bzip2") { 
+                 extension = ".bz2" 
+               }
              }
-           }
+          }
+        }
+        
+        tb.Ext = extension
+        _, err = tb.Payload.ReadFrom(resp.Body)
+        resp.Body.Close()
+        
+        if err == nil {
+          c <- tb
+          if Verbose {
+            fmt.Fprintf(os.Stderr, "OK %v\n", uri+extension)
+          }
+          return
+          
+        } else {
+          tb.Payload.Reset()
+          fmt.Fprintf(os.Stderr, "%v: %v\n", uri+extension, err)
         }
       }
-      tb.Ext = extension
-      defer resp.Body.Close()
-      break
-    }
-
-    errors = append(errors, fmt.Sprintf("%v: %v\n", uri, resp.Status))
-    resp.Body.Close()
-    if ext_i+1 == len(extensions_to_try) {
-      for _, e := range errors {
-        fmt.Fprintln(os.Stderr, e)
-      }
-      return
     }
   }
   
-  _, err = tb.Payload.ReadFrom(resp.Body)
-  
-  if err != nil { 
-    fmt.Fprintf(os.Stderr, "%v: %v", uri, err)
-    return
-  }
-  
-  c <- tb
-  
-  if Verbose {
-    fmt.Fprintf(os.Stderr, "OK %v\n", uri)
+  for _, e := range errors {
+    fmt.Fprintln(os.Stderr, e)
   }
 }  
 
