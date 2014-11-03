@@ -21,17 +21,44 @@ MA  02110-1301, USA.
 package tests
 
 import (
+         "io"
          "fmt"
+         "math/rand"
          "time"
          "runtime"
          
          "../bytes"
        )
 
+var FakeError = fmt.Errorf("not a real error")
+
+type sliceReturner struct {
+  Slices [][]byte
+  i int
+}
+
+func (r *sliceReturner) Read(p []byte) (n int, err error) {
+  if len(p) == 0 { return 0, nil }
+  if r.i >= len(r.Slices) { return 0, io.EOF }
+  sl := r.Slices[r.i]
+  r.i++
+  n = copy(p,sl)
+  if n < len(sl) {
+    r.i--
+    r.Slices[r.i] = r.Slices[r.i][n:]
+  }
+  if r.i < len(r.Slices) && r.Slices[r.i] == nil {
+    r.i++
+    return n, FakeError
+  }
+  return n, nil
+}
+
 // Unit tests for the package go-susi/bytes.
 func Bytes_test() {
   fmt.Printf("\n==== bytes ===\n\n")
 
+  rand.Seed(45678)
   testBuffer()
   // The following is for testing if the free()s are called. To do this,
   // use the program ltrace(1).
@@ -247,5 +274,136 @@ func testBuffer() {
   b.WriteByte(99)
   check(b.Len(), 7)
   check(b.Bytes(), []byte{0,111,0,222,0,0,99})
+  
+  b2.Reset()
+  slices := [][]byte{}
+  total := 0
+  numfakeerrs := 0
+  for total < 100000 {
+    c = rand.Intn(30000)
+    total += c
+    
+    sl := make([]byte,c)
+    for i := range sl {
+      sl[i] = byte(rand.Intn(256))
+    }
+    slices = append(slices, sl)
+    b2.Write(sl)
+    
+    if total / 30000 > numfakeerrs {
+      slices = append(slices, nil)
+      numfakeerrs++
+    }
+  }
+  
+  check(numfakeerrs, 3)
+  
+  slcopy := make([][]byte, len(slices))
+  copy(slcopy, slices)
+  slret := &sliceReturner{Slices:slcopy}
+  b.Reset()
+  check(b.Capacity(), 0)
+  check(b.Len(), 0)
+  check(b.Pointer(), nil)
+  n = 0
+  for i:=0; i < numfakeerrs; i++ {
+    n64, err := b.ReadFrom(slret)
+    n += int(n64)
+    check(err, FakeError)
+  }
+  n64, err := b.ReadFrom(slret)
+  n += int(n64)
+  check(err, nil)
+  check(n, total)
+  check(b.Capacity() > b.Len(), true)
+  check(b.Len(), total)
+  
+  contents := b.Bytes()
+  contents2 := b2.Bytes()
+  check(len(contents), len(contents2))
+  n = 0
+  for i := range contents {
+    if contents[i] != contents2[i] { break }
+    n++
+  }
+  check(n, total)
+  
+  b2.Reset()
+  for i := range slices {
+    for k := range slices[i] {
+      slices[i][k] = 11
+    }
+    n, err = b.Read(slices[i])
+    check(n, len(slices[i]))
+    check(err, nil)
+    b2.Write(slices[i])
+  }
+  
+  check(b2.Len(), total)
+  
+  n, err = b.Read(slices[0])
+  check(n, 0)
+  check(err, io.EOF)
+  
+  
+  contents = b.Bytes()
+  contents2 = b2.Bytes()
+  check(len(contents), len(contents2))
+  n = 0
+  for i := range contents {
+    if contents[i] != contents2[i] { break }
+    n++
+  }
+  check(n, total)
+  
+  b.WriteString("foo")
+  foo := make([]byte, 10)
+  n, err = b.Read(foo)
+  check(n, 3)
+  check(err, nil)
+  check(string(foo[0:3]), "foo")
+  
+  n64, err = b.Seek(6700, 0)
+  check(n64, 6700)
+  check(err,nil)
+  
+  n64, err = b.Seek(-6000, 1)
+  check(n64, 700)
+  check(err,nil)
+  
+  n64, err = b.Seek(815, 1)
+  check(n64, 1515)
+  check(err,nil)
+  n, err = b.Read(foo)
+  check(n, len(foo))
+  check(err, nil)
+  check(foo, b2.Bytes()[1515:1515+len(foo)])
+  
+  n64, err = b.Seek(-3, 2)
+  check(n64, total)
+  check(err,nil)
+  n, err = b.Read(foo)
+  check(n, 3)
+  check(err, nil)
+  check(string(foo[0:3]), "foo")
+  
+  n64, err = b.Seek(999999, 0)
+  check(n64, b.Len())
+  check(err,nil)
+  n64, err = b.Seek(-3, 1)
+  check(n64, total)
+  check(err,nil)
+  n, err = b.Read(foo)
+  check(n, 3)
+  check(err, nil)
+  check(string(foo[0:3]), "foo")
+  
+  n64, err = b.Seek(-815, 0)
+  check(n64, 0)
+  check(err,nil)
+  n, err = b.Read(foo)
+  check(n, len(foo))
+  check(err, nil)
+  check(foo, b2.Bytes()[0:len(foo)])
 }
 

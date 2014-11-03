@@ -30,6 +30,7 @@ import "C"
 import "unsafe"
 import "runtime"
 import "errors"
+import "io"
 
 const mAX_GROW_SIZE = 1024*1024
 const size2GB = int(^uint32(0) >> 1) 
@@ -41,6 +42,7 @@ type Buffer struct {
   ptr unsafe.Pointer
   sz int
   capa int
+  readptr int
 }
 
 // Returns nil if no space is currently allocated for the Buffer, 
@@ -118,6 +120,64 @@ func (b *Buffer) WriteString(s string) (n int, err error) {
   b.Grow(len(s))
   b.sz += copy(((*[size2GB]byte)(b.ptr))[b.sz:b.capa], s)
   return len(s),nil
+}
+
+// Reads data from r until EOF and appends it to the buffer, growing
+// the buffer as needed. The return value n is the number of bytes read. Any
+// error except io.EOF encountered during the read is also returned. If the
+// buffer becomes too large, ReadFrom will panic with ErrTooLarge.
+func (b *Buffer) ReadFrom(r io.Reader) (n int64, err error) {
+  for {
+    if b.capa - b.sz == 0 {
+      b.Grow(4096)
+    }
+    
+    count, err := r.Read(((*[size2GB]byte)(b.ptr))[b.sz:b.capa])
+    b.sz += count
+    n += int64(count)
+    if err != nil {
+      if err == io.EOF { return n, nil }
+      return n, err
+    }
+  }
+}
+
+// Read reads the next len(p) bytes from the buffer or until the buffer
+// is drained.  The return value n is the number of bytes read.  If the
+// buffer has no data to return, err is io.EOF (unless len(p) is zero);
+// otherwise it is nil. Appending more data after an EOF was returned by
+// Read() will clear the EOF condition and further calls to Read() will
+// return the newly appended data.
+func (b *Buffer) Read(p []byte) (n int, err error) {
+  if len(p) == 0 { return 0, nil }
+  if b.readptr == b.sz { return 0, io.EOF }
+  n = copy(p, ((*[size2GB]byte)(b.ptr))[b.readptr:b.sz])
+  b.readptr += n
+  return n, nil
+}
+
+// Sets the pointer for the next Read() operation.
+// If whence == 0, offset is the absolute offset from the buffer start.
+// If whence == 1, offset is added to the current position.
+// If whence == 2, offset is added to "1 past the last byte", 
+// i.e. offset==-1 with whence==2 positions the read pointer to return
+// the last byte in the buffer on the next Read().
+//
+// If the resulting read pointer would point before the 1st byte in the
+// buffer, it is placed at absolute offset 0. If it would point after
+// the last byte, it is placed at "1 past the last byte".
+//
+// The return value is the new absolute offset of the read pointer counted
+// from the beginning of the buffer. An error is never returned.
+func (b* Buffer) Seek(offset int64, whence int) (int64, error) {
+  switch whence {
+    case 0: b.readptr  = int(offset)
+    case 1: b.readptr += int(offset)
+    case 2: b.readptr  = int(offset) + b.sz
+  }
+  if b.readptr < 0 { b.readptr = 0 }
+  if b.readptr >= b.sz { b.readptr = b.sz }
+  return int64(b.readptr), nil
 }
 
 // Returns a copy of the Buffer contents as string.
@@ -235,5 +295,6 @@ func (b *Buffer) Reset() {
   b.ptr = nil
   b.sz = 0
   b.capa = 0
+  b.readptr = 0
   runtime.SetFinalizer(b, nil)
 }
