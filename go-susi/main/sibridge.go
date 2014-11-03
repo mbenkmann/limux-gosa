@@ -152,9 +152,6 @@ Commands:
   .classes:   Set the FAI classes for the selected machine(s).
               Argument types: substrings
               Each substring selects exactly one FAI class.
-              If more than 1 substring is passed, "HARDENING" or
-              "HARDENING_SERVER" is automatically appended to
-              the list depending on the kind of machine.
               Only FAI classes available for the machine's release
               will be considered, so you should use the
               ".release" command first, if the release needs to be changed.
@@ -780,8 +777,6 @@ func commandClasses(joblist *[]jobDescriptor) (reply string) {
     
     classes := db.FAIClasses(xml.FilterSimple("fai_release", release))
 
-    need_hardening := false
-    
     for _, sub := range strings.Fields(j.Sub) {
       best_class := ""
       best_score := 19770120
@@ -814,16 +809,8 @@ func commandClasses(joblist *[]jobDescriptor) (reply string) {
       
       if faiclass != "" { 
         faiclass += " " 
-        need_hardening = true
       }
       faiclass += best_class
-      if strings.Index(best_class, "HARDENING") == 0 {
-        need_hardening = false
-      }
-    }
-    
-    if need_hardening {
-      if db.SystemIsWorkstation(j.MAC) { faiclass += " HARDENING" } else { faiclass += " HARDENING_SERVER" }
     }
     
     faiclass += " :" + release
