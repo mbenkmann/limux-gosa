@@ -376,10 +376,12 @@ func JobAddLocal(job *xml.Hash) {
       plainname = "none"
       request.Job.FirstOrAdd("plainname").SetText("none")
     }
+    macaddress := request.Job.Text("macaddress")
     if plainname == "none" { 
-      JobsUpdateNameForMAC(request.Job.Text("macaddress")) 
+      JobsUpdateNameForMAC(macaddress)
     }
     util.Log(1, "INFO! New job for me to execute: %v", request.Job)
+    ClientUnthrottle(macaddress)
     JobUpdateXMLMessage(request.Job)
     jobDB.AddClone(request.Job)
     scheduleProcessPendingActions(request.Job.Text("timestamp"))
@@ -585,6 +587,8 @@ func JobsAddOrModifyForeign(filter xml.HashFilter, job *xml.Hash) {
     } else // no job matches filter => add job
     {
       util.Log(2, "DEBUG! Adding new foreign job: %v", request.Job)
+      macaddress := job.Text("macaddress")
+      ClientUnthrottle(macaddress)
       job := request.Job
       job.Rename("job")
       job.FirstOrAdd("original_id").SetText(job.Text("id"))
@@ -595,7 +599,7 @@ func JobsAddOrModifyForeign(filter xml.HashFilter, job *xml.Hash) {
         job.FirstOrAdd("plainname").SetText("none")
       }
       if plainname == "none" { 
-        JobsUpdateNameForMAC(job.Text("macaddress")) 
+        JobsUpdateNameForMAC(macaddress)
       }
       JobUpdateXMLMessage(job)
       jobDB.AddClone(job)  

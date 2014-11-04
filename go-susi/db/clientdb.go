@@ -21,6 +21,7 @@ package db
 
 import (
          "os"
+         "sync"
          "time"
          "math/rand"
          "regexp"
@@ -49,6 +50,18 @@ import (
 // NOTE: <client> and <macaddress> are both mandatory and unique within the
 // database. See ClientUpdate()
 var clientDB *xml.DB = xml.NewDB("clientdb",nil,0)
+
+type hiaEntry struct {
+  last time.Time
+  strikes int
+}
+
+// Maps MAC address to hiaEntry. This is used to throttle clients that
+// send too many here_i_am ("hia") messages in a short amount of time.
+// This happens with broken gosa-si-clients.
+// ATTENTION! ALL ACCESS MUST USE hiaDBMutex!
+var hiaDB = map[string]*hiaEntry{}
+var hiaDBMutex sync.Mutex
 
 // When ClientsInit() restores clients from config.ClientDBPath, it removes
 // all local clients and stores them in this hash, because before we can
@@ -90,6 +103,48 @@ func ClientsShutdown() {
   clientDB.Shutdown()
   util.Log(1, "INFO! Clients database has been saved")
 }
+
+// Checks if too little time has passed since the most recent here_i_am from
+// client identified by macaddress and gives the client a "strike" if that's
+// the case. If enough time has passed, all strikes are cleared for the client.
+// Returns the number of strikes the client has.
+func ClientThrottle(macaddress string) int {
+  hiaDBMutex.Lock()
+  defer hiaDBMutex.Unlock()
+  
+  hia, found := hiaDB[macaddress]
+  if !found {
+    hia = &hiaEntry{last:time.Now(), strikes:-1}
+    hiaDB[macaddress] = hia
+  }
+  
+  if time.Since(hia.last) > 2*time.Minute {
+    hia.strikes = 0
+  } else {
+    hia.strikes++
+  }
+  
+  hia.last = time.Now()
+  return hia.strikes
+}
+
+// Clears all strikes from ClientThrottle() against the client
+// identified by macaddress.
+func ClientUnthrottle(macaddress string) {
+  hiaDBMutex.Lock()
+  defer hiaDBMutex.Unlock()
+  
+  if hia, found := hiaDB[macaddress]; found {
+    if hia.strikes > 1 {
+      util.Log(1, "INFO! Unthrottling client with MAC %v (%v strikes)", macaddress, hia.strikes)
+    }
+    hia.strikes = 0
+    hia.last = time.Now()
+  }
+}
+
+
+
 
 // Returns the entry from the clientdb or nil if the client is unknown.
 // Entries are formatted as new_foreign_client messages:
