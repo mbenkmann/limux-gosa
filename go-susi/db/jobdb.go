@@ -750,7 +750,12 @@ func groomJobDB() {
         
         var faistate string
         system, err := SystemGetAllDataForMAC(macaddress, false)
-        if err == nil { faistate = system.Text("faistate") } else { faistate = err.Error() }
+        if err == nil { 
+          faistate = system.Text("faistate") 
+        } else { 
+          util.Log(0, "WARNING! Error getting LDAP data for %v while grooming jobdb: %v", macaddress, err)
+          continue
+        }
         
         state := (faistate + "12345")[0:5]
         if (job.Text("headertag") == "trigger_action_reinstall" && (state == "reins" || state == "insta")) || 

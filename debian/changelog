@@ -1,3 +1,9 @@
+gosa (2.8.55) trusty; urgency=medium
+
+  * go-susi: [Google Code Issue #170]: Do not groom JobDB with error result from LDAP
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 04 Nov 2014 11:24:58 +0100
+
 gosa (2.8.54) trusty; urgency=medium
 
   * go-susi: [Google Code Issue #156] Add more object classes to whitelist for copying by SystemFillInMissingData()
