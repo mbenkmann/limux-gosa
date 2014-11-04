@@ -1,3 +1,9 @@
+gosa (2.8.54) trusty; urgency=medium
+
+  * go-susi: [Google Code Issue #156] Add more object classes to whitelist for copying by SystemFillInMissingData()
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 04 Nov 2014 10:41:50 +0100
+
 gosa (2.8.53) trusty; urgency=medium
 
   * go-susi: [Google Code Issue #165] Remove hardwired magic for HARDENING* FAI classes
