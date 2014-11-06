@@ -1,3 +1,9 @@
+gosa (2.8.59) trusty; urgency=medium
+
+  * go-susi: [Google Code Issue #108] Do not lose jobs on summer/winter time transition
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 06 Nov 2014 18:22:16 +0100
+
 gosa (2.8.58) trusty; urgency=medium
 
   * go-susi: sibridge: output job timestamp as stored in the jobdb without timezone translation (matches what GOsa does)

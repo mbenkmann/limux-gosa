@@ -203,12 +203,83 @@ func JobsShutdown() {
 //    and will always fit together.
 func handleJobDBRequests() {
   groom_ticker := time.Tick(config.JobDBGroomInterval)
+  hour, min, _ := time.Now().Clock()
+  next_groom_minutes_since_midnight := hour*60+min+int(config.JobDBGroomInterval/time.Minute)
+  backwardsjump := false
   var request *jobDBRequest
   for {
     select {
       case request = <-jobDBRequests : request.Action(request)
       
-      case _ = <-groom_ticker: go util.WithPanicHandler(groomJobDB)
+      case _ = <-groom_ticker: 
+               hour, min, _ = time.Now().Clock()
+               minutes_since_midnight := hour*60+min
+               
+               if minutes_since_midnight > next_groom_minutes_since_midnight+3 {
+                 // Do not groom jobDB after a clock jump forward because groomJobDB()
+                 // would assume that jobs have not started correctly even though they
+                 // haven't got their chance yet and will probably start up in the next
+                 // few minutes.
+                 // NOTE: The message does not include the word "FORWARD" because
+                 // a backwards adjustment by an amount that is not a multiple of
+                 // config.JobDBGroomInterval will first trigger the BACKWARD case
+                 // and then trigger this case at the next grooming time. So we
+                 // keep this message phrased in a way that it will not create the
+                 // mistaken impression that the clock jumps around wildly.
+                 util.Log(1, "INFO! Grooming jobdb SKIPPED because of clock adjustment")
+                 
+                 // The next grooming will take place as usual.
+                 next_groom_minutes_since_midnight = minutes_since_midnight+int(config.JobDBGroomInterval/time.Minute)
+
+                 // Ping processPendingActions because as mentioned further above we can
+                 // enter this case not only after an actual forwards jump of the clock
+                 // but also after a backwards jump once our clock has finally caught up.
+                 // And in that case the comment further below still applies, that we
+                 // need to ping processPendingActions to make sure that jobs are
+                 // triggered before the next grooming.
+                 go func() { processPendingActions <- true }()
+                 
+                 // Clear backwardsjump marker if it is set (which is possible; see
+                 // previous comments)
+                 backwardsjump = false
+                 
+               } else if minutes_since_midnight < next_groom_minutes_since_midnight-3 {
+                 util.Log(1, "INFO! Grooming jobdb SKIPPED because of clock jump BACKWARDS")
+                 
+                 // We keep next_groom_minutes_since_midnight at its current value
+                 // (which is in the future) until our wall clock has caught up.
+                 // We do this so that every config.JobDBGroomInterval we run into
+                 // this case again and can ping processPendingActions, because
+                 // if the backwards jump happened right between the firing of
+                 // a job's processPendingActions ping and the time the database
+                 // is queried for pending jobs, the query will not see the jobs
+                 // as pending and won't trigger them. The next groomJobDB() would then
+                 // discover the unlaunched jobs, report a bug and kill them.
+                 // But by pinging processPendingActions here without grooming until
+                 // our clock has caught up with the originally scheduled grooming time,
+                 // we make sure that jobs will be started, if not at the right time,
+                 // at least before the next grooming.
+                 go func() { processPendingActions <- true }()
+                 
+                 backwardsjump = true
+                 
+               } else {
+                 next_groom_minutes_since_midnight = minutes_since_midnight+int(config.JobDBGroomInterval/time.Minute)
+                 groom_delay := time.Duration(0)
+                 // If we get here after a backward jump of the clock, there may
+                 // still be jobs waiting to be executed, so we ping
+                 // processPendingActions and delay the grooming a little
+                 if backwardsjump {
+                   go func() { processPendingActions <- true }()
+                   groom_delay = time.Minute
+                   backwardsjump = false
+                 }
+                
+                 go func(dly time.Duration) {
+                   time.Sleep(dly)
+                   util.WithPanicHandler(groomJobDB)
+                 }(groom_delay)
+               }
       
       case _ = <-processPendingActions :
                /*** WARNING! WARNING! ***
