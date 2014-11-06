@@ -1,3 +1,9 @@
+gosa (2.8.58) trusty; urgency=medium
+
+  * go-susi: sibridge: output job timestamp as stored in the jobdb without timezone translation (matches what GOsa does)
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 06 Nov 2014 18:21:23 +0100
+
 gosa (2.8.57) trusty; urgency=medium
 
   * go-susi: improved error log messages for timestamp-related problems

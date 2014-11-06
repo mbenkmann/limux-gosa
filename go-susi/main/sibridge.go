@@ -221,6 +221,8 @@ var SpecialFiles = []string{}
 var ClientStates = []string{"x_x", "o_o", "o_O", "~_^", "X_x", "^_^", "o_^", "^,^"}
 var ServerStates = []string{"X_X", "O_O", "@_@", "O_@", "x_~", "^.^", "@_~", "^_~"}
 
+var TimestampRE = regexp.MustCompile("^([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})$")
+
 func main() {
   // This is NOT config.ReadArgs() !!
   ReadArgs(os.Args[1:])
@@ -1174,7 +1176,7 @@ func parseGosaReply(reply_from_gosa string) string {
       handler = strings.Split(handler, ".")[0]
       handler = " [by "+handler+"]"
     }
-    reply = reply + fmt.Sprintf("== %4v %-9v %v  %v (%v)%v%v", status, job, util.ParseTimestamp(answer.Text("timestamp")).Format("_2.1 15:04:05"), answer.Text("macaddress"), answer.Text("plainname"),periodic,handler)
+    reply = reply + fmt.Sprintf("== %4v %-9v %v  %v (%v)%v%v", status, job, TimestampRE.ReplaceAllString(answer.Text("timestamp"),"$3.$2 $4:$5:$6"), answer.Text("macaddress"), answer.Text("plainname"),periodic,handler)
   }
   
   return reply
