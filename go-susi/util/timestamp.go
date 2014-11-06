@@ -42,7 +42,7 @@ func MakeTimestamp(t time.Time) string {
 func ParseTimestamp(ts string) time.Time {
   t, err := time.Parse("20060102150405", ts)
   if err != nil {
-    Log(0, "ERROR! Illegal timestamp: %v", ts)
+    Log(0, "ERROR! Illegal timestamp: %v (%v)", ts, err)
     return time.Unix(0,0)
   }
   
@@ -55,7 +55,7 @@ func ParseTimestamp(ts string) time.Time {
   ts += zone
   t, err = time.Parse("20060102150405MST", ts)
   if err != nil {
-    Log(0, "ERROR! Could not parse with time zone: %v", ts)
+    Log(0, "ERROR! Could not parse with time zone: %v (%v)", ts, err)
     return time.Unix(0,0)
   }
   return t

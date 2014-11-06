@@ -1,3 +1,9 @@
+gosa (2.8.57) trusty; urgency=medium
+
+  * go-susi: improved error log messages for timestamp-related problems
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 06 Nov 2014 18:19:52 +0100
+
 gosa (2.8.56) trusty; urgency=medium
 
   * go-susi: [GOsa issue #160] Reset throttling strikes count when a job is scheduled for a client
