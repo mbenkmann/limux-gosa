@@ -1,3 +1,9 @@
+gosa (2.8.61) trusty; urgency=medium
+
+  * update build dependencies with Go version >= 1.3
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 18 Nov 2014 10:18:52 +0100
+
 gosa (2.8.60) trusty; urgency=medium
 
   * go-susi: generate_package_list: yet another attempt at more memory efficiency

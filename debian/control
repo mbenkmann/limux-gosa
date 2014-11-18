@@ -2,7 +2,7 @@ Source: gosa
 Section: web
 Priority: optional
 Maintainer: Matthias S. Benkmann <mux2005@gmail.com>
-Build-Depends: debhelper (>= 7.0.50~), xsltproc, golang | golang-stable | golang-tip | golang-weekly
+Build-Depends: debhelper (>= 7.0.50~), xsltproc, golang-go (>= 2:1.3) | golang-stable | golang-tip | golang-weekly
 Build-Depends-Indep: po-debconf
 Standards-Version: 3.9.4
 Homepage: https://github.com/mbenkmann/limux-gosa
