@@ -1018,10 +1018,7 @@ Repository: %v
     // may be included multiple times. They should however be sorted
     // consecutively so that simply comparing with the previous package
     // should be enough to eliminate duplicates
-    // This also eliminates multiple versions for the same package or
-    // the same package in multiple sections, which are not necessary
-    // for the purpose of GOsa.
-    pkgstr := string(pkg)
+    pkgstr := fmt.Sprintf("%s%s%s",pkg,version,release)
     if pkgstr == prevpkg { continue }
     prevpkg = pkgstr
     

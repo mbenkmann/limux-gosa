@@ -1,3 +1,12 @@
+gosa (2.8.62) trusty; urgency=medium
+
+  * go-susi: generate_package_list: include all versions of a package in output
+  * While GOsa doesn't really do anything useful with the version number it is confusing
+  * and may be perceived as a bug when someone checks the generated list and it doesn't
+  * have all versions.
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 18 Nov 2014 13:19:48 +0100
+
 gosa (2.8.61) trusty; urgency=medium
 
   * update build dependencies with Go version >= 1.3
