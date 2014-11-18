@@ -1,3 +1,9 @@
+gosa (2.8.63) trusty; urgency=medium
+
+  * go-susi: generate_package_list: save memory by merging i386 and amd64 packages with the same version number
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 18 Nov 2014 14:23:30 +0100
+
 gosa (2.8.62) trusty; urgency=medium
 
   * go-susi: generate_package_list: include all versions of a package in output

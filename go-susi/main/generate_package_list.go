@@ -40,6 +40,13 @@ import (
          "../util"
       )
 
+// If this is true, the cache will only have 1 listing per package version even if
+// the same version exists for i386 and amd64.
+// NOTE: The LDIF output always merges i386 and amd64 because there is no architecture
+// information in the LDIF.
+// This switch saves a lot of memory!
+var MergeI386andAMD64 = true
+
 // Output informative messages.
 var Verbose = 0
 
@@ -122,11 +129,31 @@ func (a *PackageListSorter) Less(i, j int) bool {
 func compare(sl1, sl2 []byte) int {
   countslash := 0
   for x := 0; x < len(sl1) && x < len(sl2); x++ {
-    if sl1[x] < sl2[x] { return -1 }
-    if sl2[x] < sl1[x] { return +1 }
+    if sl1[x] < sl2[x] { 
+      if MergeI386andAMD64 && x>0 && sl1[x-1] == '_' && sl1[x] == 'a' && sl2[x] == 'i' && sl1[x+1] == 'm' && sl2[x+1] == '3' && sl1[x+2] == 'd' && sl2[x+2] == '8' && sl1[x+3] == '6' && sl2[x+3] == '6' && sl1[x+4] == '4' {
+        sl1=sl1[4:]
+        sl2=sl2[3:]
+        continue
+      } else {
+        return -1
+      }
+    }
+    if sl2[x] < sl1[x] { 
+      if MergeI386andAMD64 && x>0 && sl2[x-1] == '_' && sl2[x] == 'a' && sl1[x] == 'i' && sl2[x+1] == 'm' && sl1[x+1] == '3' && sl2[x+2] == 'd' && sl1[x+2] == '8' && sl2[x+3] == '6' && sl1[x+3] == '6' && sl2[x+4] == '4' {
+        sl2=sl2[4:]
+        sl1=sl1[3:]
+        continue
+      } else {
+        return +1
+      }
+    }
     if sl1[x] == '|' {
       countslash++
-      if countslash == 4 { // stop comparing when we reach template part
+      // stop comparing when we reach the description part because
+      // descriptions may differ for different architectures even for the
+      // same package version. I guess we could condition the test on
+      // MergeI386andAMD64 and use countslash == 4 if !MergeI386andAMD64, but...
+      if countslash == 3 {
         return 0 
       }
     } else if sl1[x] == '\n' { break }
@@ -325,7 +352,12 @@ func (pkg *PackageList) AppendMerge(p1, p2 *PackageList, p2templatesonly bool) {
       b++
     } else {
       release, path, section, description64, templates64 := p1.Get(a)
-      _, _, _, _, templates64_2 := p2.Get(b)
+      _, path_2, _, _, templates64_2 := p2.Get(b)
+      // if path ends in "i386.deb" we use path_2. This means we prefer
+      // "amd64.deb" when both are present.
+      if MergeI386andAMD64 && len(path) > 8 && has(path[len(path)-8:],"i386") {
+        path = path_2
+      }
       if len(templates64) == 1 && templates64[0] == '?' {
         // everything overrides ?
         templates64 = templates64_2
