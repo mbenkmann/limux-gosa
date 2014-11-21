@@ -25,6 +25,7 @@ import (
          "sort"
          "sync"
          "sync/atomic"
+         "syscall"
          "time"
          "bufio"
          "regexp"
@@ -96,6 +97,78 @@ var PackagesURIs = []string{}
 // This is what we're going through all the trouble for.
 var MasterPackageList *PackageList
 
+type MergeSource interface {
+  Bytes(int) []byte
+  Sort()
+  Count() int
+  Get(i int) (release, path, section, description64, templates64 []byte)
+  Clear()
+}
+
+type MMapMergeSource struct {
+  cache *os.File
+  mmap []byte
+  data []byte
+  LineOfs []int
+}
+
+func NewMMapMergeSource(cache *os.File, mmap []byte, size int) *MMapMergeSource {
+  m := &MMapMergeSource{cache:cache, mmap:mmap, data:mmap[0:size]}
+  
+  // make sure the new last line is terminated by '\n'
+  if m.data[len(m.data)-1] != '\n' {
+    fmt.Fprintln(os.Stderr, "Cache is corrupt; does not end with newline")
+    m.data = nil
+    return m
+  }
+
+  nextOfs := 0
+  for nextOfs < len(m.data) {
+    m.LineOfs = append(m.LineOfs, nextOfs)
+    for m.data[nextOfs] != '\n' { nextOfs++ }
+    nextOfs++ // skip '\n'
+  }
+  
+  return m
+}
+
+func (pkg *MMapMergeSource) Bytes(i int) []byte {
+  return pkg.data[pkg.LineOfs[i]:]
+}
+
+func (pkg *MMapMergeSource) Get(i int) (release, path, section, description64, templates64 []byte) {
+  if i >= len(pkg.LineOfs) {
+    return nil,nil,nil,nil,nil
+  }
+  return get(pkg, i)
+}
+
+type MMapSorter MMapMergeSource
+
+func (a *MMapSorter) Len() int { return len(a.LineOfs) }
+func (a *MMapSorter) Swap(i,j int) { a.LineOfs[i], a.LineOfs[j] = a.LineOfs[j], a.LineOfs[i] }
+func (a *MMapSorter) Less(i, j int) bool { 
+  return compare(a.data[a.LineOfs[i]:], a.data[a.LineOfs[j]:]) < 0 
+}
+
+func (pkg *MMapMergeSource) Sort() {
+  sort.Sort((*MMapSorter)(pkg))
+}
+
+func (pkg *MMapMergeSource) Count() int {
+  return len(pkg.LineOfs)
+}
+
+func (pkg *MMapMergeSource) Clear() {
+  if err := syscall.Munmap(pkg.mmap); err != nil {
+    fmt.Fprintln(os.Stderr, err)
+  }
+  pkg.cache.Close()
+  pkg.mmap = nil
+  pkg.data = nil
+  pkg.cache = nil
+}
+
 type PackageList struct {
   /*
   Contains lines of the form 
@@ -159,6 +232,12 @@ func compare(sl1, sl2 []byte) int {
     } else if sl1[x] == '\n' { break }
   }
   panic("buffer not formatted properly")
+}
+
+// Returns a raw view of the list's data starting at the first byte of entry.
+// Be careful to lock the object if necessary!
+func (pkg *PackageList) Bytes(entry int) []byte {
+  return pkg.Data.Bytes()[pkg.LineOfs[entry]:]
 }
 
 // Sorts the lines.
@@ -327,7 +406,7 @@ func (pkg *PackageList) AppendPackages(release []byte, r io.Reader) error {
   If p2templatesonly is true, then p2 can not contribute new lines, only
   amend existing lines from p1 with templates data.
 */
-func (pkg *PackageList) AppendMerge(p1, p2 *PackageList, p2templatesonly bool) {
+func (pkg *PackageList) AppendMerge(p1, p2 MergeSource, p2templatesonly bool) {
   if p1 == pkg || p2 == pkg || p1 == p2 { panic("all 3 lists involved in AppendMerge must be distinct") }
   p1.Sort()
   p2.Sort()
@@ -337,7 +416,7 @@ func (pkg *PackageList) AppendMerge(p1, p2 *PackageList, p2templatesonly bool) {
   
   // merge until the end of one list is reached
   for a < p1.Count() && b < p2.Count() {
-    comp := compare(p1.Data.Bytes()[p1.LineOfs[a]:], p2.Data.Bytes()[p2.LineOfs[b]:])
+    comp := compare(p1.Bytes(a), p2.Bytes(b))
     if comp < 0 {
       if Verbose > 3 { fmt.Fprintf(os.Stderr, "< ") }
       release, path, section, description64, templates64 := p1.Get(a)
@@ -429,9 +508,12 @@ func (pkg *PackageList) Get(i int) (release, path, section, description64, templ
   if i >= len(pkg.LineOfs) {
     return nil,nil,nil,nil,nil
   }
-  
-  data := pkg.Data.Bytes()
-  nxt := pkg.LineOfs[i]
+  return get(pkg, i)
+}
+
+func get(pkg MergeSource, i int) (release, path, section, description64, templates64 []byte) {
+  data := pkg.Bytes(i)
+  nxt := 0
   var ofs int
   for ofs = nxt; data[nxt] != '|'; nxt++ {}
   release = data[ofs:nxt]
@@ -794,29 +876,48 @@ func readcache(templatesonly bool) {
     MasterPackageList = &PackageList{}
   }
   
-  pkg := &PackageList{}
-  cache, err := os.Open(filepath.Join(CacheDir,CacheName))
+  cachepath := filepath.Join(CacheDir,CacheName)
+  cache, err := os.Open(cachepath)
   if err != nil{
     if !os.IsNotExist(err.(*os.PathError).Err) {
       fmt.Fprintln(os.Stderr, err)
     }
     return
   }
-  defer cache.Close()
   
-  err = pkg.AppendRaw(cache)
+  
+  var pkg MergeSource
+  
+  fi, err := os.Stat(cachepath)
+  if err == nil {
+    sz := int(fi.Size()) + os.Getpagesize()-1
+    sz -= sz % os.Getpagesize()
+    fd := cache.Fd()
+    mmap, err := syscall.Mmap(int(fd), 0, sz, syscall.PROT_READ, syscall.MAP_PRIVATE)
+    if err == nil {
+      pkg = NewMMapMergeSource(cache, mmap, int(fi.Size()))
+    }
+  }
+
   if err != nil {
-    fmt.Fprintln(os.Stderr, err)
-    pkg.Clear()
+    defer cache.Close()
+    fmt.Fprintf(os.Stderr, "Could not mmap (%v) ==> Falling back to normal read", err)
+    pkgfile := &PackageList{}
+    err = pkgfile.AppendRaw(cache)
+    if err != nil {
+      fmt.Fprintln(os.Stderr, err)
+      pkgfile.Clear()
+    }
+    pkg = pkgfile
   }
   
   newPkgList := &PackageList{}
   
   if Verbose > 1 {
     if templatesonly {
-      fmt.Fprintf(os.Stderr, "Merging %v lines (%v bytes) with TEMPLATE DATA ONLY from cache %v lines (%v bytes)\n", MasterPackageList.Count(), MasterPackageList.Data.Len(), pkg.Count(), pkg.Data.Len())
+      fmt.Fprintf(os.Stderr, "Merging %v lines (%v bytes) with TEMPLATE DATA ONLY from cache %v lines (%v bytes)\n", MasterPackageList.Count(), MasterPackageList.Data.Len(), pkg.Count(), len(pkg.Bytes(0)))
     } else {
-      fmt.Fprintf(os.Stderr, "Merging %v lines (%v bytes) with ALL DATA from cache %v lines (%v bytes)\n", MasterPackageList.Count(), MasterPackageList.Data.Len(), pkg.Count(), pkg.Data.Len())
+      fmt.Fprintf(os.Stderr, "Merging %v lines (%v bytes) with ALL DATA from cache %v lines (%v bytes)\n", MasterPackageList.Count(), MasterPackageList.Data.Len(), pkg.Count(), len(pkg.Bytes(0)))
     }
   }
   newPkgList.AppendMerge(MasterPackageList, pkg, templatesonly)
