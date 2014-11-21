@@ -21,7 +21,7 @@ strip: build
 man: VERSION=$(shell sed -n 's/.*Version.*=.*"\([^"]*\)".*/\1/p' config/version.go)
 man: doc/manpage.xsl
 	xsltproc >doc/go-susi.1 --stringparam name GO-SUSI --stringparam section 1 --stringparam start_id "id.jes9sqqlstzn" --stringparam stop_id "id.sj4np8e9wdb8" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
-	xsltproc >doc/gosa-si-server.1 --stringparam name GOSA-SI-SERVER --stringparam section 1 --stringparam start_id "id.anooi87iwmip" --stringparam stop_id "id.fgzi8uchaq8v" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
+	xsltproc >doc/gosa-si-server.1 --stringparam name GOSA-SI-SERVER --stringparam section 1 --stringparam start_id "id.anooi87iwmip" --stringparam stop_id "id.jjgoi9ch9ywz" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
 	xsltproc >doc/sibridge.1 --stringparam name SIBRIDGE --stringparam section 1 --stringparam start_id "id.ejujf2q7dp37" --stringparam stop_id "id.anooi87iwmip" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
 	xsltproc >doc/server.conf.5 --stringparam name SERVER.CONF --stringparam section 5 --stringparam start_id "id.ghm1et7cq23q" --stringparam stop_id "id.bajdikkyilhk" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
 	xsltproc >doc/gosa-si-jobs.5 --stringparam name GOSA-SI-JOBS --stringparam section 5 --stringparam start_id "id.sj4np8e9wdb8" --stringparam stop_id "id.8rs4yx8or7cf" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
@@ -31,6 +31,7 @@ man: doc/manpage.xsl
 	xsltproc >doc/gosa-si-query.5 --stringparam name GOSA-SI-QUERY --stringparam section 5 --stringparam start_id "id.vafpk0dntk2q" --stringparam stop_id "id.5uju4li1h33b" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
 	xsltproc >doc/gosa-si-misc.5 --stringparam name GOSA-SI-MISC --stringparam section 5 --stringparam start_id "id.5uju4li1h33b" --stringparam stop_id "id.ys29afdlp9ml" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
 	xsltproc >doc/gosa-si-deprecated.5 --stringparam name GOSA-SI-DEPRECATED --stringparam section 5 --stringparam start_id "id.ys29afdlp9ml" --stringparam stop_id "id.qm42onlc5h25" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
+	xsltproc >doc/generate_package_list.5 --stringparam name GENERATE_PACKAGE_LIST --stringparam section 5 --stringparam start_id "id.jjgoi9ch9ywz" --stringparam stop_id "id.fgzi8uchaq8v" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
 	xsltproc >doc/initrd_autopack.5 --stringparam name INITRD_AUTOPACK --stringparam section 5 --stringparam start_id "id.fgzi8uchaq8v" --stringparam stop_id "id.l8s0fislnev7" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
 
 .PHONY: doc

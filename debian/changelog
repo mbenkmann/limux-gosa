@@ -1,3 +1,9 @@
+gosa (2.8.65) trusty; urgency=medium
+
+  * go-susi: manpage for generate_package_list
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 21 Nov 2014 11:39:37 +0100
+
 gosa (2.8.64) trusty; urgency=medium
 
   * go-susi: generate_package_list: read cache via mmap() if possible to save memory
