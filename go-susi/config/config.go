@@ -70,6 +70,9 @@ var ServerConfigPath = "/etc/gosa-si/server.conf"
 // Path of the client config file.
 var ClientConfigPath = "/etc/gosa-si/client.conf"
 
+// Path to config file with additional DNs of OUs for finding servers.
+var ServersOUConfigPath = "/etc/gosa/ou=servers.conf"
+
 // Path to database of scheduled jobs.
 var JobDBPath = "/var/lib/go-susi/jobdb.xml"
 
@@ -279,6 +282,10 @@ var LDAPURI = "ldap://localhost:389"
 // LDAP searches will be restricted to the subtree rooted at this DN.
 var LDAPBase = "c=de"
 
+// List of DNs under which to search (1 level) for additional servers
+// that can not be found under LDAPBase.
+var LDAPServerOUs = []string{}
+
 // DN of the admin user for writing to LDAP.
 // If this is not a valid DN, RunServer will be false and only client
 // services will be offered.
@@ -367,6 +374,7 @@ func ReadArgs(args []string) {
       testdir := arg[7:]
       LogFilePath = testdir + "/go-susi.log"
       ServerConfigPath = testdir + "/server.conf"
+      ServersOUConfigPath = testdir + "/ou=servers.conf"
       ClientConfigPath = testdir + "/client.conf"
       JobDBPath = testdir + "/jobdb.xml"
       ServerDBPath = testdir + "/serverdb.xml"
@@ -620,6 +628,27 @@ func ReadConfig() {
   
   if strings.Index(PreferredServer,":") < 0 {
     PreferredServer += ServerListenAddress[strings.Index(ServerListenAddress,":"):]
+  }
+  
+  file, err := os.Open(ServersOUConfigPath)
+  if err != nil {
+    if os.IsNotExist(err) { 
+      /* File does not exist is not an error that needs to be reported */ 
+    } else {
+      util.Log(0, "ERROR! ReadConfig: %v", err)
+    }
+  } else {
+    defer file.Close()
+    input := bufio.NewReader(file)
+    for {
+      var line string
+      line, err = input.ReadString('\n')
+      if err != nil { break }
+      line = strings.TrimSpace(line)
+      if line != "" {
+        LDAPServerOUs = append(LDAPServerOUs, line)
+      }
+    }
   }
 }
 

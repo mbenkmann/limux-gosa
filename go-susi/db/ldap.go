@@ -85,7 +85,11 @@ func ldapSearch(query string, attr... string) *exec.Cmd {
 }
 
 func ldapSearchBase(base string, query string, attr... string) *exec.Cmd {
-  args := []string{"-x", "-LLL", "-H", config.LDAPURI, "-b", base}
+  return ldapSearchBaseScope(base, "sub", query, attr...)
+}
+
+func ldapSearchBaseScope(base string, scope string, query string, attr... string) *exec.Cmd {  
+  args := []string{"-x", "-LLL", "-H", config.LDAPURI, "-b", base, "-s", scope}
   if config.LDAPUser != "" { args = append(args,"-D",config.LDAPUser,"-y",config.LDAPUserPasswordFile) }
   args = append(args, query)
   args = append(args, attr...)

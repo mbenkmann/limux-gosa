@@ -70,6 +70,17 @@ function search($ldap, $base, $filter, $attrs, $minresults = 1, $maxresults = 99
     return $entries;
 }
 
+function searchonelevel($ldap, $base, $filter, $attrs, $minresults = 1, $maxresults = 999999)
+{
+    $results = ldap_list($ldap, $base, $filter, $attrs);
+    $results or ldapdie($ldap, "ldap_list()");
+    $entries = ldap_get_entries($ldap, $results);
+    $entries or ldapdie($ldap, "ldap_get_entries()");
+    $entries["count"] <= $maxresults or ldapdie($ldap, "More than $maxresults object(s) match \"$filter\"");
+    $entries["count"] >= $minresults or ldapdie($ldap, "Could not find $minresults object(s) matching \"$filter\"");
+    return $entries;
+}
+
 /**
  * function ldap_escape (http://stackoverflow.com/questions/8560874/php-ldap-add-function-to-escape-ldap-special-characters-in-dn-syntax)
  *

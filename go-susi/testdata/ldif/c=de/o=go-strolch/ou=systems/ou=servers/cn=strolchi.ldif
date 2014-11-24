@@ -1,0 +1,28 @@
+# AUTO-GENERATED FILE - DO NOT EDIT!! Use ldapmodify.
+# CRC32 b086a1c6
+dn: cn=strolchi
+objectClass: GOhard
+objectClass: FAIobject
+objectClass: FAIrepositoryServer
+objectClass: goServer
+objectClass: gosaAdministrativeUnitTag
+objectClass: top
+macAddress: 22:C3:d1:bC:11:22
+cn: strolchi
+gotoSysStatus: new-system
+ipHostNumber: 18.9.22.199
+gosaUnitTag: 99
+gotoSndModule: snd_hda_intel
+ghCpuType: GenuineIntel / Intel(R) Celeron(R) CPU E3300 @ 2.50GHz - 2500.000
+gotoMode: active
+description: Test
+l: Nowhere
+FAIstate: localboot
+FAIrepository: http://strolchi/liebtsusi|strolch|knochen/2.0|knackig,crunchy
+structuralObjectClass: GOhard
+entryUUID: 991a1d2c-080d-1034-8591-5f334303aae1
+creatorsName: cn=admin,o=go-susi,c=de
+createTimestamp: 20141124100836Z
+entryCSN: 20141124100836.017656Z#000000#000#000000
+modifiersName: cn=admin,o=go-susi,c=de
+modifyTimestamp: 20141124100836Z

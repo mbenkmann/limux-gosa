@@ -407,12 +407,7 @@ class servrepository extends goService
                     "plCategory"    => array("server"),
 
                     "plProperties" => array(
-                        array(
-                            "name"          => "repositoryBranchHook",
-                            "type"          => "command",
-                            "default"       => "",
-                            "description"   => _("Script to manage branching and freezing of FAI repositories. Please read the FAQ for details.")
-                        )),
+                        ),
 
                     "plProvidedAcls"=> array(
 #            "start"         => _("Service start"),  // Remove this to hide the start button at all.

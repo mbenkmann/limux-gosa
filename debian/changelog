@@ -1,3 +1,12 @@
+gosa (2.8.66) trusty; urgency=medium
+
+  * unified support for not-under-ldap-base repositories via ou=servers.conf
+  * GOsa: repositoryBranchHook removed (only worked for parent servers; other parts have never worked)
+  * GOsa: class_servRepositorySetup.inc queries gosa-si for consistency with class_workstationStartup.inc
+  * go-susi, ldap2fai: support for /etc/gosa/ou=servers.conf to add extra places to find repositories
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 24 Nov 2014 11:42:58 +0100
+
 gosa (2.8.65) trusty; urgency=medium
 
   * go-susi: manpage for generate_package_list

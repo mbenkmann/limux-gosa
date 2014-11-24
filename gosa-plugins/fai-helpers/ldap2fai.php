@@ -516,26 +516,37 @@ function delTree($dirPath)
 
 unset($config_space["deb"]);
 
-// Generate sources.list
+/////////////////// Generate sources.list ///////////////////////////
 
-// we specify multiple object classes to make it more likely we hit one that is indexed.
-$repo_server = search($ldap, $ldap_base_top, "(&(objectClass=GOhard)(objectClass=goServer)(objectClass=FAIrepositoryServer)(fairepository=*))", array("fairepository"), 0);
-$repopath2server2sections = array();
-for ($i = $repo_server['count']; $i > 0; $i --) {
-    $rs = $repo_server[$i - 1];
-    unset($rs["fairepository"]["count"]);
-    foreach ($rs["fairepository"] as $repoline) {
-        $repoparts = explode("|", $repoline);
-        if (count($repoparts) != 4)
-            continue;
-        $repopath = $repoparts[2];
-        if (!isset($repopath2server2sections[$repopath]))
-          $repopath2server2sections[$repopath] = array();
-        $repopath2server2sections[$repopath][rtrim($repoparts[0], '/')] = explode(",", $repoparts[3]);
-    }
+$extra_servers_ous = file("/etc/gosa/ou=servers.conf", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+if ($extra_servers_ous === FALSE) {
+    $extra_servers_ous = array();
 }
 
+$repopath2server2sections = array();
 
+$repo_server_results = array();
+// we specify multiple object classes to make it more likely we hit one that is indexed.
+$repo_server_results[] = search($ldap, $ldap_base_top, "(&(objectClass=GOhard)(objectClass=goServer)(objectClass=FAIrepositoryServer)(fairepository=*))", array("fairepository"), 0);
+foreach ($extra_servers_ous as $extra_servers_ou) {
+  $repo_server_results[] = searchonelevel($ldap, $extra_servers_ou, "(&(objectClass=GOhard)(objectClass=goServer)(objectClass=FAIrepositoryServer)(fairepository=*))", array("fairepository"), 0);
+}
+
+foreach ($repo_server_results as $repo_server) {
+    for ($i = $repo_server['count']; $i > 0; $i --) {
+        $rs = $repo_server[$i - 1];
+        unset($rs["fairepository"]["count"]);
+        foreach ($rs["fairepository"] as $repoline) {
+            $repoparts = explode("|", $repoline);
+            if (count($repoparts) != 4)
+                continue;
+            $repopath = $repoparts[2];
+            if (!isset($repopath2server2sections[$repopath]))
+              $repopath2server2sections[$repopath] = array();
+            $repopath2server2sections[$repopath][rtrim($repoparts[0], '/')] = explode(",", $repoparts[3]);
+        }
+    }
+}
 
 $sourceslist = "files/etc/apt/sources.list/LAST";
 $config_space[$sourceslist] = "";

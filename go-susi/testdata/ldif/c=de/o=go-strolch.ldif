@@ -1,0 +1,12 @@
+# AUTO-GENERATED FILE - DO NOT EDIT!! Use ldapmodify.
+# CRC32 09403b43
+dn: o=go-strolch
+o: go-strolch
+objectClass: organization
+structuralObjectClass: organization
+entryUUID: 9919af86-080d-1034-858e-5f334303aae1
+creatorsName: cn=admin,o=go-susi,c=de
+createTimestamp: 20141124100836Z
+entryCSN: 20141124100836.014845Z#000000#000#000000
+modifiersName: cn=admin,o=go-susi,c=de
+modifyTimestamp: 20141124100836Z

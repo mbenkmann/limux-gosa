@@ -1,0 +1,12 @@
+# AUTO-GENERATED FILE - DO NOT EDIT!! Use ldapmodify.
+# CRC32 0f76b6a3
+dn: ou=servers
+ou: servers
+objectClass: organizationalUnit
+structuralObjectClass: organizationalUnit
+entryUUID: 9919fa90-080d-1034-8590-5f334303aae1
+creatorsName: cn=admin,o=go-susi,c=de
+createTimestamp: 20141124100836Z
+entryCSN: 20141124100836.016767Z#000000#000#000000
+modifiersName: cn=admin,o=go-susi,c=de
+modifyTimestamp: 20141124100836Z

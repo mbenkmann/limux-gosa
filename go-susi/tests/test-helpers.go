@@ -416,6 +416,12 @@ dns-lookup = false
 address = `+addresses+`
 
 `), 0644)
+
+  extra_servers_ous := tempdir+"/ou=servers.conf" 
+  ioutil.WriteFile(extra_servers_ous, []byte(`
+ou=servers,ou=systems,o=go-strolch,c=de
+`), 0644)
+
   return fpath, tempdir
 }
 

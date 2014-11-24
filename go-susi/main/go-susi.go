@@ -157,6 +157,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
     setConfigUnitTag() // after config.ReadNetwork()
     config.FAIBase = db.LDAPFAIBase()
     util.Log(1, "INFO! FAI base: %v", config.FAIBase)
+    util.Log(1, "INFO! ou=servers.conf: %v", config.LDAPServerOUs)
     os.MkdirAll(path.Dir(config.JobDBPath), 0750)
     db.ServersInit() // after config.ReadNetwork()
     db.JobsInit() // after config.ReadConfig()

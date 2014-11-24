@@ -1,0 +1,31 @@
+dn: o=go-strolch,c=de
+o: go-strolch
+objectClass: organization
+
+dn: ou=systems,o=go-strolch,c=de
+ou: systems
+objectClass: organizationalUnit
+
+dn: ou=servers,ou=systems,o=go-strolch,c=de
+ou: servers
+objectClass: organizationalUnit
+
+dn: cn=strolchi,ou=servers,ou=systems,o=go-strolch,c=de
+objectClass: GOhard
+objectClass: FAIobject
+objectclass: FAIrepositoryServer
+objectclass: goServer
+objectclass: gosaAdministrativeUnitTag
+objectclass: top
+macAddress: 22:C3:d1:bC:11:22
+cn: strolchi
+gotoSysStatus: new-system
+ipHostNumber: 18.9.22.199
+gosaUnitTag: 99
+gotoSndModule: snd_hda_intel
+ghCpuType: GenuineIntel / Intel(R) Celeron(R) CPU E3300 @ 2.50GHz - 2500.000
+gotoMode: active
+description: Test
+l: Nowhere
+FAIstate: localboot
+fairepository: http://strolchi/liebtsusi|strolch|knochen/2.0|knackig,crunchy

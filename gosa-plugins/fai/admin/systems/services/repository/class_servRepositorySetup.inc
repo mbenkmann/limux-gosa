@@ -274,87 +274,45 @@ class servRepositorySetup  extends plugin
     function getParentServers()
     {
         $ret = array();
-        $ldap = $this->config->get_ldap_link();
-        $ldap->cd($this->config->current['BASE']);
-        $ldap->search("(objectClass=FAIrepositoryServer)",array("cn", "FAIrepository"), TRUE, TRUE);
-        while($attr = $ldap->fetch()){
-            $i = 0;
-            if($attr['cn'][0] == $this->cn || !isset($attr['FAIrepository'][0])) continue;
-            $ret[$attr['cn'][0]] = array($attr['cn'][0]);
-            while (isset($attr['FAIrepository'][$i])) {
-                list($url, $foo, $release, $sections) = explode("|", $attr['FAIrepository'][$i]);
-                $sections = explode(",", $sections);
-                $entry['cn'] = $attr['cn'][0];
-                $entry['release'] = $release;
-                $entry['sections'] = $sections;
-                array_push($ret[$attr['cn'][0]], $entry);
-                $i++;
+        $o_queue = new gosaSupportDaemon();
+        $servers = $o_queue->FAI_get_server();
+        if($o_queue->is_error()){
+            msg_dialog::display(_("Service infrastructure"),msgPool::siError($o_queue->get_error()),ERROR_DIALOG);
+        }else{
+
+            foreach($servers as $server){
+                // The old code used the cn here, but at this time go-susi
+                // does not include the cn in its reply, so we use the repository
+                // URL instead. I think this makes more sense anyway because the
+                // same server may host multiple repositories. Think for instance
+                // about a server that mirrors both Debian and Ubuntu. You would
+                // need to create 2 LDAP objects with different CNs for the same
+                // server. Using CN here is also consistent with the FAI-Repository
+                // selector in class_workstationStartup.inc
+                $url = $server['SERVER'];
+                
+                // We don't want a server to be its own parent, so filter out
+                // the repositories from this.
+                if(isset($this->attrs['FAIrepository'])){
+                  $i = 0;
+                  while (isset($this->attrs['FAIrepository'][$i])) {
+                    if (strpos($this->attrs['FAIrepository'][$i], $url) === 0)
+                      continue 2;
+                    $i++;
+                  }
+                }
+                
+                if (!isset($ret[$url])) $ret[$url] = array($url);
+                
+                $entry['cn'] = $url;
+                $entry['release'] = $server['REPOPATH'];
+                $entry['sections'] = $sections = explode(",", $server['SECTIONS']);
+                array_push($ret[$url], $entry);
             }
         }
         
-        /*
-        Mix in elements provided by hook. The hook provides names only. We search for these names from base c=de,
-        because the hook provided elements reside high up in the tree.
-        */
-        foreach($this->GetHookElements() as $servername) {
-            $ldap->cd("c=de");
-            $ldap->search("(&(objectClass=FAIrepositoryServer)(cn=$servername))",array("cn", "FAIrepository"));
-            while($attr = $ldap->fetch()){
-                $i = 0;
-                if($attr['cn'][0] == $this->cn || !isset($attr['FAIrepository'][0])) continue;
-                $ret[$attr['cn'][0]] = array($attr['cn'][0]);
-                while (isset($attr['FAIrepository'][$i])) {
-                    list($url, $foo, $release, $sections) = explode("|", $attr['FAIrepository'][$i]);
-                    $sections = explode(",", $sections);
-                    $entry['cn'] = $attr['cn'][0];
-                    $entry['release'] = $release;
-                    $entry['sections'] = $sections;
-                    array_push($ret[$attr['cn'][0]], $entry);
-                    $i++;
-                }
-            }
-        }
-
         $ret['none']= " ";
         asort($ret);
-        return($ret);
-    }
-
-    /* this funtions calls a defined hook 
-       and parses all additional serverdata 
-     */
-    function GetHookElements()
-    {
-        $ret = array();
-        
-        /*
-          Die Funktion config->search() ist deprecated und man sollte stattdessen get_cfg_value() verwenden.
-          ABER WENN MAN DIESE ANPASSUNG MACHT MUSS MAN TESTEN OB ES NOCH FUNKTIONIERT. Der folgende Befehl
-          funktioniert NICHT:
-            $cmd = $this->config->get_cfg_value("servrepository", "repositoryBranchHook");
-          Ich habe keine Ahnung warum, aber liefert immer einen leeren String zurück.
-        */
-        $cmd = $this->config->search("servrepository", "repositoryBranchHook",array('tabs'));
-        if(!empty($cmd)){
-            $res = shell_exec($cmd);
-            $res2 = trim($res);
-            if(!$res || empty($res2)){
-                msg_dialog::display(_("Error"), msgPool::cmdexecfailed("repositoryBranchHook", $cmd, _("Repository service")), ERROR_DIALOG);
-            }else{  
-                $tmp = preg_split("/\n/",$res);
-                foreach($tmp as $hook){
-                    /* skip empty */
-                    if(empty($hook)) continue;
-
-                    if(preg_match("/;/",$hook)){ 
-                        $hookinfo = explode(";",$hook);
-                        $ret[$hookinfo[0]] = $hookinfo[0];
-                    }else{
-                        $ret[$hook] = $hook;
-                    }
-                }
-            }
-        }
         return($ret);
     }
 

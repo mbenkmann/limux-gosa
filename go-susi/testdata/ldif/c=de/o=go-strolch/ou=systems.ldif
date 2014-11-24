@@ -1,0 +1,12 @@
+# AUTO-GENERATED FILE - DO NOT EDIT!! Use ldapmodify.
+# CRC32 fd2a5e42
+dn: ou=systems
+ou: systems
+objectClass: organizationalUnit
+structuralObjectClass: organizationalUnit
+entryUUID: 9919d90c-080d-1034-858f-5f334303aae1
+creatorsName: cn=admin,o=go-susi,c=de
+createTimestamp: 20141124100836Z
+entryCSN: 20141124100836.015910Z#000000#000#000000
+modifiersName: cn=admin,o=go-susi,c=de
+modifyTimestamp: 20141124100836Z

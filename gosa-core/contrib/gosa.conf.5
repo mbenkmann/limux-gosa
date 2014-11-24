@@ -1374,7 +1374,6 @@ repository.
 
 .nf
   <tab class="servrepository" 
-          repositoryBranchHook="/opt/dak/bin/get_extra_repos"
           postcreate="/opt/dak/bin/handle_repository '%lock_dn' '%lock_name' '%lock_type' />
 .fi
 
@@ -1384,11 +1383,6 @@ keeps the base DN of the source branch,
 the name of the new branch and
 .I %lock_type
 is either "freeze" or "branch".
-
-The
-.I repositoryBranchHook
-outputs additional releases, that are not retrieveable with the standard
-GOsa/FAI methods.
 
 If you have only one release, or want to define a default release to be shown
 by GOsa, define the

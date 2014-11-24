@@ -1260,37 +1260,7 @@ another location! */
               }
             }
 
-            /* Add object caught from external hook
-             */
-            $lines= $this->GetHookElements();
-            foreach ($lines as $hline){
-                $entries= explode(";", $hline);
-                $server = $entries['0'];
-                $url    = $entries['1'];
-                if (!empty($url)){
-
-                    /* Split releases */
-                    if (isset($entries[2])){
-                        $releases= explode(",", $entries[2]);
-
-                           foreach ($releases as $release_data){
-                            $release_c  = preg_replace('/:.*$/', '', $release_data);
-                            $sections_c = explode(':', preg_replace('/^[^:]+:([^|]+)|.*$/', '\1', $release_data));
-                            $classes_c  = explode('|', preg_replace('/^[^|]+\|(.*)$/', '\1', $release_data));
-
-                            if($release_c == $release){
-                                $this->cache['SERVERS'][$url][$release_c]=$release_c;
-                                $this->cache['SERVERS']['auto'][$release_c]=$release_c; 
-                                foreach ($classes_c as $class){
-                                    if ($class != ""){
-                                        $this->cache['CLASSES'][$release_c][$class]= array();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            
             uksort($this->cache['SERVERS'], 'strnatcasecmp');
 
             /* Only add inherit option, if we are part in an object group
@@ -1420,32 +1390,6 @@ another location! */
         }
         return($tmp);
     }
-
-
-    /* Return repository hook output, if possible.
-     */
-    function GetHookElements()
-    {
-        $ret = array();
-        $cmd= $this->config->get_cfg_value("servrepository", "repositoryBranchHook");
-        if(!empty($cmd)){
-            $res = shell_exec($cmd);
-            $res2 = trim($res);
-            if((!$res)){
-                msg_dialog::display(_("Configuration error"), msgPool::cmdexecfailed("repositoryBranchHook", $cmd), ERROR_DIALOG);
-            }elseif(empty($res2)){
-                msg_dialog::display(_("Configuration error"), _("'repositoryBranchHook' returned no result!"), ERROR_DIALOG);
-            }else{
-                $tmp = preg_split("/\n/",$res);
-                foreach($tmp as $line){
-                    if(empty($line)) continue;
-                    $ret[]= $line;
-                }
-            }
-        }
-        return($ret);
-    }
-
 
     /* This function creates the release name out of a dn 
      *  e.g. "ou=1.0rc2,ou=siga,ou=fai,..." => "siga/1.0rc2"

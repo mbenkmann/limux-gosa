@@ -1079,9 +1079,19 @@ func run_fai_query_tests() {
     a := answers.First("answer")
     
     if check(checkTags(a,"timestamp,repopath,fai_release,tag,server,sections"),"") {
+      check(a.Text("fai_release"),"knochen/2.0")
+      check(a.Text("tag"),"99")
+      check(a.Text("server"),"http://strolchi/liebtsusi")
+      check(a.Text("repopath"),"knochen/2.0")
+      check(a.Text("sections"),"knackig,crunchy")
+      a = a.Next()
+    }
+    
+    if check(checkTags(a,"timestamp,repopath,fai_release,tag,server,sections"),"") {
       check(a.Text("fai_release"),"plophos/4.1.0")
       check(a.Text("tag"),"7")
       check(a.Text("server"),"http://www.mit.edu/repo")
+      check(a.Text("repopath"),"plophos/4.1.0")
       check(a.Text("sections"),"main,restricted,universe,multiverse")
       a = a.Next()
     }
@@ -1090,6 +1100,7 @@ func run_fai_query_tests() {
       check(a.Text("fai_release"),"plophos")
       check(a.Text("tag"),"99")
       check(a.Text("server"),"http://www.mit.edu/repo2")
+      check(a.Text("repopath"),"plophos")
       check(a.Text("sections"),"dusch,gel")
       a = a.Next()
     }
@@ -1098,6 +1109,7 @@ func run_fai_query_tests() {
       check(a.Text("fai_release"),"tramp/5.0.0")
       check(a.Text("tag"),"99")
       check(a.Text("server"),"http://www.mit.edu/repo3")
+      check(a.Text("repopath"),"tramp/5.0.0")
       check(a.Text("sections"),"cool,super,geil")
       a = a.Next()
     }

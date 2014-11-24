@@ -66,12 +66,24 @@ var mapRepoPath2FAIrelease_mutex sync.Mutex
 // See operator's manual, description of message gosa_query_fai_server for
 // the meanings of the individual elements.
 func FAIServers() *xml.Hash {
+  ldapSearchResults := []*xml.Hash{}
+  
   // NOTE: We do NOT add config.UnitTagFilter here because the results are individually
   // tagged within the reply.
   x, err := xml.LdifToHash("repository", true, ldapSearch("(&(FAIrepository=*)(objectClass=FAIrepositoryServer))","FAIrepository","gosaUnitTag"))
   if err != nil { 
     util.Log(0, "ERROR! LDAP error while looking for FAIrepositoryServer objects: %v", err)
-    return xml.NewHash("faidb")
+  } else {
+    ldapSearchResults = append(ldapSearchResults, x)
+  }
+  
+  for _, ou := range config.LDAPServerOUs {
+    x, err := xml.LdifToHash("repository", true, ldapSearchBaseScope(ou, "one", "(&(FAIrepository=*)(objectClass=FAIrepositoryServer))","FAIrepository","gosaUnitTag"))
+    if err != nil { 
+      util.Log(0, "ERROR! LDAP error while looking for FAIrepositoryServer objects in %v: %v", ou, err)
+    } else {
+      ldapSearchResults = append(ldapSearchResults, x)
+    } 
   }
 
   result := xml.NewHash("faidb")
@@ -80,28 +92,30 @@ func FAIServers() *xml.Hash {
   mapRepoPath2FAIrelease_mutex.Lock()
   defer mapRepoPath2FAIrelease_mutex.Unlock()
   
-  for repo := x.First("repository"); repo != nil; repo = repo.Next() {
-    tag := repo.Text("gosaunittag")
-    
-    // http://vts-susi.example.de/repo|parent-repo.example.de|plophos/4.1.0|main,restricted,universe,multiverse
-    for _, fairepo := range repo.Get("fairepository") {
-      repodat := strings.Split(fairepo,"|")
-      if len(repodat) != 4 {
-        util.Log(0, "ERROR! Cannot parse FAIrepository=%v", fairepo)
-        continue
-      }
+  for _, x := range ldapSearchResults {
+    for repo := x.First("repository"); repo != nil; repo = repo.Next() {
+      tag := repo.Text("gosaunittag")
       
-      repository := xml.NewHash("repository", "timestamp", timestamp)
-      repository.Add("repopath", repodat[2])
-      if fairelease,ok := mapRepoPath2FAIrelease[repodat[2]]; ok {
-        repository.Add("fai_release", fairelease)
-      } else {
-        repository.Add("fai_release", repodat[2])
-      }  
-      if tag != "" { repository.Add("tag", tag) }
-      repository.Add("server",repodat[0])
-      repository.Add("sections",repodat[3])
-      result.AddWithOwnership(repository)
+      // http://vts-susi.example.de/repo|parent-repo.example.de|plophos/4.1.0|main,restricted,universe,multiverse
+      for _, fairepo := range repo.Get("fairepository") {
+        repodat := strings.Split(fairepo,"|")
+        if len(repodat) != 4 {
+          util.Log(0, "ERROR! Cannot parse FAIrepository=%v", fairepo)
+          continue
+        }
+        
+        repository := xml.NewHash("repository", "timestamp", timestamp)
+        repository.Add("repopath", repodat[2])
+        if fairelease,ok := mapRepoPath2FAIrelease[repodat[2]]; ok {
+          repository.Add("fai_release", fairelease)
+        } else {
+          repository.Add("fai_release", repodat[2])
+        }  
+        if tag != "" { repository.Add("tag", tag) }
+        repository.Add("server",repodat[0])
+        repository.Add("sections",repodat[3])
+        result.AddWithOwnership(repository)
+      }
     }
   }
   
