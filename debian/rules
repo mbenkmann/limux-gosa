@@ -14,10 +14,6 @@ override_dh_auto_install:
 	mkdir -p rsyslog/contrib
 	dh_auto_install
 
-override_dh_compress:
-	dh_compress
-	gzip -d debian/gosa/usr/share/doc/gosa/gosa.conf.gz
-
 override_dh_auto_clean:
 	find -maxdepth 1 -type l -exec rm {} \;
 	make -C go-susi almostclean

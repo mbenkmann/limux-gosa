@@ -1,3 +1,9 @@
+gosa (2.8.67) trusty; urgency=medium
+
+  * remove override_dh_compress
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 24 Nov 2014 16:19:37 +0100
+
 gosa (2.8.66) trusty; urgency=medium
 
   * unified support for not-under-ldap-base repositories via ou=servers.conf
