@@ -1254,12 +1254,13 @@ another location! */
             /*
             Add pseudo-classes for additional repositories
             */
-            foreach ($this->cache['REPOPATHS'][$release] as $repopath) {
-              if ($release != $repopath) {
-                $this->cache['CLASSES'][$release]["+".$repopath] = array(array('Type' => 'Repository', 'Abbr' => 'Repo'));
-              }
+            if (isset($this->cache['REPOPATHS'][$release])) {
+                foreach ($this->cache['REPOPATHS'][$release] as $repopath) {
+                    if ($release != $repopath) {
+                        $this->cache['CLASSES'][$release]["+".$repopath] = array(array('Type' => 'Repository', 'Abbr' => 'Repo'));
+                    }
+                }
             }
-
             
             uksort($this->cache['SERVERS'], 'strnatcasecmp');
 
