@@ -559,9 +559,7 @@ class DaemonEvent
             unset($ret['timestamp']);
         }
 
-        if(isset($ret['periodic'])){
-            unset($ret['periodic']);
-        }
+        $ret['periodic'] = 'none';
         if($this->activate_periodical_job){
             $ret['periodic']= $this->periodValue."_".$this->periodType;
         }

@@ -1,3 +1,9 @@
+gosa (2.8.69) trusty; urgency=medium
+
+  * Bugfix LHM #11000: fix editing of periodic jobs (periodic could not be disabled)
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 25 Nov 2014 10:54:46 +0100
+
 gosa (2.8.68) trusty; urgency=medium
 
   * /usr/share/doc is for informative files for human consumption; don't use it for important files that change runtime behaviour
