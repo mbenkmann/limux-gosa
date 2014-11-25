@@ -35,8 +35,8 @@ Package: gosa-si
 Architecture: any
 Depends: ${misc:Depends}, ldap-utils
 Suggests: tidy
-Conflicts: gosa-si-server, gosa-si-client, gosa-si-common, go-susi
-Replaces: gosa-si-server, gosa-si-client, gosa-si-common, go-susi
+Conflicts: gosa-si-server, gosa-si-client, gosa-si-common, go-susi (<< 9)
+Replaces: gosa-si-server, gosa-si-client, gosa-si-common, go-susi (<< 9)
 Provides: gosa-si-server, gosa-si-client, gosa-si-common, go-susi
 Description: GOsa² support infrastructure daemon (client and server)
  This package contains the support infrastructure daemon that handles
