@@ -10,19 +10,6 @@ class filterSYSTEMS {
         // Check whether the arp handling active or not
         $arp_handling_active = $config->pluginEnabled("ArpNewDevice");
 
-        // Get object group membership and FAIclass inheritance info
-        $array_ogroups = array();
-        $ldap = $config->get_ldap_link();
-        $ldap->cd($config->current['BASE']);
-        $ldap->search("(&(objectClass=gosaGroupOfNames)(FAIclass=*)(member=*))",array('member','cn', 'FAIclass'));
-        while ($attrs = $ldap->fetch()) {
-            unset($attrs['member']['count']);
-            foreach($attrs['member'] as $member) {
-                $array_ogroups[$member]['cn'] = $attrs['cn'][0];
-                $array_ogroups[$member]['FAIclass'] = $attrs['FAIclass'][0];
-            }
-        }
-
         $entries = filterLDAP::query($base, $scope, $filter, $attributes, $category, $objectStorage);
 
 
@@ -112,15 +99,18 @@ class filterSYSTEMS {
             }
 
             // Get object group membership and FAIclass inheritance info
+            $ldap = $config->get_ldap_link();
+            $ldap->cd($config->current['BASE']);
             $dn = $entries[$key]['dn'];
+            $ldap->search("(&(objectClass=gosaGroupOfNames)(FAIclass=*)(member=".LDAP::prepare4filter($dn)."))",array('cn', 'FAIclass'));
+
             $ogroup = "";
             $class = "";
-
-            if(array_key_exists($dn,$array_ogroups)){
-                if (isset($array_ogroups[$dn]['FAIclass'])) {
-                    $class = $array_ogroups[$dn]['FAIclass'];
+            if($attrs = $ldap->fetch()){
+                if (isset($attrs['FAIclass'])) {
+                    $class = $attrs['FAIclass'][0];
                 }
-                $ogroup = $array_ogroups[$dn]['cn'];
+                $ogroup = $attrs['cn'][0];
             }
 
             // Add ogroup and ogroup_FAIclass in any case, even if its empty
