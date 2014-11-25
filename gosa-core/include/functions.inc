@@ -44,7 +44,7 @@ if(!isset($_SERVER['CONFIG_FILE'])){
 }
 
 /* Define common locatitions */
-define ("CONFIG_TEMPLATE_DIR", "/usr/share/doc/gosa");
+define ("CONFIG_TEMPLATE_DIR", "/usr/share/gosa/setup");
 define ("TEMP_DIR","/var/cache/gosa/tmp");
 
 /* Define get_list flags */
