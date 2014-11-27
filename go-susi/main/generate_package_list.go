@@ -754,6 +754,10 @@ func process_releases_files() (ok bool) {
       } else {
         match := parse_release_file.FindStringSubmatch(line)
         if match != nil {
+          if codename == "" {
+            fmt.Fprintf(os.Stderr, "SKIPPED %v/dists/%v/Release because it contains no Codename\n", todo.Repo, todo.Repopath)
+            break
+          }
           if todo.Components[match[2]] && Architectures[match[3]] {
             uri := todo.Repo+"/dists/"+todo.Repopath+"/"+match[1]
             if !have_uri[uri] {
@@ -764,6 +768,8 @@ func process_releases_files() (ok bool) {
         }
       }
     }
+    
+    if codename == "" { continue }
     
     versioncode = codename+"/"+version
     var release string
@@ -1246,31 +1252,39 @@ func read_lines_from_uri(line1 string, uri string, c chan []string) {
   lines := []string{line1}
   defer func(){ c<-lines }()
   
-  resp, err = Client[0].Get(uri)
-  if err != nil {
-    fmt.Fprintf(os.Stderr, "%v: %v\n", uri, err)
-    return
-  }
-  
-  defer resp.Body.Close()
- 
-  if resp.StatusCode != 200 {
-    fmt.Fprintf(os.Stderr, "%v: %v\n", uri, resp.Status)
-    return
-  }
-  
-  input := bufio.NewReader(resp.Body)
+  tries := 2
   for {
-    var line string
-    line, err = input.ReadString('\n')
-    if err != nil { 
-      if err == io.EOF { break }
+    resp, err = Client[0].Get(uri)
+    if err != nil {
       fmt.Fprintf(os.Stderr, "%v: %v\n", uri, err)
       return
     }
-    lines = append(lines, strings.TrimSpace(line))
+    
+    defer resp.Body.Close()
+   
+    if resp.StatusCode != 200 {
+      fmt.Fprintf(os.Stderr, "%v: %v\n", uri, resp.Status)
+      return
+    }
+    
+    input := bufio.NewReader(resp.Body)
+    for {
+      var line string
+      line, err = input.ReadString('\n')
+      if err != nil { 
+        if err == io.EOF { goto done }
+        if tries--; tries == 0 {
+          fmt.Fprintf(os.Stderr, "%v: %v\n", uri, err)
+          return
+        }
+        lines = lines[0:0]
+        resp.Body.Close()
+        break
+      }
+      lines = append(lines, strings.TrimSpace(line))
+    }
   }
-  
+done:  
   if Verbose > 0 {
     fmt.Fprintf(os.Stderr, "OK %v\n", uri)
   }
@@ -1292,7 +1306,7 @@ requests to "Packages" to "Packages.bz2".
 
 If an error occurs, nil is sent to the channel.
 */
-var extensions_to_try = []string{".gz", ".bz2", ""}
+var extensions_to_try = []string{".gz", /*retry=>*/ ".gz", ".bz2", ".bz2", "", ""} 
 func fetch_uri(uri string, c chan *TaggedBlob) {
   var err error
   var resp *http.Response
@@ -1301,7 +1315,7 @@ func fetch_uri(uri string, c chan *TaggedBlob) {
   var tb *TaggedBlob = nil
   defer func() { c <- tb }()
   
-  for _, extension := range extensions_to_try {
+  for ext_i, extension := range extensions_to_try {
     resp, err = Client[0].Get(uri+extension)
     
     if err != nil {
@@ -1353,7 +1367,11 @@ func fetch_uri(uri string, c chan *TaggedBlob) {
         } else {
           tb.Payload.Reset()
           tb = nil
-          fmt.Fprintf(os.Stderr, "%v: %v\n", uri+extension, err)
+          // We only print out the error if we reached the final retry of the
+          // current extension to try
+          if ext_i == len(extensions_to_try)-1 || extensions_to_try[ext_i] != extensions_to_try[ext_i+1] {
+            fmt.Fprintf(os.Stderr, "%v: %v\n", uri+extension, err)
+          }
         }
       }
     }

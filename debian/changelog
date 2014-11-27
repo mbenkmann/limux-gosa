@@ -1,3 +1,9 @@
+gosa (2.8.79) trusty; urgency=medium
+
+  * go-susi: generate_package_list: make program more reliable when faced with bad repositories
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 27 Nov 2014 17:59:31 +0100
+
 gosa (2.8.78) trusty; urgency=medium
 
   * go-susi: generate_package_list: fix broken messages
