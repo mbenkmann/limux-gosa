@@ -1,3 +1,9 @@
+gosa (2.8.75) trusty; urgency=medium
+
+  * go-susi: make log output of pkg-list-hook error actually readable
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 27 Nov 2014 11:30:46 +0100
+
 gosa (2.8.74) trusty; urgency=medium
 
   * go-susi: include package-list-hook stderr output in log message if exit status != 0
