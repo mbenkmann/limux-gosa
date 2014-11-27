@@ -169,16 +169,15 @@ func PackageListHook(debconf string) {
   cmd.Stdout = &outbuf
   cmd.Stderr = &errbuf
   err := cmd.Run()
-  errstr := errbuf.String()
   
   if err != nil {
-    util.Log(0, "ERROR! package-list-hook %v: %v", config.PackageListHookPath, err)
+    util.Log(0, "ERROR! package-list-hook %v: %v (%s)", config.PackageListHookPath, err, errbuf.Bytes())
     return
-  } else if errstr != "" {
+  } else if errbuf.Len() != 0 {
     // if the command prints to stderr but does not return non-0 exit status (which
     // would result in err != nil), we just log a WARNING, but use the stdout data
     // anyway.
-    util.Log(0, "WARNING! package-list-hook %v: %v", config.PackageListHookPath, errstr)
+    util.Log(0, "WARNING! package-list-hook %v: %s", config.PackageListHookPath, errbuf.Bytes())
   }
       
   plist, err := xml.LdifToHash("pkg", true, outbuf.Bytes(), packageListFormat...)
