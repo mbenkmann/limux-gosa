@@ -893,7 +893,12 @@ func readcache(templatesonly bool) {
     sz := int(fi.Size()) + os.Getpagesize()-1
     sz -= sz % os.Getpagesize()
     fd := cache.Fd()
-    mmap, err := syscall.Mmap(int(fd), 0, sz, syscall.PROT_READ, syscall.MAP_PRIVATE)
+    var mmap []byte
+    if sz == 0 {
+      err = fmt.Errorf("empty file")
+    } else {
+      mmap, err = syscall.Mmap(int(fd), 0, sz, syscall.PROT_READ, syscall.MAP_PRIVATE)
+    }
     if err == nil {
       pkg = NewMMapMergeSource(cache, mmap, int(fi.Size()))
     }
@@ -901,7 +906,7 @@ func readcache(templatesonly bool) {
 
   if err != nil {
     defer cache.Close()
-    fmt.Fprintf(os.Stderr, "Could not mmap (%v) ==> Falling back to normal read", err)
+    fmt.Fprintf(os.Stderr, "Could not mmap %v (%v) ==> Falling back to normal read\n", cachepath, err)
     pkgfile := &PackageList{}
     err = pkgfile.AppendRaw(cache)
     if err != nil {

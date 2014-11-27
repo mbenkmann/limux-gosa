@@ -1,3 +1,9 @@
+gosa (2.8.76) trusty; urgency=medium
+
+  * go-susi: generate_package_list: do not crash if cache file is empty
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 27 Nov 2014 13:02:50 +0100
+
 gosa (2.8.75) trusty; urgency=medium
 
   * go-susi: make log output of pkg-list-hook error actually readable
