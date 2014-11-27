@@ -215,7 +215,19 @@ func handleJobDBRequests() {
                hour, min, _ = time.Now().Clock()
                minutes_since_midnight := hour*60+min
                
-               if minutes_since_midnight > next_groom_minutes_since_midnight+3 {
+               // If everything is normal, groomlag should be 0. A negative number
+               // can only happend if the clock changes because (unless there's a bug)
+               // groom_ticker will never fire too early.
+               // The number 1 is possible in the pathological case
+               // that the timer fires just before the minute wraps around and in
+               // the few milliseconds delay between the timer firing and us reading
+               // the clock the minute wraps around.
+               groomlag := minutes_since_midnight - next_groom_minutes_since_midnight
+               // normalize groomlag to be in the range (-12*60,12*60]
+               if groomlag <= -12*60 { groomlag += 24*60 } 
+               if groomlag > 12*60 { groomlag -= 24*60 }
+               
+               if groomlag > 3 { // we accept 3 minutes lag as normal (extremely high server load)
                  // Do not groom jobDB after a clock jump forward because groomJobDB()
                  // would assume that jobs have not started correctly even though they
                  // haven't got their chance yet and will probably start up in the next
@@ -243,7 +255,7 @@ func handleJobDBRequests() {
                  // previous comments)
                  backwardsjump = false
                  
-               } else if minutes_since_midnight < next_groom_minutes_since_midnight-3 {
+               } else if groomlag < -3 { // we accept groom_ticker to fire up to 3 minutes early (clock adjustment for drift)
                  util.Log(1, "INFO! Grooming jobdb SKIPPED because of clock jump BACKWARDS")
                  
                  // We keep next_groom_minutes_since_midnight at its current value

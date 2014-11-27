@@ -1,3 +1,9 @@
+gosa (2.8.73) trusty; urgency=medium
+
+  * go-susi: bugfix: 00:01 is the same as 24:01
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 27 Nov 2014 10:10:17 +0100
+
 gosa (2.8.72) trusty; urgency=medium
 
   * fix PHP error if new GOsa is used with old go-susi
