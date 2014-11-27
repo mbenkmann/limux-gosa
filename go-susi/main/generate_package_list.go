@@ -17,6 +17,7 @@ package main
 
 import (
          "io"
+         "io/ioutil"
          "os"
          "os/exec"
          "fmt"
@@ -62,6 +63,7 @@ var parse_release_file = regexp.MustCompile("^[0-9a-f]+\\s+[0-9]+ (([a-z]+)/bina
 var Architectures = map[string]bool{"all":true, "i386":true, "amd64":true}
 
 var CacheName = "generate_package_list.cache"
+var CacheMetaName = "generate_package_list.meta"
 var CacheDir = "/tmp"
 
 //var FAIrepository = "http://de.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted,universe,multiverse http://dk.archive.ubuntu.com/ubuntu/|ignored|trusty-updates|main,restricted,universe,multiverse http://nl.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted,universe,multiverse"
@@ -90,6 +92,13 @@ var Release2Repopaths = map[string][]string{}
 
 // Maps a repository path to the release id. Compare Release2Repopaths above.
 var Repopath2Release = map[string]string{}
+
+// Maps repo+","+repopath to true for every repo/repopath combination whose packages
+// are contained in the cache file to be read by readcache().
+var HaveCache = map[string]bool{}
+
+// Like HaveCache but for the cache file that will be written by writecache().
+var WillHaveCache = map[string]bool{}
 
 // List of URIs of Packages files (without the actual "/Packages[.gz|.bz2]" at the end)
 var PackagesURIs = []string{}
@@ -576,12 +585,20 @@ func main() {
   rand.Seed(316888245464693718)
   readenv()
   initclient()
+  readmeta()
   noerrors := process_releases_files()
   noerrors = noerrors && process_packages_files()
   // If noerrors, we only use the template data from cache.
   // Otherwise we also use the cache to provide missing packages.
   readcache(noerrors)
+  if !noerrors {
+    for reporepopath := range HaveCache {
+      WillHaveCache[reporepopath] = true
+    }
+  }
+  
   debconf_scan()
+  writemeta()
   writecache()
   printldif()
 }
@@ -687,8 +704,20 @@ func process_releases_files() (ok bool) {
       case release_lines := <- c:  
                        reporepopath := release_lines[0]
                        if len(release_lines) == 1 {
-                         fmt.Fprintf(os.Stderr, "Error reading %v/dists/%v/Release => Some data will be filled in from cache!\n", reporepopath2release_todo[reporepopath].Repo, reporepopath2release_todo[reporepopath].Repopath)
-                         ok = false
+                         fmt.Fprintf(os.Stderr, "Error reading %v/dists/%v/Release")
+                         if HaveCache[reporepopath] {
+                           fmt.Fprintf(os.Stderr, " => Some data will be filled in from cache!", reporepopath2release_todo[reporepopath].Repo, reporepopath2release_todo[reporepopath].Repopath)
+                           // We only set ok=false if have_cache[...]. Otherwise a
+                           // repository entry in LDAP that doesn't work anymore
+                           // would permanently prevent old package data from
+                           // being purged fromt the cache.
+                           // Another way to put it: If it hasn't worked last time
+                           // then it's ok if it doesn't work this time.
+                           ok = false
+                         }
+                         fmt.Fprintln(os.Stderr)
+                       } else {
+                         WillHaveCache[reporepopath] = true
                        }
                        reporepopath2release_todo[reporepopath].ReleaseFile = release_lines[1:]
                        if count--; count == 0 { 
@@ -871,6 +900,27 @@ func process_packages_files() (ok bool) {
 }
 
 
+func readmeta() {
+  metapath := filepath.Join(CacheDir,CacheMetaName)
+  meta, err := os.Open(metapath)
+  if err != nil{
+    if !os.IsNotExist(err.(*os.PathError).Err) {
+      fmt.Fprintln(os.Stderr, err)
+    }
+    return
+  }
+  defer meta.Close()
+  
+  metadata, err := ioutil.ReadAll(meta)
+  for _, line := range strings.Split(string(metadata),"\n") {
+    line = strings.TrimSpace(line)
+    if line == "" { continue }
+    HaveCache[line] = true
+  }
+}
+
+
+
 func readcache(templatesonly bool) {
   if MasterPackageList == nil {
     MasterPackageList = &PackageList{}
@@ -895,10 +945,10 @@ func readcache(templatesonly bool) {
     fd := cache.Fd()
     var mmap []byte
     if sz == 0 {
-      err = fmt.Errorf("empty file")
-    } else {
-      mmap, err = syscall.Mmap(int(fd), 0, sz, syscall.PROT_READ, syscall.MAP_PRIVATE)
+      cache.Close()
+      return
     }
+    mmap, err = syscall.Mmap(int(fd), 0, sz, syscall.PROT_READ, syscall.MAP_PRIVATE)
     if err == nil {
       pkg = NewMMapMergeSource(cache, mmap, int(fi.Size()))
     }
@@ -1095,6 +1145,19 @@ func extract_templates(uri string) []byte {
   }
 
   return templates64
+}
+
+func writemeta() {
+  meta, err := os.Create(filepath.Join(CacheDir,CacheMetaName))
+  if err != nil{
+    fmt.Fprintln(os.Stderr, err)
+    return
+  }
+  defer meta.Close()
+  
+  for line := range WillHaveCache {
+    fmt.Fprintln(meta, line)
+  }
 }
 
 func writecache() {
