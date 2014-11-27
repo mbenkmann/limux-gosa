@@ -1,3 +1,9 @@
+gosa (2.8.80) trusty; urgency=medium
+
+  * go-susi: generate_package_list: do not output error if Release file is empty
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 27 Nov 2014 18:31:08 +0100
+
 gosa (2.8.79) trusty; urgency=medium
 
   * go-susi: generate_package_list: make program more reliable when faced with bad repositories

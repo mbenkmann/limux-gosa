@@ -735,10 +735,15 @@ func process_releases_files() (ok bool) {
   have_uri := map[string]bool{}
   
   for reporepopath, todo := range reporepopath2release_todo {
+    if len(todo.ReleaseFile) == 1 && todo.ReleaseFile[0] == "empty" {
+      continue
+    }
+    
     versioncode := ""
     debian_special_case := strings.Contains(reporepopath, "debian")
     codename := ""
     version := ""
+    
     for _, line := range todo.ReleaseFile {
       if strings.HasPrefix(line, "Codename: ") {
         codename = line[10:]
@@ -1246,6 +1251,7 @@ Description:: %s
 // writes the resulting []string slice to channel c, with line1 inserted
 // before the first line from the uri.
 // If an error occurs, only []string{line1} is written to c.
+// If the file is empty, []string{line1,"empty"} is written to c.
 func read_lines_from_uri(line1 string, uri string, c chan []string) {
   var err error
   var resp *http.Response
@@ -1284,10 +1290,20 @@ func read_lines_from_uri(line1 string, uri string, c chan []string) {
       lines = append(lines, strings.TrimSpace(line))
     }
   }
+
 done:  
   if Verbose > 0 {
-    fmt.Fprintf(os.Stderr, "OK %v\n", uri)
+    if len(lines) == 1 {
+      fmt.Fprintf(os.Stderr, "EMPTY %v\n", uri)
+    } else {
+      fmt.Fprintf(os.Stderr, "OK %v\n", uri)
+    }
   }
+  
+  if len(lines) == 1 { 
+    lines = append(lines, "empty")
+  }
+  
 }  
 
 /*
