@@ -31,6 +31,7 @@ import (
          "bufio"
          "regexp"
          "strings"
+         "strconv"
          "compress/gzip"
          "compress/bzip2"
          "path/filepath"
@@ -92,6 +93,15 @@ var Release2Repopaths = map[string][]string{}
 
 // Maps a repository path to the release id. Compare Release2Repopaths above.
 var Repopath2Release = map[string]string{}
+
+// Maps each repopath to a unique index >= 0. This map only contains mappings
+// for repopaths encountered during this program run, not those from the cache.
+var Repopath2Index = map[string]int{}
+
+// Maps each repopath to a unique index >= 0. Contains all mappings from
+// Repopath2Index plus any additional mappings for repopaths from the cache
+// that are not part of the current program run.
+var Repopath2IndexWithCache = map[string]int{}
 
 // Maps repo+","+repopath to true for every repo/repopath combination whose packages
 // are contained in the cache file to be read by readcache().
@@ -595,6 +605,7 @@ func main() {
     for reporepopath := range HaveCache {
       WillHaveCache[reporepopath] = true
     }
+    Repopath2Index = Repopath2IndexWithCache
   }
   
   debconf_scan()
@@ -792,6 +803,17 @@ func process_releases_files() (ok bool) {
     }
     Release2Repopaths[release] = append(Release2Repopaths[release], todo.Repopath)
     Repopath2Release[todo.Repopath] = release
+    if index, have := Repopath2IndexWithCache[todo.Repopath]; have {
+      // use same index as in cache
+      Repopath2Index[todo.Repopath] = index
+    } else {
+      indexes := map[int]bool{}
+      for _, i := range Repopath2IndexWithCache { indexes[i] = true }
+      index := 0
+      for indexes[index] { index++ }
+      Repopath2Index[todo.Repopath] = index
+      Repopath2IndexWithCache[todo.Repopath] = index
+    }
   }
   
   if Verbose > 1 {
@@ -915,7 +937,10 @@ func readmeta() {
   metapath := filepath.Join(CacheDir,CacheMetaName)
   meta, err := os.Open(metapath)
   if err != nil{
-    if !os.IsNotExist(err.(*os.PathError).Err) {
+    if os.IsNotExist(err.(*os.PathError).Err) {
+      // Make sure we don't read a cache without the metadata
+      os.Remove(filepath.Join(CacheDir,CacheName))
+    } else {
       fmt.Fprintln(os.Stderr, err)
     }
     return
@@ -926,7 +951,17 @@ func readmeta() {
   for _, line := range strings.Split(string(metadata),"\n") {
     line = strings.TrimSpace(line)
     if line == "" { continue }
-    HaveCache[line] = true
+    f := strings.Fields(line)
+    if len(f) == 1 {
+      HaveCache[line] = true
+    } else {
+      i, err := strconv.Atoi(f[0])
+      if err != nil {
+        fmt.Fprintf(os.Stderr, "%v is corrupt: %v", metapath, err)
+        os.Exit(1) // this is fatal because we can't continue with crap data
+      }
+      Repopath2IndexWithCache[f[1]] = i
+    }
   }
 }
 
@@ -1168,6 +1203,10 @@ func writemeta() {
   
   for line := range WillHaveCache {
     fmt.Fprintln(meta, line)
+  }
+  
+  for r,i := range Repopath2Index {
+    fmt.Fprintf(meta, "%d %s\n", i, r)
   }
 }
 
