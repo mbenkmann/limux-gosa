@@ -704,9 +704,9 @@ func process_releases_files() (ok bool) {
       case release_lines := <- c:  
                        reporepopath := release_lines[0]
                        if len(release_lines) == 1 {
-                         fmt.Fprintf(os.Stderr, "Error reading %v/dists/%v/Release")
+                         fmt.Fprintf(os.Stderr, "Error reading %v/dists/%v/Release", reporepopath2release_todo[reporepopath].Repo, reporepopath2release_todo[reporepopath].Repopath)
                          if HaveCache[reporepopath] {
-                           fmt.Fprintf(os.Stderr, " => Some data will be filled in from cache!", reporepopath2release_todo[reporepopath].Repo, reporepopath2release_todo[reporepopath].Repopath)
+                           fmt.Fprintf(os.Stderr, " => Some data will be filled in from cache!")
                            // We only set ok=false if have_cache[...]. Otherwise a
                            // repository entry in LDAP that doesn't work anymore
                            // would permanently prevent old package data from
