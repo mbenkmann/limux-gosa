@@ -1,3 +1,9 @@
+gosa (2.8.82) trusty; urgency=medium
+
+  * go-susi: generate_package_list: simpler and better heuristic for determining release id from repopath
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 28 Nov 2014 12:35:13 +0100
+
 gosa (2.8.81) trusty; urgency=medium
 
   * go-susi: generate_package_list: add metadata in preparation for cache optimization

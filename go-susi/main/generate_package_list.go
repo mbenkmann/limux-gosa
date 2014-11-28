@@ -60,6 +60,15 @@ const TEMPLATES_MAX_SIZE = 1000000
 // 0c8a5062dee022b56afc2fca683f0748           959037 main/binary-amd64/Packages
 var parse_release_file = regexp.MustCompile("^[0-9a-f]+\\s+[0-9]+ (([a-z]+)/binary-([a-z0-9]+))/Packages([.bzg2]*)")
 
+// A repository path (i.e. the path relative to dists/ of a directory containing
+// a Release file) is converted to a release id
+// by removing all substrings that start with a "-" or a "/" followed by a letter
+// optionally followed by more letters and/or digits.
+// E.g. "trusty-backports" => "trusty"
+//      "jessie/updates"   => "jessie"
+//      "tramp/5.0.0rc1"   => "tramp/5.0.0rc1"
+var Repopath2ReleaseRegexp = regexp.MustCompile("[/-][a-zA-Z][0-9a-zA-Z]*")
+
 // Which architectures to scan
 var Architectures = map[string]bool{"all":true, "i386":true, "amd64":true}
 
@@ -745,28 +754,17 @@ func process_releases_files() (ok bool) {
   
   have_uri := map[string]bool{}
   
-  for reporepopath, todo := range reporepopath2release_todo {
+  for _, todo := range reporepopath2release_todo {
     if len(todo.ReleaseFile) == 1 && todo.ReleaseFile[0] == "empty" {
       continue
     }
     
-    versioncode := ""
-    debian_special_case := strings.Contains(reporepopath, "debian")
     codename := ""
-    version := ""
+    release := Repopath2ReleaseRegexp.ReplaceAllString(todo.Repopath,"")
     
     for _, line := range todo.ReleaseFile {
       if strings.HasPrefix(line, "Codename: ") {
         codename = line[10:]
-        if debian_special_case {
-          // trim well known suffixes so that codename reflects
-          // the main distribution the repo is compatible with
-          codename = strings.TrimSuffix(codename, "-backports")
-          codename = strings.TrimSuffix(codename, "-updates")
-          codename = strings.TrimSuffix(codename, "-proposed-updates")
-        }
-      } else if strings.HasPrefix(line, "Version: ") {
-        version = line[9:]
       } else {
         match := parse_release_file.FindStringSubmatch(line)
         if match != nil {
@@ -787,20 +785,6 @@ func process_releases_files() (ok bool) {
     
     if codename == "" { continue }
     
-    versioncode = codename+"/"+version
-    var release string
-    // If the repo path does not end in the release version, then
-    // we assume the release name should not include the version.
-    // E.g. "trusty/14.04" becomes "trusty" because the repo paths
-    // for trusty packages are "trusty", "trusty-backports",... which
-    // do not include version numbers.
-    // For LiMux this turns "tramp/5.0" into "tramp" but keeps
-    // "tramp/5.0.0beta7" as is.
-    if version != "" && strings.HasSuffix(todo.Repopath, version) {
-      release = versioncode
-    } else {
-      release = codename
-    }
     Release2Repopaths[release] = append(Release2Repopaths[release], todo.Repopath)
     Repopath2Release[todo.Repopath] = release
     if index, have := Repopath2IndexWithCache[todo.Repopath]; have {
