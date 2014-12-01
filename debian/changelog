@@ -1,3 +1,9 @@
+gosa (2.8.83) trusty; urgency=medium
+
+  * remove unused function (which would not work with go-susi anyway)
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 01 Dec 2014 20:39:09 +0100
+
 gosa (2.8.82) trusty; urgency=medium
 
   * go-susi: generate_package_list: simpler and better heuristic for determining release id from repopath

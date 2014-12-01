@@ -263,31 +263,6 @@ class gosaSupportDaemon
     return($ret);
   }
 
-
-  public function FAI_get_package_sections($release)
-  {
-    $xml_msg = "<xml><header>gosa_query_packages_list</header><target>GOSA</target><source>GOSA</source>".
-      "<select>distinct section</select>".
-      "<where><clause><phrase><distribution>".$release."</distribution></phrase></clause></where></xml>";
-
-    $ret = array();
-    if($this->connect()){
-      $entries = $this->_send($xml_msg,TRUE);
-      if(isset($entries['XML']) && is_array($entries['XML'])){
-
-        /* Unset header tags */
-        foreach(array("HEADER","SOURCE","TARGET","SESSION_ID") as $type){
-          if(isset($entries['XML'][$type])){
-            unset($entries['XML'][$type]);
-          }
-        }
-        $ret = $entries['XML'];
-      }
-    }
-    return($ret);
-  }
-
-
   public function FAI_get_packages($release,$attrs,$package,$from=-1,$to=-1)
   {
     $ret = array();
