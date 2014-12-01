@@ -50,6 +50,12 @@ import (
 // This switch saves a lot of memory!
 var MergeI386andAMD64 = true
 
+// Every line in the cache and the PackageList objects starts with this many
+// bytes that together form a "repository paths bitmap" (LITTLE-ENDIAN).
+// If bit N is set, then
+// the respective package is found in the repo path RP with Repopath2Index[RP]==N.
+const RPBytes = 8
+
 // Output informative messages.
 var Verbose = 0
 
@@ -129,7 +135,7 @@ type MergeSource interface {
   Bytes(int) []byte
   Sort()
   Count() int
-  Get(i int) (release, path, section, description64, templates64 []byte)
+  Get(i int) (rpbitmap uint64, path, section, description64, templates64 []byte)
   Clear()
 }
 
@@ -153,8 +159,9 @@ func NewMMapMergeSource(cache *os.File, mmap []byte, size int) *MMapMergeSource 
   nextOfs := 0
   for nextOfs < len(m.data) {
     m.LineOfs = append(m.LineOfs, nextOfs)
+    nextOfs += RPBytes // do not look inside rpbitmap for \n
     for m.data[nextOfs] != '\n' { nextOfs++ }
-    nextOfs++ // skip '\n'
+    nextOfs += 1 // skip '\n'
   }
   
   return m
@@ -164,9 +171,9 @@ func (pkg *MMapMergeSource) Bytes(i int) []byte {
   return pkg.data[pkg.LineOfs[i]:]
 }
 
-func (pkg *MMapMergeSource) Get(i int) (release, path, section, description64, templates64 []byte) {
+func (pkg *MMapMergeSource) Get(i int) (rpbitmap uint64, path, section, description64, templates64 []byte) {
   if i >= len(pkg.LineOfs) {
-    return nil,nil,nil,nil,nil
+    return 0,nil,nil,nil,nil
   }
   return get(pkg, i)
 }
@@ -176,7 +183,7 @@ type MMapSorter MMapMergeSource
 func (a *MMapSorter) Len() int { return len(a.LineOfs) }
 func (a *MMapSorter) Swap(i,j int) { a.LineOfs[i], a.LineOfs[j] = a.LineOfs[j], a.LineOfs[i] }
 func (a *MMapSorter) Less(i, j int) bool { 
-  return compare(a.data[a.LineOfs[i]:], a.data[a.LineOfs[j]:]) < 0 
+  return compare(a.data[a.LineOfs[i]+RPBytes:], a.data[a.LineOfs[j]+RPBytes:]) < 0 
 }
 
 func (pkg *MMapMergeSource) Sort() {
@@ -200,7 +207,8 @@ func (pkg *MMapMergeSource) Clear() {
 type PackageList struct {
   /*
   Contains lines of the form 
-    trusty|pool/main/e/empathy/account-plugin-aim_3.8.6-0ubuntu9.1_amd64.deb|gnome|<description-base64>|<templatesbase64>
+    <rpbitmap>|pool/main/e/empathy/account-plugin-aim_3.8.6-0ubuntu9.1_amd64.deb|gnome|<description-base64>|<templatesbase64>
+  See RPBytes constant further above for explanation of <rpbitmap>
   If <templatesbase64> is "", there are not templates.
   If <templatesbase64> is "D", the package's dependencies contain "debconf" but
      no actual scan for templates has yet been performed.
@@ -224,40 +232,74 @@ type PackageListSorter PackageList
 func (a *PackageListSorter) Len() int { return len(a.LineOfs) }
 func (a *PackageListSorter) Swap(i,j int) { a.LineOfs[i], a.LineOfs[j] = a.LineOfs[j], a.LineOfs[i] }
 func (a *PackageListSorter) Less(i, j int) bool { 
-  return compare(a.Data.Bytes()[a.LineOfs[i]:], a.Data.Bytes()[a.LineOfs[j]:]) < 0
+  return compare(a.Data.Bytes()[a.LineOfs[i]+RPBytes:], a.Data.Bytes()[a.LineOfs[j]+RPBytes:]) < 0
 }
 
+// Compares the byte slices sl1 and sl2 lexicographically up to the 3rd pipe, i.e.
+// it does not compare the <description64> and <templates64> fields.
+// It returns <0, ==0 and >0 depending on whether sl1 is smaller, equal or greater than
+// sl2.
+// The path field is compared starting with the package name, so that entries
+// with the same package name are sorted next to each other even if they have
+// differing paths in the pool.
+// If MergeI386andAMD64, then "_i386.deb" and "_amd64.deb" are considered equal.
 func compare(sl1, sl2 []byte) int {
-  countslash := 0
-  for x := 0; x < len(sl1) && x < len(sl2); x++ {
-    if sl1[x] < sl2[x] { 
-      if MergeI386andAMD64 && x>0 && sl1[x-1] == '_' && sl1[x] == 'a' && sl2[x] == 'i' && sl1[x+1] == 'm' && sl2[x+1] == '3' && sl1[x+2] == 'd' && sl2[x+2] == '8' && sl1[x+3] == '6' && sl2[x+3] == '6' && sl1[x+4] == '4' {
-        sl1=sl1[4:]
-        sl2=sl2[3:]
+  countpipe := 0
+  x := 0
+  y := 0
+  for x < len(sl1) && y < len(sl2) {
+    if sl1[x] < sl2[y] { 
+      if MergeI386andAMD64 && x>0 && sl1[x-1] == '_' && sl1[x] == 'a' && sl2[y] == 'i' && sl1[x+1] == 'm' && sl2[y+1] == '3' && sl1[x+2] == 'd' && sl2[y+2] == '8' && sl1[x+3] == '6' && sl2[y+3] == '6' && sl1[x+4] == '4' {
+        x += 5
+        y += 4
         continue
       } else {
         return -1
       }
     }
-    if sl2[x] < sl1[x] { 
-      if MergeI386andAMD64 && x>0 && sl2[x-1] == '_' && sl2[x] == 'a' && sl1[x] == 'i' && sl2[x+1] == 'm' && sl1[x+1] == '3' && sl2[x+2] == 'd' && sl1[x+2] == '8' && sl2[x+3] == '6' && sl1[x+3] == '6' && sl2[x+4] == '4' {
-        sl2=sl2[4:]
-        sl1=sl1[3:]
+    if sl2[y] < sl1[x] { 
+      if MergeI386andAMD64 && y>0 && sl2[y-1] == '_' && sl2[y] == 'a' && sl1[x] == 'i' && sl2[y+1] == 'm' && sl1[x+1] == '3' && sl2[y+2] == 'd' && sl1[x+2] == '8' && sl2[y+3] == '6' && sl1[x+3] == '6' && sl2[y+4] == '4' {
+        y += 5
+        x += 4
         continue
       } else {
         return +1
       }
     }
     if sl1[x] == '|' {
-      countslash++
+      countpipe++
+      
+      // After the 1st pipe follows the path field. We want to compare the
+      // package names first, so we seek forward to the next pipe and then
+      // backward to the 1st slash. Then we compare until we reach the 2nd pipe.
+      if countpipe == 1 {
+        for sl1[x+1] != '|' { x++ }
+        for sl2[y+1] != '|' { y++ }
+        for sl1[x] != '/' { x-- }
+        for sl2[y] != '/' { y-- }
+        continue
+      }
+      
+      // If we reach the 2nd pipe, the package names are equal. Now
+      // we seek back to the 1st pipe to compare the pool paths.
+      // If these are equal, too, the 2nd pipe will be reached again,
+      // but counted as the 3rd pipe!
+      if countpipe == 2 {
+        for sl1[x-1] != '|' { x-- }
+        for sl2[y-1] != '|' { y-- }
+        continue
+      }
+      
       // stop comparing when we reach the description part because
       // descriptions may differ for different architectures even for the
       // same package version. I guess we could condition the test on
-      // MergeI386andAMD64 and use countslash == 4 if !MergeI386andAMD64, but...
-      if countslash == 3 {
+      // MergeI386andAMD64 and use countpipe == 5 if !MergeI386andAMD64, but...
+      if countpipe == 4 /* actually means the 3rd pipe! See countpipe==2 case comment */ {
         return 0 
       }
-    } else if sl1[x] == '\n' { break }
+    }
+    x++
+    y++
   }
   panic("buffer not formatted properly")
 }
@@ -299,6 +341,7 @@ func (pkg *PackageList) AppendRaw(r io.Reader) error {
   data := pkg.Data.Bytes()
   for nextOfs < len(data) {
     pkg.LineOfs = append(pkg.LineOfs, nextOfs)
+    nextOfs += RPBytes // do not look inside rpbitmap for \n
     for data[nextOfs] != '\n' { nextOfs++ }
     nextOfs++ // skip '\n'
   }
@@ -306,6 +349,7 @@ func (pkg *PackageList) AppendRaw(r io.Reader) error {
   return nil
 }
 
+// Returns true iff the byte slice b only contains bytes <= ' ' (space)
 func isempty(b []byte) bool {
   for i := range b {
     if b[i] > ' ' { return false }
@@ -313,6 +357,7 @@ func isempty(b []byte) bool {
   return true
 }
 
+// Contains true iff the byte slice b contains the string s somewhere.
 func has(b []byte, s string) bool {
   if len(s) == 0 { return true }
   for i := 0; i <= len(b)-len(s); i++ {
@@ -325,6 +370,11 @@ func has(b []byte, s string) bool {
   return false
 }
 
+// If the byte slice b starts with the string id (seen as a sequence of bytes)
+// this function returns the subslice of b that starts with the first byte that
+// follows id. If b does not have id as a prefix, returns nil.
+// This function is used to extract the field values from a debian (P)ackages (L)ist,
+// e.g. it's called with id=="Section: "
 func plextract(b []byte, id string) []byte {
   if len(b) < len(id) { return nil }
   for i := range id {
@@ -336,12 +386,12 @@ func plextract(b []byte, id string) []byte {
 /**
   Appends to the PackageList from the data read from r which has to be
   in the format of a Debian repository's "Packages" file.
-  release is the name of the release (e.g. "trusty")
-  If aDn error occurs, some package data may still be appended.
+  rpbitmap is the bitmap of release paths (see RPBytes constant further above)
+  If an error occurs, some package data may still be appended.
 */
-func (pkg *PackageList) AppendPackages(release []byte, r io.Reader) error {
+func (pkg *PackageList) AppendPackages(rpbitmap uint64, r io.Reader) error {
   // DO NOT LOCK MUTEX BECAUSE WE CALL Append() WHICH LOCKS!
-  
+ 
   var path []byte
   var section []byte
   var description64 []byte
@@ -381,7 +431,7 @@ func (pkg *PackageList) AppendPackages(release []byte, r io.Reader) error {
         if section == nil { section = utils }
         if description64 == nil { description64 = nodesc }
         if path != nil {
-          pkg.Append(release, path, section, description64, templates64)
+          pkg.Append(rpbitmap, path, section, description64, templates64)
         }
         path = nil
         section = nil
@@ -425,8 +475,9 @@ func (pkg *PackageList) AppendPackages(release []byte, r io.Reader) error {
 /**
   Merges p1 and p2 and appends the result to this PackageList.
   p1 and p2 will be sorted first.
-  Lines that are identical except for the templates component are combined
+  Lines that are identical except for the rpbitmap and templates are combined
   according to the following rules:
+    * rpbitmaps are ORed
     * base64 data overrides everything
     * from 2 different base64 strings one is picked
     * "" overrides "D" and "?"
@@ -444,22 +495,22 @@ func (pkg *PackageList) AppendMerge(p1, p2 MergeSource, p2templatesonly bool) {
   
   // merge until the end of one list is reached
   for a < p1.Count() && b < p2.Count() {
-    comp := compare(p1.Bytes(a), p2.Bytes(b))
+    comp := compare(p1.Bytes(a)[RPBytes:], p2.Bytes(b)[RPBytes:])
     if comp < 0 {
       if Verbose > 3 { fmt.Fprintf(os.Stderr, "< ") }
-      release, path, section, description64, templates64 := p1.Get(a)
-      pkg.Append(release, path, section, description64, templates64)
+      rpbitmap, path, section, description64, templates64 := p1.Get(a)
+      pkg.Append(rpbitmap, path, section, description64, templates64)
       a++
     } else if comp > 0 {
       if !p2templatesonly {
         if Verbose > 3 { fmt.Fprintf(os.Stderr, "> ") }
-        release, path, section, description64, templates64 := p2.Get(b)
-        pkg.Append(release, path, section, description64, templates64)
+        rpbitmap, path, section, description64, templates64 := p2.Get(b)
+        pkg.Append(rpbitmap, path, section, description64, templates64)
       }
       b++
     } else {
-      release, path, section, description64, templates64 := p1.Get(a)
-      _, path_2, _, _, templates64_2 := p2.Get(b)
+      rpbitmap, path, section, description64, templates64 := p1.Get(a)
+      rpbitmap_2, path_2, _, _, templates64_2 := p2.Get(b)
       // if path ends in "i386.deb" we use path_2. This means we prefer
       // "amd64.deb" when both are present.
       if MergeI386andAMD64 && len(path) > 8 && has(path[len(path)-8:],"i386") {
@@ -478,7 +529,7 @@ func (pkg *PackageList) AppendMerge(p1, p2 MergeSource, p2templatesonly bool) {
         templates64 = templates64_2
       }
       if Verbose > 3 { fmt.Fprintf(os.Stderr, "= ") }
-      pkg.Append(release, path, section, description64, templates64)
+      pkg.Append(rpbitmap|rpbitmap_2, path, section, description64, templates64)
       a++
       b++
     }
@@ -487,16 +538,16 @@ func (pkg *PackageList) AppendMerge(p1, p2 MergeSource, p2templatesonly bool) {
   // copy any remaining entries from p1
   for ; a < p1.Count(); a++ {
     if Verbose > 3 { fmt.Fprintf(os.Stderr, "<<") }
-    release, path, section, description64, templates64 := p1.Get(a)
-    pkg.Append(release, path, section, description64, templates64)
+    rpbitmap, path, section, description64, templates64 := p1.Get(a)
+    pkg.Append(rpbitmap, path, section, description64, templates64)
   }
   
   // copy any remaining entries from p2
   if !p2templatesonly {
     for ; b < p2.Count(); b++ {
       if Verbose > 3 { fmt.Fprintf(os.Stderr, ">>") }
-      release, path, section, description64, templates64 := p2.Get(b)
-      pkg.Append(release, path, section, description64, templates64)
+      rpbitmap, path, section, description64, templates64 := p2.Get(b)
+      pkg.Append(rpbitmap, path, section, description64, templates64)
     }
   }
 }
@@ -506,15 +557,21 @@ func (pkg *PackageList) AppendMerge(p1, p2 MergeSource, p2templatesonly bool) {
   description64 and templates64 are base64-encoded.
   templates64 may also be "", "D" or "?".
 */
-func (pkg *PackageList) Append(release, path, section, description64, templates64 []byte) {
+func (pkg *PackageList) Append(rpbitmap uint64, path, section, description64, templates64 []byte) {
   pkg.Mutex.Lock()
   defer pkg.Mutex.Unlock()
-  sz := len(release)+1+len(path)+1+len(section)+1+len(description64)+1+len(templates64)+1
+  rpbytes := make([]byte, RPBytes)
+  rpb := rpbitmap
+  for i := range rpbytes {
+    rpbytes[i] = byte(rpb & 255)
+    rpb >>= 8
+  }
+  sz := len(rpbytes)+1+len(path)+1+len(section)+1+len(description64)+1+len(templates64)+1
   pkg.Data.Grow(sz)
   ofs := pkg.Data.Len()
   ofs2 := ofs
   pkg.LineOfs = append(pkg.LineOfs, ofs)
-  pkg.Data.Write(release)
+  pkg.Data.Write(rpbytes)
   pkg.Data.WriteByte('|')
   pkg.Data.Write(path)
   pkg.Data.WriteByte('|')
@@ -525,26 +582,29 @@ func (pkg *PackageList) Append(release, path, section, description64, templates6
   pkg.Data.Write(templates64)
   pkg.Data.WriteByte('\n')
   if Verbose > 3 {
-    fmt.Fprintf(os.Stderr, "%s", pkg.Data.Bytes()[ofs2:pkg.Data.Len()])
+    fmt.Fprintf(os.Stderr, "%x%s", rpbitmap, pkg.Data.Bytes()[ofs2+len(rpbytes):pkg.Data.Len()])
   }
 }
 
 // Returns the elements of entry i. 
-func (pkg *PackageList) Get(i int) (release, path, section, description64, templates64 []byte) {
+func (pkg *PackageList) Get(i int) (rpbitmap uint64, path, section, description64, templates64 []byte) {
   pkg.Mutex.Lock()
   defer pkg.Mutex.Unlock()
   if i >= len(pkg.LineOfs) {
-    return nil,nil,nil,nil,nil
+    return 0,nil,nil,nil,nil
   }
   return get(pkg, i)
 }
 
-func get(pkg MergeSource, i int) (release, path, section, description64, templates64 []byte) {
+func get(pkg MergeSource, i int) (rpbitmap uint64, path, section, description64, templates64 []byte) {
   data := pkg.Bytes(i)
   nxt := 0
   var ofs int
   for ofs = nxt; data[nxt] != '|'; nxt++ {}
-  release = data[ofs:nxt]
+  rpbytes := data[ofs:nxt]
+  for i := range rpbytes {
+    rpbitmap |= uint64(rpbytes[i]) << (uint(i)*8)
+  }
   nxt++ // skip '|'
   for ofs = nxt; data[nxt] != '|'; nxt++ {}
   path = data[ofs:nxt]
@@ -573,7 +633,7 @@ func (pkg *PackageList) WriteTo(w io.Writer) (n int, err error) {
   data := pkg.Data.Bytes()
   for i := range pkg.LineOfs {
     start := pkg.LineOfs[i]
-    end := start
+    end := start + RPBytes // +RPBytes so that we don't look inside rpbitmap for \n
     for data[end] != '\n' { end++ }
     end++ // include \n in output
     n2, err := util.WriteAll(w, data[start:end])
@@ -649,6 +709,9 @@ func initclient() {
     // the request is aborted. If the returned URL is nil,
     // no proxy is used. Otherwise URL is the URL of the
     // proxy to use.
+    // NOTE NOTE NOTE
+    // net/http contains helpers to get a proxy function
+    // easily: See net/http/ProxyFromEnvironment()
     Proxy: func(r *http.Request) (*url.URL, error) {
       return nil, nil
     },
@@ -684,6 +747,7 @@ type ReleaseTodo struct {
 func process_releases_files() (ok bool) {
   ok = true
   
+  ///////// Parse FAIrepository and compose a TODO list reporepopath2release_todo ///////
   repobases := map[string]bool{}
   reporepopath2release_todo := map[string]*ReleaseTodo{}
   for _, fairepo := range strings.Fields(FAIrepository) {
@@ -699,6 +763,12 @@ func process_releases_files() (ok bool) {
     reporepopath2release_todo[repo+","+repopath] = &ReleaseTodo{Repo:repo, Repopath:repopath, Components:components}
   }
   
+  /* 
+    Collect repository base URLs. We'll later use them during debconf scan.
+    For each .deb we want to download to be scanned we'll shuffle this list
+    and try to append the pool-path of the .deb to these base URLs until we
+    find a URL that works. This distributes the load among the known mirrors.
+  */
   for rb := range repobases {
     RepoBaseURLs = append(RepoBaseURLs, rb)
   }
@@ -707,6 +777,11 @@ func process_releases_files() (ok bool) {
     fmt.Fprintf(os.Stderr, "Repositories to scan: %v\n", RepoBaseURLs)
   }
   
+  /*
+    Now we start one goroutine for each entry in our TODO list and
+    have it send the downloaded Release file to a channel.
+  */
+  
   c := make(chan []string, len(reporepopath2release_todo))
   
   for rs, rt := range reporepopath2release_todo {
@@ -714,6 +789,12 @@ func process_releases_files() (ok bool) {
     uri := rt.Repo+"/dists/"+rt.Repopath+"/Release"
     go read_lines_from_uri(rs2, uri, c)
   }
+  
+  /*
+    The following select block collects the Release file data sent
+    over the channel. When all goroutines have reported back it
+    stops. To prevent a hang a timeout is used.
+  */
   
   count := len(reporepopath2release_todo)
   if count == 0 { return true } // nothing to do
@@ -752,7 +833,17 @@ func process_releases_files() (ok bool) {
     }
   }
   
+  // Release files contain multiple lines for the same Packages file, so
+  // we use this map for duplicate elimination.
   have_uri := map[string]bool{}
+  
+  /*
+    Now we evaluate all of the collected Release files and extract the
+    URLs of the Packages files referenced therein.
+    At the same time we build up several maps between
+    repository path (that's the path of the directory containing the
+    Packages file relative to dists/) and other things.
+  */
   
   for _, todo := range reporepopath2release_todo {
     if len(todo.ReleaseFile) == 1 && todo.ReleaseFile[0] == "empty" {
@@ -788,9 +879,10 @@ func process_releases_files() (ok bool) {
     Release2Repopaths[release] = append(Release2Repopaths[release], todo.Repopath)
     Repopath2Release[todo.Repopath] = release
     if index, have := Repopath2IndexWithCache[todo.Repopath]; have {
-      // use same index as in cache
+      // use same index as in cache if possible
       Repopath2Index[todo.Repopath] = index
     } else {
+      // otherwise find an index that's not used (including not in the cache!!!)
       indexes := map[int]bool{}
       for _, i := range Repopath2IndexWithCache { indexes[i] = true }
       index := 0
@@ -802,11 +894,18 @@ func process_releases_files() (ok bool) {
   
   if Verbose > 1 {
     fmt.Fprintf(os.Stderr, "repo path -> release id %v\n", Repopath2Release)
+    for r, i := range Repopath2IndexWithCache {
+      star := " "
+      if Repopath2Index[r] == i { star = "*" }
+      fmt.Fprintf(os.Stderr, "%v%v -> index %v\n", star, r, i)
+    }
   }
   
   return ok
 }
 
+// Used to store downloaded Packages files in COMPRESSED form (i.e. as they
+// are on the server).
 type TaggedBlob struct {
   Payload bytes.Buffer
   Compression string // "", "gz" or "bz2"
@@ -820,6 +919,14 @@ func process_packages_files() (ok bool) {
   if Verbose > 1 {
     fmt.Fprintf(os.Stderr, "Will read Packages files from the following paths:\n%v\n", strings.Join(PackagesURIs, "\n"))
   }
+
+/*
+  This function follows the same principle as process_release_files.
+  We start a goroutine for each Packages file to download it and send it
+  over a channel. We collect the downloaded data from the channel and then
+  process it sequentially.
+*/
+
   
   ok = true
   count := len(PackagesURIs)
@@ -879,14 +986,14 @@ func process_packages_files() (ok bool) {
     }
 
     tempPkgList := &PackageList{}
-    release := Repopath2Release[taggedblob.Repopath]
-    if release == "" {
-      err = fmt.Errorf("internal error: could not convert repopath %v into release id", taggedblob.Repopath)
+    rpindex, haverp := Repopath2Index[taggedblob.Repopath]
+    if !haverp {
+      err = fmt.Errorf("internal error: could not convert repopath %v to index", taggedblob.Repopath)
     } else {
       if Verbose > 1 {
-        fmt.Fprintf(os.Stderr, "Parsing Packages file\n")
+        fmt.Fprintf(os.Stderr, "Parsing Packages file for repo path %v\n", taggedblob.Repopath)
       }
-      err = tempPkgList.AppendPackages([]byte(release), r)
+      err = tempPkgList.AppendPackages(uint64(1) << uint(rpindex), r)
       if Verbose > 1 {
         fmt.Fprintf(os.Stderr, "Resulting list has %v lines (%v bytes)\n", tempPkgList.Count(), tempPkgList.Data.Len())
       }
@@ -974,7 +1081,7 @@ func readcache(templatesonly bool) {
     sz -= sz % os.Getpagesize()
     fd := cache.Fd()
     var mmap []byte
-    if sz == 0 {
+    if sz == 0 { // empty files can't be mmapped. And we don't need to anyway.
       cache.Close()
       return
     }
@@ -1014,6 +1121,14 @@ func readcache(templatesonly bool) {
   }
 }
 
+type LineData struct {
+  rpbitmap uint64
+  path []byte
+  section []byte
+  description64 []byte
+  templates64 []byte
+}
+
 var DebconfScanned int32
 var DebconfExtracted int32
 func debconf_scan() {
@@ -1039,17 +1154,17 @@ func debconf_scan() {
   deadline := time.Now().Add(60*time.Minute)
 
   num_scanners := 16
-  c := make(chan [5][]byte, num_scanners)
+  c := make(chan *LineData, num_scanners)
   for i := 0; i < num_scanners; i++ {
     go debconf_scan_worker(c, deadline)
   }
 
   for i := 0; i < pkg.Count(); i++ {
-    release, path, section, description64, templates64 := pkg.Get(i)
+    rpbitmap, path, section, description64, templates64 := pkg.Get(i)
     if len(templates64) == 1 && (templates64[0] == 'D' || Debconf != "depends") {
-      c <- [5][]byte{release, path, section, description64, templates64}
+      c <- &LineData{rpbitmap, path, section, description64, templates64}
     } else {
-      MasterPackageList.Append(release, path, section, description64, templates64)
+      MasterPackageList.Append(rpbitmap, path, section, description64, templates64)
     }
   }
 
@@ -1083,14 +1198,14 @@ func shuffle(a []string) {
   }
 }
 
-func debconf_scan_worker(c chan [5][]byte, deadline time.Time) {
+func debconf_scan_worker(c chan *LineData, deadline time.Time) {
   // Make my own copy of RepoBaseURLs for shuffling
   repobases := make([]string, len(RepoBaseURLs))
   copy(repobases, RepoBaseURLs)
   
   for {
     task := <- c
-    release, path, section, description64, templates64 := task[0], task[1], task[2], task[3], task[4]
+    rpbitmap, path, section, description64, templates64 := task.rpbitmap, task.path, task.section, task.description64, task.templates64
     // If we are past the deadline, we don't scan and simply forward the data as is.
     if time.Now().Before(deadline) {
       shuffle(repobases)
@@ -1103,10 +1218,10 @@ func debconf_scan_worker(c chan [5][]byte, deadline time.Time) {
         }
       }
       if !ok {
-        fmt.Fprintf(os.Stderr, "SCANFAIL %s %s\n", release, path)
+        fmt.Fprintf(os.Stderr, "SCANFAIL %s\n", path)
       }
     }
-    MasterPackageList.Append(release, path, section, description64, templates64)
+    MasterPackageList.Append(rpbitmap, path, section, description64, templates64)
   }
 }
 
@@ -1209,6 +1324,35 @@ func writecache() {
   }
 }
 
+type LDIFObject []string
+
+func (l *LDIFObject) Append(key string, value []byte) {
+  val := string(value)
+  for i := len(*l)-2; i >= 0; i-=2 {
+    if (*l)[i] == key {
+      if (*l)[i+1] == val {
+        copy((*l)[i:], (*l)[i+2:])
+        *l = (*l)[0:len(*l)-2]
+      }
+      break
+    }
+  }
+  *l = append(*l, key, val)
+}
+
+func (l *LDIFObject) ToString() string {
+  sl := make([]string,0,len(*l)*2)
+  for i := range (*l) {
+    sl = append(sl, (*l)[i])
+    if i & 1 == 0 {
+      sl = append(sl, ": ")
+    } else {
+      sl = append(sl, "\n")
+    }
+  }
+  return strings.Join(sl,"")
+}
+
 func printldif() {
   for release, repopaths := range Release2Repopaths {
     for _, repopath := range repopaths {
@@ -1219,10 +1363,16 @@ Repository: %v
     }
   }
   
+  index2repopath := map[int]string{}
+  for r, i := range Repopath2Index { index2repopath[i] = r }
+  
   prevpkg := ""
+  release_printed := map[string]bool{}
+  
+  outobj := make(LDIFObject,0)
   
   for i := 0; i < MasterPackageList.Count(); i++ {
-    release, path, section, description64, templates64 := MasterPackageList.Get(i)
+    rpbitmap, path, section, description64, templates64 := MasterPackageList.Get(i)
     
     pkg := []byte{}
     for last_slash := len(path)-1; last_slash >= 0; last_slash-- {
@@ -1249,25 +1399,37 @@ Repository: %v
     }
     // pkg and version are now properly package name and version
     
-    // because we have one entry per architecture the same package
-    // may be included multiple times. They should however be sorted
-    // consecutively so that simply comparing with the previous package
-    // should be enough to eliminate duplicates
-    pkgstr := fmt.Sprintf("%s%s%s",pkg,version,release)
-    if pkgstr == prevpkg { continue }
+    // Lines are sorted, so entries with the same package name but different
+    // versions or sections should be subsequent. If we encounter a line that
+    // has the same package as the previous line, instead of starting a new
+    // object in the LDIF, append additional attributes to the previous object
+    pkgstr := fmt.Sprintf("%s",pkg)
+    if pkgstr != prevpkg { // start a new object
+      fmt.Printf("\n%s", outobj.ToString()) // flush current object
+      outobj = make(LDIFObject,0)
+      outobj.Append("Package", pkg)
+      release_printed = map[string]bool{}
+    }
     prevpkg = pkgstr
     
-    fmt.Printf(`
-Release: %s
-Package: %s
-Version: %s
-Section: %s
-Description:: %s
-`,  release, pkg, version, section, description64)
+    for i := 0; i < RPBytes*8; i++ {
+      if (rpbitmap & (1<<uint(i))) != 0 {
+        release := Repopath2Release[index2repopath[i]]
+        if release_printed[release] { continue }
+        outobj.Append("Release", []byte(release))
+        release_printed[release] = true
+      }
+    }
+    
+    outobj.Append("Version", version)
+    outobj.Append("Section", section)
+    outobj.Append("Description:"/*yes, the ':' is correct*/, description64)
     if len(templates64) > 1 {
-      fmt.Printf("Templates:: %s\n", templates64)
+      outobj.Append("Templates:"/*':' here, too*/,  templates64)
     }
   }
+  
+  fmt.Printf("\n%s", outobj.ToString()) // flush current object
 }
 
 // Reads a text file from uri, splits it into lines, trims them and

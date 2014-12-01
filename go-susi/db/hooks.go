@@ -133,7 +133,7 @@ func KernelListHook() {
 
 var packageListFormat = []*xml.ElementInfo{
   &xml.ElementInfo{"package","package",false},
-  &xml.ElementInfo{"release","release",false},
+  &xml.ElementInfo{"release","distribution",false},
   &xml.ElementInfo{"repository","repository",false},
   &xml.ElementInfo{"version","version",false},
   &xml.ElementInfo{"section","section",false},
@@ -204,18 +204,12 @@ func PackageListHook(debconf string) {
     total++
     p := pkg.Element()
     
-    release := p.First("release")
+    release := p.First("distribution") // packageListFormat translates "release" => "distribution"
     if release == nil {
       util.Log(0, "ERROR! package-list-hook %v returned entry without \"Release\": %v", config.PackageListHookPath, p)
       pkg.Remove()
       continue
     }
-    if release.Next() != nil {
-      util.Log(0, "ERROR! package-list-hook %v returned entry with multiple \"Release\" values: %v", config.PackageListHookPath, p)
-      pkg.Remove()
-      continue
-    }
-    release.Rename("distribution")
     
     for repopath := p.First("repository"); repopath != nil; repopath = repopath.Next() {
       new_mapRepoPath2FAIrelease[repopath.Text()] = release.Text()

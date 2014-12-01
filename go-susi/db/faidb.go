@@ -429,8 +429,8 @@ func FAIKernels(query xml.HashFilter) *xml.Hash {
 // See FAIPackages(). Updated by db.PackageListHook().
 var packagedb = xml.NewDB("packagedb",nil,0)
 
-// Returns the entries from the kernels database that match query.
-// The format of the kerneldb and the return value is as follows.
+// Returns the entries from the packages database that match query.
+// The format of the packagedb and the return value is as follows.
 // See the description of gosa_query_packages_list in the manual
 // for the explanation of the elements.
 //   <packagedb>
