@@ -312,6 +312,24 @@ Description: knuddelig und langsam
 Version: 9.8
 Section: tree
 Templates: foo
+
+Package: otter
+Description: schwimmtier
+Version: notused
+Release: pluesch
+Release: kuschel
+Release: flausch
+Version: 3.4
+Version: 3.5
+Section: wasser
+Templates: spezi
+Release: doux
+Release: weich
+Release: soft
+Version: 3.6
+Section: fluss
+Template: paulaner
+Description: wassertier
 "
 `), 0755)
 

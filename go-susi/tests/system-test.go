@@ -975,6 +975,135 @@ func run_hook_tests() {
       a = a.Next()
     }
     
+    if check(checkTags(a,"timestamp,distribution,package,version,section,description,template"),"") {
+      check(a.Text("distribution"),"kuschel")
+      check(a.Text("package"),"otter")
+      decoded,err := base64.StdEncoding.DecodeString(a.Text("description"))
+      check(err,nil)
+      check(string(decoded),"schwimmtier")
+      check(a.Text("version"),"3.5")
+      check(a.Text("section"),"wasser")
+      decoded,err = base64.StdEncoding.DecodeString(a.Text("template"))
+      check(err,nil)
+      check(string(decoded),"spezi")
+      a = a.Next()
+    }
+    
+    check(a, nil)
+  }
+  
+  x = gosa("query_packages_list", hash("xml(where(clause(phrase(distribution(pluesch)))))"))
+  if check(x.Text("header"), "query_packages_list") {
+    answers := extract_sorted_answers(x)
+    
+    a := answers.First("answer")
+    
+    if check(checkTags(a,"timestamp,distribution,package,version,section,description,template"),"") {
+      check(a.Text("distribution"),"pluesch")
+      check(a.Text("package"),"otter")
+      decoded,err := base64.StdEncoding.DecodeString(a.Text("description"))
+      check(err,nil)
+      check(string(decoded),"schwimmtier")
+      check(a.Text("version"),"3.5")
+      check(a.Text("section"),"wasser")
+      decoded,err = base64.StdEncoding.DecodeString(a.Text("template"))
+      check(err,nil)
+      check(string(decoded),"spezi")
+      a = a.Next()
+    }
+    
+    check(a, nil)
+  }
+  
+  x = gosa("query_packages_list", hash("xml(where(clause(phrase(distribution(flausch)))))"))
+  if check(x.Text("header"), "query_packages_list") {
+    answers := extract_sorted_answers(x)
+    
+    a := answers.First("answer")
+    
+    if check(checkTags(a,"timestamp,distribution,package,version,section,description,template"),"") {
+      check(a.Text("distribution"),"flausch")
+      check(a.Text("package"),"otter")
+      decoded,err := base64.StdEncoding.DecodeString(a.Text("description"))
+      check(err,nil)
+      check(string(decoded),"schwimmtier")
+      check(a.Text("version"),"3.5")
+      check(a.Text("section"),"wasser")
+      decoded,err = base64.StdEncoding.DecodeString(a.Text("template"))
+      check(err,nil)
+      check(string(decoded),"spezi")
+      a = a.Next()
+    }
+    
+    check(a, nil)
+  }
+  
+  x = gosa("query_packages_list", hash("xml(where(clause(phrase(distribution(doux)))))"))
+  if check(x.Text("header"), "query_packages_list") {
+    answers := extract_sorted_answers(x)
+    
+    a := answers.First("answer")
+    
+    if check(checkTags(a,"timestamp,distribution,package,version,section,description,template"),"") {
+      check(a.Text("distribution"),"doux")
+      check(a.Text("package"),"otter")
+      decoded,err := base64.StdEncoding.DecodeString(a.Text("description"))
+      check(err,nil)
+      check(string(decoded),"wassertier")
+      check(a.Text("version"),"3.6")
+      check(a.Text("section"),"fluss")
+      decoded,err = base64.StdEncoding.DecodeString(a.Text("template"))
+      check(err,nil)
+      check(string(decoded),"paulaner")
+      a = a.Next()
+    }
+    
+    check(a, nil)
+  }
+  
+  x = gosa("query_packages_list", hash("xml(where(clause(phrase(distribution(weich)))))"))
+  if check(x.Text("header"), "query_packages_list") {
+    answers := extract_sorted_answers(x)
+    
+    a := answers.First("answer")
+    
+    if check(checkTags(a,"timestamp,distribution,package,version,section,description,template"),"") {
+      check(a.Text("distribution"),"weich")
+      check(a.Text("package"),"otter")
+      decoded,err := base64.StdEncoding.DecodeString(a.Text("description"))
+      check(err,nil)
+      check(string(decoded),"wassertier")
+      check(a.Text("version"),"3.6")
+      check(a.Text("section"),"fluss")
+      decoded,err = base64.StdEncoding.DecodeString(a.Text("template"))
+      check(err,nil)
+      check(string(decoded),"paulaner")
+      a = a.Next()
+    }
+    
+    check(a, nil)
+  }
+  
+  x = gosa("query_packages_list", hash("xml(where(clause(phrase(version(3.6)))))"))
+  if check(x.Text("header"), "query_packages_list") {
+    answers := extract_sorted_answers(x)
+    
+    a := answers.First("answer")
+    
+    if check(checkTags(a,"timestamp,distribution,package,version,section,description,template"),"") {
+      check(a.Text("distribution"),"soft")
+      check(a.Text("package"),"otter")
+      decoded,err := base64.StdEncoding.DecodeString(a.Text("description"))
+      check(err,nil)
+      check(string(decoded),"wassertier")
+      check(a.Text("version"),"3.6")
+      check(a.Text("section"),"fluss")
+      decoded,err = base64.StdEncoding.DecodeString(a.Text("template"))
+      check(err,nil)
+      check(string(decoded),"paulaner")
+      a = a.Next()
+    }
+    
     check(a, nil)
   }
   

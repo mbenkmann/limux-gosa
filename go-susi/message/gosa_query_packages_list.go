@@ -99,6 +99,7 @@ func cleanup(distribution string, x *xml.Hash) {
   mode := 0
   for child := x.FirstChild(); child != nil; child = child.Next() {
     ele := child.Element()
+    if mode == 1 && ele.Name() != "distribution" { mode = 2 }
     switch ele.Name() {
       case "package" :     package_idx = i
       case "distribution": last_distribution_idx = i
@@ -108,13 +109,13 @@ func cleanup(distribution string, x *xml.Hash) {
                                mode = 1
                              }
                            } else {
-                             if mode == 1 { mode = 2 }
+                             if mode == 2 { mode = 3 }
                            }
-      case "version":      if version_idx < 0 || mode < 2 { version_idx = i }
-      case "section":      if section_idx < 0 || mode < 2 { section_idx = i }
-      case "description":  if description_idx < 0 || mode < 2 { description_idx = i }
-      case "template":     if template_idx < 0    || mode < 2 { template_idx = i }
-      case "timestamp":    if timestamp_idx < 0   || mode < 2 { timestamp_idx = i }
+      case "version":      if version_idx < 0 || mode < 3 { version_idx = i }
+      case "section":      if section_idx < 0 || mode < 3 { section_idx = i }
+      case "description":  if description_idx < 0 || mode < 3 { description_idx = i }
+      case "template":     if template_idx < 0    || mode < 3 { template_idx = i }
+      case "timestamp":    if timestamp_idx < 0   || mode < 3 { timestamp_idx = i }
     }
     i++
   }
