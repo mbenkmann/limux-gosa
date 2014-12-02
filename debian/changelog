@@ -1,3 +1,9 @@
+gosa (2.8.86) trusty; urgency=medium
+
+  * go-susi: generate_package_list: fix(?) for Heisenbug; shorter Dial timeout
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 02 Dec 2014 12:21:29 +0100
+
 gosa (2.8.85) trusty; urgency=medium
 
   * go-susi: generate_packages_list: more robustness when faced with broken Packages files

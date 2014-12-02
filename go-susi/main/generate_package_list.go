@@ -21,6 +21,7 @@ import (
          "os"
          "os/exec"
          "fmt"
+         "net"
          "net/http"
          "net/url"
          "sort"
@@ -273,10 +274,10 @@ func compare(sl1, sl2 []byte) int {
       // package names first, so we seek forward to the next pipe and then
       // backward to the 1st slash. Then we compare until we reach the 2nd pipe.
       if countpipe == 1 {
-        for sl1[x+1] != '|' { x++ }
-        for sl2[y+1] != '|' { y++ }
-        for sl1[x] != '/' { x-- }
-        for sl2[y] != '/' { y-- }
+        for x+1 < len(sl1) && sl1[x+1] != '|' { x++ }
+        for y+1 < len(sl2) && sl2[y+1] != '|' { y++ }
+        for x>0 && sl1[x] != '/' { x-- }
+        for y>0 && sl2[y] != '/' { y-- }
         continue
       }
       
@@ -285,8 +286,8 @@ func compare(sl1, sl2 []byte) int {
       // If these are equal, too, the 2nd pipe will be reached again,
       // but counted as the 3rd pipe!
       if countpipe == 2 {
-        for sl1[x-1] != '|' { x-- }
-        for sl2[y-1] != '|' { y-- }
+        for x > 1 && sl1[x-1] != '|' { x-- }
+        for y > 1 && sl2[y-1] != '|' { y-- }
         continue
       }
       
@@ -706,6 +707,11 @@ func readenv() {
 
 func initclient() {
   tr := &http.Transport{
+    Dial: (&net.Dialer{
+        Timeout:   5 * time.Second,
+        KeepAlive: 30 * time.Second,
+    }).Dial,
+    TLSHandshakeTimeout: 10 * time.Second,
     //DisableKeepAlives: true,
     MaxIdleConnsPerHost: 8,
     // proxy function examines Request r and decides if
