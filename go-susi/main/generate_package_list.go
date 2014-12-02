@@ -603,14 +603,16 @@ func (pkg *PackageList) Get(i int) (rpbitmap uint64, path, section, description6
 
 func get(pkg MergeSource, i int) (rpbitmap uint64, path, section, description64, templates64 []byte) {
   data := pkg.Bytes(i)
-  nxt := 0
-  var ofs int
-  for ofs = nxt; data[nxt] != '|'; nxt++ {}
-  rpbytes := data[ofs:nxt]
+  if len(data) < RPBytes+1 || data[RPBytes] != '|' {
+    fmt.Fprintf(os.Stderr, "Malformed MergeSource\n")
+    return 0,nil,nil,nil,nil
+  }
+  rpbytes := data[0:RPBytes]
   for i := range rpbytes {
     rpbitmap |= uint64(rpbytes[i]) << (uint(i)*8)
   }
-  nxt++ // skip '|'
+  var ofs int
+  nxt := RPBytes+1 // past the first '|'
   for ofs = nxt; data[nxt] != '|'; nxt++ {}
   path = data[ofs:nxt]
   nxt++ // skip '|'
