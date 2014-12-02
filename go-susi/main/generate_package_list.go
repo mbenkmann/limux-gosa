@@ -428,10 +428,14 @@ func (pkg *PackageList) AppendPackages(rpbitmap uint64, r io.Reader) error {
       line := buffy[buffy_start:eol]
       
       if isempty(line) {
-        if section == nil { section = utils }
-        if description64 == nil { description64 = nodesc }
-        if path != nil {
+        if len(section) == 0 { section = utils }
+        if len(description64) == 0 { description64 = nodesc }
+        slash := 0
+        for slash < len(path) && path[slash] != '/' { slash++ }
+        if slash < len(path)-1 { // a slash as last character is no good => -1
           pkg.Append(rpbitmap, path, section, description64, templates64)
+        } else {
+          return fmt.Errorf("Malformed Filename in Packages file: %s", path)
         }
         path = nil
         section = nil
@@ -994,7 +998,7 @@ func process_packages_files() (ok bool) {
         fmt.Fprintf(os.Stderr, "Parsing Packages file for repo path %v\n", taggedblob.Repopath)
       }
       err = tempPkgList.AppendPackages(uint64(1) << uint(rpindex), r)
-      if Verbose > 1 {
+      if err == nil && Verbose > 1 {
         fmt.Fprintf(os.Stderr, "Resulting list has %v lines (%v bytes)\n", tempPkgList.Count(), tempPkgList.Data.Len())
       }
     }

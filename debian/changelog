@@ -1,3 +1,9 @@
+gosa (2.8.85) trusty; urgency=medium
+
+  * go-susi: generate_packages_list: more robustness when faced with broken Packages files
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 02 Dec 2014 11:18:01 +0100
+
 gosa (2.8.84) trusty; urgency=medium
 
   * go-susi: allow merging of package data from multiple releases to reduce packages db size and improve query performance
