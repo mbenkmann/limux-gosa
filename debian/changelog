@@ -1,3 +1,9 @@
+gosa (2.8.92) trusty; urgency=medium
+
+  * fix class_ldap.inc:add to work with empty attributes (typically when no unittag used)
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 04 Dec 2014 16:04:50 +0100
+
 gosa (2.8.91) trusty; urgency=medium
 
   * gosa-quickstart: set default fai release to "trusty"

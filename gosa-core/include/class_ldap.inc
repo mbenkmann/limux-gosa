@@ -757,8 +757,25 @@ class LDAP
         }
     }
 
+    // Remove attributes without values or empty string values
+    // because they cause LDAP errors.
+    // A typical case where this happens is when unittags are not used and
+    // the calling function does not test this and simply adds a gosaUnitTag
+    // attribute with the empty/missing value to $attrs.
+    function remove_empty_attributes(&$attrs) {
+        foreach ($attrs as $k => $v) {
+            if (is_array($v)) {
+                if (count($v) == 0 || (count($v) == 1 && $v[0] == "" )) unset($attrs[$k]);
+            } elseif ($v == "") {
+                unset($attrs[$k]);
+            }
+        }
+    }
+
     function add($attrs)
     {
+        $this->remove_empty_attributes($attrs);
+        
         if($this->hascon){
             $start = microtime(TRUE);
             if ($this->reconnect) $this->connect();
