@@ -1,3 +1,9 @@
+gosa (2.8.89) trusty; urgency=medium
+
+  * eliminate bogus "release not available" error when creating new package list
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 04 Dec 2014 10:11:43 +0100
+
 gosa (2.8.88) trusty; urgency=medium
 
   * go-susi: bugfix and testcases for merged-package-info format
