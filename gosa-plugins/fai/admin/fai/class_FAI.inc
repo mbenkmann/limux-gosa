@@ -306,8 +306,19 @@ class FAI
     session::set('FAI_objects_to_save',$FAI_objects_to_save);
   }
 
+  // If $attr is an array, returns its values sorted and joined with "," as string.
+  // Otherwise returns $attr unchanged.
+  static function force_attribute_string($attr) {
+    if (is_array($attr)) {
+      sort($attr, SORT_STRING);
+      return implode(",", $attr);
+    }
+    return $attr;
+  }
 
-  /* Detect differences in attribute arrays  */
+  /* Returns true if $ar1 and $ar2 (attribute arrays as used e.g. for ldap_add())
+     do not have the same contents (i.e. both contain the same attributes and the
+     same values for those attributes)  */
   static function array_diff_FAI($ar1,$ar2)
   {
 
@@ -321,45 +332,12 @@ class FAI
     if(count($ar1) != count($ar2)) {
       return (true);
     }
-
-    foreach($ar1 as $key1 => $val1){
-
-      if((is_array($val1)) && (count($val1)==1)){
-        $ar1[$key1] = $val1[0];
-      }
-
-      if(isset($ar2[$key1])&&  (is_array($ar2[$key1])) && (count($ar2[$key1])==1)){
-        $val1 = $val1[0];
-        $ar2[$key1] = $ar2[$key1][0];
-      }
-    }
-    ksort($ar1);
-    ksort($ar2);
-    if(count( array_diff($ar1,$ar2)) || FAI::arr_diff($ar1,$ar2)){
-      return(true);
-    }else{
-      return(false);
-    }
+    
+    // flatten multi-value attributes because array_diff can't compare them
+    $ar1 = array_map("FAI::force_attribute_string", $ar1);
+    $ar2 = array_map("FAI::force_attribute_string", $ar2);
+    return count(array_diff_assoc($ar1, $ar2)) > 0;
   }
-
-
-  static function arr_diff($ar1,$ar2)
-  {
-    foreach($ar1 as $ak1 => $av1){
-      if(!isset($ar2[$ak1]) || (!($av1 === $ar2[$ak1]))){
-        return(TRUE);    
-      }elseif(is_array($av1)){
-        $ret = (FAI::arr_diff($av1,$ar2[$ak1]));
-        if($ret) {
-          return(TRUE);
-        }
-      }
-    }
-    return(FALSE);
-  }
-
-
-
 
   /* check which objects must be saved, and save them */
   static function save_release_changes_now()

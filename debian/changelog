@@ -1,3 +1,9 @@
+gosa (2.8.93) trusty; urgency=medium
+
+  * fix PHP error when creating/editing fai package lists
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 04 Dec 2014 16:07:05 +0100
+
 gosa (2.8.92) trusty; urgency=medium
 
   * fix class_ldap.inc:add to work with empty attributes (typically when no unittag used)
