@@ -1,3 +1,9 @@
+gosa (2.8.94) trusty; urgency=medium
+
+  * avoid schema violation when removing last fai class in a profile by removing the empty profile
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 04 Dec 2014 16:32:38 +0100
+
 gosa (2.8.93) trusty; urgency=medium
 
   * fix PHP error when creating/editing fai package lists

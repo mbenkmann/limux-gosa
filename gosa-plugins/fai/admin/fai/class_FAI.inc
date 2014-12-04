@@ -286,10 +286,13 @@ class FAI
               } 
               $attrs['FAIclass'] = $new_classlist;
               if(empty($attrs['FAIclass'])){
-                  $attrs['FAIclass'] = array();
+                  // delete profile because it cannot exist without a fai class
+                  // (schema violation)
+                  $ldap->rmdir($dn['dn']);
+              } else {
+                  $ldap->cd($dn['dn']);
+                  $ldap->modify($attrs);
               }
-              $ldap->cd($dn['dn']);
-              $ldap->modify($attrs);
               if (!$ldap->success()){
                   msg_dialog::display(_("LDAP error"), msgPool::ldaperror($ldap->get_error(), $dn['dn'], LDAP_MOD, get_class()));
               }
