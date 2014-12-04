@@ -275,7 +275,7 @@ class gosaSupportDaemon
 
     /* Check Parameter */
     if(!is_array($package)){
-      trigger_error("Third parameter must be an array. With at least one attribute name.");
+      trigger_error("Third parameter must be an array. With at least one package name.");
       return($ret);
     }
 
@@ -285,8 +285,34 @@ class gosaSupportDaemon
       $attr.= "<select>".$at."</select>";
     }
 
-    /* If no package is given, search for all */
-    if(!count($package)) $package = array("%");
+    /* 
+      If no package is given, return empty list.
+      If search string is "%", ALSO return empty list!
+      Searching for all packages would be nonsensical since the typical
+      distribution has 1000s of packages, so that the list cannot be read
+      from gosa-si within the timeout and the user will get an annoying
+      error message after an annoying wait period.
+      And even if the resulting list could be obtained before the timeout it
+      would be way too long to be navigable in the browser.
+     */
+    if(!count($package) || (count($package) == 1 && $package[0]=="%") ) {
+      return($ret);
+    }
+    
+    /*
+      Turn one-character substring search (e.g. "%a%") into prefix
+      search (e.g. "a%") because substring searches with just one character
+      typically produce too many results. E.g. searching for "%a%" in Debian
+      Jessie produces a 23MB XML reply from gosa-si which depending on the
+      circumstances GOsa may not be able to read and parse before the timeout
+      expires. In addition to that it is unlikely that a user who entered "a"
+      in the search box actually wanted a list of all packages that contain "a"
+      anywhere in the name. A much more reasonable assumption is that the user
+      wanted to look up (phone-book style) all packages that start with "a".
+    */
+    if (count($package) == 1) {
+      $package[0] = preg_replace('/^%(.%)$/', '$1', $package[0]);
+    }
 
     /* Create limit tag */
     if($from == -1){
