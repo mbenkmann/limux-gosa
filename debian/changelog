@@ -1,3 +1,15 @@
+gosa (2.8.95) trusty; urgency=medium
+
+  * go-susi: up build dependency to golang-go >= 1.4
+  * When compiled with go < 1.4 gosa_query_packages_list takes ages (longer than
+  * GOsa's 15s timeout) when the database contains full trusty and jessie repository.
+  * Compiled with go 1.4 the query typically takes less than 1s. Probably the improved GC.
+  * For LHM internal use a go-susi compiled with an older Go is probably okay because
+  * LHM repos have only a small subset of packages. But for the rest of the world a
+  * go-susi compiled with Go < 1.4 is broken.
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 04 Dec 2014 18:08:56 +0100
+
 gosa (2.8.94) trusty; urgency=medium
 
   * avoid schema violation when removing last fai class in a profile by removing the empty profile
