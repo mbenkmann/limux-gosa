@@ -1,3 +1,9 @@
+gosa (2.8.91) trusty; urgency=medium
+
+  * gosa-quickstart: set default fai release to "trusty"
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 04 Dec 2014 11:04:22 +0100
+
 gosa (2.8.90) trusty; urgency=medium
 
   * optimize package list dialog performance by sanitizing nonsensical queries
