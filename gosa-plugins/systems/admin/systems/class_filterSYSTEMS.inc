@@ -18,8 +18,9 @@ class filterSYSTEMS {
         while ($attrs = $ldap->fetch()) {
             unset($attrs['member']['count']);
             foreach($attrs['member'] as $member) {
-                $array_ogroups[$member]['cn'] = $attrs['cn'][0];
-                $array_ogroups[$member]['FAIclass'] = $attrs['FAIclass'][0];
+                $memberID = LDAP::convert($member);
+                $array_ogroups[$memberID]['ogroup'] = $attrs['cn'][0];
+                $array_ogroups[$memberID]['FAIclass'] = $attrs['FAIclass'][0];
             }
         }
 
@@ -120,7 +121,9 @@ class filterSYSTEMS {
                 if (isset($array_ogroups[$dn]['FAIclass'])) {
                     $class = $array_ogroups[$dn]['FAIclass'];
                 }
-                $ogroup = $array_ogroups[$dn]['cn'];
+                if (isset($array_ogroups[$dn]['ogroup'])) {
+                    $ogroup = $array_ogroups[$dn]['ogroup'];
+                }
             }
 
             // Add ogroup and ogroup_FAIclass in any case, even if its empty
