@@ -79,6 +79,7 @@ func KernelListHook() {
   util.Log(1, "INFO! Running kernel-list-hook %v", config.KernelListHookPath)
   cmd := exec.Command(config.KernelListHookPath)
   cmd.Env = append(config.HookEnvironment(), os.Environ()...)
+  cmd.Env = append(cmd.Env, "PackageListCacheDir="+config.PackageCacheDir)
   klist, err := xml.LdifToHash("kernel", true, cmd)
   if err != nil {
     util.Log(0, "ERROR! kernel-list-hook %v: %v", config.KernelListHookPath, err)

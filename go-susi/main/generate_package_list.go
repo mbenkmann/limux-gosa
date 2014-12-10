@@ -44,6 +44,10 @@ import (
          "../util"
       )
 
+// If true (set by readenv()) the program acts as kernel-list-hook.
+// If false the program acts as package-list-hook.
+var GenerateKernelList = false
+
 // If this is true, the cache will only have 1 listing per package version even if
 // the same version exists for i386 and amd64.
 // NOTE: The LDIF output always merges i386 and amd64 because there is no architecture
@@ -75,6 +79,24 @@ var parse_release_file = regexp.MustCompile("^[0-9a-f]+\\s+[0-9]+ (([a-z]+)/bina
 //      "jessie/updates"   => "jessie"
 //      "tramp/5.0.0rc1"   => "tramp/5.0.0rc1"
 var Repopath2ReleaseRegexp = regexp.MustCompile("[/-][a-zA-Z][0-9a-zA-Z]*")
+
+// In GenerateKernelList mode, the following list of regex/replacement pairs
+// is applied in sequence to all package names with the result of the previous
+// replacement being the input into the next one. If the replacement is "",
+// the regular expression must match or the package name is not accepted as
+// a kernel package name. If the replacement is "!" the regular expression
+// must NOT match.
+// The end result is considered the name of that particular kernel and all
+// packages whose names map to the same name after massaging are considered
+// to be just different versions of the same kernel.
+var KernelVersionMassage = []string{ "^linux-image-",  "",
+                                     "^linux-image-extra", "!",
+                                     "-dbg$"        , "!",
+                                     "-virtual$"    , "!",
+                                     "-goldfish$"    , "!",
+                                     "-\\d+\\.\\d+\\.\\d+-\\d+-", "",
+                                     "-(\\d+\\.\\d+)\\.\\d+-\\d+", "-$1",
+}
 
 // Which architectures to scan
 var Architectures = map[string]bool{"all":true, "i386":true, "amd64":true}
@@ -672,6 +694,77 @@ func main() {
   readenv()
   initclient()
   readmeta()
+  if GenerateKernelList { 
+    generate_kernel_list() 
+  } else {
+    generate_package_list()
+  }
+}
+
+func generate_kernel_list() {
+  readcache(false) // false => read packages, too, not just templates data
+  match := []*regexp.Regexp{}
+  repl := []string{}
+  for i := 0; i < len(KernelVersionMassage); i+=2 {
+    match = append(match, regexp.MustCompile(KernelVersionMassage[i]))
+    repl  = append(repl, KernelVersionMassage[i+1])
+  }
+  release2name2bool := map[string]map[string]bool{}
+  name2version := map[string]string{}
+  name2path := map[string]string{}
+  for i := MasterPackageList.Count()-1; i >= 0; i-- {
+    rpbitmap, path, _, _, _ := MasterPackageList.Get(i)
+    slash := len(path)-1
+    for slash > 0 && path[slash] != '/' { slash-- }
+    under := slash
+    for under < len(path) && path[under] != '_' { under++ }
+    name := string(path[slash+1:under])
+    
+    for k := range match {
+      if repl[k] == "" {
+        if !match[k].MatchString(name) {
+          name = ""
+          break
+        }
+      } else if repl[k] == "!" {
+        if match[k].MatchString(name) {
+          name = ""
+          break
+        }
+      } else {
+        name = match[k].ReplaceAllString(name, repl[k])
+      }
+    }
+    
+    if name != "" {
+      under2 := under+1
+      for under2 < len(path) && path[under2] != '_' { under2++ }
+      version := string(path[under+1:under2])
+      for rp, idx := range Repopath2IndexWithCache {
+        if rpbitmap & (uint64(1) << uint(idx)) != 0 {
+          release := Repopath2ReleaseRegexp.ReplaceAllString(rp,"")
+          if release2name2bool[release] == nil {
+            release2name2bool[release] = map[string]bool{}
+          }
+          release2name2bool[release][name] = true
+          if debian_greater(version, name2version[name]) {
+            name2version[name] = version
+            name2path[name] = string(path)
+          }
+        }
+      }
+    }
+  }
+
+  for release, name2bool := range release2name2bool {
+    fmt.Printf("release: %v\ncn: default\n\n", release)
+    for name, _ := range name2bool {
+      fmt.Printf("release: %v\ncn: %v\nversion: %v\nfile: %v\n\n", release, name, name2version[name], name2path[name])
+    }
+  }
+}
+
+func generate_package_list() {
   noerrors := process_releases_files()
   noerrors = noerrors && process_packages_files()
   // If noerrors, we only use the template data from cache.
@@ -691,15 +784,23 @@ func main() {
 }
 
 func readenv() {
+  if fr := os.Getenv("PackageListFAIrepository"); fr != "" {
+    FAIrepository = fr
+  } else {
+    // No PackageListFAIrepository => generate_kernel_list mode
+    GenerateKernelList = true
+  }
   if cd := os.Getenv("PackageListCacheDir"); cd != "" {
     CacheDir = cd
+  } else {
+    // No PackageListCacheDir => not called from go-susi => test from command line
+    // run in generate_package_list mode with hardcoded testing defaults
+    GenerateKernelList = false
   }
   if dc := os.Getenv("PackageListDebconf"); dc != "" {
     Debconf = dc
   }
-  if fr := os.Getenv("PackageListFAIrepository"); fr != "" {
-    FAIrepository = fr
-  }
+  
   ve := os.Getenv("Verbose")
   if ve == "1" { Verbose = 1 }
   if ve == "2" { Verbose = 2 }
@@ -1594,3 +1695,9 @@ func fetch_uri(uri string, c chan *TaggedBlob) {
     fmt.Fprintln(os.Stderr, e)
   }
 }  
+
+// Returns true if smaller == "" or dpkg --compare-versions $greater gt $smaller.
+func debian_greater(greater, smaller string) bool {
+  if smaller == "" { return true }
+  return nil == exec.Command("dpkg", "--compare-versions", greater, "gt", smaller).Run()
+}

@@ -1,3 +1,9 @@
+gosa (2.8.101) trusty; urgency=medium
+
+  * go-susi: generate_kernel_list merged with generate_package_list
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 10 Dec 2014 18:47:50 +0100
+
 gosa (2.8.95) trusty; urgency=medium
 
   * go-susi: up build dependency to golang-go >= 1.4
