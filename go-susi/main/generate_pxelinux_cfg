@@ -6,7 +6,7 @@ test -z "$macaddress" && { echo "# Environment variables not properly set" ; exi
 # the LDAP server is having trouble. Make sure we only start a reinstall if
 # there actually is no such object.
 test -z "$faistate" && {
-  result="$(ldapsearch -x -L "macaddress=$macaddress" dn)"
+  result="$(ldapsearch -x -L "(&(objectClass=GOhard)(macAddress=$macaddress))" dn)"
   test $? = 0 && { # exit code 0 => LDAP okay
     echo "$result" | grep -q "# numEntries:"
     test $? != 0 && { # exit code not 0 => "# numEntries" not found

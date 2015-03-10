@@ -1,3 +1,11 @@
+gosa (2.8.102) trusty; urgency=medium
+
+  * go-susi: generate_pxelinux_cfg: add objectClass=GOhard to ldapsearch to prevent finding printers
+  * This change fixes the issue that a leftover printer object could prevent faistate install
+  * from taking effect.
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 10 Mar 2015 09:43:54 +0100
+
 gosa (2.8.101) trusty; urgency=medium
 
   * go-susi: generate_kernel_list merged with generate_package_list
