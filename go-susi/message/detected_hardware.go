@@ -140,7 +140,7 @@ func detected_hardware(xmlmsg *xml.Hash) {
     system.Add("faistate", "install")
   }
   if system.First("dn") == nil {
-    system.Add("dn","cn=%v,ou=incoming,%v", system.Text("cn"), config.LDAPBase)
+    system.Add("dn","cn=%v,%v", system.Text("cn"), config.IncomingOU)
   }
   // I don't know what gotoSysStatus is good for. Let's see if things work
   // without it. If something breaks, activate these lines again and add a

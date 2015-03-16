@@ -6,6 +6,7 @@ import (
          "../db"
          "../xml"
          "../util"
+         "../config"
        )
 
 func FAIReboot(job *xml.Hash) {
@@ -22,14 +23,14 @@ func FAIReboot(job *xml.Hash) {
   } else {
     // If the system is in incoming, delete it because faimond-ldap does not
     // cope well with incomplete LDAP objects and tries to boot them from local disk.
-    dnparts := strings.Split(sys.Text("dn"),",")
-    if len(dnparts) > 1 && dnparts[1] == "ou=incoming" { delete_system = true }
+    dnparts := strings.SplitN(sys.Text("dn"),",", 2)
+    if len(dnparts) > 1 && strings.HasPrefix(dnparts[1], config.IncomingOU) { delete_system = true }
   }
   
   db.SystemForceFAIState(macaddress, faistate)
   
   if delete_system { 
-    util.Log(1, "INFO! System %v is in ou=incoming => Deleting LDAP entry", macaddress)
+    util.Log(1, "INFO! System %v is in %v => Deleting LDAP entry", config.IncomingOU, macaddress)
     err = db.SystemReplace(sys, nil) 
     if err != nil {
       util.Log(0, "ERROR! LDAP error while deleting %v: %v", macaddress, err)

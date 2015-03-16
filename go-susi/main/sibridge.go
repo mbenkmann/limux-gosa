@@ -1028,7 +1028,7 @@ func commandCopy(template *xml.Hash, joblist *[]jobDescriptor) (reply string) {
 
     newsys := sys.Clone()
     
-    if strings.Index(sys.Text("dn"), ",ou=incoming,") > 0 {
+    if strings.HasSuffix(sys.Text("dn"), config.IncomingOU) {
       newsys.RemoveFirst("dn") // so that a new one will be filled in from the template
     }
       

@@ -123,7 +123,7 @@ func job_trigger_activate_new(xmlmsg *xml.Hash) *xml.Hash {
   
   // ======== determine ou to put/move system into =========
   
-  ou := "ou=incoming," + config.LDAPBase
+  ou := config.IncomingOU
   base := xmlmsg.Text("base")
   if base == "" { 
     if template != nil {
@@ -131,7 +131,7 @@ func job_trigger_activate_new(xmlmsg *xml.Hash) *xml.Hash {
     } else {
       if existing_sys != nil {
         ou = strings.SplitN(existing_sys.Text("dn"),",",2)[1]
-      } // else { ou remains "ou=incoming," + config.LDAPBase }
+      } // else { ou remains config.IncomingOU }
     }
   } else { // if base != ""
     oclasses := []string{}

@@ -1,3 +1,9 @@
+gosa (2.8.105) trusty; urgency=medium
+
+  * go-susi: make ou=incoming configurable ([server]/new-systems-base)
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 16 Mar 2015 14:34:01 +0100
+
 gosa (2.8.104) trusty; urgency=medium
 
   * go-susi: bugfix for printer renaming

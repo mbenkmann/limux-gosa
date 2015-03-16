@@ -316,6 +316,10 @@ var Department = ""
 // the dn of the ou=fai that contains all the FAI classes
 var FAIBase = ""
 
+// (R)DN of ou where new systems are put. If it ends with a "," then
+// LDAPBase will be appended.
+var IncomingOU = "ou=incoming,"
+
 // db.FAIClasses() will not return entries older than this.
 // See also FAIClassesCacheYoungAge
 var FAIClassesMaxAge = 30 * time.Second
@@ -546,6 +550,8 @@ func ReadConfig() {
     
     if uri, ok := server["ldap-uri"]; ok { LDAPURI = uri }
     if base,ok := server["ldap-base"]; ok { LDAPBase = base }
+    if newsysbase,ok := server["new-systems-base"]; ok { IncomingOU = newsysbase }
+    if IncomingOU[len(IncomingOU)-1] == ',' { IncomingOU += LDAPBase }
     if admin,ok:= server["ldap-admin-dn"]; ok { LDAPAdmin = admin }
     if pw  ,ok := server["ldap-admin-password"]; ok { 
       err := ioutil.WriteFile(LDAPAdminPasswordFile, []byte(pw), 0600)
