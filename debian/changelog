@@ -1,3 +1,9 @@
+gosa (2.8.104) trusty; urgency=medium
+
+  * go-susi: bugfix for printer renaming
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 16 Mar 2015 11:40:11 +0100
+
 gosa (2.8.103) trusty; urgency=medium
 
   * Issue #171: when system changes its name/IP in DNS, update local printer LDAP object

@@ -224,8 +224,8 @@ func here_i_am(xmlmsg *xml.Hash) {
         
         if update_name {
           printer_name := system.Text("cn")
-          if printer_name != client_name {
-            util.Log(1, "INFO! Local printer with MAC %v is called '%v', not '%v' => Will not rename it to '%v'", macaddress, printer_name, client_name, new_name)
+          if printer_name != cn {
+            util.Log(1, "INFO! Local printer with MAC %v is called '%v', not '%v' => Will not rename it to '%v'", macaddress, printer_name, cn, new_name)
           } else {
             system_upd.First("cn").SetText(new_name)
           }
