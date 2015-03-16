@@ -478,6 +478,36 @@ func SystemGetAllDataForMAC(macaddress string, use_groups bool) (*xml.Hash, erro
   return x, err
 }
 
+// Returns the LDAP object for the local printer of the system identified by the given 
+// macaddress. If an error occurs or the object is not found, 
+// the returned data is nil and the 2nd return value is the error.
+// If the object is not found, the error will be of type SystemNotFoundError.
+// This can be used to distinguish this case from other kinds of failures.
+// The format of the returned data is
+// <xml>
+//  <dn>...</dn>
+//  <cn>...</cn>
+//  <labeledURI>...</labeledURI>
+//  <gotoPrinterPPD>...</gotoPrinterPPD>
+//  <ipHostNumber>...</ipHostNumber>
+//  <macAddress>...</macAddress>
+//  <objectclass>objectclass_1</objectclass>
+//  <objectclass>objectclass_2</objectclass>
+//   ...
+// <xml>
+//
+// ATTENTION! This function accesses LDAP and may therefore take a while.
+// If possible you should use it asynchronously.
+func SystemLocalPrinterForMAC(macaddress string) (*xml.Hash, error) {
+  x, err := xml.LdifToHash("", true, ldapSearch(fmt.Sprintf("(&(objectClass=gotoPrinter)(macAddress=%v)%v)",LDAPFilterEscape(macaddress), config.UnitTagFilter)))
+  if err != nil { return nil, err }
+  dns := x.Get("dn")
+  if len(dns) == 0 { return nil, SystemNotFoundError{fmt.Errorf("Could not find local printer for MAC %v", macaddress)} }
+  if len(dns) > 1 { return nil, fmt.Errorf("Multiple LDAP objects with objectClass=gotoPrinter and MAC %v: %v", macaddress, dns)}
+  
+  return x, err
+}
+
 // Returns all system templates that apply to the given system (which may be
 // incomplete). 
 //

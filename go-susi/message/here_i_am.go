@@ -211,6 +211,32 @@ func here_i_am(xmlmsg *xml.Hash) {
           util.Log(0, "ERROR! LDAP error updating %v: %v", macaddress, err)
         }
       }
+      
+      system, err = db.SystemLocalPrinterForMAC(macaddress)
+      if err != nil {
+        if _, not_found := err.(db.SystemNotFoundError); !not_found {
+          util.Log(0, "ERROR! LDAP error reading data for local printer for %v: %v", macaddress, err)
+        }
+      } else {
+        system_upd := system.Clone()
+        
+        if update_ip { system_upd.FirstOrAdd("iphostnumber").SetText(client_ip) }
+        
+        if update_name {
+          printer_name := system.Text("cn")
+          if printer_name != client_name {
+            util.Log(1, "INFO! Local printer with MAC %v is called '%v', not '%v' => Will not rename it to '%v'", macaddress, printer_name, client_name, new_name)
+          } else {
+            system_upd.First("cn").SetText(new_name)
+          }
+        }
+        
+        util.Log(1, "INFO! Updating cn and/or ipHostNumber of LDAP object for local printer for %v", macaddress)
+        err = db.SystemReplace(system, system_upd)
+        if err != nil {
+          util.Log(0, "ERROR! LDAP error updating local printer for %v: %v", macaddress, err)
+        }
+      }
     }
   }
 }
