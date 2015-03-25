@@ -1,3 +1,9 @@
+gosa (2.8.108) trusty; urgency=medium
+
+  * class_workstationService.inc: Make "Use DDC" default when creating new workstation
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 25 Mar 2015 16:56:39 +0100
+
 gosa (2.8.107) trusty; urgency=medium
 
   * gosa-quickstart: add LDAP object for pool.ntp.org
