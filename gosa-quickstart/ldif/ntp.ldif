@@ -1,0 +1,12 @@
+dn: cn=pool.ntp.org,ou=servers,ou=systems,ou=${department1},${suffix}
+cn: pool.ntp.org
+gotoMode: active
+macAddress: 00:00:00:00:00:04
+goTimeSource: pool.ntp.org
+gotoBootKernel: default
+objectClass: top
+objectClass: GOhard
+objectClass: goServer
+objectClass: goNtpServer
+objectClass: gotoWorkstationTemplate
+objectClass: FAIobject

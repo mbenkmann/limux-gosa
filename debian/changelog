@@ -1,3 +1,9 @@
+gosa (2.8.107) trusty; urgency=medium
+
+  * gosa-quickstart: add LDAP object for pool.ntp.org
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 25 Mar 2015 16:55:09 +0100
+
 gosa (2.8.106) trusty; urgency=medium
 
   * go-susi: fix incorrect INFO! message
