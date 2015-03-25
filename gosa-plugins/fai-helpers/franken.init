@@ -1,0 +1,106 @@
+#!/bin/sh
+
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+
+[ -d /dev ] || mkdir -m 0755 /dev
+[ -d /root ] || mkdir -m 0700 /root
+[ -d /sys ] || mkdir /sys
+[ -d /proc ] || mkdir /proc
+[ -d /tmp ] || mkdir /tmp
+[ -d /run ] || mkdir /run
+
+mkdir -p /var/lock
+mount -t sysfs -o nodev,noexec,nosuid sysfs /sys
+mount -t proc -o nodev,noexec,nosuid proc /proc
+ln -snf /proc/mounts /etc/mtab
+
+mount -t devtmpfs -o mode=0755 udev /dev
+mkdir /dev/pts
+mount -t devpts -o noexec,nosuid,gid=5,mode=0620 devpts /dev/pts || true
+mount -t tmpfs -o "noexec,nosuid,size=10%,mode=0755" tmpfs /run
+
+depmod -a # important, or udevd and modprobe will not work properly
+
+# dash and bash conflict if not preconfigured
+echo "dash dash/sh boolean false" | debconf-set-selections
+DEBIAN_FRONTEND=noninteractive dpkg --configure -a
+
+#modprobe i8042
+#modprobe atkbd
+#modprobe usbhid
+#modprobe virtio_net
+#modprobe virtio_pci
+#modprobe nfsv4
+ipconf="$(ipconfig -c dhcp -d eth0 2>&1)"
+echo "$ipconf"
+dns="$(echo "$ipconf" | sed -n "s/^.*dns0 *: *\\([0-9.]*\\).*/\1/p")"
+echo "nameserver $dns" >/etc/resolv.conf
+
+setsid getty -a root -8 38400 tty2 </dev/null >/dev/null 2>/dev/null &
+setsid getty -a root -8 38400 tty3 </dev/null >/dev/null 2>/dev/null &
+
+#setsid getty -a root -8 38400 tty1 </dev/null >/dev/null 2>/dev/null
+
+# cause fai to set do_init_tasks=1 which needs to be set for an initial
+# installation (i.e. one where there is no existing filesystem). This causes
+# e.g. FAI_ROOT to default to "/target" instead of "/" and ROOTCMD to be
+# set to "chroot $FAI_ROOT".
+export UPSTART_JOB=fai
+
+# If this file exists, fai calls udevadm trigger --action=add. However this
+# has already been done as part of the "dpkg --configure -a" earlier. Calling
+# it again would have unwanted side effects such as renaming eth0 to eth1.
+rm /etc/init/udevtrigger.conf
+
+LOGDIR=/tmp/fai #YOU CANNOT CHANGE THIS! IT MUST MATCH THE FAI CODE!
+mkdir $LOGDIR
+
+# FAI's task_confdir requires a very specific environment. It's simpler
+# to skip it altogether and do things ourselves.
+touch $LOGDIR/skip.confdir
+
+# eval_cmdline() replacement skipped as part of task_confdir()
+for word in "$(cat /proc/cmdline)"; do
+  if echo "$word" | egrep -q '^[a-zA-Z0-9_]+=' ; then
+    varname=${word%%=*}
+    word=${word#*=}
+    eval export $varname=\"\$word\"
+    echo "$varname=$word"
+  fi
+done
+
+# define_fai_flags() replacement skipped as part of task_confdir()
+FAI_FLAGS="$(echo "$FAI_FLAGS" | tr ',' ' ')"
+echo "FAI_FLAGS: $FAI_FLAGS"
+for flag in $FAI_FLAGS; do
+  eval "export flag_$flag=1"
+done
+
+export FAI=/tmp/fai-config-space
+mkdir $FAI
+cd $FAI
+case "$FAI_CONFIG_SRC" in
+  http://*)
+    tries=0
+    while ! wget "$FAI_CONFIG_SRC" -O config.tar.gz ; do
+      tries=$(($tries + 1))
+      if [ $tries -eq 5 ]; then
+        echo "Giving up"
+        rm -f config.tar.gz
+        break
+      fi
+      sleep 2
+    done
+    
+    test -f config.tar.gz && tar xzf config.tar.gz
+    
+  ;;
+  *) echo "FAI_CONFIG_SRC is not a valid URL: \"$FAI_CONFIG_SRC\"" ;;
+esac
+
+/usr/sbin/fai
+
+/bin/sh -i </dev/console >/dev/console 2>&1
+reboot -f
+
+

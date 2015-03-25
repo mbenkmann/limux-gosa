@@ -1,0 +1,94 @@
+#!/bin/bash
+
+if [ $# != 2 ]; then
+  echo "USAGE: frankenitrd <destdir> <linux-image-...deb>"
+  exit 1
+fi
+
+destdir="$(readlink -f "$1")"
+kernel="$(readlink -f "$2")"
+
+test -f "$kernel" || { echo "$kernel not found"; exit 1 ; }
+
+mkdir "$destdir" || exit 1
+
+cd "$destdir" || exit 1
+
+echo >jessie.conf "
+[General]
+arch=i386
+directory=$destdir
+cleanup=true
+noauth=false
+explicitsuite=false
+unpack=true
+bootstrap=Debian
+aptsources=Debian
+
+[Debian]
+packages=sysvinit-core apt fai-nfsroot busybox-static klibc-utils util-linux udev kmod moreutils
+source=http://ftp.debian.org/debian
+keyring=debian-archive-keyring
+suite=jessie
+omitdebsrc=false
+"
+
+multistrap -f jessie.conf
+
+#initrd=/srv/initrd-nfs
+#cd "$initrd" || exit 1
+#wget -O - http://ftp.de.debian.org/debian/pool/main/b/busybox/busybox-static_1.22.0-14_i386.deb | dpkg -x /dev/stdin .
+#wget -O - http://ftp.de.debian.org/debian/pool/main/k/klibc/klibc-utils_2.0.4-2_i386.deb | dpkg -x /dev/stdin .
+#wget -O - http://ftp.de.debian.org/debian/pool/main/l/linux/linux-image-3.16-0.bpo.2-486_3.16.3-2~bpo70+1_i386.deb | dpkg -x /dev/stdin .
+#wget -O - http://ftp.de.debian.org/debian/pool/main/k/klibc/libklibc_2.0.4-2_i386.deb | dpkg -x /dev/stdin .
+#yes "n" | mv -i usr/lib/klibc/bin/* bin/
+
+touch .THIS_IS_THE_FAI_NFSROOT
+
+cp /usr/share/fai-helpers/franken.init init
+chmod a+x init
+
+
+
+dpkg -x "$kernel" .
+
+rm -rf usr/share/{doc,man,info,locale}/* boot
+ln -snf ../bin/true sbin/init
+
+keep="$(echo 3c574_cs 3c589_cs 3c59x 3w-9xxx 3w-sas 3w-xxxx 8139cp 8139too 8390 BusLogic DAC960 a100u2w aacraid acard-ahci acenic advansys aha152x_cs ahci ahci_platform aic79xx aic7xxx aic94xx alx amd amd8111e aoe arcmsr async_memcpy async_pq async_raid6_recov async_tx async_xor at803x at86rf230 at91_ether ata_generic ata_piix aten atl1 atl1c atl1e atl2 atp atp870u axnet_cs b44 bcm87xx be2iscsi be2net bfa bna bnx2 bnx2fc bnx2i bnx2x bpck brd broadcom bsd_comp btrfs caif_hsi caif_serial caif_virtio cassini cb710 cb710-mmc cciss cdrom cfspi_slave ch cicada cnic comm configfs crc-ccitt crc-itu-t crc-t10dif crc16 crc32c-intel crc32c_generic crc7 crct10dif-pclmul crct10dif_common crct10dif_generic cryptoloop csiostor cxgb cxgb3 cxgb3i cxgb4 cxgb4i cxgb4vf davicom dc395x dca de2104x de4x5 defxx dl2k dm-log dm-mirror dm-mod dm-raid dm-region-hash dm-snapshot dmfe dmx3191d dnet dns_resolver dpt_i2o drbd dsa_core dstr dummy e100 e1000 e1000e eata eeprom_93cx6 ehci-hcd ehci-pci enc28j60 enclosure enic epat epia epic100 eql esas2r et1011c ethoc ext4 fakehard fakelb fan fcoe fdomain fdomain_cs fealnx ff-memless firewire-core firewire-ohci firewire-sbp2 fit2 fit3 floppy fmvj18x_cs fnic forcedeth friq frpw fscache gdth gre hamachi hid hid-a4tech hid-apple hid-appleir hid-aureal hid-belkin hid-cherry hid-chicony hid-cypress hid-elo hid-ezkey hid-generic hid-gyration hid-holtek-kbd hid-holtek-mouse hid-huion hid-hyperv hid-keytouch hid-lenovo-tpkbd hid-logitech hid-logitech-dj hid-microsoft hid-monterey hid-ortek hid-petalynx hid-pl hid-primax hid-prodikeys hid-rmi hid-roccat hid-roccat-arvo hid-roccat-common hid-roccat-isku hid-roccat-lua hid-roccat-ryos hid-roccat-savu hid-samsung hid-sjoy hid-sony hid-steelseries hid-sunplus hid-thingm hid-tmff hid-topseed hid-xinmo hid-zpff hp100 hpsa hptiop hv_netvsc hv_storvsc hv_utils hv_vmbus i2c-algo-bit i2c-core i2c-hid i2o_block i2o_core i40e i40evf icplus ieee802154 ifb igb igbvf imm initio ip_tunnel ipg ipr ips isci iscsi_boot_sysfs iscsi_tcp isofs ixgb ixgbe ixgbevf jbd2 jfs jme kbic ks8842 ks8851 ks8851_mll ksz884x ktti libahci libata libceph libcrc32c libcxgbi libfc libfcoe libiscsi libiscsi_tcp libosd libphy libsas libsrp lockd loop lpfc lru_cache lxt mac802154 macb macvlan macvtap marvell mbcache mdio megaraid megaraid_mbox megaraid_mm megaraid_sas mfd-core micrel mii mlx4_core mlx4_en mlx5_core mmc_block mmc_core mmc_spi mpt2sas mpt3sas mptbase mptfc mptsas mptscsih mptspi mrf24j40 mtd mtip32xx mv88e6060 mv88e6xxx_drv mvmdio mvsas mvumi myri10ge national natsemi nbd ne2k-pci netconsole netxen_nic nfs nfs_acl nfsv2 nfsv3 nfsv4 niu nlmon nls_iso8859-1 nmclan_cs ns83820 ntb ntb_netdev null_blk nvme ohci-hcd ohci-pci on20 on26 osd osdblk osst paride parport pata_acpi pata_ali pata_amd pata_arasan_cf pata_artop pata_atiixp pata_atp867x pata_cmd640 pata_cmd64x pata_cs5520 pata_cs5530 pata_cs5536 pata_cypress pata_efar pata_hpt366 pata_hpt37x pata_hpt3x2n pata_hpt3x3 pata_it8213 pata_it821x pata_jmicron pata_legacy pata_marvell pata_mpiix pata_netcell pata_ninja32 pata_ns87410 pata_ns87415 pata_oldpiix pata_opti pata_optidma pata_pcmcia pata_pdc2027x pata_pdc202xx_old pata_piccolo pata_platform pata_radisys pata_rdc pata_rz1000 pata_sc1200 pata_sch pata_serverworks pata_sil680 pata_sis pata_sl82c105 pata_triflex pata_via pcd pch_gbe pcmcia pcmcia_core pcnet32 pcnet_cs pd pdc_adma pf pg phy-core pktcdvd plip pm80xx pmcraid ppa ppp_async ppp_deflate ppp_generic ppp_mppe ppp_synctty pppoe pppox pps_core pptp psmouse pt ptp ptp_pch qla1280 qla2xxx qla3xxx qla4xxx qlcnic qlge qlogic_cs qlogicfas408 qsemi r6040 r8169 raid1 raid10 raid456 raid6_pq raid_class rbd realtek reiserfs rionet rsxx rtsx_pci rtsx_pci_sdmmc rtsx_usb rtsx_usb_sdmmc s2io sata_inic162x sata_mv sata_nv sata_promise sata_qstor sata_rcar sata_sil sata_sil24 sata_sis sata_svw sata_sx4 sata_uli sata_via sata_vsc sb1000 sc92031 scsi_debug scsi_dh scsi_dh_alua scsi_dh_emc scsi_dh_hp_sw scsi_dh_rdac scsi_mod scsi_tgt scsi_transport_fc scsi_transport_iscsi scsi_transport_sas scsi_transport_spi scsi_transport_srp sd_mod sdhci sdhci-acpi sdhci-pci sdhci-pltfm sdhci-pxav2 sdhci-pxav3 sdio_uart sdricoh_cs ses sfc sg sh_eth sis190 sis900 skd skfp skge sky2 slhc slip smc91c92_cs smsc smsc911x smsc9420 snd snd-rawmidi snd-seq-device soundcore spi_ks8995 sr_mod ssb st starfire ste10Xp stex stmmac sundance sungem sungem_phy sunhme sunrpc sx8 sym53c500_cs sym53c8xx target_core_mod tcm_qla2xxx team team_mode_activebackup team_mode_broadcast team_mode_loadbalance team_mode_random team_mode_roundrobin tehuti tg3 thermal thermal_sys tifm_core tifm_sd tlan tmscsim tulip typhoon udf ufshcd ufshcd-pci ufshcd-pltfrm uhci-hcd uhid uio uli526x umem ums-alauda ums-cypress ums-datafab ums-eneub6250 ums-freecom ums-isd200 ums-jumpshot ums-karma ums-onetouch ums-realtek ums-sddr09 ums-sddr55 ums-usbat usb-common usb-storage usbcore usbhid ushc veth via-rhine via-sdmmc via-velocity virtio virtio_blk virtio_net virtio_pci virtio_ring virtio_scsi vitesse vmw_pvscsi vmxnet3 vringh vub300 vxge vxlan w5100 w5300 wbsd winbond-840 xen-blkback xen-blkfront xen-netback xen-netfront xfs xgene-enet xgmac xhci-hcd xirc2ps_cs xircom_cb xor yellowfin zram | tr ' ' '\n' | sed 's/$/.ko/')"
+
+find lib/modules/ -name "*.ko" | grep -vFe "$keep" | xargs rm
+find lib/modules -depth -type d -exec rmdir --ignore-fail-on-non-empty {} \;
+
+cd bin || exit 1
+
+for prog in ../usr/lib/klibc/bin/* ; do
+  test -e "${prog##*/}" -o -e ../usr/bin/"${prog##*/}" -o -e ../sbin/"${prog##*/}" -o -e ../usr/sbin/"${prog##*/}" || ln -s "$prog" .
+done
+
+for prog in acpid  adjtimex  ar  arp  arping  ash  awk  basename  blockdev  brctl \
+ bunzip2  bzcat  bzip2  cal  cat  chgrp  chmod  chown  chroot  chvt  clear  cmp \
+ cp  cpio  crond  crontab  cttyhack  cut  date  dc  dd  deallocvt  depmod  devmem \
+ df  diff  dirname  dmesg  dnsdomainname  dos2unix  dpkg  dpkg-deb  du  dumpkmap \
+ dumpleases  echo  ed  egrep  env  expand  expr  false  fdisk  fgrep  find  fold \
+ free  freeramdisk  fstrim  ftpget  ftpput  getopt  getty  grep  groups  gunzip \
+ gzip  halt  head  hexdump  hostid  hostname  httpd  hwclock  id  ifconfig \
+ ifdown  ifup  init  insmod  ionice  ip  ipcalc  kill  killall  klogd  last  less \
+ ln  loadfont  loadkmap  logger  login  logname  logread  losetup  ls  lsmod \
+ lzcat  lzma  lzop  lzopcat  md5sum  mdev  microcom  mkdir  mkfifo  mknod  mkswap \
+ mktemp  modinfo  modprobe  more  mount  mt  mv  nameif  nc  netstat  nslookup \
+ od  openvt  passwd  patch  pidof  ping  ping6  pivot_root  poweroff  printf  ps  \
+ pwd  rdate  readlink  realpath  reboot  renice  reset  rev  rm  rmdir  rmmod \
+ route  rpm  rpm2cpio  run-parts  sed  seq  setkeycodes  setsid  sh  sha1sum \
+ sha256sum  sha512sum  sleep  sort  start-stop-daemon  stat  strings  stty  su \
+ sulogin  swapoff  swapon  switch_root  sync  sysctl  syslogd  tac  tail  tar \
+ taskset  tee  telnet  telnetd  test  tftp  time  timeout  top  touch  tr \
+ traceroute  traceroute6  true  tty  tunctl  udhcpc  udhcpd  umount  uname \
+ uncompress  unexpand  uniq  unix2dos  unlzma  unlzop  unxz  unzip  uptime \
+ usleep  uudecode  uuencode  vconfig  vi  watch  watchdog  wc  wget  which  who \
+ whoami  xargs  xz  xzcat  yes  zcat ; do
+
+  test -e $prog -o -e ../usr/bin/$prog -o -e ../sbin/$prog -o -e ../usr/sbin/$prog || ln -s busybox $prog
+
+done
+

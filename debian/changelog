@@ -1,3 +1,9 @@
+gosa (2.8.110) trusty; urgency=medium
+
+  * gosa-fai-helpers: add frankenitrd (builds an initrd that replaces fai nfsroot)
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 25 Mar 2015 18:29:56 +0100
+
 gosa (2.8.109) trusty; urgency=medium
 
   * gosa-fai-helpers: remove apply-httproot and slim-down-nfsroot
