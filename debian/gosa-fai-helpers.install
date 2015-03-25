@@ -1,5 +1,5 @@
+gosa-plugins/fai-helpers/franken.init    /usr/share/gosa/fai-helpers
+gosa-plugins/fai-helpers/frankenitrd    /usr/share/gosa/fai-helpers
 gosa-plugins/fai-helpers/*.php    /usr/share/gosa/fai-helpers
 gosa-plugins/fai-helpers/*.patch  /usr/share/doc/gosa-fai-helpers
 gosa-plugins/fai-helpers/*.conf   /etc/gosa
-gosa-plugins/fai-helpers/apply-httproot /usr/bin
-gosa-plugins/fai-helpers/slim-down-nfsroot /usr/bin
