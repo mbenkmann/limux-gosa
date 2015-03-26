@@ -14,6 +14,8 @@
 ### END INIT INFO
 
 # Load defaults
+unset DEBUG
+unset KEEPALIVE
 [ -r /etc/default/gosa-si ] && . /etc/default/gosa-si
 
 # Load LSB support functions
@@ -26,7 +28,7 @@ case "$1" in
 start)  log_daemon_msg "Starting GOsa support infrastructure"
 	if [ -x /usr/sbin/gosa-si-server ]; then
 		log_progress_msg "daemon"
-		start-stop-daemon --start --pidfile "$pidfile" --name gosa-si-server --startas /usr/sbin/gosa-si-server -- $DEBUG
+		start-stop-daemon --start --pidfile "$pidfile" --name gosa-si-server --startas /usr/sbin/gosa-si-server -- $DEBUG $KEEPALIVE
 	fi
         log_end_msg $?
 	;;

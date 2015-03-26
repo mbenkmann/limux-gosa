@@ -9,11 +9,6 @@ ulimit -u unlimited
 # lift limit on open files (each socket connection requires one)
 ulimit -n 9999
 
-# see operator's manual section "TCP Keep-Alive"
-echo 30 >/proc/sys/net/ipv4/tcp_keepalive_time
-echo 10 >/proc/sys/net/ipv4/tcp_keepalive_intvl
-echo 5 >/proc/sys/net/ipv4/tcp_keepalive_probes
-
 # This determines the permissions of directories created in /var/log/fai
 # as well as those for files created by hooks (e.g. /etc/ldap/ldap.conf)
 umask 022
@@ -26,6 +21,8 @@ crashlog="/var/log/gosa-si-server-crash.log"
 foreground="0"
 
 faus=0
+
+keepalives=0
 
 args=()
 while [ $# != 0 ]; do
@@ -40,6 +37,11 @@ while [ $# != 0 ]; do
       shift
       continue
       ;;
+    -k) 
+      keepalives=1
+      shift
+      continue
+      ;;
   esac
   args=("${args[@]}" "$1")
   shift
@@ -50,6 +52,13 @@ case $faus in
   1|2|3|4|5) args=("-v" "${args[@]}") ;;
   *) args=("-vv" "${args[@]}") ;;
 esac
+
+if [ $keepalives != 0 ]; then
+  # see operator's manual section "TCP Keep-Alive"
+  echo 30 >/proc/sys/net/ipv4/tcp_keepalive_time
+  echo 10 >/proc/sys/net/ipv4/tcp_keepalive_intvl
+  echo 5 >/proc/sys/net/ipv4/tcp_keepalive_probes
+fi
 
 rm -f "$pidfile"
 

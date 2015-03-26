@@ -1,3 +1,9 @@
+gosa (2.8.113) trusty; urgency=medium
+
+  * go-susi: make setting of tcp_keepalive parameters in gosa-si-server optional
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 26 Mar 2015 11:19:48 +0100
+
 gosa (2.8.112) trusty; urgency=medium
 
   * go-susi: moved currently unused stuff from main/ to attic/
