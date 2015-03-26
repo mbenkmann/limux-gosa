@@ -1,3 +1,9 @@
+gosa (2.8.112) trusty; urgency=medium
+
+  * go-susi: moved currently unused stuff from main/ to attic/
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 26 Mar 2015 10:26:13 +0100
+
 gosa (2.8.111) trusty; urgency=medium
 
   * add frankenitrd to gosa-fai-helpers debian package

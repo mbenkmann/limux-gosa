@@ -1,4 +1,4 @@
-BINARIES=run-tests go-susi encrypt decrypt sibridge legion generate_package_list
+BINARIES=run-tests go-susi encrypt decrypt sibridge generate_package_list
 
 susi:
 	go build main/go-susi.go
