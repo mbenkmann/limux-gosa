@@ -1,3 +1,9 @@
+gosa (2.8.114) trusty; urgency=medium
+
+  * go-susi: do not access network in ReadConfig() => resolve [general]/ip in ReadNetwork()
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 30 Mar 2015 12:21:53 +0200
+
 gosa (2.8.113) trusty; urgency=medium
 
   * go-susi: make setting of tcp_keepalive parameters in gosa-si-server optional

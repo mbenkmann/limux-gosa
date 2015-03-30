@@ -417,6 +417,10 @@ func ReadConfig() {
   conf := map[string]map[string]string{"":map[string]string{}}
   
   var tftp_mappings deque.Deque
+  
+  // [general]/pxelinux-cfg-hook is deprecated and only supported for
+  // backwards compatibility. It will be converted to patterns later.
+  // That's why this is a local variable and not a global one.
   pxeLinuxCfgHookPath := "/usr/lib/go-susi/generate_pxelinux_cfg"
   
   for _, configfile := range []string{ClientConfigPath, ServerConfigPath} {
@@ -539,15 +543,7 @@ func ReadConfig() {
       ServerListenAddress = ServerListenAddress[:i+1] + port
     }
     
-    if ip,ok := server["ip"]; ok {
-      pref, err := util.Resolve(ip,"")
-      if err != nil {
-        util.Log(0, "ERROR! Could not resolve [server]/ip value \"%v\": %v",ip, err)
-      } else {
-        PreferredServer = pref
-      }
-    }
-    
+    if ip,ok := server["ip"]; ok { PreferredServer = ip }
     if uri, ok := server["ldap-uri"]; ok { LDAPURI = uri }
     if base,ok := server["ldap-base"]; ok { LDAPBase = base }
     if newsysbase,ok := server["new-systems-base"]; ok { IncomingOU = newsysbase }
@@ -775,7 +771,16 @@ func ReadNetwork() {
   }
   
   util.Log(1, "INFO! Hostname: %v  Domain: %v  MAC: %v  Listener: %v", Hostname, Domain, MAC, ServerSourceAddress)
-  PreferredServer = strings.Replace(PreferredServer, "127.0.0.1", IP, 1)
+  
+  if PreferredServer != "" {
+    pref, err := util.Resolve(PreferredServer, IP)
+    if err != nil {
+      util.Log(0, "ERROR! Could not resolve [server]/ip value \"%v\": %v", PreferredServer, err)
+      PreferredServer = ""
+    } else {
+      PreferredServer = pref
+    }
+  }
 }
 
 // Returns the gosa-si servers listed in DNS.
