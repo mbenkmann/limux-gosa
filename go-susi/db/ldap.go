@@ -22,6 +22,7 @@ package db
 
 import (
          "fmt"
+         "time"
          "bytes"
          "os/exec"
          "strings"
@@ -31,6 +32,22 @@ import (
          "../util"
          "../config"
        )
+
+// Waits until either the duration timeout has passed or LDAP is available.
+// If timeout == 0, wait forever if necessary.
+// Returns true if LDAP is available.
+func LDAPAvailable(timeout time.Duration) bool {
+  endtime := time.Now().Add(timeout)
+  for {
+    _, err := xml.LdifToHash("adminunit", true, ldapSearch(fmt.Sprintf("(&(objectClass=gosaAdministrativeUnit)%v)", config.UnitTagFilter),"ou"))
+    if err == nil { return true }
+    if timeout != 0 && time.Now().After(endtime) { break }
+    waittime := endtime.Sub(time.Now())
+    if waittime <= 0 || waittime > 1*time.Second { waittime = 1*time.Second }
+    time.Sleep(waittime)
+  }
+  return false
+}
 
 // Returns the dn and ou of the first object under config.LDAPBase that matches
 // (&(objectClass=gosaAdministrativeUnit)(gosaUnitTag=<config.UnitTag>)).

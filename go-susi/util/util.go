@@ -88,6 +88,23 @@ func WaitUntil(t time.Time) {
   }
 }
 
+// Waits until either the duration timeout has passed or DNS is available.
+// If timeout == 0, wait forever if necessary.
+// Returns true if DNS is available.
+func WaitForDNS(timeout time.Duration) bool {
+  endtime := time.Now().Add(timeout)
+  for {
+    _, err192 := net.LookupAddr("192.0.2.1")
+    _, err127 := net.LookupAddr("127.0.0.1")
+    if err192 != nil && err127 == nil { return true }
+    if timeout != 0 && time.Now().After(endtime) { break }
+    waittime := endtime.Sub(time.Now())
+    if waittime <= 0 || waittime > 1*time.Second { waittime = 1*time.Second }
+    time.Sleep(waittime)
+  }
+  return false
+}
+
 // Writes data to w, with automatic handling of short writes.
 // A short write error will only be returned if multiple attempts
 // failed in a row.

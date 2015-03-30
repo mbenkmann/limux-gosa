@@ -206,6 +206,8 @@ func Util_test() {
   check(hasWords(err,"no","such","host"), "")
   check(addr, ":10")
   
+  check(util.WaitForDNS(3*time.Second), true)
+  
   h,_ := exec.Command("hostname").CombinedOutput()
   hostname := strings.TrimSpace(string(h))
   

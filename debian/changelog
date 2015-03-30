@@ -1,3 +1,10 @@
+gosa (2.8.115) trusty; urgency=medium
+
+  * go-susi: wait for DNS and LDAP to be available at startup
+  * This makes it easier to write go-susi service files for Upstart/SystemD.
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 30 Mar 2015 12:24:06 +0200
+
 gosa (2.8.114) trusty; urgency=medium
 
   * go-susi: do not access network in ReadConfig() => resolve [general]/ip in ReadNetwork()

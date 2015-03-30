@@ -136,6 +136,14 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
   util.Log(1, "INFO! Expecting standard clients to communicate on these ports: %v", config.ClientPorts)
   
+  util.Log(1, "INFO! Waiting up to 5 minutes for DNS to be available")
+  if !util.WaitForDNS(5*time.Minute) {
+    util.Log(0, "ERROR! DNS not available")
+    util.LoggersFlush(5*time.Second)
+    os.Exit(1)
+  }
+  util.Log(1, "INFO! DNS available")
+  
   config.ReadNetwork() // after config.ReadConfig()
   
   // ATTENTION! DO NOT MOVE THE FOLLOWING CODE FURTHER DOWN!
@@ -145,13 +153,23 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   tcp_addr, err := net.ResolveTCPAddr("tcp4", config.ServerListenAddress)
   if err != nil {
     util.Log(0, "ERROR! ResolveTCPAddr: %v", err)
+    util.LoggersFlush(5*time.Second)
     os.Exit(1)
   }
   listener, err := net.ListenTCP("tcp4", tcp_addr)
   if err != nil {
     util.Log(0, "ERROR! ListenTCP: %v", err)
+    util.LoggersFlush(5*time.Second)
     os.Exit(1)
   }
+  
+  util.Log(1, "INFO! Waiting up to 5 minutes for %v to be available", config.LDAPURI)
+  if !db.LDAPAvailable(5*time.Minute) {
+    util.Log(0, "ERROR! LDAP not available")
+    util.LoggersFlush(5*time.Second)
+    os.Exit(1)
+  }
+  util.Log(1, "INFO! LDAP available")
   
   if config.RunServer {
     setConfigUnitTag() // after config.ReadNetwork()
