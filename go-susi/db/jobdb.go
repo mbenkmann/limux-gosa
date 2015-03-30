@@ -378,7 +378,7 @@ func JobsModify(filter xml.HashFilter, update *xml.Hash) {
 func JobsForwardModifyRequest(filter xml.HashFilter, update *xml.Hash) {
   modifyjobs := func(request *jobDBRequest) {
     jobdb_xml := jobDB.Query(request.Filter)
-    util.Log(2, "DEBUG! JobsForwardModifyRequest applying %v to %v", request.Job, jobdb_xml)
+    util.Log(1, "INFO! JobsForwardModifyRequest applying %v to %v", request.Job, jobdb_xml)
     count := make(map[string]uint64)
     fju   := make(map[string]*xml.Hash)
     for child := jobdb_xml.FirstChild(); child != nil; child = child.Next() {
@@ -496,7 +496,7 @@ func JobAddLocal(job *xml.Hash) {
 func JobsRemoveLocal(filter xml.HashFilter, stop_periodic bool) {
   deljob := func(request *jobDBRequest) {
     jobdb_xml := jobDB.Remove(request.Filter)
-    util.Log(2, "DEBUG! JobsRemoveLocal(stop_periodic=%v) removing job(s): %v", stop_periodic, jobdb_xml)
+    util.Log(1, "INFO! JobsRemoveLocal(stop_periodic=%v) removing job(s): %v", stop_periodic, jobdb_xml)
     fju := xml.NewHash("xml","header","foreign_job_updates")
     var count uint64 = 1
     for child := jobdb_xml.FirstChild(); child != nil; child = child.Next() {
@@ -553,7 +553,7 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
   
   modifylocaljobs := func(request *jobDBRequest) {
     jobdb_xml := jobDB.Query(request.Filter)
-    util.Log(2, "DEBUG! JobsModifyLocal applying %v to %v", request.Job, jobdb_xml)
+    util.Log(1, "INFO! JobsModifyLocal applying %v to %v", request.Job, jobdb_xml)
     fju := xml.NewHash("xml","header","foreign_job_updates")
     var count uint64 = 1
     for child := jobdb_xml.FirstChild(); child != nil; child = child.Next() {
@@ -627,7 +627,7 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
 func JobsRemoveForeign(filter xml.HashFilter) {
   deljob := func(request *jobDBRequest) {
     removed := jobDB.Remove(request.Filter)
-    util.Log(2, "DEBUG! Removed foreign jobs: %v", removed)
+    util.Log(1, "INFO! Removed foreign jobs: %v", removed)
   }
   jobDBRequests <- &jobDBRequest{ deljob, filter, nil, nil }
 }
@@ -655,7 +655,7 @@ func JobsAddOrModifyForeign(filter xml.HashFilter, job *xml.Hash) {
     found := jobs.First("job")
     
     if found != nil { // if jobs found => update their fields
-      util.Log(2, "DEBUG! Applying %v to foreign job(s): %v", request.Job, jobs)
+      util.Log(1, "INFO! Applying %v to foreign job(s): %v", request.Job, jobs)
       for ; found != nil; found = found.Next() {
         for _, field := range updatableFields {
           x := request.Job.First(field)
@@ -669,7 +669,7 @@ func JobsAddOrModifyForeign(filter xml.HashFilter, job *xml.Hash) {
       }
     } else // no job matches filter => add job
     {
-      util.Log(2, "DEBUG! Adding new foreign job: %v", request.Job)
+      util.Log(1, "INFO! Adding new foreign job: %v", request.Job)
       macaddress := job.Text("macaddress")
       ClientUnthrottle(macaddress)
       job := request.Job

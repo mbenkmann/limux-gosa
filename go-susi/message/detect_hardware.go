@@ -59,7 +59,7 @@ func detect_hardware(xmlmsg *xml.Hash) {
   }
   util.Log(1, "INFO! Finished detect-hardware-hook. Running time: %v", time.Since(start))
   for hwlist.RemoveFirst("dn") != nil {} // dn is ignored (see manual)
-  util.Log(2, "DEBUG! Hardware detection result: %v", hwlist)
+  util.Log(1, "INFO! Hardware detection result: %v", hwlist)
   
   c <- hwlist
 }
@@ -77,6 +77,6 @@ func sendDetectedHardwareReply(target string, c <-chan *xml.Hash) {
   // If [ClientPackages]/key missing, take the last key in the list
   // (We don't take the 1st because that would be "dummy-key").
   if clientpackageskey == "" { clientpackageskey = config.ModuleKeys[len(config.ModuleKeys)-1] }
-  util.Log(2, "DEBUG! Sending detected_hardware to %v: %v", target, hwlist)
+  util.Log(1, "INFO! Sending detected_hardware to %v: %v", target, hwlist)
   util.SendLnTo(target, GosaEncrypt(hwlist.String(), clientpackageskey), config.Timeout)
 }

@@ -111,7 +111,7 @@ func ldapSearchBaseScope(base string, scope string, query string, attr... string
   if config.LDAPUser != "" { args = append(args,"-D",config.LDAPUser,"-y",config.LDAPUserPasswordFile) }
   args = append(args, query)
   args = append(args, attr...)
-  util.Log(2, "DEBUG! ldapsearch %v",args)
+  util.Log(1, "INFO! ldapsearch %v",args)
   return exec.Command("ldapsearch", args...)
 }
 
@@ -119,7 +119,7 @@ func ldapSearchBaseScope(base string, scope string, query string, attr... string
 func ldapModifyAttribute(dn, modifytype, attrname string, attrvalues []string) *exec.Cmd {
   args := []string{"-x", "-H", config.LDAPURI}
   args = append(args,"-D",config.LDAPAdmin,"-y",config.LDAPAdminPasswordFile)
-  util.Log(2, "DEBUG! ldapmodify %v (%v %v -> %v for %v)",args, modifytype, attrname, attrvalues, dn)
+  util.Log(1, "INFO! ldapmodify %v (%v %v -> %v for %v)",args, modifytype, attrname, attrvalues, dn)
   cmd := exec.Command("ldapmodify", args...)
   bufstr := bytes.NewBufferString(fmt.Sprintf(`dn:: %v
 changetype: modify
@@ -140,7 +140,7 @@ changetype: modify
 func ldapModify(ldif string) *exec.Cmd {
   args := []string{"-x", "-H", config.LDAPURI}
   args = append(args,"-D",config.LDAPAdmin,"-y",config.LDAPAdminPasswordFile)
-  util.Log(2, "DEBUG! ldapmodify %v (LDIF:\n%v)",args, ldif)
+  util.Log(1, "INFO! ldapmodify %v (LDIF:\n%v)",args, ldif)
   cmd := exec.Command("ldapmodify", args...)
   bufstr := bytes.NewBufferString(ldif)
   cmd.Stdin = bufstr

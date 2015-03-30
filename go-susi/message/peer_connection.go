@@ -120,7 +120,7 @@ func (conn *PeerConnection) Tell(msg, key string) {
    }
    key = keys[0]
   }
-  util.Log(2, "DEBUG! Telling %v: %v", conn.addr, msg)
+  util.Log(1, "INFO! Telling %v: %v", conn.addr, msg)
   encrypted := GosaEncrypt(msg, key)
   conn.queue.Push(encrypted)
 }
@@ -164,7 +164,7 @@ func (conn *PeerConnection) Ask(request, key string) <-chan string {
       if conn.tcpConn != nil { conn.tcpConn.Close() }
     } else {
       defer tcpconn.Close()
-      util.Log(2, "DEBUG! Asking %v: %v", conn.addr, request)
+      util.Log(1, "INFO! Asking %v: %v", conn.addr, request)
       err = util.SendLn(tcpconn, GosaEncrypt(request, key), config.Timeout)
       // make sure handleConnection()/monitorConnection() notice that the peer is unreachable
       if err != nil && conn.tcpConn != nil { conn.tcpConn.Close() }
@@ -178,7 +178,7 @@ func (conn *PeerConnection) Ask(request, key string) <-chan string {
         // make sure handleConnection()/monitorConnection() notice that the peer is unreachable
         if conn.tcpConn != nil { conn.tcpConn.Close() }
       }
-      util.Log(2, "DEBUG! Reply from %v: %v", conn.addr, reply)
+      util.Log(1, "INFO! Reply from %v: %v", conn.addr, reply)
       c<-reply
     }
   })

@@ -432,7 +432,7 @@ func SystemForceFAIState(macaddress, faistate string) {
       return // we're done
     } // else if some jobs remained
     
-    util.Log(2, "DEBUG! ForceFAIState(%v, %v): Some install/softupdate jobs remain => Retrying", macaddress, faistate)
+    util.Log(1, "INFO! ForceFAIState(%v, %v): Some install/softupdate jobs remain => Retrying", macaddress, faistate)
   }
   
   util.Log(0, "ERROR! ForceFAIState(%v, %v): Some install/softupdate jobs could not be removed.", macaddress, faistate)
