@@ -1,3 +1,9 @@
+gosa (2.8.116) trusty; urgency=medium
+
+  * go-susi: avoid (harmless) ERROR log entry if [general]/ip is empty
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 30 Mar 2015 12:34:49 +0200
+
 gosa (2.8.115) trusty; urgency=medium
 
   * go-susi: wait for DNS and LDAP to be available at startup

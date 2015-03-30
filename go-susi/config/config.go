@@ -628,7 +628,7 @@ func ReadConfig() {
   
   ClientPorts = append(ClientPorts, ServerListenAddress[strings.Index(ServerListenAddress,":")+1:])
   
-  if strings.Index(PreferredServer,":") < 0 {
+  if PreferredServer != "" && strings.Index(PreferredServer,":") < 0 {
     PreferredServer += ServerListenAddress[strings.Index(ServerListenAddress,":"):]
   }
   
