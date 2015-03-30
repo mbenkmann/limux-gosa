@@ -1,0 +1,26 @@
+# gosa-si - GOsa² support infrastructure daemon
+#
+# The gosa-si daemon manages various databases on behalf of GOsa²
+
+description	"gosa-si daemon"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+respawn
+respawn limit 10 5
+
+# This determines the permissions of directories created in /var/log/fai
+# as well as those for files created by hooks (e.g. /etc/ldap/ldap.conf)
+umask 022
+
+console none
+
+# smaller than usual stack size to allow more processes
+limit stack 524288 524288
+# the daemon creates LOTS of threads
+limit nproc unlimited unlimited
+# each connection needs a file descriptor; make sure we have enough
+limit nofile 8192 8192
+
+exec /usr/sbin/gosa-si-server -v

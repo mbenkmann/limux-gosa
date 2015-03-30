@@ -1,2 +1,2 @@
-usr/lib/go-susi/gosa-si-server  usr/sbin/go-susi
+usr/sbin/gosa-si-server  usr/sbin/go-susi
 usr/lib/go-susi/generate_package_list usr/lib/go-susi/generate_kernel_list

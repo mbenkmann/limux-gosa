@@ -9,10 +9,10 @@ go-susi/main/detect_hardware     /usr/lib/go-susi
 go-susi/main/fai_progress        /usr/lib/go-susi
 go-susi/main/fai_savelog         /usr/lib/go-susi
 go-susi/main/initrd_autopack     /usr/lib/go-susi
-go-susi/gosa-si-server           /usr/lib/go-susi
 go-susi/encrypt                   /usr/lib/go-susi
 go-susi/decrypt                   /usr/lib/go-susi
 go-susi/generate_package_list    /usr/lib/go-susi
 go-susi/main/generate_pxelinux_cfg    /usr/lib/go-susi
-go-susi/main/gosa-si-server      /usr/sbin
+go-susi/gosa-si-server           /usr/sbin
 go-susi/sibridge                 /usr/sbin
+debian/20-tcp-keepalive-for-gosa-si.conf /etc/sysctl.d
