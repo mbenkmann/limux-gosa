@@ -1,3 +1,9 @@
+gosa (2.8.119) trusty; urgency=medium
+
+  * go-susi: remove gosa-si-server(1) manpage because the launcher script no longer exists
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 30 Mar 2015 15:36:13 +0200
+
 gosa (2.8.118) trusty; urgency=medium
 
   * go-susi: replace old init script with upstart job

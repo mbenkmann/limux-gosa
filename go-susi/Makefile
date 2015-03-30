@@ -21,8 +21,7 @@ strip: build
 man: VERSION=$(shell sed -n 's/.*Version.*=.*"\([^"]*\)".*/\1/p' config/version.go)
 man: doc/manpage.xsl
 	xsltproc >doc/go-susi.1 --stringparam name GO-SUSI --stringparam section 1 --stringparam start_id "id.jes9sqqlstzn" --stringparam stop_id "id.sj4np8e9wdb8" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
-	xsltproc >doc/gosa-si-server.1 --stringparam name GOSA-SI-SERVER --stringparam section 1 --stringparam start_id "id.anooi87iwmip" --stringparam stop_id "id.jjgoi9ch9ywz" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
-	xsltproc >doc/sibridge.1 --stringparam name SIBRIDGE --stringparam section 1 --stringparam start_id "id.ejujf2q7dp37" --stringparam stop_id "id.anooi87iwmip" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
+	xsltproc >doc/sibridge.1 --stringparam name SIBRIDGE --stringparam section 1 --stringparam start_id "id.ejujf2q7dp37" --stringparam stop_id "id.jjgoi9ch9ywz" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
 	xsltproc >doc/server.conf.5 --stringparam name SERVER.CONF --stringparam section 5 --stringparam start_id "id.ghm1et7cq23q" --stringparam stop_id "id.bajdikkyilhk" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
 	xsltproc >doc/gosa-si-jobs.5 --stringparam name GOSA-SI-JOBS --stringparam section 5 --stringparam start_id "id.sj4np8e9wdb8" --stringparam stop_id "id.8rs4yx8or7cf" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
 	xsltproc >doc/gosa-si-s2s.5 --stringparam name GOSA-SI-S2S --stringparam section 5 --stringparam start_id "id.8rs4yx8or7cf" --stringparam stop_id "id.lcwii6oc1qwv" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
@@ -61,7 +60,6 @@ almostclean:
 	rm -f deb/go-susi*.orig.tar.gz deb/go-susi*.deb deb/go-susi*.dsc
 	rm -f deb/go-susi*.changes deb/go-susi*.diff.gz deb/go-susi-?*.?*.?*/.hg*
 	rm -rf deb/go-susi-?*.?*.?*/*
-	rm -f manpage.xsl
 	rm -f doc/*.1 doc/*.5
 	test -d deb/go-susi-?*.?*.?*/ && rmdir deb/go-susi-?*.?*.?*/ || true
 	test -d deb && rmdir deb || true

@@ -126,8 +126,6 @@
   <xsl:text>&#10;.PD 1m&#10;.SH SEE ALSO</xsl:text>
   <xsl:text>&#10;.BR &quot;go-susi&quot; &quot;(1)        -  main description, API basics, XML message basics&quot;</xsl:text>
   <xsl:text>&#10;.br</xsl:text>
-  <xsl:text>&#10;.BR &quot;gosa-si-server&quot; &quot;(1) -  the preferred way to launch go-susi&quot;</xsl:text>
-  <xsl:text>&#10;.br</xsl:text>
   <xsl:text>&#10;.BR &quot;sibridge&quot; &quot;(1)       -  remote control for an si-server&quot;</xsl:text>
   <xsl:text>&#10;.br</xsl:text>
   <xsl:text>&#10;.BR &quot;initrd_autopack&quot; &quot;(5)-  a godsend for developers of initrd.img&quot;</xsl:text>
