@@ -41,6 +41,7 @@ func LDAPAvailable(timeout time.Duration) bool {
   for {
     _, err := xml.LdifToHash("adminunit", true, ldapSearch(fmt.Sprintf("(&(objectClass=gosaAdministrativeUnit)%v)", config.UnitTagFilter),"ou"))
     if err == nil { return true }
+    util.Log(0, "ERROR! LDAP error: %v", err)
     if timeout != 0 && time.Now().After(endtime) { break }
     waittime := endtime.Sub(time.Now())
     if waittime <= 0 || waittime > 1*time.Second { waittime = 1*time.Second }
