@@ -1,3 +1,9 @@
+gosa (2.8.122) trusty; urgency=medium
+
+  * go-susi/fai-helpers: moved gosa-fai-helpers to the go-susi tree because they make more sense there
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 01 Apr 2015 18:45:40 +0200
+
 gosa (2.8.121) trusty; urgency=medium
 
   * go-susi: changed some log messages from DEBUG! to INFO!
