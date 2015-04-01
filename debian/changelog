@@ -1,3 +1,9 @@
+gosa (2.8.124) trusty; urgency=medium
+
+  * gosa-fai-helpers: update package description
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 01 Apr 2015 21:14:30 +0200
+
 gosa (2.8.123) trusty; urgency=medium
 
   * go-susi/fai-helpers: move go-susi hooks to gosa-fai-helpers package
