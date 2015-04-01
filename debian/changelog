@@ -1,3 +1,9 @@
+gosa (2.8.123) trusty; urgency=medium
+
+  * go-susi/fai-helpers: move go-susi hooks to gosa-fai-helpers package
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 01 Apr 2015 21:07:01 +0200
+
 gosa (2.8.122) trusty; urgency=medium
 
   * go-susi/fai-helpers: moved gosa-fai-helpers to the go-susi tree because they make more sense there
