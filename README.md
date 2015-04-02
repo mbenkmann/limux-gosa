@@ -25,3 +25,13 @@ Individual parts of gosa-quickstart can be disabled or executed selectively via 
 you to use different machines for different functions (e.g. a dedicated DNS-server) or to omit setting up those
 parts of the infrastructure that you already have (such as a DNS server).
 
+Status
+======
+
+GOsa² 2.8 works as well or better than GOsa² 2.7 in all respects. GOsa² 2.7 installations can be upgraded to GOsa² 2.8 without restrictions.
+
+gosa-quickstart is still in its infancy. It has the following limitations compared to the description above:
+* only works on Ubuntu Trusty. Debian Jessie support will come later.
+* No DNS or DHCP included. You need to set up both services yourself.
+* Steps can not bet disabled or executed separately. The script will always set up everything on the machine where it is run.
+* OS installation is not implemented. But you can already create and edit server and workstation objects in GOsa².
