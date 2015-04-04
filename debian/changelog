@@ -1,3 +1,9 @@
+gosa (2.8.129) trusty; urgency=medium
+
+  * gosa-si/fai-helpers: refined debian packaging
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Sat, 04 Apr 2015 16:52:26 +0200
+
 gosa (2.8.124) trusty; urgency=medium
 
   * gosa-fai-helpers: update package description

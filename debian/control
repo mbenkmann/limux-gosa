@@ -35,6 +35,7 @@ Package: gosa-si
 Architecture: any
 Depends: ${misc:Depends}, ldap-utils
 Suggests: tidy
+Recommends: gosa-fai-helpers
 Conflicts: gosa-si-server, gosa-si-client, gosa-si-common, go-susi (<< 9)
 Replaces: gosa-si-server, gosa-si-client, gosa-si-common, go-susi (<< 9)
 Provides: gosa-si-server, gosa-si-client, gosa-si-common, go-susi
@@ -42,7 +43,7 @@ Description: GOsa² support infrastructure daemon (client and server)
  This package contains the support infrastructure daemon that handles
  a lot of GOsa's FAI related functionality, such as managing install
  jobs. It has to be installed on the GOsa² server as well as in the
- FAI NFS root to see FAI job progress in GOsa².
+ FAI root to see FAI job progress in GOsa².
  .
  GOsa² is a combination of system-administrator and end-user web
  interface, designed to handle LDAP based setups.
@@ -193,7 +194,9 @@ Description: LDAP schema for GOsa² fai plugin
 
 Package: gosa-fai-helpers
 Architecture: all
-Depends: ${misc:Depends}, php5-ldap 
+Depends: ${misc:Depends}, php5-ldap
+Recommends: multistrap
+Suggests: php5-cli
 Description: support programs for GOsa²+FAI
  This package includes programs useful for performing OS installations
  using GOsa²+FAI. This includes stuff related to PXE boots, FAI root file systems
