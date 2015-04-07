@@ -1,3 +1,11 @@
+gosa (2.8.131) trusty; urgency=medium
+
+  * gosa-fai-helpers: generate_package_list: improve kernel listing
+  * better kernel naming (includes architecture, drops "linux-image")
+  * i386 and amd64 no longer merged for kernels
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 07 Apr 2015 19:04:54 +0200
+
 gosa (2.8.130) trusty; urgency=medium
 
   * Bugfix: PPDs with umlauts in option names, changing these options has no effect (TRAC #15284)

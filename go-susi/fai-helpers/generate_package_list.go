@@ -50,8 +50,10 @@ var GenerateKernelList = false
 
 // If this is true, the cache will only have 1 listing per package version even if
 // the same version exists for i386 and amd64.
+// The exception to this are packages for which kernel_name() returns non-"". This
+// means that the kernel packages in the output will never be merged.
 // NOTE: The LDIF output always merges i386 and amd64 because there is no architecture
-// information in the LDIF.
+// information in the LDIF. The exception is GenerateKernelList output.
 // This switch saves a lot of memory!
 var MergeI386andAMD64 = true
 
@@ -96,6 +98,17 @@ var KernelVersionMassage = []string{ "^linux-image-",  "",
                                      "-goldfish$"    , "!",
                                      "-\\d+\\.\\d+\\.\\d+-\\d+-", "",
                                      "-(\\d+\\.\\d+)\\.\\d+-\\d+", "-$1",
+                                     "^linux-image-(.)", "$1",
+}
+
+// split out KernelVersionMassage into 2 arrays and parse regexps
+var KernelVersionMassage_match = []*regexp.Regexp{}
+var KernelVersionMassage_repl  = []string{}
+func init() {
+  for i := 0; i < len(KernelVersionMassage); i+=2 {
+    KernelVersionMassage_match = append(KernelVersionMassage_match, regexp.MustCompile(KernelVersionMassage[i]))
+    KernelVersionMassage_repl  = append(KernelVersionMassage_repl, KernelVersionMassage[i+1])
+  }
 }
 
 // Which architectures to scan
@@ -265,7 +278,8 @@ func (a *PackageListSorter) Less(i, j int) bool {
 // The path field is compared starting with the package name, so that entries
 // with the same package name are sorted next to each other even if they have
 // differing paths in the pool.
-// If MergeI386andAMD64, then "_i386.deb" and "_amd64.deb" are considered equal.
+// If MergeI386andAMD64, then "_i386.deb" and "_amd64.deb" are considered equal
+// unless kernel_name(path) returns non-""
 func compare(sl1, sl2 []byte) int {
   countpipe := 0
   x := 0
@@ -273,6 +287,11 @@ func compare(sl1, sl2 []byte) int {
   for x < len(sl1) && y < len(sl2) {
     if sl1[x] < sl2[y] { 
       if MergeI386andAMD64 && x>0 && sl1[x-1] == '_' && sl1[x] == 'a' && sl2[y] == 'i' && sl1[x+1] == 'm' && sl2[y+1] == '3' && sl1[x+2] == 'd' && sl2[y+2] == '8' && sl1[x+3] == '6' && sl2[y+3] == '6' && sl1[x+4] == '4' {
+        slash := x
+        for slash > 0 && sl1[slash] != '/' { slash-- }
+        if kernel_name(sl1[slash:x+5]) != "" {
+          return -1
+        }
         x += 5
         y += 4
         continue
@@ -282,6 +301,11 @@ func compare(sl1, sl2 []byte) int {
     }
     if sl2[y] < sl1[x] { 
       if MergeI386andAMD64 && y>0 && sl2[y-1] == '_' && sl2[y] == 'a' && sl1[x] == 'i' && sl2[y+1] == 'm' && sl1[x+1] == '3' && sl2[y+2] == 'd' && sl1[x+2] == '8' && sl2[y+3] == '6' && sl1[x+3] == '6' && sl2[y+4] == '4' {
+        slash := y
+        for slash > 0 && sl2[slash] != '/' { slash-- }
+        if kernel_name(sl2[slash:y+5]) != "" {
+          return +1
+        }
         y += 5
         x += 4
         continue
@@ -701,45 +725,61 @@ func main() {
   }
 }
 
+// Takes the pool path of a package and applies KernelVersionMassage to it.
+// If the package refers to a linux kernel, this function returns the massaged name
+// of that kernel. Otherwise "" is returned.
+// It is permitted to pass just the package name as path.
+func kernel_name(path []byte) string {
+  slash := len(path)-1
+  for slash > 0 && path[slash] != '/' { slash-- }
+  under := slash
+  for under < len(path) && path[under] != '_' { under++ }
+  name := string(path[slash+1:under])
+  
+  for k := range KernelVersionMassage_match {
+    if KernelVersionMassage_repl[k] == "" {
+      if !KernelVersionMassage_match[k].MatchString(name) {
+        return ""
+      }
+    } else if KernelVersionMassage_repl[k] == "!" {
+      if KernelVersionMassage_match[k].MatchString(name) {
+        return ""
+      }
+    } else {
+      name = KernelVersionMassage_match[k].ReplaceAllString(name, KernelVersionMassage_repl[k])
+    }
+  }
+  return name
+}
+
 func generate_kernel_list() {
   readcache(false) // false => read packages, too, not just templates data
-  match := []*regexp.Regexp{}
-  repl := []string{}
-  for i := 0; i < len(KernelVersionMassage); i+=2 {
-    match = append(match, regexp.MustCompile(KernelVersionMassage[i]))
-    repl  = append(repl, KernelVersionMassage[i+1])
-  }
   release2name2bool := map[string]map[string]bool{}
   name2version := map[string]string{}
   name2path := map[string]string{}
   for i := MasterPackageList.Count()-1; i >= 0; i-- {
     rpbitmap, path, _, _, _ := MasterPackageList.Get(i)
-    slash := len(path)-1
-    for slash > 0 && path[slash] != '/' { slash-- }
-    under := slash
-    for under < len(path) && path[under] != '_' { under++ }
-    name := string(path[slash+1:under])
-    
-    for k := range match {
-      if repl[k] == "" {
-        if !match[k].MatchString(name) {
-          name = ""
-          break
-        }
-      } else if repl[k] == "!" {
-        if match[k].MatchString(name) {
-          name = ""
-          break
-        }
-      } else {
-        name = match[k].ReplaceAllString(name, repl[k])
-      }
-    }
+
+    name := kernel_name(path)
     
     if name != "" {
+      // find last slash in path
+      slash := len(path)-1
+      for slash > 0 && path[slash] != '/' { slash-- }
+      // find 1st underscore after last slash
+      under := slash
+      for under < len(path) && path[under] != '_' { under++ }
+      // find 2nd underscore
       under2 := under+1
       for under2 < len(path) && path[under2] != '_' { under2++ }
       version := string(path[under+1:under2])
+      // find "."
+      dot := under2+1
+      for dot < len(path) && path[dot] != '.' { dot++ }
+      arch := string(path[under2+1:dot])
+      // prefix name with architecture
+      name = arch + "/" + name
+      
       for rp, idx := range Repopath2IndexWithCache {
         if rpbitmap & (uint64(1) << uint(idx)) != 0 {
           release := Repopath2ReleaseRegexp.ReplaceAllString(rp,"")
