@@ -1,3 +1,9 @@
+gosa (2.8.130) trusty; urgency=medium
+
+  * Bugfix: PPDs with umlauts in option names, changing these options has no effect (TRAC #15284)
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 07 Apr 2015 10:17:22 +0200
+
 gosa (2.8.129) trusty; urgency=medium
 
   * gosa-si/fai-helpers: refined debian packaging
