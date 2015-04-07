@@ -13,3 +13,5 @@ go-susi/fai-helpers/fai_savelog                  /usr/lib/go-susi
 go-susi/fai-helpers/initrd_autopack              /usr/lib/go-susi
 go-susi/fai-helpers/generate_pxelinux_cfg        /usr/lib/go-susi
 go-susi/fai-helpers/generate_package_list        /usr/lib/go-susi
+go-susi/doc/initrd_autopack.5                    /usr/share/man/man5
+go-susi/doc/generate_package_list.5              /usr/share/man/man5
