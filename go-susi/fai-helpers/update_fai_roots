@@ -1,0 +1,31 @@
+#!/bin/bash
+
+if [ $# != 1 ]; then
+  echo "USAGE: ${0##*/} <directory>"
+  echo "Will update/create a directory structure with kernels and initrds for FAI"
+  echo "rooted at <directory>"
+  exit 1
+fi
+
+export PATH="/sbin:/bin:/usr/sbin:/usr/bin:$PATH"
+
+cache=/var/lib/go-susi/generate_package_list.cache
+# if we have a cache from go-susi that is not older than 25h, we use it
+find "$cache" -mmin -$((25*60)) 2>/dev/null | grep -q ^.
+if [ $? = 0 ]; then
+  # delete any cache we possibly created in an earlier run
+  rm -f /var/lib/go-susi/update_fai_roots.{cache,meta}
+else
+  # so we need to use our own cache
+  cache=/var/lib/go-susi/update_fai_roots.cache
+  debdb update "$cache" --debconf=cache "$(ldapsearch -x -LLL "(&(FAIrepository=*)(objectClass=FAIrepositoryServer))" FAIrepository | sed -n '/^ /!{x;p};/^ /{H;x;s/\n //;x};${x;p}' | sed -n 's/^FAIrepository: //p')"
+fi
+
+# The echo inserts an empty line at the end to flush the last entry
+( debdb kernels "$cache"; echo ) | 
+while read -r line ; do
+  case "$line" in
+    "") ;;
+  esac
+done
+
