@@ -35,7 +35,6 @@ import (
          "strconv"
          "compress/gzip"
          "compress/bzip2"
-         "path/filepath"
          "math/rand"
          "runtime"
          "runtime/debug"
@@ -44,10 +43,22 @@ import (
          "../util"
       )
 
-// If true (set by readenv()) the program acts as kernel-list-hook.
-// If false the program acts as package-list-hook.
-var GenerateKernelList = false
+var USAGE = `debdb [-v|-vv|-vvv|-vvvv] kernels|packages <cachefile>
+debdb [-v|-vv|-vvv|-vvvv] update --debconf=all|depends|cache <cachefile> <FAIrepository>...
 
+`
+
+// set by readargs()
+type ModeT int
+var Mode ModeT
+
+const (
+  GenerateKernelList ModeT = iota  // output available kernels from db
+  GeneratePackageList             // output available packages from db
+  UpdateDB                        // update the database
+  Download                        // download a .deb package
+)
+                                
 // If this is true, the cache will only have 1 listing per package version even if
 // the same version exists for i386 and amd64.
 // The exception to this are packages for which kernel_name() returns non-"". This
@@ -114,9 +125,8 @@ func init() {
 // Which architectures to scan
 var Architectures = map[string]bool{"all":true, "i386":true, "amd64":true}
 
-var CacheName = "generate_package_list.cache"
-var CacheMetaName = "generate_package_list.meta"
-var CacheDir = "/tmp"
+var CachePath = "/tmp/generate_package_list.cache"
+var CacheMetaPath = "/tmp/generate_package_list.meta"
 
 //var FAIrepository = "http://de.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted,universe,multiverse http://dk.archive.ubuntu.com/ubuntu/|ignored|trusty-updates|main,restricted,universe,multiverse http://nl.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted,universe,multiverse"
 //var FAIrepository = "http://de.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted,universe,multiverse"
@@ -129,7 +139,7 @@ var RepoBaseURLs []string
 // "cache" => only use templates data from cache
 // "depends" => scan .deb file if it depends on something that includes the string "debconf"
 // everything else (including "") => scan all .deb files unless templates data is in cache
-var Debconf = "depends"
+var Debconf = "all"
 
 // http.Client(s) to use for connections in order of preference
 // If a proxy is available, the first entry in this list will use it.
@@ -715,13 +725,14 @@ func (pkg *PackageList) Count() int {
 
 func main() {
   rand.Seed(316888245464693718)
-  readenv()
+  readargs()
   initclient()
   readmeta()
-  if GenerateKernelList { 
-    generate_kernel_list() 
-  } else {
-    generate_package_list()
+  switch (Mode) {
+    case GenerateKernelList:  generate_kernel_list() 
+    case GeneratePackageList: generate_package_list()
+    case UpdateDB:            updatedb()
+    //case Download:            download()
   }
 }
 
@@ -804,7 +815,7 @@ func generate_kernel_list() {
   }
 }
 
-func generate_package_list() {
+func updatedb() {
   noerrors := process_releases_files()
   noerrors = noerrors && process_packages_files()
   // If noerrors, we only use the template data from cache.
@@ -820,32 +831,61 @@ func generate_package_list() {
   debconf_scan()
   writemeta()
   writecache()
+}
+
+func generate_package_list() {
+  readcache(false) // false => read packages, too, not just templates data
   printldif()
 }
 
-func readenv() {
-  if fr := os.Getenv("PackageListFAIrepository"); fr != "" {
-    FAIrepository = fr
-  } else {
-    // No PackageListFAIrepository => generate_kernel_list mode
-    GenerateKernelList = true
+func readargs() {
+  words := []string{}
+  for _, arg := range os.Args[1:] {
+    if strings.HasPrefix(arg, "-") {
+      if strings.HasPrefix(arg, "--debconf=cache") {
+        Debconf = "cache"
+      } else if strings.HasPrefix(arg, "--debconf=depend") {
+        Debconf = "depends"
+      } else if strings.HasPrefix(arg, "-v") {
+        Verbose += len(arg) - 1
+      } else if strings.HasPrefix(arg, "--help") {
+        fmt.Fprintf(os.Stdout, USAGE)
+        os.Exit(0)
+      } else {
+        fmt.Fprintf(os.Stderr, "Unknown command line switch: %v\n", arg)
+        os.Exit(1)
+      }
+    } else {
+      words = append(words, arg)
+    }
   }
-  if cd := os.Getenv("PackageListCacheDir"); cd != "" {
-    CacheDir = cd
-  } else {
-    // No PackageListCacheDir => not called from go-susi => test from command line
-    // run in generate_package_list mode with hardcoded testing defaults
-    GenerateKernelList = false
-  }
-  if dc := os.Getenv("PackageListDebconf"); dc != "" {
-    Debconf = dc
+
+  if len(words) < 2 {
+    fmt.Fprintf(os.Stdout, USAGE)
+    os.Exit(0)
   }
   
-  ve := os.Getenv("Verbose")
-  if ve == "1" { Verbose = 1 }
-  if ve == "2" { Verbose = 2 }
-  if ve == "3" { Verbose = 3 }
-  if ve == "4" { Verbose = 4 }
+  if words[0] == "update" { 
+    Mode = UpdateDB
+    if len(words) < 3 {
+      fmt.Fprintf(os.Stderr, "Missing FAIrepository argument\n")
+      os.Exit(1)
+    }
+    FAIrepository = words[2]
+    for _, w := range words[3:] { FAIrepository = FAIrepository + " " + w }
+  } else if words[0] == "kernels" { 
+    Mode = GenerateKernelList
+  } else if words[0] == "packages" { 
+    Mode = GeneratePackageList
+  } else {
+    fmt.Fprintf(os.Stderr, "Unknown command: %v\n", words[0])
+    os.Exit(1)
+  }
+
+  CachePath = words[1]
+  dot := strings.Index(CachePath, ".")
+  if dot < 0 { dot = len(CachePath) }
+  CacheMetaPath = CachePath[0:dot] + ".meta"
 }
 
 func initclient() {
@@ -1178,12 +1218,12 @@ func process_packages_files() (ok bool) {
 
 
 func readmeta() {
-  metapath := filepath.Join(CacheDir,CacheMetaName)
+  metapath := CacheMetaPath
   meta, err := os.Open(metapath)
   if err != nil{
     if os.IsNotExist(err.(*os.PathError).Err) {
       // Make sure we don't read a cache without the metadata
-      os.Remove(filepath.Join(CacheDir,CacheName))
+      os.Remove(CachePath)
     } else {
       fmt.Fprintln(os.Stderr, err)
     }
@@ -1216,7 +1256,7 @@ func readcache(templatesonly bool) {
     MasterPackageList = &PackageList{}
   }
   
-  cachepath := filepath.Join(CacheDir,CacheName)
+  cachepath := CachePath
   cache, err := os.Open(cachepath)
   if err != nil{
     if !os.IsNotExist(err.(*os.PathError).Err) {
@@ -1446,7 +1486,7 @@ func extract_templates(uri string) []byte {
 }
 
 func writemeta() {
-  meta, err := os.Create(filepath.Join(CacheDir,CacheMetaName))
+  meta, err := os.Create(CacheMetaPath)
   if err != nil{
     fmt.Fprintln(os.Stderr, err)
     return
@@ -1463,7 +1503,7 @@ func writemeta() {
 }
 
 func writecache() {
-  cache, err := os.Create(filepath.Join(CacheDir,CacheName))
+  cache, err := os.Create(CachePath)
   if err != nil {
     fmt.Fprintln(os.Stderr, err)
     return

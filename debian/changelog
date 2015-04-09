@@ -1,3 +1,9 @@
+gosa (2.8.136) trusty; urgency=medium
+
+  * gosa-debdb: almost done
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 09 Apr 2015 14:19:03 +0200
+
 gosa (2.8.135) trusty; urgency=medium
 
   * gosa-debdb: generate_package_list renamed and extracted into separate package gosa-debdb
