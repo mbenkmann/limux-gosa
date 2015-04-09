@@ -1,4 +1,4 @@
-BINARIES=run-tests go-susi encrypt decrypt sibridge fai-helpers/generate_package_list
+BINARIES=run-tests go-susi encrypt decrypt sibridge fai-helpers/debdb
 
 susi:
 	go build main/go-susi.go
@@ -10,7 +10,7 @@ build:
 	go build main/encrypt.go
 	go build main/decrypt.go
 	go build main/sibridge.go
-	go build -o fai-helpers/generate_package_list fai-helpers/generate_package_list.go
+	go build -o fai-helpers/debdb fai-helpers/debdb.go
 	ln go-susi gosa-si-server
 
 # strip is not included in "all" because this may break Go 1.1 binaries (at least on ARM)

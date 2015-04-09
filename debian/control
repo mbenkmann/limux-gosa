@@ -195,7 +195,7 @@ Description: LDAP schema for GOsa² fai plugin
 Package: gosa-fai-helpers
 Architecture: all
 Depends: ${misc:Depends}, php5-ldap
-Recommends: multistrap
+Recommends: multistrap, gosa-debdb, ldap-utils
 Suggests: php5-cli
 Description: support programs for GOsa²+FAI
  This package includes programs useful for performing OS installations
@@ -204,6 +204,13 @@ Description: support programs for GOsa²+FAI
  .
  GOsa² is a combination of system-administrator and end-user web
  interface, designed to handle LDAP based setups.
+
+Package: gosa-debdb
+Architecture: any
+Depends: ${misc:Depends}
+Description: Scan Debian repositories and manage database of packages
+ debdb is a tool that efficiently scans one or more Debian repositories and
+ manages a database of available packages and their debconf parameters.
 
 Package: gosa-plugin-gofax
 Architecture: all
