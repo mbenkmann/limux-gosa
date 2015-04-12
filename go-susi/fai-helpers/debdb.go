@@ -821,12 +821,6 @@ func updatedb() {
   // If noerrors, we only use the template data from cache.
   // Otherwise we also use the cache to provide missing packages.
   readcache(noerrors)
-  if !noerrors {
-    for reporepopath := range HaveCache {
-      WillHaveCache[reporepopath] = true
-    }
-    Repopath2Index = Repopath2IndexWithCache
-  }
   
   debconf_scan()
   writemeta()
@@ -1247,6 +1241,12 @@ func readmeta() {
       Repopath2IndexWithCache[f[1]] = i
     }
   }
+  
+  for repopath := range Repopath2IndexWithCache {
+    release := Repopath2ReleaseRegexp.ReplaceAllString(repopath,"")
+    Release2Repopaths[release] = append(Release2Repopaths[release], repopath)
+    Repopath2Release[repopath] = release
+  }
 }
 
 
@@ -1254,6 +1254,13 @@ func readmeta() {
 func readcache(templatesonly bool) {
   if MasterPackageList == nil {
     MasterPackageList = &PackageList{}
+  }
+
+  if !templatesonly {
+    for reporepopath := range HaveCache {
+      WillHaveCache[reporepopath] = true
+    }
+    Repopath2Index = Repopath2IndexWithCache
   }
   
   cachepath := CachePath
@@ -1312,6 +1319,7 @@ func readcache(templatesonly bool) {
   if Verbose > 1 {
     fmt.Fprintf(os.Stderr, "Resulting list has %v lines (%v bytes)\n", MasterPackageList.Count(), MasterPackageList.Data.Len())
   }
+  
 }
 
 type LineData struct {

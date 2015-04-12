@@ -1,1 +1,6 @@
 #!/bin/bash
+case "$0" in
+  *package*) debdb update --debconf="$PackageListDebconf" "$PackageListCacheDir/generate_package_list.cache" "$PackageListFAIrepository"
+             debdb packages "$PackageListCacheDir/generate_package_list.cache" ;;
+  *kernel*)  debdb kernels  "$PackageListCacheDir/generate_package_list.cache" ;;
+esac
