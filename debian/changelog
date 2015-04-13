@@ -1,3 +1,9 @@
+gosa (2.8.138) trusty; urgency=medium
+
+  * gosa-si: remove obsolete /etc/default/gosa-si
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 13 Apr 2015 10:02:21 +0200
+
 gosa (2.8.137) trusty; urgency=medium
 
   * gosa-fai-helpers: generate_package_list is now a script that uses debdb
