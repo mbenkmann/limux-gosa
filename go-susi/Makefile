@@ -1,4 +1,4 @@
-BINARIES=run-tests go-susi encrypt decrypt sibridge fai-helpers/debdb
+BINARIES=run-tests go-susi sibridge fai-helpers/debdb
 
 susi:
 	go build main/go-susi.go
@@ -7,8 +7,6 @@ all: build man
 
 build:
 	go build main/go-susi.go
-	go build main/encrypt.go
-	go build main/decrypt.go
 	go build main/sibridge.go
 	go build -o fai-helpers/debdb fai-helpers/debdb.go
 	ln go-susi gosa-si-server

@@ -1,3 +1,9 @@
+gosa (2.8.141) trusty; urgency=medium
+
+  * gosa-si: removed encrypt and decrypt from package (will be integrated in sibridge)
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 13 Apr 2015 11:19:44 +0200
+
 gosa (2.8.140) trusty; urgency=medium
 
   * gosa-fai-helpers/go-susi: update_config_files moved to attic
