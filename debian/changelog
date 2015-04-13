@@ -1,3 +1,10 @@
+gosa (2.8.139) trusty; urgency=medium
+
+  * go-susi/gosa-fai-helpers: move trigger_action to attic because LHM-specific
+  * At a future time a distro-agnostic hook may be added to gosa-fai-helpers
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 13 Apr 2015 10:27:14 +0200
+
 gosa (2.8.138) trusty; urgency=medium
 
   * gosa-si: remove obsolete /etc/default/gosa-si
