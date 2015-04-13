@@ -1,3 +1,10 @@
+gosa (2.8.140) trusty; urgency=medium
+
+  * gosa-fai-helpers/go-susi: update_config_files moved to attic
+  * it's not distribution-agnostic and even LHM doesn't use this any more
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 13 Apr 2015 10:32:01 +0200
+
 gosa (2.8.139) trusty; urgency=medium
 
   * go-susi/gosa-fai-helpers: move trigger_action to attic because LHM-specific
