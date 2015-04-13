@@ -1,3 +1,9 @@
+gosa (2.8.142) trusty; urgency=medium
+
+  * gosa-si: sibridge: commands "encrypt", "decrypt" and "raw" added
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 13 Apr 2015 17:39:48 +0200
+
 gosa (2.8.141) trusty; urgency=medium
 
   * gosa-si: removed encrypt and decrypt from package (will be integrated in sibridge)

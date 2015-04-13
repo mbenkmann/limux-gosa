@@ -107,6 +107,8 @@ Argument types:
                a set of objects all those that match any of the substrings in the
                manner described for type "substring".
                It is an error if one of the substrings does not match an object.
+  strings    - Multiple whitespace separated words whose meaning depends on
+               the command.
 
 Argument order:
   Times may either precede or follow the machines they should affect, 
@@ -127,6 +129,36 @@ Commands:
   <job type>: Schedule job(s) of this type.
               Argument types: Machine, Date, Time
 
+  raw:        Send arbitrary message to si-server.
+              Argument types: strings
+              Sends an arbitrary message to the si-server and prints the
+              reply. All proper messages are of the form <xml>...</xml>
+              but "raw" can be used to send malformed messages.
+              
+              If multiple words are passed as arguments and the first
+              word following the raw command does not contain
+              the character "<", it specifies either the config file
+              section (e.g. "GOsaPackages") whose key is used to encrypt
+              the message or the key itself. The command first checks if
+              the word matches the name of an existing config file section
+              with a key and if it doesn't uses the word directly.
+              
+              If no key/section is provided, the default is "GOsaPackages".
+  
+  encrypt:    Encrypt a message as appropriate for sending to an si-server.
+              Argument types: strings
+              Like the "raw" command (see above), but the encrypted
+              message is printed instead of being sent to the si-server.
+  
+  decrypt:    Decrypt an si-server message.
+              Argument types: strings
+              The inverse of "encrypt" (see above). If no key is provided
+              or decryption with the provide key fails, "decrypt" will try
+              ALL keys found in the config file. If that fails, too, the
+              encrypted message will be printed.
+              NOTE: Decryption is only considered successfull if the result
+              starts with "<xml>".
+  
   kill:       Delete the LDAP object(s) of the selected machine(s).
               Argument types: Machine
               This command can not be abbreviated.
@@ -462,7 +494,7 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
       }
       
       // process the message and get a reply (if applicable)
-      message := strings.ToLower(strings.TrimSpace(string(buf[start:start+eol])))
+      message := strings.TrimSpace(string(buf[start:start+eol]))
       start += eol+1
       if message != "" { // ignore empty lines
         var reply string
@@ -485,8 +517,8 @@ var jobs      = []string{"update","softupdate","reboot","halt","install",  "rein
 // It's important that the jobs are at the beginning of the commands slice,
 // because we use that fact later to distinguish between commands that refer to
 // jobs and other commands.
-var commands  = append(jobs,                                                                                                                                                             "help","x",      "examine", "query_jobdb","query_jobs","jobs", "delete_jobs","delete_jobdb_entry","qq","xx","kill", ".release", ".classes", ".debianrepository", ".repository")
-var canonical = []string{"update","update"    ,"reboot","halt","reinstall","reinstall",  "wake","localboot","lock","activate","activate","send_user_msg","send_user_msg","send_user_msg","help","examine","examine", "query",      "query",     "query","delete",     "delete"            ,"qq","xx","kill", ".release", ".classes", ".deb"             , ".deb"       }
+var commands  = append(jobs,                                                                                                                                                             "help","x",      "examine", "query_jobdb","query_jobs","jobs", "delete_jobs","delete_jobdb_entry","qq","xx","kill", ".release", ".classes", ".debianrepository", ".repository", "raw", "encrypt", "decrypt")
+var canonical = []string{"update","update"    ,"reboot","halt","reinstall","reinstall",  "wake","localboot","lock","activate","activate","send_user_msg","send_user_msg","send_user_msg","help","examine","examine", "query",      "query",     "query","delete",     "delete"            ,"qq","xx","kill", ".release", ".classes", ".deb"             , ".deb"       , "raw", "encrypt", "decrypt"}
 
 type jobDescriptor struct {
   MAC string
@@ -525,7 +557,7 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
     if fields[1] == "" { fields = strings.Fields(strings.Join(fields," ")) }
   }
   
-  cmd := fields[0] // always present because msg is non-empty
+  cmd := strings.ToLower(fields[0]) // always present because msg is non-empty
   
   i := 0
   is_job_cmd := false
@@ -566,16 +598,16 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
   }
   
   // Depending on the type of command, only certain kinds of arguments are permitted:
-  //  all non-dot commands: machine references (MAC, IP, name)
+  //  all non-dot commands (except "raw"): machine references (MAC, IP, name)
   //  job commands: times (XXs, XXm, XXh, XXd, YYYY-MM-DD, HH:MM)
   //  delete: job type ("update","softupdate","reboot","halt","install", "reinstall","wakeup","localboot","lock","unlock", "activate")
   //  query,qq and delete: all machines wildcard "*"
-  //  dot commands: substrings
+  //  dot commands and "raw": substrings
   allowed := map[string]bool{"machine":true}
   if is_job_cmd { allowed["time"] = true }
   if cmd == "delete" { allowed["job"]=true }
   if cmd == "delete" || cmd == "query" || cmd == "qq" { allowed["*"]=true }
-  if cmd[0] == '.' { allowed["substring"]=true; allowed["machine"]=false }
+  if cmd[0] == '.' || cmd == "raw" || cmd == "encrypt" || cmd == "decrypt" { allowed["substring"]=true; allowed["machine"]=false }
   
   // parse all fields into partial job descriptors
   parsed := []jobDescriptor{}
@@ -585,9 +617,9 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
     if (allowed["time"] && parseTime(fields[i], &template)) ||
       // test machine names before jobs. Otherwise many valid machine names such as "rei" would
       // be interpreted as job types ("reinstall" in the example)
-       (allowed["machine"] && parseMachine(fields[i], &template)) ||
-       (allowed["job"] && parseJob(fields[i], &template)) ||
-       (allowed["*"] && parseWild(fields[i], &template)) ||
+       (allowed["machine"] && parseMachine(strings.ToLower(fields[i]), &template)) ||
+       (allowed["job"] && parseJob(strings.ToLower(fields[i]), &template)) ||
+       (allowed["*"] && parseWild(strings.ToLower(fields[i]), &template)) ||
        (allowed["substring"] && parseSubstring(fields[i], &template)) {
       parsed = append(parsed, template)
       continue 
@@ -682,6 +714,12 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
     reply = commandExamine(joblist)
   } else if cmd == "query" {
     reply = commandGosa("gosa_query_jobdb",false,joblist)
+  } else if cmd == "raw" {
+    reply = commandRaw(template.Sub, 0)
+  } else if cmd == "encrypt" {
+    reply = commandRaw(template.Sub, 1)
+  } else if cmd == "decrypt" {
+    reply = commandRaw(template.Sub, 2)
   } else if cmd == "kill" {
     reply = commandKill(joblist)
   } else if cmd == "copy" {
@@ -1133,6 +1171,38 @@ func commandGosa(header string, use_job_type bool, joblist *[]jobDescriptor) (re
   reply = <- message.Peer(TargetAddress).Ask(gosa_cmd, config.ModuleKey["[GOsaPackages]"])
   return parseGosaReply(reply)
 }
+
+func commandRaw(line string, mode int) (reply string) { 
+  // The first word is the key, unless it contains a "<". In that case
+  // we assume that the XML message contains spaces and there is no key.
+  // This means that key strings containing "<" can not be used with this function.
+  f := strings.Fields(line)
+  key := f[0]
+  if len(f) == 1 || strings.Contains(key, "<") {
+    key = ""
+  }
+  gosa_cmd := strings.TrimSpace(line[len(key):])
+
+  if key == "" { key = "GOsaPackages" }
+  module_key, is_module_key := config.ModuleKey["["+key+"]"]
+  if is_module_key { key = module_key }
+  if mode == 0 {
+    reply = <- message.Peer(TargetAddress).Ask(gosa_cmd, key)
+  } else if mode == 1 {
+    reply = message.GosaEncrypt(gosa_cmd, key)
+  } else if mode == 2 {
+    reply = message.GosaDecrypt(gosa_cmd, key)
+    if reply == "" {
+      for _, key := range config.ModuleKeys {
+        reply = message.GosaDecrypt(gosa_cmd, key)
+        if reply != "" { break }
+      }
+    }
+    if reply == "" { reply = gosa_cmd }
+  }
+  return reply
+}
+
 
 func parseGosaReply(reply_from_gosa string) string {
   x, err := xml.StringToHash(reply_from_gosa)
