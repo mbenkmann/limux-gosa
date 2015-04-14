@@ -1,3 +1,10 @@
+gosa (2.8.143) trusty; urgency=medium
+
+  * gosa-fai-helpers: move old generate_pxelinux_cfg to attic
+  * This will be replaced by a wrapper around pxelinux.php
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 14 Apr 2015 11:48:14 +0200
+
 gosa (2.8.142) trusty; urgency=medium
 
   * gosa-si: sibridge: commands "encrypt", "decrypt" and "raw" added
