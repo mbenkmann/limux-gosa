@@ -1,3 +1,11 @@
+gosa (2.8.144) trusty; urgency=medium
+
+  * gosa-fai-helpers: new generate_pxelinux_cfg
+  * * the generate_pxelinux_cfg shell script is now just a wrapper for pxelinux.php
+  * * more flexible syntax for pxelinux.conf
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 17 Apr 2015 14:20:31 +0200
+
 gosa (2.8.143) trusty; urgency=medium
 
   * gosa-fai-helpers: move old generate_pxelinux_cfg to attic

@@ -1,0 +1,5 @@
+#!/bin/sh
+case "$0" in 
+ */*) exec php "${0%/*}/pxelinux.php" "$@" ;;
+ *) exec php pxelinux.php "$@" ;;
+esac

@@ -21,37 +21,40 @@ $ldap_server = NULL;
 $ldap_port = NULL;
 $ldap_base_top = NULL;
 
-if (! isset($_SERVER['REMOTE_ADDR'])) {
-    // script execution for testing
-    $ip = "172.16.2.153";
-    $requesturi = "foo.php?mac=1c:6f:65:08:b5:4d";
-} else {
-    // execution on server
-    $ip = $_SERVER['REMOTE_ADDR'];
-    $requesturi = $_SERVER['REQUEST_URI'];
+function extract_mac($str) {
+  $matches = array();
+  if (preg_match('/^(01-)?(([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F]))([.][.a-zA-Z0-9_]+)?$/', $str, $matches)) {
+    return str_replace("-",":",$matches[2]);
+  }
+  return "";
 }
-$requesturi = strtolower($requesturi);
-$macaddress = preg_replace('/^.*([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])$/', '\1:\2:\3:\4:\5:\6', $requesturi);
-if ($macaddress == $requesturi) {
-    // No MAC was passed in the URL => try arp to determine the requestor's MAC.
-    $arpinfo = shell_exec("arp -n $ip");
-    $macaddress = strtolower(preg_replace('/^.*([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F])[:-]([0-9a-fA-F][0-9a-fA-F]).*/', '\1:\2:\3:\4:\5:\6', $arpinfo));
-    if ($macaddress == $arpinfo) {
-        $macaddress = "";
-    }
+
+$macaddress = "";
+
+if (isset($_SERVER['REQUEST_URI'])) {
+  $str = $_SERVER['REQUEST_URI'];
+  $i = strrpos($str, "=");
+  $j = strrpos($str, "/");
+  $k = strrpos($str, "?");
+  if ($i === FALSE || ($j !== FALSE && $i < $j)) { $i = $j; }
+  if ($i === FALSE || ($k !== FALSE && $i < $k)) { $i = $k; }
+  if ($i !== FALSE) {
+    $macaddress = extract_mac(substr($str, $i+1));
+  }
+}
+
+if ($macaddress == "" && isset($argv[1])) {
+  $macaddress = extract_mac($argv[1]);
+}
+
+if ($macaddress == "" && getenv('macaddress') !== FALSE) {
+  $macaddress = extract_mac(getenv('macaddress'));
 }
 
 if ($macaddress != "") {
-    $findclient = "(&(objectClass=GOhard)(macAddress=$macaddress))";
+  $findclient = "(&(objectClass=GOhard)(macAddress=$macaddress))";
 } else {
-    // If we don't have a MAC, fall back to finding the client by name and IP.
-    // This is less reliable because names and IPs change more often, but
-    // since go-susi updates name and IP in LDAP whenever a client contacts it,
-    // this should usally be good enough. In any case it is desirable to change
-    // scripts that download this PHP script's output to send the MAC in the URL.
-    $clientname = strtolower(gethostbyaddr($ip));
-    $clientshortname = preg_replace('/^([^.]+).*/', '$1', $clientname);
-    $findclient = "(&(objectClass=GOhard)(ipHostNumber=$ip)(|(cn=$clientname)(cn=$clientshortname)))";
+  ldapdie(FALSE, "Could not extract MAC address from request");
 }
 
 function aget(&$obj, $attname, $default = "")
