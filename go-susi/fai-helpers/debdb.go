@@ -45,6 +45,7 @@ import (
 
 var USAGE = `debdb [-v|-vv|-vvv|-vvvv] kernels|packages <cachefile>
 debdb [-v|-vv|-vvv|-vvvv] update --debconf=all|depends|cache <cachefile> <FAIrepository>...
+debdb [-v|-vv|-vvv|-vvvv] download <cachefile> <poolpath>...
 
 `
 
@@ -58,7 +59,7 @@ const (
   UpdateDB                        // update the database
   Download                        // download a .deb package
 )
-                                
+
 // If this is true, the cache will only have 1 listing per package version even if
 // the same version exists for i386 and amd64.
 // The exception to this are packages for which kernel_name() returns non-"". This
@@ -127,6 +128,9 @@ var Architectures = map[string]bool{"all":true, "i386":true, "amd64":true}
 
 var CachePath = "/tmp/generate_package_list.cache"
 var CacheMetaPath = "/tmp/generate_package_list.meta"
+
+// <poolpath> arguments for Mode==Download, e.g. "pool/main/l/linux/linux-image-3.16.0-4-amd64_3.16.7-ckt9-2_amd64.deb"
+var DownloadList = []string{}
 
 //var FAIrepository = "http://de.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted,universe,multiverse http://dk.archive.ubuntu.com/ubuntu/|ignored|trusty-updates|main,restricted,universe,multiverse http://nl.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted,universe,multiverse"
 //var FAIrepository = "http://de.archive.ubuntu.com/ubuntu/|ignored|trusty|main,restricted,universe,multiverse"
@@ -732,7 +736,7 @@ func main() {
     case GenerateKernelList:  generate_kernel_list() 
     case GeneratePackageList: generate_package_list()
     case UpdateDB:            updatedb()
-    //case Download:            download()
+    case Download:            download()
   }
 }
 
@@ -827,6 +831,79 @@ func updatedb() {
   writecache()
 }
 
+func download() {
+  repobases := []string{}
+  for repocommarepopath := range HaveCache {
+    i := strings.LastIndex(repocommarepopath, ",")
+    if i > 0 { // unless the metadata is corrupted, this is always the case
+      repobases = append(repobases, repocommarepopath[0:i])
+    }
+  }
+  
+  exitcode := 0
+  
+  for _, path := range DownloadList {
+    shuffle(repobases)
+    ok := false
+    for _, b := range repobases {
+      if download_url(b+"/"+path) {
+        ok = true
+        break
+      }
+    }
+    if !ok {
+      fmt.Fprintf(os.Stderr, "Download failed: %s\n", path)
+      exitcode = 1
+    }
+  }
+  
+  os.Exit(exitcode)
+}
+
+func download_url(uri string) (ok bool) {
+  if Verbose > 0 {
+    fmt.Fprintf(os.Stderr, "Trying %s...", uri)
+    defer func() {
+      if ok { 
+        fmt.Fprintf(os.Stderr, "OK\n") 
+      } else {
+        fmt.Fprintf(os.Stderr, "FAIL\n") 
+      }
+    }()
+  }
+  
+  resp, err := Client[0].Get(uri)
+  if err != nil {
+    return
+  }
+  defer resp.Body.Close()
+
+  if resp.StatusCode != 200 {
+    return
+  }
+
+  i := strings.LastIndex(uri, "/")+1
+  filename := uri[i:]
+  
+  outfile, err := os.Create(filename)
+  if err != nil{
+    fmt.Fprintln(os.Stderr, err)
+    return
+  }
+  defer outfile.Close()
+  
+  _, err = io.Copy(outfile, resp.Body)
+  if err != nil{
+    fmt.Fprintln(os.Stderr, err)
+    os.Remove(filename) // remove file not correctly written
+    return
+  }
+
+  ok = true
+  return
+}
+
+
 func generate_package_list() {
   readcache(false) // false => read packages, too, not just templates data
   printldif()
@@ -840,6 +917,8 @@ func readargs() {
         Debconf = "cache"
       } else if strings.HasPrefix(arg, "--debconf=depend") {
         Debconf = "depends"
+      } else if strings.HasPrefix(arg, "--debconf=all") {
+        Debconf = "all"
       } else if strings.HasPrefix(arg, "-v") {
         Verbose += len(arg) - 1
       } else if strings.HasPrefix(arg, "--help") {
@@ -871,13 +950,24 @@ func readargs() {
     Mode = GenerateKernelList
   } else if words[0] == "packages" { 
     Mode = GeneratePackageList
+  } else if words[0] == "download" { 
+    Mode = Download
+    if len(words) < 2 {
+      fmt.Fprintf(os.Stderr, "Missing <cachefile> argument\n")
+      os.Exit(1)
+    }
+    if len(words) < 3 {
+      fmt.Fprintf(os.Stderr, "Missing <repopath> argument\n")
+      os.Exit(1)
+    }
+    DownloadList = words[2:]
   } else {
     fmt.Fprintf(os.Stderr, "Unknown command: %v\n", words[0])
     os.Exit(1)
   }
 
   CachePath = words[1]
-  dot := strings.Index(CachePath, ".")
+  dot := strings.LastIndex(CachePath, ".")
   if dot < 0 { dot = len(CachePath) }
   CacheMetaPath = CachePath[0:dot] + ".meta"
 }
@@ -1217,7 +1307,9 @@ func readmeta() {
   if err != nil{
     if os.IsNotExist(err.(*os.PathError).Err) {
       // Make sure we don't read a cache without the metadata
-      os.Remove(CachePath)
+      if os.Remove(CachePath) == nil {
+        fmt.Fprintf(os.Stderr, "Removed cache file %v because of missing metadata file %v\n", CachePath, CacheMetaPath)
+      }
     } else {
       fmt.Fprintln(os.Stderr, err)
     }

@@ -1,3 +1,9 @@
+gosa (2.8.145) trusty; urgency=medium
+
+  * gosa-fai-helpers: debdb: a small bugfix and implementation of "download" function
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Sun, 19 Apr 2015 13:32:35 +0200
+
 gosa (2.8.144) trusty; urgency=medium
 
   * gosa-fai-helpers: new generate_pxelinux_cfg
