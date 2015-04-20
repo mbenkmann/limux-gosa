@@ -695,7 +695,7 @@ foreach ($config_space as $path => $contents) {
 if (isset($_SERVER['REMOTE_ADDR'])) {
     header('Content-Description: File Transfer');
     header('Content-Type: application/octet-stream');
-    header('Content-Disposition: attachment; filename=config.tar.gz');
+    header('Content-Disposition: attachment');
     header('Expires: 0');
     header('Cache-Control: must-revalidate');
     header('Pragma: public');
