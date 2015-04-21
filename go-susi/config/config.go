@@ -590,7 +590,10 @@ func ReadConfig() {
   for !tftp_mappings.IsEmpty() {
     file := tftp_mappings.Pop().(string)
     pattern := tftp_mappings.Pop().(string)
-    if pattern[0] != '^' { pattern = "^" + regexp.QuoteMeta(pattern) + "$" }
+    if pattern[0] != '^' { 
+      pattern = "^" + regexp.QuoteMeta(pattern) + "$" 
+      file = strings.Replace(file, "$", "$$", -1)
+    }
     re, err := regexp.Compile(pattern)
     if err != nil {
       util.Log(0, "ERROR! ReadConfig: In section [tftp]: Error compiling regex \"%v\": %v", pattern, err)

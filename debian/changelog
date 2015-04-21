@@ -1,3 +1,9 @@
+gosa (2.8.147) trusty; urgency=medium
+
+  * gosa-si: allow $1, $2,... replacements in [tftp] entries with regex match
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 21 Apr 2015 12:42:01 +0200
+
 gosa (2.8.146) trusty; urgency=medium
 
   * gosa-fai-helpers: compatibility with older Apaches; different naming convention for ldap2fai

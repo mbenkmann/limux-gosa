@@ -183,7 +183,8 @@ func getFile(request string, request_re []*regexp.Regexp, reply []string) (cache
       if reply[i] == "" { return nil, nil }
       
       if reply[i][0] != '|' { // plain file
-        fpath := reply[i]
+        subsidx := request_re[i].FindStringSubmatchIndex(request)
+        fpath := string(request_re[i].ExpandString(nil, reply[i], request, subsidx))
         util.Log(1, "INFO! TFTP mapping \"%v\" => \"%v\"", request, fpath)
         
         // We use fpath as cache key instead of request because
