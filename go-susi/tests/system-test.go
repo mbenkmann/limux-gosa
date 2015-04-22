@@ -480,9 +480,23 @@ func run_activate_new_client_test() {
     
     t0 = time.Now()
     gosa("set_activated_for_installation", hash("xml(target(%v)macaddress(%v))",mac,mac))
-    check(waitlong(t0, "set_activated_for_installation").XML.Text("header"), "set_activated_for_installation")
+    safi := waitlong(t0, "set_activated_for_installation").XML
+    if check(checkTags(safi, "header,source,target,gotomode?,faistate,set_activated_for_installation"),"") {
+      check(safi.Text("header"), "set_activated_for_installation")
+      check(safi.Text("gotomode"), "active")
+      check(safi.Text("faistate"), "install")
+    }
     check(db.SystemGetState(mac, "faistate"), "install")
     check(db.SystemGetState(mac, "gotomode"), "active")
+    
+    t0 = time.Now()
+    gosa("trigger_action_activate", hash("xml(target(%v)macaddress(%v))",mac,mac))
+    safi = waitlong(t0, "set_activated_for_installation").XML
+    if check(checkTags(safi, "header,source,target,gotomode?,faistate,set_activated_for_installation"),"") {
+      check(safi.Text("header"), "set_activated_for_installation")
+      check(safi.First("gotomode"), nil)
+      check(safi.Text("faistate"), "install")
+    }
     
     job = gosa("query_jobdb", hash("xml(where(clause(phrase(macaddress(%v)))clause(phrase(headertag(trigger_action_reinstall)))))",mac))
     if check(checkTags(job, "header,source,target,session_id?,answer1"),"") {

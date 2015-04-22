@@ -56,7 +56,8 @@ func Init() { // not init() because we need to call it from go-susi.go
             
             macaddress := job.Text("macaddress")
             headertag  := job.Text("headertag")
-            if headertag != "send_user_msg" { // send_user_msg does not target a machine
+            if headertag != "send_user_msg" && // send_user_msg does not target a machine
+               headertag != "set_activated_for_installation" { // set_activated_for_installation is sent when the action is taken
               client := db.ClientWithMAC(macaddress)
               if client == nil {
                 util.Log(0, "ERROR! Client with MAC %v not in clientdb. Cannot send %v", macaddress, headertag)
