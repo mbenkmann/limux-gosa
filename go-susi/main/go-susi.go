@@ -163,15 +163,15 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
     os.Exit(1)
   }
   
-  util.Log(1, "INFO! Waiting up to 5 minutes for %v to be available", config.LDAPURI)
-  if !db.LDAPAvailable(5*time.Minute) {
-    util.Log(0, "ERROR! LDAP not available")
-    util.LoggersFlush(5*time.Second)
-    os.Exit(1)
-  }
-  util.Log(1, "INFO! LDAP available")
-  
   if config.RunServer {
+    util.Log(1, "INFO! Waiting up to 5 minutes for %v to be available", config.LDAPURI)
+    if !db.LDAPAvailable(5*time.Minute) {
+      util.Log(0, "ERROR! LDAP not available")
+      util.LoggersFlush(5*time.Second)
+      os.Exit(1)
+    }
+    util.Log(1, "INFO! LDAP available")
+  
     setConfigUnitTag() // after config.ReadNetwork()
     config.FAIBase = db.LDAPFAIBase()
     util.Log(1, "INFO! FAI base: %v", config.FAIBase)
