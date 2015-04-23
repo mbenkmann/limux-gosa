@@ -481,9 +481,8 @@ func run_activate_new_client_test() {
     t0 = time.Now()
     gosa("set_activated_for_installation", hash("xml(target(%v)macaddress(%v))",mac,mac))
     safi := waitlong(t0, "set_activated_for_installation").XML
-    if check(checkTags(safi, "header,source,target,gotomode?,faistate,set_activated_for_installation"),"") {
+    if check(checkTags(safi, "header,source,target,faistate,set_activated_for_installation"),"") {
       check(safi.Text("header"), "set_activated_for_installation")
-      check(safi.Text("gotomode"), "active")
       check(safi.Text("faistate"), "install")
     }
     check(db.SystemGetState(mac, "faistate"), "install")
@@ -492,9 +491,8 @@ func run_activate_new_client_test() {
     t0 = time.Now()
     gosa("trigger_action_activate", hash("xml(target(%v)macaddress(%v))",mac,mac))
     safi = waitlong(t0, "set_activated_for_installation").XML
-    if check(checkTags(safi, "header,source,target,gotomode?,faistate,set_activated_for_installation"),"") {
+    if check(checkTags(safi, "header,source,target,faistate,set_activated_for_installation"),"") {
       check(safi.Text("header"), "set_activated_for_installation")
-      check(safi.First("gotomode"), nil)
       check(safi.Text("faistate"), "install")
     }
     

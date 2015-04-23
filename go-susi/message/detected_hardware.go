@@ -80,12 +80,9 @@ func detected_hardware(xmlmsg *xml.Hash) {
     }
   }
   
-  old_gotomode := ""
   oldentry,_ := db.SystemGetAllDataForMAC(macaddress, false)
   if oldentry != nil { // If we have an existing entry, merge it with the new hardware data
 
-    old_gotomode = oldentry.Text("gotomode")
-    
     // copy attributes that db.SystemFillInMissingData() does not copy
     for attr := range db.DoNotCopyAttribute {
       if system.First(attr) == nil && oldentry.First(attr) != nil {
@@ -169,7 +166,7 @@ func detected_hardware(xmlmsg *xml.Hash) {
   
   // if the system is not locked, tell it to start the installation right away
   if system.Text("gotomode") == "active" {
-    Send_set_activated_for_installation(xmlmsg.Text("source"), old_gotomode, system)
+    Send_set_activated_for_installation(xmlmsg.Text("source"), system)
   } else { // otherwise we can at least tell the system its LDAP and NTP server(s)
     Send_new_ldap_config(xmlmsg.Text("source"), system)
   }

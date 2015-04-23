@@ -177,14 +177,12 @@ func job_trigger_activate_new(xmlmsg *xml.Hash) *xml.Hash {
   
   // ============ create or modify LDAP entry ============
 
-  old_gotomode := ""
   var system *xml.Hash
   if existing_sys == nil {
     system = xml.NewHash("xml")
     system.Add("macaddress", macaddress)
     system.Add("cn", config.CNAutoPrefix+strings.Replace(macaddress,":","-", -1)+config.CNAutoSuffix)
   } else {
-    old_gotomode = existing_sys.Text("gotomode")
     system = existing_sys.Clone()
   }
 
@@ -249,7 +247,7 @@ func job_trigger_activate_new(xmlmsg *xml.Hash) *xml.Hash {
     // get complete data, including from groups
     system,_ = db.SystemGetAllDataForMAC(macaddress, true)
     if system != nil {
-      Send_set_activated_for_installation(client.Text("client"), old_gotomode, system)
+      Send_set_activated_for_installation(client.Text("client"), system)
     }
   }
   

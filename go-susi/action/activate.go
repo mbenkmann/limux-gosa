@@ -28,12 +28,7 @@ import (
 
 func Activate(job *xml.Hash) {
   macaddress := job.Text("macaddress")
-  old_gotomode := db.SystemGetState(macaddress, "gotoMode")
-  if old_gotomode == "active" {
-    util.Log(1, "INFO! gotoMode of %v is already 'active' => spurious activation", macaddress)
-  } else {
-    db.SystemSetState(macaddress, "gotoMode", "active")
-  }
+  db.SystemSetState(macaddress, "gotoMode", "active")
   if client := db.ClientWithMAC(macaddress); client != nil {
     system, err := db.SystemGetAllDataForMAC(macaddress, true)
     if err != nil {
@@ -41,7 +36,7 @@ func Activate(job *xml.Hash) {
         // Don't abort. Send_set_activated_for_installation() can still
         // do something, even if system data is not available.
     }
-    message.Send_set_activated_for_installation(client.Text("client"), old_gotomode, system)
+    message.Send_set_activated_for_installation(client.Text("client"), system)
   } else {
     util.Log(0, "ERROR! Unknown client %v => Cannot send set_activated_for_installation", macaddress)
   }
