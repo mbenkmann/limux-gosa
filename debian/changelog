@@ -1,3 +1,10 @@
+gosa (2.8.152) trusty; urgency=medium
+
+  * gosa-fai-helpers: new activated hook that makes sure the proper kernel is running
+  * even if the kernel/release is changed while the system is waiting for activation
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 23 Apr 2015 11:06:30 +0200
+
 gosa (2.8.151) trusty; urgency=medium
 
   * gosa-si: remove code to pass gotomode=... info to activated hook because GOsa² interferes with it
