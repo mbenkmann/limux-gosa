@@ -29,7 +29,11 @@ import (
 func Activate(job *xml.Hash) {
   macaddress := job.Text("macaddress")
   old_gotomode := db.SystemGetState(macaddress, "gotoMode")
-  db.SystemSetState(macaddress, "gotoMode", "active")
+  if old_gotomode == "active" {
+    util.Log(1, "INFO! gotoMode of %v is already 'active' => spurious activation", macaddress)
+  } else {
+    db.SystemSetState(macaddress, "gotoMode", "active")
+  }
   if client := db.ClientWithMAC(macaddress); client != nil {
     system, err := db.SystemGetAllDataForMAC(macaddress, true)
     if err != nil {

@@ -1,3 +1,9 @@
+gosa (2.8.150) trusty; urgency=medium
+
+  * gosa-si: Log spurious activations as INFO!
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 23 Apr 2015 09:28:30 +0200
+
 gosa (2.8.149) trusty; urgency=medium
 
   * gosa-si: only wait for LDAP to be available when in server mode
