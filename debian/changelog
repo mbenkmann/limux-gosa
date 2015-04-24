@@ -1,3 +1,9 @@
+gosa (2.8.154) trusty; urgency=medium
+
+  * gosa-fai-helpers: make-fai-initrd-root: more command line parameters
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 24 Apr 2015 20:15:40 +0200
+
 gosa (2.8.153) trusty; urgency=medium
 
   * gosa-fai-helpers: remove "registered" script. Doesn't do anything useful.

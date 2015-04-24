@@ -1,14 +1,32 @@
 #!/bin/bash
 
-if [ $# != 2 ]; then
-  echo "USAGE: ${0##*/} <destdir> <linux-image-...deb>"
+if [ $# -lt 3 ]; then
+  echo "USAGE: ${0##*/} <destdir> <debianmirror> <init> <linux-image-...deb> [<other.deb>...]"
+  echo "<debianmirror> is e.g. 'http://ftp.debian.org/debian'"
+  echo "<init> is e.g. '/usr/lib/go-susi/make-fai-initrd-root.init'"
+  echo "<other.deb> usually includes at least gosa-si_...deb"
   exit 1
 fi
 
 destdir="$(readlink -f "$1")"
-kernel="$(readlink -f "$2")"
+mirror="$2"
 
-test -f "$kernel" || { echo "$kernel not found"; exit 1 ; }
+shift 2
+
+for f in "$@"; do
+  test -f "$f" || { echo 1>&2 "$f not found"; exit 1 ; }
+done
+
+init="$(readlink -f "$1")"
+shift
+
+debs=("$@")
+i=0
+for deb in "${debs[@]}"; do
+  deb="$(readlink -f "$deb")"
+  debs[$i]="$deb"
+  i=$(($i + 1))
+done
 
 mkdir "$destdir" || exit 1
 
@@ -26,11 +44,11 @@ bootstrap=Debian
 aptsources=Debian
 
 [Debian]
-packages=sysvinit-core apt fai-nfsroot busybox-static klibc-utils util-linux udev kmod moreutils
-source=http://ftp.debian.org/debian
+packages=joe sysvinit-core apt fai-nfsroot busybox-static klibc-utils util-linux udev kmod moreutils
+source=$mirror
 keyring=debian-archive-keyring
 suite=jessie
-omitdebsrc=false
+omitdebsrc=true
 "
 
 multistrap -f jessie.conf
@@ -45,12 +63,12 @@ multistrap -f jessie.conf
 
 touch .THIS_IS_THE_FAI_NFSROOT
 
-cp "$0.init" init
+cp "$init" init
 chmod a+x init
 
-
-
-dpkg -x "$kernel" .
+for deb in "${debs[@]}"; do
+  dpkg -x "$deb" .
+done
 
 rm -rf usr/share/{doc,man,info,locale}/* boot
 ln -snf ../bin/true sbin/init
