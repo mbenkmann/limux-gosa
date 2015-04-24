@@ -1,3 +1,9 @@
+gosa (2.8.153) trusty; urgency=medium
+
+  * gosa-fai-helpers: remove "registered" script. Doesn't do anything useful.
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 24 Apr 2015 15:17:40 +0200
+
 gosa (2.8.152) trusty; urgency=medium
 
   * gosa-fai-helpers: new activated hook that makes sure the proper kernel is running

@@ -3,7 +3,6 @@ go-susi/fai-helpers/make-fai-initrd-root.init    /usr/lib/go-susi
 go-susi/fai-helpers/*.php                        /usr/lib/go-susi
 go-susi/fai-helpers/*.patch                      /usr/share/doc/gosa-fai-helpers
 go-susi/fai-helpers/*.conf                       /etc/gosa
-go-susi/fai-helpers/registered                   /usr/lib/go-susi
 go-susi/fai-helpers/activated                    /usr/lib/go-susi
 go-susi/fai-helpers/detect_hardware              /usr/lib/go-susi
 go-susi/fai-helpers/fai_progress                 /usr/lib/go-susi
