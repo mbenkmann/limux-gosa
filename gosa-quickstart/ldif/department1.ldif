@@ -2,9 +2,15 @@ dn: ${suffix}
 o: gosa
 objectClass: organization
 
+
 dn: ou=${department1},${suffix}
 ou: ${department1}
 description: ${department1}
+objectClass: organizationalUnit
+
+dn: ou=incoming,ou=${department1},${suffix}
+ou: incoming
+description: new systems are added here in half-configured state
 objectClass: organizationalUnit
 
 dn: ou=systems,ou=${department1},${suffix}
