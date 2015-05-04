@@ -1,3 +1,9 @@
+gosa (2.8.157) trusty; urgency=medium
+
+  * gosa-quickstart: add systemIncomingRDN attribute to gosa.conf for illustrative purposes
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 04 May 2015 15:59:46 +0200
+
 gosa (2.8.156) trusty; urgency=medium
 
   * fix bug that caused ArpNewDevice/systemIncomingRDN configuration option in gosa.conf to be ignored
