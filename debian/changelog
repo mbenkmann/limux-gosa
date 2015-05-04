@@ -1,3 +1,9 @@
+gosa (2.8.156) trusty; urgency=medium
+
+  * fix bug that caused ArpNewDevice/systemIncomingRDN configuration option in gosa.conf to be ignored
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 04 May 2015 15:56:27 +0200
+
 gosa (2.8.155) trusty; urgency=medium
 
   * gosa-quickstart: correct ldap-base in server.conf; ou=incoming in LDAP data
