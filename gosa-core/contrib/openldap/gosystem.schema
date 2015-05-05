@@ -336,6 +336,7 @@ objectclass (1.3.6.1.4.1.10098.1.2.1.3 NAME 'GOhard'
         DESC 'Gonicus Hardware definitions, objectclass (v2.7)' SUP top STRUCTURAL
         MUST ( cn )
         MAY ( ghGfxAdapter $ ghNetNic $ ghSoundAdapter $ ghIdeDev $ ghScsiDev $
+              serialNumber $ seeAlso $ owner $ ou $ o $
               macAddress $ ghUsbSupport $ ghMemSize $ ghCpuType $ ghInventoryNumber $
               gotoSyslogServer $ gotoNtpServer $ gotoSwapServer $ gotoLpdServer $
               gotoFontPath $ gotoFilesystem $ gotoFloppyEnable $ gotoCdromEnable $

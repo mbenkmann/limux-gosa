@@ -1,3 +1,9 @@
+gosa (2.8.158) trusty; urgency=medium
+
+  * add serialNumber,seeAlso, owner, ou, o to GOhard to match objectclass "device" (RFC2256)
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 05 May 2015 14:21:54 +0200
+
 gosa (2.8.157) trusty; urgency=medium
 
   * gosa-quickstart: add systemIncomingRDN attribute to gosa.conf for illustrative purposes
