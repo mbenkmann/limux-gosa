@@ -687,7 +687,7 @@ foreach ($config_space as $path => $contents) {
     $fh = fopen("$basedir/$path", "a");
     fwrite($fh, $contents);
     fclose($fh);
-    if (strpos($path, "scripts/") === 0) {
+    if (strpos($path, "scripts/") === 0 || strpos($path, "hooks/") === 0) {
         chmod("$basedir/$path", 0755);
     }
 }

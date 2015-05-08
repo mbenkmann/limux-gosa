@@ -1,3 +1,9 @@
+gosa (2.8.160) trusty; urgency=medium
+
+  * fai-helpers: ldap2fai: make hooks/* executable
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 08 May 2015 15:21:08 +0200
+
 gosa (2.8.159) trusty; urgency=medium
 
   * go-susi: more log messages
