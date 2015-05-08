@@ -114,6 +114,8 @@ func detected_hardware(xmlmsg *xml.Hash) {
         util.Log(0, "WARNING! System %v matches more than 1 template: %v and %v (and possibly others)", system.Text("cn"), template.Text("cn"), template.Next().Text("cn"))
       }
     
+      util.Log(1, "INFO! Found template object for %v: %v", macaddress, template.Text("dn"))
+    
       // If necessary db.SystemFillInMissingData() also generates a dn 
       // derived from system's cn and template's dn.
       db.SystemFillInMissingData(system, template)
@@ -140,6 +142,7 @@ func detected_hardware(xmlmsg *xml.Hash) {
     system.Add("faistate", "install")
   }
   if system.First("dn") == nil {
+    util.Log(1, "INFO! New system object will be created in %v", config.IncomingOU)
     system.Add("dn","cn=%v,%v", system.Text("cn"), config.IncomingOU)
   }
   // I don't know what gotoSysStatus is good for. Let's see if things work

@@ -1,3 +1,9 @@
+gosa (2.8.159) trusty; urgency=medium
+
+  * go-susi: more log messages
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 08 May 2015 14:44:16 +0200
+
 gosa (2.8.158) trusty; urgency=medium
 
   * add serialNumber,seeAlso, owner, ou, o to GOhard to match objectclass "device" (RFC2256)
