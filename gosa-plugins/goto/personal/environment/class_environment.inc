@@ -312,7 +312,7 @@ class environment extends plugin
             $devs[$name] = $dev;
           }
         }else{
-          msg_dialog::display(_("Warning"), sprintf(_("Device '%s' is not available anymore. It will be removed!"), $attrs['gotoHotplugDeviceDN'][$i]), WARNING_DIALOG);
+          msg_dialog::display(_("Warning"), sprintf(_("Device '%s' is not available anymore. It will be removed!"), $obj_attrs['gotoHotplugDeviceDN'][$i]), WARNING_DIALOG);
         }
       }
     }
