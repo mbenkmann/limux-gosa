@@ -1,3 +1,9 @@
+gosa (2.8.162) trusty; urgency=medium
+
+  * fix missing FAI release if honourUnitTags=false but server has a unittag
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 11 May 2015 11:41:46 +0200
+
 gosa (2.8.161) trusty; urgency=medium
 
   * GOsa: fix incorrect variable reference in error message

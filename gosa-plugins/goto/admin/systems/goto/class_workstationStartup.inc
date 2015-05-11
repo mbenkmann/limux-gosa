@@ -1141,6 +1141,10 @@ another location! */
      */
     function update_fai_cache($first_call = FALSE)
     {
+        global $config;        
+        $utags = isset($config->current['HONOURUNITTAGS']) &&
+           preg_match('/true/i', $config->current['HONOURUNITTAGS']);
+        
         $force = FALSE;
         if(!$this->si_active) return; 
         $start = microtime(TRUE);  
@@ -1163,9 +1167,11 @@ another location! */
             }else{
 
                 foreach($servers as $server){
-                    $ui = get_userinfo();
-                    if (isset($server['TAG']) && ($ui->gosaUnitTag != $server['TAG'])) {
-                      continue;
+                    if ($utags) {
+                      $ui = get_userinfo();
+                      if (isset($server['TAG']) && ($ui->gosaUnitTag != $server['TAG'])) {
+                        continue;
+                      }
                     }
 
                     $rel = $server['FAI_RELEASE'];
