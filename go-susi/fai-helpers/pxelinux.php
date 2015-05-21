@@ -224,6 +224,7 @@ for ($i = 0; $i < count($conf); $i ++) {
         } else {
           $skip = FALSE;
         }
+        continue;
       }
       
       if ($skip === TRUE) { continue; }

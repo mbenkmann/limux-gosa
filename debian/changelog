@@ -1,3 +1,9 @@
+gosa (2.8.163) trusty; urgency=medium
+
+  * gosa-fai-helpers: pxelinux.php fix bug that "[!faistate]" was printed out
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 21 May 2015 13:13:16 +0200
+
 gosa (2.8.162) trusty; urgency=medium
 
   * fix missing FAI release if honourUnitTags=false but server has a unittag
