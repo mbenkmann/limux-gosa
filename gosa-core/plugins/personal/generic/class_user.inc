@@ -182,10 +182,9 @@ class user extends plugin
 
       /* Do base conversation */
       if ($this->dn == "new"){
-        $ui= get_userinfo();
-        $this->base= dn2base(session::global_is_set("CurrentMainBase")?"cn=dummy,".session::global_get("CurrentMainBase"):$ui->dn);
+        $this->base= session::global_is_set("CurrentMainBase")? session::global_get("CurrentMainBase"):$this->config->current['BASE'];
       } else {
-        $this->base= dn2base($dn);
+        $this->base= isset($this->attrs['seeAlso'][0])? $this->attrs['seeAlso'][0]:$this->config->current['BASE'];;
       }
 
       /* get password storage type */
@@ -1223,6 +1222,8 @@ class user extends plugin
   
   function update_new_dn()
   {
+      global $config;
+      
       $pattern= $this->config->get_cfg_value("core","accountRDN");
       if ($pattern == "") {
           /* If no pattern configured, emulate old way of building DN */
@@ -1247,10 +1248,10 @@ class user extends plugin
 
       /* Don't touch dn, if $attribute hasn't changed */
       if (isset($this->saved_attributes[$attribute]) && $this->saved_attributes[$attribute] == $this->$attribute &&
-            $this->orig_base == $this->base ){
+            $this->orig_base == $this->base ){ // This needs to be changed. $this->base is not related to the DN. Is orig_base?
         $this->new_dn= $this->dn;
       } else {
-        $this->new_dn= $this->create_unique_dn2($rdn, get_people_ou().$this->base);
+        $this->new_dn= $this->create_unique_dn2($rdn, get_people_ou().$this->config->current['BASE']);
       }
   }
   

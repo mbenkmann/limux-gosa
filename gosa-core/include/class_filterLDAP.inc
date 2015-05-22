@@ -17,6 +17,12 @@ class filterLDAP {
     $ui= session::global_get('ui');
     $config= session::global_get('config');
 
+    if ($base != $config->current['BASE']) {
+      $base = LDAP::fix($base);
+      $filter = "(&($filter)(seeAlso=$base))";
+      $base = $config->current['BASE'];
+    }
+    
     // Move to arrays for category and objectStorage
     if (!is_array($category)) {
       $category= array($category);

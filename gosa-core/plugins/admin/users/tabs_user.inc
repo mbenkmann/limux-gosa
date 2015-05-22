@@ -143,6 +143,7 @@ class usertabs extends tabs
       }
     }
 
+    $baseobject->attrs['seeAlso'] = array($baseobject->base);
     $this->dn= $baseobject->new_dn;
 
     return tabs::save();

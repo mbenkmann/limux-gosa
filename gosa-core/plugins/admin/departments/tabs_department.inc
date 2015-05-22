@@ -54,11 +54,13 @@ class deptabs extends tabs
 
   function save($ignore_account= FALSE)
   {
+    global $config;
+    
     $baseobject= &$this->by_object[$this->base_name];
     $namingAttr       = $baseobject->namingAttr;
     $nAV      = preg_replace('/,/', '\,', $baseobject->$namingAttr); 
     $nAV      = preg_replace('/"/', '\"', $nAV); 
-    $new_dn   = @LDAP::convert($namingAttr.'='.$nAV.','.$baseobject->base);
+    $new_dn   = @LDAP::convert($namingAttr.'='.$nAV.','.'ou=departments,'.$config->current['BASE']);
 
     // Do not try to move the root DSE
     if($baseobject->is_root_dse){
@@ -72,11 +74,15 @@ class deptabs extends tabs
 
     /* Update department cache. 
      */
-    if($this->dn != $new_dn){
-      global $config;
+    if($this->dn != $new_dn || (isset($baseobject->attrs['seeAlso'][0]) && $baseobject->attrs['seeAlso'][0]!=$baseobject->base)){
       $config->get_departments();
     }
 
+    if ($baseobject->base != $config->current['BASE']) {
+      $baseobject->attrs['seeAlso'] = array($baseobject->base);
+    } else {
+      $baseobject->attrs['seeAlso'] = array();
+    }
     $this->dn= $new_dn;
     $baseobject->dn= $this->dn;
     if (!$ignore_account){

@@ -1,3 +1,9 @@
+gosa (2.8.158) trusty; urgency=medium
+
+  * buggy and ugly prototype for flat LDAP structure
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 22 May 2015 11:26:32 +0200
+
 gosa (2.8.157) trusty; urgency=medium
 
   * gosa-quickstart: add systemIncomingRDN attribute to gosa.conf for illustrative purposes

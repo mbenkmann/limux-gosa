@@ -661,13 +661,9 @@ class listing {
                 session::global_set("CurrentMainBase", $this->base);
             }
             if ($action == 'BACK') {
-                $deps= $ui->get_module_departments($this->categories);
-                $base= preg_replace("/^[^,]+,/", "", $this->base);
-                if(in_array_ics($base, $deps)){
-                    $this->base= $base;
-                    $this->baseSelector->setBase($this->base);
-                    session::global_set("CurrentMainBase", $this->base);
-                }
+                $this->base= get_containing_department($this->base);
+                $this->baseSelector->setBase($this->base);
+                session::global_set("CurrentMainBase", $this->base);
             }
             if ($action == 'HOME') {
                 $ui= get_userinfo();
@@ -1547,6 +1543,8 @@ function refreshBasesList()
 
 function getDepartments()
 {
+    global $config;
+
     $departments= array();
     $ui= get_userinfo();
 
@@ -1556,16 +1554,23 @@ function getDepartments()
     // Load departments allowed by ACL
     $validDepartments = $ui->get_module_departments($this->categories);
 
+    $base = $this->base;
+    if ($base == $config->current['BASE']) {
+      $base = "";
+    }
+
+    $seeAlso = LDAP::fix($base);
+
     // Build filter and look in the LDAP for possible sub departments
     // of current base
-    $filter= "(&(objectClass=gosaDepartment)(|";
+    $filter= "(&(seeAlso={$seeAlso})(objectClass=gosaDepartment)(|";
     $attrs= array("description", "objectClass");
     foreach($types as $name => $data){
         $filter.= "(objectClass=".$data['OC'].")";
         $attrs[]= $data['ATTR'];
     }
     $filter.= "))";
-    $res= get_list($filter, $this->categories, $this->base, $attrs, GL_FILTER_UNITTAG);
+    $res= get_list($filter, $this->categories, $config->current['BASE'], $attrs, GL_FILTER_UNITTAG|GL_SUBSEARCH);
 
     // Analyze list of departments
     foreach ($res as $department) {

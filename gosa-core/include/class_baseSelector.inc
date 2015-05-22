@@ -29,6 +29,7 @@ class baseSelector {
     private $submitButton= true;
     protected $tree;
     protected $pathMapping;
+    protected $pathIndent;
     protected $lastState;
 
 
@@ -81,17 +82,27 @@ class baseSelector {
         global $config;
 
         $this->pathMapping= array();
-        $selected= $this->base == $config->current['BASE']?"Selected":"";
-        $first= true;
-        $last_indent= 2;
+        $this->pathIndent= array();
+        $elements = array();
 
-        foreach ($bases as $base => $dummy) {
+        foreach ($bases as $base_dn => $dots_name) {
+            $dots_count = 0;
+            while($dots_name[$dots_count] == '.') { $dots_count++; }
+            //$name = trim(substr($dots_name, $dots_count + 1));
+            $name = $config->department_info[$base_dn]['description'];
+            if ($name == '') {
+              $name = $config->department_info[$base_dn]['name'];
+            }
+            
+            while (count($elements) > 0 && $dots_count <= count($elements)) {
+              array_pop($elements);
+            }
+            if ($dots_count > 0) {
+              $elements[] = $name; 
+            }
 
-            // Build path style display
-            $elements= explode(',', substr($base, 0, strlen($base) - strlen($config->current['BASE'])));
-            $elements= array_reverse($elements, true);
-
-            $this->pathMapping[$base]= $base == $config->current['BASE']? '/' : ldap::fix(preg_replace('/(^|,)[a-z0-9]+=/i', '/', implode(',', $elements)));
+            $this->pathMapping[$base_dn]= '/' . implode('/', $elements);
+            $this->pathIndent[$base_dn] = count($elements) + 1;
         }
 
         // Save bases to session for autocompletion
@@ -201,10 +212,7 @@ class baseSelector {
                 continue;
             }
 
-            // Build path style display
-            $elements= explode(',', substr($base, 0, strlen($base) - strlen($config->current['BASE'])));
-
-            $indent= count($elements);
+            $indent= $this->pathIndent[$base];
             if (!$first && ($indent == $last_indent)) {
                 $this->tree.= "</li>\n";
             }

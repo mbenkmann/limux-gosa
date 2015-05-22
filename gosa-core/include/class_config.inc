@@ -737,7 +737,7 @@ class config  {
         $types = departmentManagement::get_support_departments();
 
         /* Create a list of attributes to fetch */
-        $ldap_values = array("objectClass","gosaUnitTag", "description");
+        $ldap_values = array("objectClass","gosaUnitTag", "description", "seeAlso");
         $filter = "";
         foreach($types as $type){
             $ldap_values[] = $type['ATTR'];
@@ -765,9 +765,18 @@ class config  {
 
             $dn= $ldap->getDN();
             $this->tdepartments[$dn]= "";
+            
+            if (isset($attrs['seeAlso'][0])) {
+              $seeAlso = LDAP::convert(attrs['seeAlso'][0]);
+            } else {
+              $seeAlso = substr($dn, strpos($dn, ",")+1);
+            }
+            
             $this->department_info[$dn]= array("img" => $type_data['IMG'],
                     "description" => isset($attrs['description'][0])?$attrs['description'][0]:"",
-                    "name" => $attrs[$type_data['ATTR']][0]);
+                    "name" => $attrs[$type_data['ATTR']][0],
+                    "parent" => $seeAlso
+                    );
 
             /* Save administrative departments */
             if (in_array_ics("gosaAdministrativeUnit", $attrs['objectClass']) &&
@@ -809,43 +818,38 @@ class config  {
 
         $this->idepartments= array();
 
+        $keys = array_keys($this->department_info);
+
         /* Create multidimensional array, with all departments. */
-        foreach ($this->departments as $key => $val){
+        foreach ($keys as $dn){
 
             /* When using strict_units, filter non relevant parts */
             if ($utags){
-                if ($ui->gosaUnitTag != '' && isset($this->tdepartments[$val]) &&
-                        $this->tdepartments[$val] != $ui->gosaUnitTag){
+                if ($ui->gosaUnitTag != '' && isset($this->tdepartments[$dn]) &&
+                        $this->tdepartments[$dn] != $ui->gosaUnitTag){
                     continue;
                 }
             }
 
-            /* Split dn into single department pieces */
-            $elements = array_reverse(explode(',',preg_replace("/$qbase$/",'',$val))); 		
-
-            /* Add last ou element of current dn to our array */
-            $last = &$arr;
-            foreach($elements as $key => $ele){
-
-                /* skip empty */
-                if(empty($ele)) continue;
-
-                /* Extract department name */		
-                $elestr = trim(preg_replace('/^[^=]*+=/','', $ele),',');
-                $nameA  = trim(preg_replace('/=.*$/','', $ele),',');
-                if($nameA != 'ou'){
-                    $nameA = " ($nameA)";
-                }else{
-                    $nameA = '';
-                }
-
-                /* Add to array */	
-                if($key == (count($elements)-1)){
-                    $last[$elestr.$nameA]['ENTRY'] = $val;
-                }
-
-                /* Set next array appending position */
-                $last = &$last[$elestr.$nameA]['SUB'];
+            $arr[$dn] = array('ENTRY' => $dn, 'SUB' => array());
+        }
+        
+        /* Insert a child reference into SUB array of each parent */
+        foreach ($keys as $dn) {
+            $parent = $this->department_info[$dn]['parent'];
+            if (!empty($parent)) {
+                $arr[$parent]['SUB'][] = &$arr[$dn];
+            }
+        }
+        
+        /* Remove all entries from top level that have a parent and
+        set SUB to NULL when empty. */
+        foreach ($keys as $dn) {
+            if (empty($arr[$dn]['SUB'])) {
+                $entry['SUB'] = NULL;
+            }
+            if (!empty($this->department_info[$dn]['parent'])) {
+                unset($arr[$dn]);
             }
         }
 

@@ -1549,10 +1549,30 @@ function get_base_from_people($dn)
   if (!isset($config->idepartments[$base])){
     $base= $config->current['BASE'];
   }
+  return get_containing_department($dn);
 
   return ($base);
 }
 
+/*! \brief Returns the DN of the department containing the given DN. If the
+ *  given DN is not within a known department, returns the main base.
+ *
+ * \param string 'dn' a DN
+ * */
+
+function get_containing_department($dn) 
+{
+  global $config;
+
+  $ldap = $config->get_ldap_link();
+  $ldap->cat($dn,array('seeAlso'));
+  $sa = $ldap->fetch();
+  if(isset($sa['seeAlso'][0])){
+    return(LDAP::convert($sa['seeAlso'][0]));
+  }
+  
+  return $config->current['BASE'];
+}
 
 /*! \brief Check if strict naming rules are configured
  *

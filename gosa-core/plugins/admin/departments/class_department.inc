@@ -104,14 +104,9 @@ class department extends plugin
 
         /* Set base */
         if ($this->dn == "new"){
-            $ui= get_userinfo();
-            if(session::is_set('CurrentMainBase')){
-                $this->base = session::get('CurrentMainBase');
-            }else{
-                $this->base= dn2base($ui->dn);
-            }
+          $this->base= session::global_is_set("CurrentMainBase")? session::global_get("CurrentMainBase"):$this->config->current['BASE'];
         } else {
-            $this->base= preg_replace ("/^[^,]+,/", "", $this->dn);
+          $this->base= isset($this->attrs['seeAlso'][0])? $this->attrs['seeAlso'][0]:$this->config->current['BASE'];;
         }
 
         // Special handling for the rootDSE
