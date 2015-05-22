@@ -1554,23 +1554,23 @@ function getDepartments()
     // Load departments allowed by ACL
     $validDepartments = $ui->get_module_departments($this->categories);
 
+    // Build filter and look in the LDAP for possible sub departments
+    // of current base    
     $base = $this->base;
     if ($base == $config->current['BASE']) {
-      $base = "";
+      $filter= "(&(!(seeAlso=*))(objectClass=gosaDepartment)(|";
+    } else {
+      $seeAlso = LDAP::fix($base);
+      $filter= "(&(seeAlso=$seeAlso)(objectClass=gosaDepartment)(|";
     }
-
-    $seeAlso = LDAP::fix($base);
-
-    // Build filter and look in the LDAP for possible sub departments
-    // of current base
-    $filter= "(&(seeAlso={$seeAlso})(objectClass=gosaDepartment)(|";
+    
     $attrs= array("description", "objectClass");
     foreach($types as $name => $data){
         $filter.= "(objectClass=".$data['OC'].")";
         $attrs[]= $data['ATTR'];
     }
     $filter.= "))";
-    $res= get_list($filter, $this->categories, $config->current['BASE'], $attrs, GL_FILTER_UNITTAG|GL_SUBSEARCH);
+    $res= get_list($filter, $this->categories, "ou=departments,".$config->current['BASE'], $attrs, GL_FILTER_UNITTAG);
 
     // Analyze list of departments
     foreach ($res as $department) {

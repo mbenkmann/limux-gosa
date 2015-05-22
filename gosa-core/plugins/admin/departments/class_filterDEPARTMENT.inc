@@ -4,6 +4,7 @@ class filterDEPARTMENT {
 
   static function query($base, $scope, $filter, $attributes, $category, $objectStorage= array(""))
   {
+    $objectStorage = array("ou=departments,");
     $config= session::global_get('config');
     $ldap= $config->get_ldap_link(TRUE);
 

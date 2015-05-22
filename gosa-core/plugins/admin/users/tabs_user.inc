@@ -123,6 +123,8 @@ class usertabs extends tabs
 
   function save($ignore_account= FALSE)
   {
+    global $config;
+
     /* Check for new 'dn', in order to propagate the
        'dn' to all plugins */
     $baseobject= $this->by_object['user'];
@@ -143,7 +145,17 @@ class usertabs extends tabs
       }
     }
 
-    $baseobject->attrs['seeAlso'] = array($baseobject->base);
+     // Update seeAlso
+    if ($baseobject->base != $config->current['BASE']) {
+      $seeAlso = array($baseobject->base);
+    } else {
+      $seeAlso = array();
+    }
+    if (!is_array($baseobject->seeAlso)) {
+      $baseobject->seeAlso = array($baseobject->seeAlso);
+    }
+    $baseobject->seeAlso = $seeAlso;
+
     $this->dn= $baseobject->new_dn;
 
     return tabs::save();

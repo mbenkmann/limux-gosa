@@ -67,6 +67,19 @@ class deptabs extends tabs
       $new_dn = $baseobject->orig_dn;
     }
 
+    // Update seeAlso
+    if ($baseobject->base != $config->current['BASE']) {
+      $seeAlso = array($baseobject->base);
+    } else {
+      $seeAlso = array();
+    }
+    if (!is_array($baseobject->seeAlso)) {
+      $baseobject->seeAlso = array($baseobject->seeAlso);
+    }
+    $seeAlsoChanges = array_diff($seeAlso, $baseobject->seeAlso);
+    $seeAlsoChanged = !empty($seeAlsoChanges);
+    $baseobject->seeAlso = $seeAlso;
+
     /* Move group? */
     if ($this->dn != $new_dn && $this->dn != "new"){
       $baseobject->move($this->dn,$new_dn);
@@ -74,15 +87,12 @@ class deptabs extends tabs
 
     /* Update department cache. 
      */
-    if($this->dn != $new_dn || (isset($baseobject->attrs['seeAlso'][0]) && $baseobject->attrs['seeAlso'][0]!=$baseobject->base)){
+    if($this->dn != $new_dn || $seeAlsoChanged ){
+print("Update departments");
       $config->get_departments();
     }
 
-    if ($baseobject->base != $config->current['BASE']) {
-      $baseobject->attrs['seeAlso'] = array($baseobject->base);
-    } else {
-      $baseobject->attrs['seeAlso'] = array();
-    }
+
     $this->dn= $new_dn;
     $baseobject->dn= $this->dn;
     if (!$ignore_account){

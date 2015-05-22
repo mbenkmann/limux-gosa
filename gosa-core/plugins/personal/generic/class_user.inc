@@ -61,6 +61,7 @@ class user extends plugin
   var $pager= "";
   var $l= "";
   var $st= "";
+  var $seeAlso = array();
   var $postalAddress= "";
   var $dateOfBirth;
   var $use_dob= "0";
@@ -117,7 +118,7 @@ class user extends plugin
       "homePostalAddress", "homePhone", "labeledURI", "ou", "o", "dateOfBirth", "gender","preferredLanguage",
       "departmentNumber", "employeeNumber", "employeeType", "l", "st","jpegPhoto",
       "roomNumber", "telephoneNumber", "mobile", "pager", "cn", "userPKCS12",
-      "postalAddress", "facsimileTelephoneNumber", "userSMIMECertificate", "gosaLoginRestriction", "manager");
+      "postalAddress", "facsimileTelephoneNumber", "userSMIMECertificate", "gosaLoginRestriction", "manager", "seeAlso");
 
   var $objectclasses= array("top", "person", "organizationalPerson", "inetOrgPerson",
       "gosaAccount");
@@ -1222,8 +1223,6 @@ class user extends plugin
   
   function update_new_dn()
   {
-      global $config;
-      
       $pattern= $this->config->get_cfg_value("core","accountRDN");
       if ($pattern == "") {
           /* If no pattern configured, emulate old way of building DN */
@@ -1247,8 +1246,8 @@ class user extends plugin
       $value= preg_replace('/^[^=]+=$/', '', $rdn);
 
       /* Don't touch dn, if $attribute hasn't changed */
-      if (isset($this->saved_attributes[$attribute]) && $this->saved_attributes[$attribute] == $this->$attribute &&
-            $this->orig_base == $this->base ){ // This needs to be changed. $this->base is not related to the DN. Is orig_base?
+      if (isset($this->saved_attributes[$attribute]) && $this->saved_attributes[$attribute] == $this->$attribute 
+             ){
         $this->new_dn= $this->dn;
       } else {
         $this->new_dn= $this->create_unique_dn2($rdn, get_people_ou().$this->config->current['BASE']);

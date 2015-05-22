@@ -19,8 +19,10 @@ class filterLDAP {
 
     if ($base != $config->current['BASE']) {
       $base = LDAP::fix($base);
-      $filter = "(&($filter)(seeAlso=$base))";
+      $filter = "(&$filter(seeAlso=$base))";
       $base = $config->current['BASE'];
+    } else {
+      $filter = "(&$filter(!(seeAlso=*)))";
     }
     
     // Move to arrays for category and objectStorage

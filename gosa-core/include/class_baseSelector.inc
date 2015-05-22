@@ -89,11 +89,13 @@ class baseSelector {
             $dots_count = 0;
             while($dots_name[$dots_count] == '.') { $dots_count++; }
             //$name = trim(substr($dots_name, $dots_count + 1));
-            $name = $config->department_info[$base_dn]['description'];
-            if ($name == '') {
-              $name = $config->department_info[$base_dn]['name'];
+            $name = "???";
+            if (isset($config->department_info[$base_dn])) {
+              $name = $config->department_info[$base_dn]['description'];
+              if ($name == '') {
+                $name = $config->department_info[$base_dn]['name'];
+              }
             }
-            
             while (count($elements) > 0 && $dots_count <= count($elements)) {
               array_pop($elements);
             }

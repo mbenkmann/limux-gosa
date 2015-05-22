@@ -1570,7 +1570,7 @@ function get_containing_department($dn)
   if(isset($sa['seeAlso'][0])){
     return(LDAP::convert($sa['seeAlso'][0]));
   }
-  
+
   return $config->current['BASE'];
 }
 

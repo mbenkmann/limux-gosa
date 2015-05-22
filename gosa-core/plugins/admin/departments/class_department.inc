@@ -31,6 +31,7 @@ class department extends plugin
     var $postalAddress= "";
     var $businessCategory= "";
     var $telephoneNumber= "";
+    var $seeAlso = array();
     var $facsimileTelephoneNumber= "";
     var $is_administrational_unit= false;
     var $gosaUnitTag= "";
@@ -46,7 +47,7 @@ class department extends plugin
 
     /* attribute list for save action */
     var $attributes= array("ou", "description", "businessCategory", "st", "l", "postalAddress",
-            "telephoneNumber", "facsimileTelephoneNumber", "gosaUnitTag", "manager");
+            "telephoneNumber", "facsimileTelephoneNumber", "gosaUnitTag", "manager", "seeAlso");
 
     /* Do not append the structural object classes here, they are added dynamically in the constructor */
     var $objectclasses= array("top", "gosaDepartment");
@@ -222,6 +223,10 @@ class department extends plugin
             $tmp	= array();	
             foreach($bases as $dn=>$base){
                 /* Only attach departments which are not a subtree of this one */
+                
+                // FIXME! The following test does not work for flat LDAP with seeAlso
+                
+                
                 if(!preg_match("/".preg_quote($this->dn)."/",$dn)){
                     $tmp[$dn]=$base;
                 }

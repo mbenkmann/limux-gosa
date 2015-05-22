@@ -767,9 +767,10 @@ class config  {
             $this->tdepartments[$dn]= "";
             
             if (isset($attrs['seeAlso'][0])) {
-              $seeAlso = LDAP::convert(attrs['seeAlso'][0]);
+              $seeAlso = LDAP::convert($attrs['seeAlso'][0]);
             } else {
-              $seeAlso = substr($dn, strpos($dn, ",")+1);
+              $seeAlso = substr($dn, strpos($dn, "ou=departments")+15);
+              //$seeAlso = dn2base($dn); after introducing departmentRDN config and fixing dn2base accordingly
             }
             
             $this->department_info[$dn]= array("img" => $type_data['IMG'],
@@ -814,6 +815,11 @@ class config  {
         $utags= isset($config->current['HONOURUNITTAGS']) && preg_match('/true/i', $config->current['HONOURUNITTAGS']);
 
         $arr = array();
+
+        /* Add base entry */
+        $arr['/']['ENTRY'] 	= $base;
+        $arr['/']['SUB']	= array();
+        
         $ui= get_userinfo();
 
         $this->idepartments= array();
@@ -833,15 +839,16 @@ class config  {
 
             $arr[$dn] = array('ENTRY' => $dn, 'SUB' => array());
         }
-        
+
         /* Insert a child reference into SUB array of each parent */
         foreach ($keys as $dn) {
             $parent = $this->department_info[$dn]['parent'];
             if (!empty($parent)) {
+                if ($parent == $base) { $parent = '/' ; }
                 $arr[$parent]['SUB'][] = &$arr[$dn];
             }
         }
-        
+
         /* Remove all entries from top level that have a parent and
         set SUB to NULL when empty. */
         foreach ($keys as $dn) {
@@ -853,11 +860,7 @@ class config  {
             }
         }
 
-
-        /* Add base entry */
-        $ret['/']['ENTRY'] 	= $base;
-        $ret['/']['SUB']	= $arr;
-        $this->idepartments= $this->generateDepartmentArray($ret,-1,$max_size);
+        $this->idepartments= $this->generateDepartmentArray($arr,-1,$max_size);
     }
 
 
