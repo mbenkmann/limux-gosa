@@ -1,3 +1,9 @@
+gosa (2.8.166) trusty; urgency=medium
+
+  * gosa-fai-helpers: add symlinks to activate Apache configuration
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 03 Jul 2015 10:52:01 +0200
+
 gosa (2.8.165) trusty; urgency=medium
 
   * control: add ${shlibs:Depends} to gosa-si depends to make Lintian happy

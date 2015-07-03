@@ -173,7 +173,5 @@ apt-get -q -y install gosa-si
 
 echo "=== Installing GOsa² FAI helpers ==="
 apt-get -q -y install gosa-fai-helpers
-ln -snf /etc/gosa/fai-helpers-apache.conf /etc/apache2/conf-available/
-ln -snf ../conf-available/fai-helpers-apache.conf /etc/apache2/conf-enabled/
 
 service apache2 restart

@@ -1,1 +1,3 @@
 usr/lib/go-susi/generate_package_list usr/lib/go-susi/generate_kernel_list
+etc/gosa/fai-helpers-apache.conf etc/apache2/conf-available/fai-helpers-apache.conf
+etc/apache2/conf-available/fai-helpers-apache.conf etc/apache2/conf-enabled/fai-helpers-apache.conf
