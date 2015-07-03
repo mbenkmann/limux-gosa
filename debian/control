@@ -33,7 +33,7 @@ Description: GOsa² development utilities
 
 Package: gosa-si
 Architecture: any
-Depends: ${misc:Depends}, ldap-utils
+Depends: ${misc:Depends}, ${shlibs:Depends}, ldap-utils
 Suggests: tidy
 Recommends: gosa-fai-helpers
 Conflicts: gosa-si-server, gosa-si-client, gosa-si-common, go-susi (<< 9)
