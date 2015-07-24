@@ -1,3 +1,9 @@
+gosa (2.8.168) trusty; urgency=medium
+
+  * Allow ignoreAcl DN to administer any <location>
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 24 Jul 2015 10:21:18 +0200
+
 gosa (2.8.167) trusty; urgency=medium
 
   * go-susi: replace dataflow.svgz with uncompressed dataflow.svg to make direct viewing in repository browser easier

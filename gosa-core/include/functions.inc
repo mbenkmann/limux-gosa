@@ -626,12 +626,32 @@ function ldap_login_user ($username, $password)
   }
   $filter = "(&(|".$filter.")(objectClass=gosaAccount))";
   $ldap->search($filter,$tmp);
-
+  
+  $overrideUnitTag = "";
+  
   /* get results, only a count of 1 is valid */
   switch ($ldap->count()){
 
     /* user not found */
-    case 0:	return (NULL);
+    case 0:	
+            /* Try super-admin from ignoreAcl */
+            $ignore_dn = $config->get_cfg_value("core","ignoreAcl");
+            if ($ignore_dn != "") {
+              $ldap->cat($config->current['BASE'],array('gosaUnitTag'));
+              $attrs= $ldap->fetch();
+              if (isset($attrs['gosaUnitTag'][0])){
+                $overrideUnitTag= $attrs['gosaUnitTag'][0];
+              }
+              
+              $ldap->cd($ignore_dn);
+              $ldap->search($filter,$tmp);
+              if ($ldap->count() == 1) {
+                new log("security","login","",array(),"Super-Admin login $ignore_dn with unit-tag override \"$overrideUnitTag\"");
+                break;
+              }
+            }
+
+            return (NULL);
 
             /* valid uniq user */
     case 1: 
@@ -656,7 +676,7 @@ function ldap_login_user ($username, $password)
   }
 
   /* got user dn, fill acl's */
-  $ui= new userinfo($config, $ldap->getDN());
+  $ui= new userinfo($config, $ldap->getDN(), $overrideUnitTag);
   $ui->username= $attrs['uid'][0];
 
   /* Bail out if we have login restrictions set, for security reasons

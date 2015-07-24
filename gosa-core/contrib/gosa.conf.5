@@ -1278,6 +1278,9 @@ The
 .I ignoreAcl
 value tells GOsa to ignore complete ACL sets for the given DN. Add your
 DN here and you'll be able to restore accidently dropped ACLs.
+In addition to not being bound by ACLs the user whose DN is listed here
+will be able to log in to any <location> even if his DN is not inside
+its LDAP tree.
 .PP
 
 .B debugLevel
