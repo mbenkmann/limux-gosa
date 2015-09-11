@@ -35,8 +35,7 @@ Complete documentation of go-susi and the XML-based protocol GOsa² uses to comm
 
 Status
 ======
-
-GOsa² 2.8 works as well or better than GOsa² 2.7 in all respects. go-susi works unequivocally better than gosa-si-server/client. GOsa² 2.7 installations can be upgraded to GOsa² 2.8 without restrictions.
+With respect to FAI-installations GOsa² 2.8 works as well or better than GOsa² 2.7 in all respects. go-susi works unequivocally better than gosa-si-server/client.
 
 gosa-quickstart is still in its infancy. It has the following limitations compared to the description above:
 * only works on Ubuntu Trusty. Debian Jessie support will come later.
