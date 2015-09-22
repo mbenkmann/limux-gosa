@@ -1,3 +1,9 @@
+gosa (2.8.170) trusty; urgency=medium
+
+  * fix some test cases to work with Go 1.5
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 22 Sep 2015 13:30:53 +0200
+
 gosa (2.8.168) trusty; urgency=medium
 
   * Allow ignoreAcl DN to administer any <location>

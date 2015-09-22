@@ -277,9 +277,12 @@ func Util_test() {
   if err != nil { panic(err) }  
   
   go func() {
-    _, err := listener.Accept()
+    r, err := listener.Accept()
     if err != nil { panic(err) }
+    buf := make([]byte,1)
+    r.Read(buf)
     time.Sleep(10*time.Second)
+    r.Read(buf)
   }()
   long := make([]byte, 10000000)
   longstr := string(long)
