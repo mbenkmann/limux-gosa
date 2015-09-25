@@ -22,7 +22,6 @@ MA  02110-1301, USA.
 package message
 
 import ( 
-         "net"
          "sync"
          "time"
          "strings"
@@ -34,6 +33,7 @@ import (
          "../util"
          "../bytes"
          "../config"
+         "../security"
        )
 
 // Returns an XML string to return to GOsa if there was an error processing
@@ -68,13 +68,13 @@ func handleServerMessage() bool {
 }
 
 // Takes a possibly encrypted message in buf and processes it, returning a reply.
-// tcpAddr is the address of the message's sender.
+// context is the security context.
 // Returns: 
 //  buffer containing the reply to return (MUST BE FREED BY CALLER VIA Reset()!)
 //  disconnect == true if connection should be terminated due to error
 //
 // NOTE: buf IS NOT FREED BY THIS FUNCTION BUT ITS CONTENTS ARE CHANGED!
-func ProcessEncryptedMessage(buf *bytes.Buffer, tcpAddr *net.TCPAddr) (reply *bytes.Buffer, disconnect bool) {
+func ProcessEncryptedMessage(buf *bytes.Buffer, context *security.Context) (reply *bytes.Buffer, disconnect bool) {
   if buf.Len() > 4096 {
     util.Log(2, "DEBUG! Processing LONG message: (truncated)%v\n.\n.\n.\n%v", string(buf.Bytes()[0:2048]), string(buf.Bytes()[buf.Len()-2048:]))
   } else {
@@ -86,28 +86,25 @@ func ProcessEncryptedMessage(buf *bytes.Buffer, tcpAddr *net.TCPAddr) (reply *by
     
     switch attempt {
       case 0: keys_to_try = config.ModuleKeys
-      case 1: host, _, err := net.SplitHostPort(tcpAddr.String())
-              if err != nil {
-                util.Log(0, "ERROR! SplitHostPort: %v")
-                keys_to_try = []string{}
-              } else {
+      case 1: host := context.PeerID.IP.String()
+              {
                 keys_to_try = append(db.ServerKeys(host), db.ClientKeys(host)...)
                 if host == "127.0.0.1" { // make sure we find the key even if registered under our external IP address
                   keys_to_try = append(db.ServerKeys(config.IP), db.ClientKeys(config.IP)...)
                 }
               }
-      case 2: util.Log(1, "INFO! Last resort attempt to decrypt message from %v with all server keys", tcpAddr)
+      case 2: util.Log(1, "INFO! Last resort attempt to decrypt message from %v with all server keys", context.PeerID.IP)
               keys_to_try = db.ServerKeysForAllServers()
-      case 3: util.Log(1, "INFO! Last resort attempt to decrypt message from %v with all client keys", tcpAddr)
+      case 3: util.Log(1, "INFO! Last resort attempt to decrypt message from %v with all client keys", context.PeerID.IP)
               keys_to_try = db.ClientKeysForAllClients()
     }
     
     for _, key := range keys_to_try {
       if GosaDecryptBuffer(buf, key) {
         if buf.Len() > 4096 {
-          util.Log(2, "DEBUG! Decrypted LONG message from %v with key %v: (truncated)%v\n.\n.\n.\n%v", tcpAddr, key, string(buf.Bytes()[0:2048]), string(buf.Bytes()[buf.Len()-2048:]))
+          util.Log(2, "DEBUG! Decrypted LONG message from %v with key %v: (truncated)%v\n.\n.\n.\n%v", context.PeerID.IP, key, string(buf.Bytes()[0:2048]), string(buf.Bytes()[buf.Len()-2048:]))
         } else {
-          util.Log(2, "DEBUG! Decrypted message from %v with key %v: %v", tcpAddr, key, buf.String())
+          util.Log(2, "DEBUG! Decrypted message from %v with key %v: %v", context.PeerID.IP, key, buf.String())
         }
         
         // special case for CLMSG_save_fai_log because this kind of message
@@ -126,19 +123,19 @@ func ProcessEncryptedMessage(buf *bytes.Buffer, tcpAddr *net.TCPAddr) (reply *by
         } 
         
         // At this point we have successfully decrypted and parsed the message
-        return ProcessXMLMessage(xml, tcpAddr, key)
+        return ProcessXMLMessage(xml, context, key)
       }
     }
   }
   
   // This part is only reached if none of the keys opened the message
-  util.Log(0, "ERROR! Could not decrypt message from %v", tcpAddr)
+  util.Log(0, "ERROR! Could not decrypt message from %v", context.PeerID.IP)
   
   // Maybe we got out of sync with the sender's encryption key 
   // (e.g. by missing a new_key message). Try to re-establish communcation.
-  ip := tcpAddr.IP.To4()
+  ip := context.PeerID.IP.To4()
   if ip == nil {
-    util.Log(0, "ERROR! Cannot convert sender address to IPv4 address: %v", tcpAddr)
+    util.Log(0, "ERROR! Cannot convert sender address to IPv4 address: %v", context.PeerID.IP)
   } else {
     go tryToReestablishCommunicationWith(ip.String())
   }
@@ -219,17 +216,17 @@ func tryToReestablishCommunicationWith(ip string) {
 
 // Arguments
 //   xml: the message
-//   tcpAddr: the sender
+//   context: the security context
 //   key: the key that successfully decrypted the message
 // Returns:
 //   reply: buffer containing the reply to return
 //   disconnect: true if connection should be terminated due to error
-func ProcessXMLMessage(xml *xml.Hash, tcpAddr *net.TCPAddr, key string) (reply *bytes.Buffer, disconnect bool) {
+func ProcessXMLMessage(xml *xml.Hash, context *security.Context, key string) (reply *bytes.Buffer, disconnect bool) {
   if key == "dummy-key" && xml.Text("header") != "gosa_ping" {
     util.Log(0, "ERROR! Rejecting non-ping message encrypted with dummy-key or not at all")
     return ErrorReplyBuffer("ERROR! Rejecting non-ping message encrypted with dummy-key or not at all"),true
   }
-  
+
   reply = &bytes.Buffer{}
   disconnect = false
   

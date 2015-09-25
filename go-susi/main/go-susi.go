@@ -49,6 +49,7 @@ import (
           "../config"
           "../action"
           "../message"
+          "../security"
        )
 
 //import _ "net/http/pprof"
@@ -290,6 +291,8 @@ func handle_request(conn *net.TCPConn) {
   defer atomic.AddInt32(&ActiveConnections, -1)
   //defer util.Log(2, "DEBUG! Connection to %v closed", conn.RemoteAddr())
   
+  context := security.ContextFor(conn)
+  
   var err error
   
   err = conn.SetKeepAlive(true)
@@ -337,7 +340,7 @@ func handle_request(conn *net.TCPConn) {
       // process the message and get a reply (if applicable)
       if buf.Len() > 0 { // ignore empty lines
         request_start := time.Now()
-        reply, disconnect := message.ProcessEncryptedMessage(&buf, conn.RemoteAddr().(*net.TCPAddr))
+        reply, disconnect := message.ProcessEncryptedMessage(&buf, context)
         buf.Reset()
         request_time := time.Since(request_start)
         RequestProcessingTimes.Push(request_time)
