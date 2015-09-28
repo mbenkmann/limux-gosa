@@ -25,7 +25,10 @@ import (
          "net"
          "math"
          "time"
+         "strings"
          
+         "../db"
+         "../util"
          "../config"
        )
 
@@ -126,6 +129,8 @@ type GosaAccessLDAPDetectedHardware struct {
 // If conn is a *tls.Conn, the context will be filled in from the
 // certificate presented by the peer. If conn is a *net.TCPConn,
 // default values will be used.
+// This function also performs some security checks. If one of them
+// fails, an ERROR is logged and nil is returned.
 func ContextFor(conn net.Conn) *Context {
   var context Context
   
@@ -149,10 +154,28 @@ func ContextFor(conn net.Conn) *Context {
 
   context.Access.Misc.Debug = true
   context.Access.Misc.Wake = true
-  context.Access.Misc.Peer = true
   // if ip (or a name resolving to it) is listed in [ServerPackages]/address
-  // context.Access.Misc.Peer = true
+  // set context.Access.Misc.Peer = true by default. The certificate value may
+  // override this.
+  context.Access.Misc.Peer = true
   
+  // Because the default certificates are public, they can only have the
+  // QueryJobs flag set in the GOsa certificate that is bound to localhost.
+  // However peer_connection.go:SyncAll() queries the jobdb as part of
+  // server-server communication. We want to enable server-server communication
+  // with the default certificates (with servers explicitly listed in the
+  // config file), so we set this flag by default for known peer servers.
+  // This is only the default setting. An installation that uses its own
+  // certificates instead of the default ones, may override this behaviour.
+  context.Access.Query.QueryJobs = false
+  peerIPStr := context.PeerID.IP.String()
+  for _, known := range db.ServerAddresses() {
+    knownip,_,_ := net.SplitHostPort(known)
+    if knownip == peerIPStr {
+      context.Access.Query.QueryJobs = true
+      break
+    }
+  }
   context.Access.Query.QueryJobs = true
   
   context.Access.Jobs.Lock = true
@@ -179,6 +202,125 @@ func ContextFor(conn net.Conn) *Context {
   context.Access.DetectedHW.IPHostNumber = true
   context.Access.DetectedHW.MACAddress = true
   
+  if context.Verify() {
+    return &context
+  }
   
-  return &context
+  return nil
+}
+
+
+// Performs security checks on the context, in particular whether
+// the 2 endpoints are allowed to communicate with each other.
+// If a security check fails, an ERROR is logged and false is returned.
+// If all security checks succeed, true is returned.
+func (context *Context) Verify() bool {
+  // Check if peer's IP matches at least on of the allowed IDs in SubjectAltName
+  peerIP := context.PeerID.IP
+  ok := false
+  for _, ip := range context.PeerID.AllowedIPs {
+    if ip.Equal(peerIP) {
+      ok = true
+      break
+    }
+    if ip[len(ip)-1] == 0 { // if it is a wildcard address
+      wildPeer := make(net.IP, len(peerIP))
+      copy(wildPeer, peerIP)
+      k := len(wildPeer)-1
+      i := len(ip)-1
+      for k >= 0 && i >= 0 && ip[i] == 0 {
+        wildPeer[k] = 0
+        i--
+        k--
+      }
+      
+      if ip.Equal(wildPeer) {
+        ok = true
+        break
+      }
+    }
+  }
+  
+  if !ok { // peer not in AllowedIPs? Check AllowedNames (forward DNS)
+    for _, name := range context.PeerID.AllowedNames {
+      ips, err := net.LookupIP(name)
+      if err != nil {
+        // Only a DEBUG message because name may be a wildcard name (e.g. "*.foo.com")
+        // or it may be a name in an internal subdomain that is not always available.
+        util.Log(2, "DEBUG! LookupIP(%v) => %v", name, err)
+      } else {
+        for _, ip := range ips {
+          if ip.Equal(peerIP) {
+            ok = true
+            break
+          }
+        }
+        if ok { break }
+      }
+    }
+  }
+  
+  if !ok { // peer not in AllowedIPs or AllowedNames (forward DNS)? Check AllowedNames (reverse DNS)
+    peerNames, err := net.LookupAddr(peerIP.String())
+    if err != nil {
+      util.Log(0, "ERROR! LookupAddr(%v): %v", peerIP.String(), err)
+    } else {
+      for _, name := range context.PeerID.AllowedNames {
+        for _, peerName := range peerNames {
+          if strings.HasPrefix(name, "*") { // *.foo.de
+            if strings.HasSuffix(peerName, name[1:]) {
+              ok = true
+              break
+            }
+          } else { // bar.foo.de
+            if peerName == name {
+              ok = true
+              break
+            }
+          }
+        }
+        if ok { break }
+      }
+    }
+  }
+  
+  if !ok {
+    util.Log(0, "ERROR! [SECURITY]: Certificate presented by %v is not valid for that IP (as determined by SubjectAltName extension)", peerIP)
+    return false
+  }
+
+  // Check if peer's certificate is valid for talking to us
+  ok = false
+  fqname := config.Hostname + "." + config.Domain
+  for _, comm := range context.Limits.CommunicateWith {
+    idx := strings.Index(comm,":") // is there a port?
+    if idx >= 0 { // if yes, make sure it's the same as ours
+      if !strings.HasSuffix(config.ServerSourceAddress, comm[idx:]) {
+        continue
+      }
+      comm = comm[0:idx] // cut off port
+    }
+    
+    // At this point, comm does not contain a port
+    
+    // Check for exact match
+    if comm == config.Hostname || comm == fqname || comm == config.IP {
+      ok = true
+      break
+    }
+    
+    // Check for wildcard match
+    if strings.HasPrefix(comm, "*") && strings.HasSuffix(fqname, comm[1:]) {
+      ok = true
+      break
+    }
+  }
+  
+  if !ok {
+    util.Log(0, "ERROR! [SECURITY]: Certificate presented by %v has GosaConnectionLimits extension with communicateWith that does not allow talking to me (%v, %v)", peerIP, config.ServerSourceAddress, fqname)
+    return false
+  }
+
+
+  return true  
 }

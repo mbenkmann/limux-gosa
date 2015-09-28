@@ -292,6 +292,7 @@ func handle_request(conn *net.TCPConn) {
   //defer util.Log(2, "DEBUG! Connection to %v closed", conn.RemoteAddr())
   
   context := security.ContextFor(conn)
+  if context == nil { return }
   
   var err error
   

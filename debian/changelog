@@ -1,3 +1,9 @@
+gosa (2.8.172) trusty; urgency=medium
+
+  * implement some basic security checks
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 28 Sep 2015 13:11:01 +0200
+
 gosa (2.8.171) trusty; urgency=medium
 
   * start of implementation of new security infrastructure
