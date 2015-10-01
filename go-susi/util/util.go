@@ -88,15 +88,47 @@ func WaitUntil(t time.Time) {
   }
 }
 
-// Waits until either the duration timeout has passed or DNS is available.
+// Waits until either the duration timeout has passed or DNS is available
+// ON A NON-LOOPBACK INTERFACE (so this waits until external interfaces are up).
 // If timeout == 0, wait forever if necessary.
 // Returns true if DNS is available.
 func WaitForDNS(timeout time.Duration) bool {
+  var err error
+  
   endtime := time.Now().Add(timeout)
   for {
-    _, err192 := net.LookupAddr("192.0.2.1")
-    _, err127 := net.LookupAddr("127.0.0.1")
-    if err192 != nil && err127 == nil { return true }
+    var ifaces []net.Interface
+    ifaces, err = net.Interfaces()
+    if err == nil {
+      // find non-loopback interfaces that are up
+      for _, iface := range ifaces {
+        if iface.Flags & net.FlagLoopback != 0 { continue }
+        if iface.Flags & net.FlagUp == 0 { continue }
+        
+        var addrs []net.Addr
+        addrs, err = iface.Addrs()
+        if err == nil {
+          
+          // try to find a non-loopback IP address for that interface with rDNS
+          for _, addr := range addrs {
+            ip, _, err2 := net.ParseCIDR(addr.String())
+            if err2 == nil && !ip.IsLoopback() {
+              var names []string
+              names, err = net.LookupAddr(ip.String())
+              if err == nil && len(names) > 0 {
+                // sanity-check: lookup an address in the special reserved TEST IP range
+                //               (this should never resolve to a name)
+                //               and lookup the loopback address 127.0.0.1 (should always resolve)
+                _, err192 := net.LookupAddr("192.0.2.1")
+                _, err127 := net.LookupAddr("127.0.0.1")
+                if err192 != nil && err127 == nil { return true }
+              }
+            }
+          }
+        }
+      }
+    }
+    
     if timeout != 0 && time.Now().After(endtime) { break }
     waittime := endtime.Sub(time.Now())
     if waittime <= 0 || waittime > 1*time.Second { waittime = 1*time.Second }

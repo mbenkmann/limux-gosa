@@ -1,3 +1,11 @@
+gosa (2.8.173) trusty; urgency=medium
+
+  * go-susi: wait for non-loopback interfaces to be up before starting operation
+  * in particular this prevents go-susi from setting its <source> to 127.0.0.1 if
+  * started before network is up
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 01 Oct 2015 08:57:11 +0200
+
 gosa (2.8.172) trusty; urgency=medium
 
   * implement some basic security checks
