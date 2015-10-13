@@ -22,7 +22,7 @@ package message
 
 import (
          "../xml"
-         "../util"
+         "github.com/mbenkmann/golib/util"
        )
 
 // Handles the message "information_sharing".

@@ -29,7 +29,7 @@ import (
          
          "../xml"
          "../config"
-         "../util"
+         "github.com/mbenkmann/golib/util"
        )
 
 // Stores info about server peers. Entries in serverDB have the following

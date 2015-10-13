@@ -21,7 +21,7 @@ package message
 
 import (
          "../xml"
-         "../util"
+         "github.com/mbenkmann/golib/util"
        )
 
 // Handles the message "gosa_set_activated_for_installation".

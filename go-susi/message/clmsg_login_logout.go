@@ -24,7 +24,7 @@ import (
 //         "strings"
          
          "../xml"
-//         "../util"
+//         "github.com/mbenkmann/golib/util"
        )
 
 var mapUserToMAC = map[string]string{}

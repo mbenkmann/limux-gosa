@@ -27,7 +27,7 @@ import (
          "os/exec"
          "strings"
          
-         "../util"
+         "github.com/mbenkmann/golib/util"
          "../xml"
        )
 

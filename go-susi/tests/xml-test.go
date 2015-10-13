@@ -31,7 +31,7 @@ import (
          "os/exec"
          
          "../xml"
-         "../util"
+         "github.com/mbenkmann/golib/util"
        )
 
 // Unit tests for the package susi/xml.

@@ -23,7 +23,7 @@ import (
          "strings"
         
          "../xml"
-         "../util"
+         "github.com/mbenkmann/golib/util"
        )
 
 // Handles all messages of the form "gosa_trigger_action_*".

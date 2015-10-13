@@ -32,8 +32,8 @@ import (
          "strings"
          "unsafe"
          
-         "../bytes"
-         "../util"
+         "github.com/mbenkmann/golib/bytes"
+         "github.com/mbenkmann/golib/util"
        )
 
 import encxml "encoding/xml"

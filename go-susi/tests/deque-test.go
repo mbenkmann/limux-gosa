@@ -25,10 +25,10 @@ import (
          "time"
          "bytes"
          
-         "../util/deque"
+         "github.com/mbenkmann/golib/deque"
        )
 
-// Unit tests for the package go-susi/util/deque.
+// Unit tests for the package github.com/mbenkmann/golib/deque.
 func Deque_test() {
   fmt.Printf("\n==== deque ===\n\n")
 

@@ -31,8 +31,8 @@ import (
          
          "../xml"
          "../config"
-         "../util"
-         "../util/deque"
+         "github.com/mbenkmann/golib/util"
+         "github.com/mbenkmann/golib/deque"
        )
 
 // Stores jobs to be executed at some point in the future.

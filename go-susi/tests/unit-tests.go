@@ -26,7 +26,7 @@ import (
          "path"
          "time"
          
-         "../util"
+         "github.com/mbenkmann/golib/util"
          "../config"
        )
 

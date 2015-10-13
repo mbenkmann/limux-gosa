@@ -5,7 +5,7 @@ import (
          
          "../db"
          "../xml"
-         "../util"
+         "github.com/mbenkmann/golib/util"
          "../config"
        )
 

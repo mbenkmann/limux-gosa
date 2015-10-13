@@ -26,7 +26,7 @@ import (
          "reflect"
          "runtime"
          
-         "../bytes"
+         "github.com/mbenkmann/golib/bytes"
        )
 
 // true => show test output even for PASSED tests.

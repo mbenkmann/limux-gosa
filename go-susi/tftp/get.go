@@ -23,7 +23,7 @@ import (
          "time"
          "strings"
          
-         "../util"
+         "github.com/mbenkmann/golib/util"
        )
 
 var too_short = fmt.Errorf("Received TFTP packet shorter than 4 bytes")

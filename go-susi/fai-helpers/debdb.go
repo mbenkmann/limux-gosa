@@ -39,8 +39,8 @@ import (
          "runtime"
          "runtime/debug"
          
-         "../bytes"
-         "../util"
+         "github.com/mbenkmann/golib/bytes"
+         "github.com/mbenkmann/golib/util"
       )
 
 var USAGE = `debdb [-v|-vv|-vvv|-vvvv] kernels|packages <cachefile>

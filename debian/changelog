@@ -1,3 +1,9 @@
+gosa (2.8.174) trusty; urgency=medium
+
+  * go-susi: util, util/deque and bytes have been moved to their own project https://github.com/mbenkmann/golib
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 13 Oct 2015 19:54:13 +0200
+
 gosa (2.8.173) trusty; urgency=medium
 
   * go-susi: wait for non-loopback interfaces to be up before starting operation

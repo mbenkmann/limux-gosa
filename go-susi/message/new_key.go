@@ -23,7 +23,7 @@ package message
 import (
          "../db"
          "../xml"
-         "../util"
+         "github.com/mbenkmann/golib/util"
        )
 
 // Handles the message "new_key".

@@ -28,7 +28,7 @@ import (
          "strings"
          
          "../db"
-         "../util"
+         "github.com/mbenkmann/golib/util"
          "../config"
        )
 

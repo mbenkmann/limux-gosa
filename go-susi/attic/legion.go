@@ -39,8 +39,8 @@ import (
           "../db"
           "../xml"
           "../tftp"
-          "../util"
-          "../util/deque"
+          "github.com/mbenkmann/golib/util"
+          "github.com/mbenkmann/golib/deque"
           "../config"
           "../message"
        )

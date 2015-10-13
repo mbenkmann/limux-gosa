@@ -30,8 +30,8 @@ import (
          
          "../db"
          "../xml"
-         "../util"
-         "../bytes"
+         "github.com/mbenkmann/golib/util"
+         "github.com/mbenkmann/golib/bytes"
          "../config"
          "../security"
        )

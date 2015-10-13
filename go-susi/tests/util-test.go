@@ -33,8 +33,8 @@ import (
          "io/ioutil"
          "encoding/base64"
          
-         "../util"
-         "../bytes"
+         "github.com/mbenkmann/golib/util"
+         "github.com/mbenkmann/golib/bytes"
          "../config"
        )
 
@@ -142,7 +142,7 @@ func (a *UintArray) Less(i, j int) bool { return (*a)[i] < (*a)[j] }
 func (a *UintArray) Len() int { return len(*a) }
 func (a *UintArray) Swap(i, j int) { (*a)[i], (*a)[j] = (*a)[j], (*a)[i] }
 
-// Unit tests for the package go-susi/util.
+// Unit tests for the package github.com/mbenkmann/golib/util.
 func Util_test() {
   fmt.Printf("\n==== util ===\n\n")
   

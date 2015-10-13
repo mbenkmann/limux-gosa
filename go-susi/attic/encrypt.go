@@ -27,7 +27,7 @@ import (
          "os"
          "io/ioutil"
          
-         "../bytes"
+         "github.com/mbenkmann/golib/bytes"
          "../message"
        )
 

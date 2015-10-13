@@ -30,9 +30,9 @@ import (
          "strings"
          
          "../xml"
-         "../util"
+         "github.com/mbenkmann/golib/util"
          "../config"
-         "../bytes"
+         "github.com/mbenkmann/golib/bytes"
        )
 
 // used to prevent the hooks from being started while they are still running,

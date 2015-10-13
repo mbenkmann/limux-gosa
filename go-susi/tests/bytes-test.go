@@ -27,7 +27,7 @@ import (
          "time"
          "runtime"
          
-         "../bytes"
+         "github.com/mbenkmann/golib/bytes"
        )
 
 var FakeError = fmt.Errorf("not a real error")
@@ -54,7 +54,7 @@ func (r *sliceReturner) Read(p []byte) (n int, err error) {
   return n, nil
 }
 
-// Unit tests for the package go-susi/bytes.
+// Unit tests for the package github.com/mbenkmann/golib/bytes.
 func Bytes_test() {
   fmt.Printf("\n==== bytes ===\n\n")
 

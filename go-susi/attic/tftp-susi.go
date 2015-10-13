@@ -24,9 +24,9 @@ import (
           "path"
           
           "../db"
-          "../util"
+          "github.com/mbenkmann/golib/util"
           "../tftp"
-          "../bytes"
+          "github.com/mbenkmann/golib/bytes"
           "../config"
        )
 

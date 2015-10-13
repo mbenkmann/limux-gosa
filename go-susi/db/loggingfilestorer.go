@@ -21,7 +21,7 @@ package db
 
 import (
          "../xml"
-         "../util"
+         "github.com/mbenkmann/golib/util"
        )
 
 // A xml.FileStorer that logs errors to the go-susi log

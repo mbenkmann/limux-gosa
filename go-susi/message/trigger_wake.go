@@ -25,7 +25,7 @@ import (
          
          "../db"
          "../xml"
-         "../util"
+         "github.com/mbenkmann/golib/util"
        )
 
 // Handles the message "trigger_wake".

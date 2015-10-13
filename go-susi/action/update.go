@@ -3,7 +3,7 @@ package action
 import "time"
 import "../db"
 import "../xml"
-import "../util"
+import "github.com/mbenkmann/golib/util"
 import "../config"
 
 func Update(job *xml.Hash) {

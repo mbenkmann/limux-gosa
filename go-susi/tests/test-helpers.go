@@ -36,8 +36,8 @@ import (
          "../xml"
          "../config"
          "../message"
-         "../util"
-         "../util/deque"
+         "github.com/mbenkmann/golib/util"
+         "github.com/mbenkmann/golib/deque"
        )
 
 // Regexp for recognizing valid MAC addresses.

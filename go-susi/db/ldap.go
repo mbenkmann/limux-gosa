@@ -29,7 +29,7 @@ import (
          "encoding/base64"
          
          "../xml"
-         "../util"
+         "github.com/mbenkmann/golib/util"
          "../config"
        )
 
