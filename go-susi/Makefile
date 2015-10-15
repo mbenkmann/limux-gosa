@@ -6,6 +6,9 @@ susi:
 all: build man
 
 build:
+	go get github.com/mbenkmann/golib/bytes
+	go get github.com/mbenkmann/golib/deque
+	go get github.com/mbenkmann/golib/util
 	go build main/go-susi.go
 	go build main/sibridge.go
 	go build -o fai-helpers/debdb fai-helpers/debdb.go

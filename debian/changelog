@@ -1,3 +1,9 @@
+gosa (2.8.176) trusty; urgency=medium
+
+  * go-susi: add necessary go get commands to build target in Makefile
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 15 Oct 2015 10:52:46 +0200
+
 gosa (2.8.175) trusty; urgency=medium
 
   * go-susi: new manpage gosa-si-tls
