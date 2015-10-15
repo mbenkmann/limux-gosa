@@ -29,7 +29,8 @@ man: doc/manpage.xsl
 	xsltproc >doc/gosa-si-misc.5 --stringparam name GOSA-SI-MISC --stringparam section 5 --stringparam start_id "id.5uju4li1h33b" --stringparam stop_id "id.ys29afdlp9ml" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
 	xsltproc >doc/gosa-si-deprecated.5 --stringparam name GOSA-SI-DEPRECATED --stringparam section 5 --stringparam start_id "id.ys29afdlp9ml" --stringparam stop_id "id.qm42onlc5h25" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
 	xsltproc >doc/generate_package_list.5 --stringparam name GENERATE_PACKAGE_LIST --stringparam section 5 --stringparam start_id "id.jjgoi9ch9ywz" --stringparam stop_id "id.fgzi8uchaq8v" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
-	xsltproc >doc/initrd_autopack.5 --stringparam name INITRD_AUTOPACK --stringparam section 5 --stringparam start_id "id.fgzi8uchaq8v" --stringparam stop_id "id.l8s0fislnev7" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
+	xsltproc >doc/initrd_autopack.5 --stringparam name INITRD_AUTOPACK --stringparam section 5 --stringparam start_id "id.fgzi8uchaq8v" --stringparam stop_id "id.55eiknlqs8ut" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
+	xsltproc >doc/gosa-si-tls.5 --stringparam name GOSA-SI-TLS --stringparam section 5 --stringparam start_id "id.55eiknlqs8ut" --stringparam stop_id "id.l8s0fislnev7" --stringparam version "$(VERSION)" --novalid --nonet doc/manpage.xsl doc/go-susi-manual.xhtml
 
 .PHONY: doc
 doc:
