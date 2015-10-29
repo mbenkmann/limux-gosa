@@ -41,7 +41,7 @@ class CopyPasteHandler {
   var $clean_objects      = array();
   var $require_update     = FALSE;
 
-
+  var $csv_format = "";
 
   /* Create CP handler  */
   function CopyPasteHandler(&$config)
@@ -149,7 +149,6 @@ class CopyPasteHandler {
    */
   function save_dn_attributes_to_hdd($dn)
   {
-    $filename = "Should not be returned";
     $ldap = $this->config->get_ldap_link();
     $ldap->cd($this->config->current['BASE']);
     $res  = $ldap->cat($dn);
@@ -161,7 +160,17 @@ class CopyPasteHandler {
       new log("copy","all/all",$dn,array(), $msg);
       return(FALSE);
     }
-
+  
+    return $this->save_ldap_data_to_hdd($ldap->fetch());
+  }
+  
+  /* Takes data from $ldap->fetch() and stores it on disk. 
+  * Returns the filename of the cache file where it stored the data.
+  */  
+  function save_ldap_data_to_hdd($rawldapdata)
+  {
+    $ldapdata = serialize($rawldapdata);
+    
     /* Create data to save given ldap dump on the hdd */
     $filename = "gosa_copy-paste_dump_".preg_replace("/[^0-9]/","",microtime());
     $path     = LDAP_DUMP_PATH;
@@ -196,8 +205,8 @@ class CopyPasteHandler {
       return(FALSE);
     }
 
-    $data = serialize($ldap->fetch());
-    fwrite($fp,$data,strlen($data));
+    
+    fwrite($fp,$ldapdata,strlen($ldapdata));
     fclose($fp);
 
     /* Only the webserver should be able to read those files */
@@ -276,6 +285,70 @@ class CopyPasteHandler {
       return(FALSE);
     }
   }
+  
+  /* Parses the CSV file $filename and combines the data with $this->current
+  * and adds the resulting entries to the queue.
+  */
+  function csv_import($filename)
+  {
+    if(!$this->current){ return; }
+    
+    if (($handle = fopen($filename, "r")) !== FALSE) {
+      if (($firstline = fgets($handle)) !== FALSE) {
+        if (($firstline = trim($firstline)) != "") {
+          $enclosure = "";
+          if (!ctype_alpha($firstline[0])) {
+            $enclosure = $firstline[0];
+          }
+          
+          $delimiter = ",";
+          for ($i = 1; $i < strlen($firstline); $i++) {
+            if ($firstline[$i] != $enclosure && 
+                !ctype_alnum($firstline[$i]) && !ctype_space($firstline[$i])) {
+              $delimiter = $firstline[$i];
+              break;
+            }
+          }
+
+          $escape = '"';
+          
+          $col_names = str_getcsv($firstline, $delimiter, $enclosure, $escape);
+          
+          $num_cols = count($col_names);
+          
+          while (($data = fgetcsv($handle, 0, $delimiter, $enclosure, $escape)) !== FALSE) {
+            $num = count($data);
+            if ($num == $num_cols) {
+              $ldapdata = $this->current['source_data'];
+              $ldapdata['listing_info'] = $data[0];
+              for ($c=0; $c < $num; $c++) {
+                  $col = $col_names[$c];
+                  $val = $data[$c];
+                  $ldapdata[$col]["count"] = 1;
+                  $ldapdata[$col][0] = $val;
+/*                  if (preg_match("/^$col=/i", $this->current['dn'])) {
+                    $ldapdata['dn'] = preg_replace("/^($col=).*(,[a-zA-Z]+=)/iU", "\${1}$val$2", $this->current['dn']);
+                  }*/
+              }
+              if($file_name = $this->save_ldap_data_to_hdd($ldapdata)){
+                  $tmp = array();
+                  $tmp['file_name'] = $file_name;
+                  $tmp['method']    = $this->current['method'];  
+                  $tmp['dn']        = $this->current['dn'];
+                  $tmp['tab_class'] = $this->current['tab_class'];
+                  $tmp['tab_object']= $this->current['tab_object'];
+                  $tmp['tab_acl_category']= $this->current['tab_acl_category'];
+                  $tmp['parent']    = $this->current['parent'];
+                  $this->queue[]    = $tmp; 
+                  $this->require_update = TRUE;
+              }
+            }
+          }
+        }
+      }
+      fclose($handle);
+    }
+  }
 
 
   /* Displays a dialog which allows the user to fix all dependencies of this object.
@@ -285,6 +358,18 @@ class CopyPasteHandler {
     $ui = get_userinfo();
     $type = $this->current['method'];
 
+    /* Check for CSV upload */
+    if (isset($_POST['CSVImport']) && isset($_FILES['csv_file'])){
+        $filename = gosa_file_name($_FILES['csv_file']['tmp_name']);
+        if (!file_exists($filename)) {
+            msg_dialog::display(_("Error"), _("Cannot upload file!"), ERROR_DIALOG);
+        }else{
+            $this->csv_import($filename);
+        }
+    }
+    
+    $enable_csv = !isset($_POST['CSVImport']);
+    
     /* Check which entries can be pasted directly.
      * Create a list of all entries that can be pasted directly.
      */
@@ -305,6 +390,27 @@ class CopyPasteHandler {
         }
         $entry= $this->_update_vars($entry);
         $msgs = $entry['object']->check();
+        
+        if ($enable_csv && $this->csv_format == "") {
+          $csv_have_attr = array();
+          $csv_second_line = "";
+          foreach($entry['object']->by_object as $name => $obj) {
+            if ($obj->is_account || $obj->ignore_account){
+              if (isset($obj->attributes)) {
+                foreach($obj->attributes as $attributename) {
+                  if (isset($csv_have_attr[$attributename])) { continue; }
+                  if ($this->csv_format != "") { $this->csv_format .= ","; }
+                  $this->csv_format.="&quot;$attributename&quot;";
+                  $csv_have_attr[$attributename] = TRUE;
+                  if (count($csv_have_attr) < 3) {
+                    $csv_second_line .= "&quot;value# for $attributename&quot;,";
+                  }
+                }
+              }
+            }
+          }
+          $this->csv_format .= "\n".str_replace("#","1",$csv_second_line)."...\n".str_replace("#","2",$csv_second_line)."...\n...";
+        }
 
         /* To copy an object we require full read access to the object category 
          */
@@ -314,6 +420,11 @@ class CopyPasteHandler {
          */
         $cut_acl  = preg_match("/d/",$ui->has_complete_category_acls($entry['dn'], $entry['tab_acl_category']));
         $cut_acl &= preg_match("/r/",$ui->has_complete_category_acls($entry['dn'], $entry['tab_acl_category']));
+
+        /* CSV import has no well-defined meaning combined with cut */
+        if ($entry['method'] != "copy") {
+          $enable_csv = FALSE;
+        }
 
         /* Check permissions */
         if($entry['method'] == "copy" && !$copy_acl){
@@ -327,13 +438,18 @@ class CopyPasteHandler {
         }
       }
       if(count($this->disallowed_objects)){
-        $dns = array();
+        $listings = array();
         foreach($this->disallowed_objects as $entry){
-          $dns[] = $entry['dn'];
+            $listing = $entry['dn'];
+            if (isset($entry['source_data']['listing_info'])) {
+              $listing = $entry['source_data']['listing_info']." <- $listing ";
+            }
+            $listings[] = $listing;
         }
-#        msg_dialog::display(_("Permission"),msgPool::permCreate($dns),INFO_DIALOG);
+#        msg_dialog::display(_("Permission"),msgPool::permCreate($listings),INFO_DIALOG);
       }
       $this->require_update = FALSE;
+      $this->current = FALSE;
     }
 
     /* Save objects that can be pasted directly 
@@ -383,17 +499,23 @@ class CopyPasteHandler {
      */
     if(count($this->clean_objects)){
       
-      $dns = array();
+      $listings = array();
       foreach($this->clean_objects as $object){
-        $dns[] = $object['dn'];
+        $listing = $object['dn'];
+        if (isset($object['source_data']['listing_info'])) {
+          $listing = $object['source_data']['listing_info']." <- $listing ";
+        }
+        $listings[] = $listing;
       }
 
       $smarty = get_smarty();
       $smarty->assign("type","directly");
       $smarty->assign("Complete",false);
+      $smarty->assign("EnableCSV", $enable_csv);
       $smarty->assign("AttributesToFix","&nbsp;");
       $smarty->assign("SubDialog","");
-      $smarty->assign("message"  , sprintf(_("These objects will be pasted: %s"), "<br>".msgPool::buildList($dns)));
+      $smarty->assign("message"  , sprintf(_("These objects will be pasted: %s"), "<br>".msgPool::buildList($listings)));
+      $smarty->assign("attributes", "&quot;cn&quot;,&quot;description&quot;");
       return($smarty->fetch(get_template_path("copyPasteDialog.tpl",FALSE)));
     }
 
@@ -414,11 +536,16 @@ class CopyPasteHandler {
         $smarty = get_smarty();
         $smarty->assign("type","modified");
         $smarty->assign("Complete",false);
+        $smarty->assign("EnableCSV", $enable_csv);
         $smarty->assign("AttributesToFix",$this->generateAttributesToFix());
         $smarty->assign("SubDialog",$this->current['object']->SubDialog);
         $smarty->assign("objectDN",$this->current['source_data']['dn']);
-        $smarty->assign("message", sprintf(_("This object will be pasted: %s"), "<br><br>".
-                    bold(@LDAP::fix($this->current['source_data']['dn']))));
+        $listing = @LDAP::fix($this->current['source_data']['dn']);
+        if (isset($this->current['source_data']['listing_info'])) {
+          $listing = $this->current['source_data']['listing_info']." <- $listing ";
+        }
+        $smarty->assign("message", sprintf(_("This object will be pasted: %s"), "<br><br>".bold($listing)));
+        $smarty->assign("attributes", $this->csv_format);
         return($smarty->fetch(get_template_path("copyPasteDialog.tpl",FALSE)));
       }
     }

@@ -819,7 +819,6 @@ class printgeneric extends plugin
         }elseif($this->orig_dn != "new" && $this->base != $this->orig_base && !$this->acl_is_moveable($this->base)){
             $message[] = msgPool::permMove();
         }
-
         return ($message);
     }
 
@@ -1211,7 +1210,6 @@ class printgeneric extends plugin
 
     function PrepareForCopyPaste($source)
     {
-        plugin::PrepareForCopyPaste($source);
         if(isset($source['macAddress'][0])){
             $this->netConfigDNS->macAddress = $source['macAddress'][0];
         }
@@ -1225,6 +1223,8 @@ class printgeneric extends plugin
         }
         $this->member = $source_o -> member;
 
+        plugin::PrepareForCopyPaste($source);
+        
         $this->gotoPrinterPPD = "";
     }
 

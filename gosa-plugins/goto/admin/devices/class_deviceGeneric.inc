@@ -167,7 +167,6 @@ class deviceGeneric extends plugin
             }
         }
 
-
         return($message);
     }
 
@@ -257,11 +256,11 @@ class deviceGeneric extends plugin
 
     function PrepareForCopyPaste($source)
     {
-        plugin::PrepareForCopyPaste($source);
         $source_o = new deviceGeneric($this->config,$source['dn']);
         foreach($this->CopyPasteVars as $post){
             $this->$post = $source_o->$post;
         }
+        plugin::PrepareForCopyPaste($source);
     }
 
 

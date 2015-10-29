@@ -22,6 +22,25 @@
     	{/if}
 		<button type='submit' name='abort_all_cut-copy_operations'>{t}Cancel all{/t}</button>
 	</div>
+{if $EnableCSV == true}
+<hr>
+<h3>{t}CSV Import{/t}</h3>
+	{t}The CSV Import feature allows you to create multiple copies of the above object with one or more attributes replaced with data from a CSV file. To use this feature, create a CSV file like the following:{/t}
+<pre>
+{$attributes}
+</pre>
+<div>
+{t}The first line lists all attributes you want to change. The above example contains all possible attributes. Do not list all of them in your file. Only list those you actually want to change.{/t}
+</div>
+<div>
+{t}The remaining lines of the CSV file contain the override values for the listed attributes. Each line will result in a new copy of the object with the override values used instead of the original values.{/t}
+</div>
+<hr>
+	<div style='text-align:right;width:100%;'>
+		<input id="csv_file" name="csv_file" type="file" size="20" maxlength="255" accept="text/csv">
+		<button type='submit' name='CSVImport'>{t}CSV Import{/t}</button>
+	</div>
+{/if}
 	{/if}
 {else}
 	<hr>

@@ -1,3 +1,13 @@
+gosa (2.8.177) trusty; urgency=medium
+
+  * GOsa: new feature "Copy'n'Patch": when doing Paste, a CSV file can be used to produce multiple modified copies
+  * This is very useful for batch importing printers, USB sticks, workstations from
+  * CSV files. All data not specified in the CSV file will be taken from the source object,
+  * so the CSV file only needs those columns that actually matter (e.g. in the case of
+  * workstations MAC address and name)
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 29 Oct 2015 07:53:57 +0100
+
 gosa (2.8.176) trusty; urgency=medium
 
   * go-susi: add necessary go get commands to build target in Makefile
