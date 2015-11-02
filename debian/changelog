@@ -1,3 +1,9 @@
+gosa (2.8.178) trusty; urgency=medium
+
+  * remove redundant check that didn't work because of incorrect concatenation (missing ",")
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 02 Nov 2015 09:40:35 +0100
+
 gosa (2.8.177) trusty; urgency=medium
 
   * GOsa: new feature "Copy'n'Patch": when doing Paste, a CSV file can be used to produce multiple modified copies

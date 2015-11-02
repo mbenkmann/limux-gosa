@@ -769,8 +769,6 @@ class printgeneric extends plugin
             }
         }
 
-        $dn= "cn=".$this->cn.get_ou("printgeneric", "printerRDN").",".$this->base;
-
         /* must: cn */
         if(($this->BelongsTo == "Printer") && $this->cn == ""){
             $message[]= msgPool::required(_("Name"));
@@ -795,7 +793,7 @@ class printgeneric extends plugin
         }
 
         /* Check if there is already an entry with this cn*/
-        if (($this->orig_dn != $dn)&&( preg_match("/printer/i",$this->BelongsTo))){
+        if ( preg_match("/printer/i",$this->BelongsTo)){
             $ldap= $this->config->get_ldap_link();
             $ldap->cd ($this->base);
             $ldap->ls("(cn=".$this->cn.")",get_ou("printgeneric", "printerRDN").$this->base, array("cn"));
