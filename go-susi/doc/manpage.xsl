@@ -146,6 +146,8 @@
   <xsl:text>&#10;.br</xsl:text>
   <xsl:text>&#10;.BR &quot;gosa-si-misc&quot; &quot;(5)   -  miscellaneous messages&quot;</xsl:text>
   <xsl:text>&#10;.br</xsl:text>
+  <xsl:text>&#10;.BR &quot;gosa-si-tls&quot; &quot;(5)    -  X.509 certificates for connecting with go-susi&quot;</xsl:text>
+  <xsl:text>&#10;.br</xsl:text>
   <xsl:text>&#10;.BR &quot;gosa-si-deprecated&quot; &quot;(5) - messages not supported by go-susi&quot;</xsl:text>
 </xsl:template>
 

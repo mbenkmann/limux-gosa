@@ -146,6 +146,8 @@ template{ match "*[local-name(.)='html']"
   "\n.br"
   "\n.BR \"gosa-si-misc\" \"(5)   -  miscellaneous messages\""
   "\n.br"
+  "\n.BR \"gosa-si-tls\" \"(5)    -  X.509 certificates for connecting with go-susi\""
+  "\n.br"
   "\n.BR \"gosa-si-deprecated\" \"(5) - messages not supported by go-susi\""
 }
 

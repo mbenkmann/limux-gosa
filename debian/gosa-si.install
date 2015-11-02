@@ -7,6 +7,7 @@ go-susi/doc/gosa-si-jobs.5       /usr/share/man/man5
 go-susi/doc/gosa-si-misc.5       /usr/share/man/man5
 go-susi/doc/gosa-si-query.5      /usr/share/man/man5
 go-susi/doc/gosa-si-s2s.5        /usr/share/man/man5
+go-susi/doc/gosa-si-tls.5        /usr/share/man/man5
 go-susi/doc/server.conf.5        /usr/share/man/man5
 go-susi/gosa-si-server           /usr/sbin
 go-susi/sibridge                 /usr/sbin
