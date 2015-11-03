@@ -315,6 +315,7 @@ class CopyPasteHandler {
           $col_names = str_getcsv($firstline, $delimiter, $enclosure, $escape);
           
           $num_cols = count($col_names);
+          $have_col = array();
           
           while (($data = fgetcsv($handle, 0, $delimiter, $enclosure, $escape)) !== FALSE) {
             $num = count($data);
@@ -324,8 +325,15 @@ class CopyPasteHandler {
               for ($c=0; $c < $num; $c++) {
                   $col = $col_names[$c];
                   $val = $data[$c];
-                  $ldapdata[$col]["count"] = 1;
-                  $ldapdata[$col][0] = $val;
+                  if ($val == "") { continue; } /* skip empty fields */
+                  if (isset($have_col[$col])) {
+                      $ldapdata[$col][$ldapdata[$col]["count"]] = $val;
+                      $ldapdata[$col]["count"] += 1;
+                  } else {
+                      $ldapdata[$col]["count"] = 1;
+                      $ldapdata[$col][0] = $val;
+                      $have_col[$col] = TRUE;
+                  }
 /*                  if (preg_match("/^$col=/i", $this->current['dn'])) {
                     $ldapdata['dn'] = preg_replace("/^($col=).*(,[a-zA-Z]+=)/iU", "\${1}$val$2", $this->current['dn']);
                   }*/

@@ -30,7 +30,7 @@
 {$attributes}
 </pre>
 <div>
-{t}The first line lists all attributes you want to change. The above example contains all possible attributes. Do not list all of them in your file. Only list those you actually want to change.{/t}
+{t}The first line lists all attributes you want to change. The above example contains all possible attributes. Do not list all of them in your file. Only list those you actually want to change. For multi-value attributes you can list the same attribute multiple times. {/t}
 </div>
 <div>
 {t}The remaining lines of the CSV file contain the override values for the listed attributes. Each line will result in a new copy of the object with the override values used instead of the original values.{/t}

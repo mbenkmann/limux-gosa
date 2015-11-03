@@ -1,3 +1,9 @@
+gosa (2.8.180) trusty; urgency=medium
+
+  * Allow multi-value CSV-import (useful e.g. for memberUid when importing groups, or gotoUserPrinter when importing printers)
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 03 Nov 2015 11:59:21 +0100
+
 gosa (2.8.179) trusty; urgency=medium
 
   * go-susi: new manpage gosa-si-tls.5
