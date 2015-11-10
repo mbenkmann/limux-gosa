@@ -1,3 +1,9 @@
+gosa (2.8.181) trusty; urgency=medium
+
+  * GOsa: fix PHP error in class_gotoLogView.inc
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 10 Nov 2015 09:52:00 +0100
+
 gosa (2.8.180) trusty; urgency=medium
 
   * Allow multi-value CSV-import (useful e.g. for memberUid when importing groups, or gotoUserPrinter when importing printers)

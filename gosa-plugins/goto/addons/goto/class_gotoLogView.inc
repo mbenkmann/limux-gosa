@@ -11,6 +11,7 @@ class gotoLogView extends plugin
     var $o_queue;  
 
     var $selected_date;
+    var $selected_real_date;
     var $selected_file = 0;
     var $selected_type;
 
@@ -134,8 +135,8 @@ class gotoLogView extends plugin
             $entry = $this->logs[$id];
             $this->selected_file = $entry['FILE'];
             $this->selected_date = $entry['DATE_STR'];
+            $this->selected_real_date = date('d.m.Y H:i:s', $entry['DATE']);
         }
-
 
         $smarty = get_smarty();
         $smarty->assign("logs",            $this->logs);   
@@ -147,16 +148,10 @@ class gotoLogView extends plugin
         $smarty->assign("log_file", $this->get_log($this->mac,$this->selected_date,$this->selected_file, $this->selected_type));
 
         $smarty->assign("standalone",      $this->standalone);
-        if (isset($this->logs[$this->mac])){
-            $date = date("d.m.Y H:i:s",$this->logs[$this->mac][$this->selected_date]['REAL_DATE']);
-        }
-        if (isset($this->logs[$this->mac])){
-            $type = $this->logs[$this->mac][$this->selected_date]['FAI_ACTION'];
-        }
         $file = $this->selected_file;
         $smarty->assign("selected_log",_("none"));
         if(!empty($file)){
-            $smarty->assign("selected_log", $file.", ".date('d.m.Y H:i:s', $entry['DATE']));
+            $smarty->assign("selected_log", $file.", ".$this->selected_real_date);
         }
         $smarty->assign("ACL",preg_match("/r/",$this->getacl("")));
         $this->logSelector->setAcl($this->getacl(""));
