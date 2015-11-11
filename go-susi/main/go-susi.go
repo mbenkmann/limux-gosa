@@ -20,8 +20,6 @@ MA  02110-1301, USA.
 // The go-susi.go main program as well as associated programs.
 //
 //  go-susi - the daemon.
-//  decrypt - decrypt messages encrypted with the GOsa/gosa-si scheme.
-//  encrypt - encrypt messages with the GOsa/gosa-si scheme.
 //  run_tests - runs the unit tests.
 //  sibridge - interactive/scripting interface to go-susi
 package main
@@ -39,6 +37,7 @@ import (
           "strings"
           "syscall"
           "sync/atomic"
+          "crypto/tls"
           
           "../db"
           "../xml"
@@ -145,6 +144,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   }
   util.Log(1, "INFO! DNS available")
   
+  config.ReadCertificates() // after config.ReadConfig()
   config.ReadNetwork() // after config.ReadConfig()
   
   // ATTENTION! DO NOT MOVE THE FOLLOWING CODE FURTHER DOWN!
@@ -284,19 +284,18 @@ func acceptConnections(listener *net.TCPListener, tcp_connections chan<- *net.TC
   }
 }
 
+var starttls = []byte{'S','T','A','R','T','T','L','S','\n'}
+
 // Handles one or more messages received over conn. Each message is a single
 // line terminated by \n. The message may be encrypted as by message.GosaEncrypt().
-func handle_request(conn *net.TCPConn) {
-  defer conn.Close()
+func handle_request(tcpconn *net.TCPConn) {
+  defer tcpconn.Close()
   defer atomic.AddInt32(&ActiveConnections, -1)
   //defer util.Log(2, "DEBUG! Connection to %v closed", conn.RemoteAddr())
   
-  context := security.ContextFor(conn)
-  if context == nil { return }
-  
   var err error
   
-  err = conn.SetKeepAlive(true)
+  err = tcpconn.SetKeepAlive(true)
   if err != nil {
     util.Log(0, "ERROR! SetKeepAlive: %v", err)
   }
@@ -304,7 +303,36 @@ func handle_request(conn *net.TCPConn) {
   var buf bytes.Buffer
   defer buf.Reset()
   readbuf := make([]byte, 4096)
+  
+  var conn net.Conn
+  conn = tcpconn
   n := 1
+  
+  if config.TLSServerConfig != nil {
+    for i := range starttls {
+      n, err = conn.Read(readbuf[0:1])
+      if n == 0 {
+        util.Log(0, "ERROR! Read error while looking for STARTTLS: %v", err)
+        return
+      }
+      buf.Write(readbuf[0:1])
+      if readbuf[0] != starttls[i] { 
+        if config.TLSRequired {
+          util.Log(0, "ERROR! Rejecting non-TLS connection from %v", conn.RemoteAddr())
+          return
+        }
+        break 
+      }
+      if readbuf[0] == '\n' {
+        buf.Reset() // purge STARTTLS\n from buffer
+        conn = tls.Server(conn, config.TLSServerConfig)
+      }
+    }
+  }
+  
+  context := security.ContextFor(conn)
+  if context == nil { return }
+  
   for n != 0 {
     //util.Log(2, "DEBUG! Receiving from %v", conn.RemoteAddr())
     n, err = conn.Read(readbuf)
@@ -380,7 +408,6 @@ func handle_request(conn *net.TCPConn) {
     util.Log(0, "ERROR! Incomplete message from %v (i.e. not terminated by \"\\n\") of %v bytes: %v", conn.RemoteAddr(),buf.Len(), buf.String())
   }
 }
-
 func setConfigUnitTag() {
   util.Log(1, "INFO! Getting my own system's gosaUnitTag from LDAP")
   config.UnitTag = db.SystemGetState(config.MAC, "gosaUnitTag")

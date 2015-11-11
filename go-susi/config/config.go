@@ -32,6 +32,8 @@ import (
          "regexp"
          "strings"
          "crypto/aes"
+         "crypto/tls"
+         "crypto/x509"
          
          "github.com/mbenkmann/golib/util"
          "github.com/mbenkmann/golib/deque"
@@ -69,6 +71,16 @@ var ServerConfigPath = "/etc/gosa-si/server.conf"
 
 // Path of the client config file.
 var ClientConfigPath = "/etc/gosa-si/client.conf"
+
+// Path of the CA certificate used to authenticate all other certificates.
+var CACertPath = "/etc/gosa-si/ca.cert"
+
+// Path of the certificate go-susi will present to the other party when
+// connecting with TLS.
+var CertPath = "/etc/gosa-si/si.cert"
+
+// Path of the key corresponding to the certificate in CertPath.
+var CertKeyPath = "/etc/gosa-si/si.key"
 
 // Path to config file with additional DNs of OUs for finding servers.
 var ServersOUConfigPath = "/etc/gosa/ou=servers.conf"
@@ -191,6 +203,14 @@ var MaxConnections int32 = 512
 // Maximum time permitted for a read or write transmission. If this time
 // is exceeded, the transmission is aborted.
 var Timeout = 5 * time.Minute
+
+// If false and this go-susi is in server mode, it will accept connections
+// from si-clients using the pre-TLS encryption protocol.
+var TLSRequired = true
+
+// Config used for TLS handshake when go-susi is acting as the
+// server, i.e. the other party initiated the connection.
+var TLSServerConfig *tls.Config
 
 // Maximum time allowed for detect-hardware-hook. If the hook does not complete
 // in this time, a standard detected_hardware message will be sent to the server.
@@ -383,6 +403,10 @@ func ReadArgs(args []string) {
       JobDBPath = testdir + "/jobdb.xml"
       ServerDBPath = testdir + "/serverdb.xml"
       ClientDBPath = testdir + "/clientdb.xml"
+      CACertPath = testdir + "/ca.cert"
+      CertPath = testdir + "/si.cert"
+      CertKeyPath = testdir + "/si.key"
+
       PackageCacheDir = testdir
       FAILogPath = testdir
       
@@ -578,6 +602,21 @@ func ReadConfig() {
     }
   }
   
+  if tlsconf, ok:= conf["[tls]"]; ok {
+    if oldclients,ok := tlsconf["oldclients"]; ok {
+      TLSRequired = (oldclients != "true")
+    }
+    if cacert,ok := tlsconf["ca-certificate"]; ok {
+      CACertPath = cacert
+    }
+    if cert,ok := tlsconf["certificate"]; ok {
+      CertPath = cert
+    }
+    if certkey,ok := tlsconf["keyfile"]; ok {
+      CertKeyPath = certkey
+    }
+  }
+  
   // Backwards compatibility: Convert [general]/pxelinux-cfg-hook to patterns
   // as described in manual.
   if pxeLinuxCfgHookPath != "" {
@@ -654,6 +693,50 @@ func ReadConfig() {
         LDAPServerOUs = append(LDAPServerOUs, line)
       }
     }
+  }
+}
+
+func ReadCertificates() {  
+  tlscert, err := tls.LoadX509KeyPair(CertPath, CertKeyPath)
+  if err != nil {
+    util.Log(0, "ERROR! tls.LoadX509KeyPair: %v", err)
+  } else {
+    tlscert.Leaf, err = x509.ParseCertificate(tlscert.Certificate[0])
+    if err != nil {
+      util.Log(0, "ERROR! x509.ParseCertificate: %v", err)
+    } else {
+        
+      root_ca, err := ioutil.ReadFile(CACertPath)
+      if err != nil {
+        util.Log(0, "ERROR! ReadFile: %v", err)
+      } else {
+        certpool := x509.NewCertPool()
+        if !certpool.AppendCertsFromPEM(root_ca) {
+          util.Log(0, "ERROR! AppendCertsFromPEM: %v", err)
+        }
+            
+        TLSServerConfig = &tls.Config{Certificates:[]tls.Certificate{tlscert},
+                                      RootCAs:certpool,
+                                      NextProtos:[]string{},
+                                      ClientAuth:tls.RequireAnyClientCert,
+                                      ClientCAs:certpool,
+                                      ServerName:"",
+                                      SessionTicketsDisabled:true,
+                                      
+                                      // We do our own verification in
+                                      // security.ContextFor(). We can't use the
+                                      // verification from the library because it
+                                      // does not support all of the subjectAltName
+                                      // variants we do (in particular registeredID
+                                      // types).
+                                      InsecureSkipVerify:true,
+                                      }
+      }
+    }
+  }
+
+  if TLSServerConfig == nil {
+    util.Log(0, "WARNING! TLS is DISABLED!")
   }
 }
 

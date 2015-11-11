@@ -1,3 +1,9 @@
+gosa (2.8.182) trusty; urgency=medium
+
+  * go-susi: add code for accepting TLS connections
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 11 Nov 2015 16:06:10 +0100
+
 gosa (2.8.181) trusty; urgency=medium
 
   * GOsa: fix PHP error in class_gotoLogView.inc
