@@ -61,6 +61,7 @@ func UnitTests() {
     time.Sleep(2*time.Second)
   }()
   
+  Security_test()
   Deque_test()
   Bytes_test()
   Util_test()

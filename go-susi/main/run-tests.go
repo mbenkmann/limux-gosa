@@ -57,7 +57,7 @@ func main() {
   tests.Count, tests.Pass, tests.UnexpectedPass, tests.Fail, tests.ExpectedFail)
   
   fmt.Printf("\nPass '-v' on the command line to see test output\nPass --system=<host>:<port> to test a running daemon\nPass --system=<programpath> to start daemon <programpath> and test it\nPass --gosa-si if the server to test is a gosa-si\nPass --unit in addition to --system to perform all tests in one go.\n\n")
-  
+
   if tests.Fail > tests.ExpectedFail { 
     os.Exit(1) 
   } else {

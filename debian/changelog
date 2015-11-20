@@ -1,3 +1,9 @@
+gosa (2.8.183) trusty; urgency=medium
+
+  * go-susi: work on TLS implementation and test cases
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 20 Nov 2015 17:45:38 +0100
+
 gosa (2.8.182) trusty; urgency=medium
 
   * go-susi: add code for accepting TLS connections

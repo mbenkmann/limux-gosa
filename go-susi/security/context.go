@@ -22,10 +22,12 @@ MA  02110-1301, USA.
 package security
 
 import (
+         "fmt"
          "net"
          "math"
          "time"
          "strings"
+         "crypto/tls"
          
          "../db"
          "github.com/mbenkmann/golib/util"
@@ -201,6 +203,35 @@ func ContextFor(conn net.Conn) *Context {
   context.Access.DetectedHW.CN = true
   context.Access.DetectedHW.IPHostNumber = true
   context.Access.DetectedHW.MACAddress = true
+
+  if tlsconn, ok := conn.(*tls.Conn); ok {
+    tlsconn.SetDeadline(time.Now().Add(1*time.Second))
+    err := tlsconn.Handshake()
+    if err != nil {
+      util.Log(0, "ERROR! TLS Handshake: %v", err)
+      return nil
+    }
+    
+    var no_deadline time.Time
+    tlsconn.SetDeadline(no_deadline)
+    
+    state := tlsconn.ConnectionState()
+    if len(state.PeerCertificates) == 0 {
+      util.Log(0, "ERROR! TLS peer has no certificate")
+      return nil
+    }
+    cert := state.PeerCertificates[0] // docs are unclear about this but I think leaf certificate is the first entry because that's as it is in tls.Certificate
+    err = cert.CheckSignatureFrom(config.CACert)
+    if err == nil {
+      if string(config.CACert.RawSubject) != string(cert.RawIssuer) {
+        err = fmt.Errorf("Certificate was issued by wrong CA: \"%v\" instead of \"%v\"", config.CACert.Subject, cert.Issuer)
+      }
+    }
+    if err != nil {
+      util.Log(0, "ERROR! TLS peer presented certificate not signed by trusted CA: %v", err)
+      return nil
+    }
+  }
   
   if context.Verify() {
     return &context
