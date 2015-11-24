@@ -25,9 +25,11 @@ import (
          "fmt"
          "net"
          "math"
+         "sync"
          "time"
          "strings"
          "crypto/tls"
+         "encoding/asn1"
          
          "../db"
          "github.com/mbenkmann/golib/util"
@@ -205,39 +207,127 @@ func ContextFor(conn net.Conn) *Context {
   context.Access.DetectedHW.MACAddress = true
 
   if tlsconn, ok := conn.(*tls.Conn); ok {
-    tlsconn.SetDeadline(time.Now().Add(1*time.Second))
-    err := tlsconn.Handshake()
-    if err != nil {
-      util.Log(0, "ERROR! TLS Handshake: %v", err)
-      return nil
-    }
-    
-    var no_deadline time.Time
-    tlsconn.SetDeadline(no_deadline)
-    
-    state := tlsconn.ConnectionState()
-    if len(state.PeerCertificates) == 0 {
-      util.Log(0, "ERROR! TLS peer has no certificate")
-      return nil
-    }
-    cert := state.PeerCertificates[0] // docs are unclear about this but I think leaf certificate is the first entry because that's as it is in tls.Certificate
-    err = cert.CheckSignatureFrom(config.CACert)
-    if err == nil {
-      if string(config.CACert.RawSubject) != string(cert.RawIssuer) {
-        err = fmt.Errorf("Certificate was issued by wrong CA: \"%v\" instead of \"%v\"", config.CACert.Subject, cert.Issuer)
-      }
-    }
-    if err != nil {
-      util.Log(0, "ERROR! TLS peer presented certificate not signed by trusted CA: %v", err)
-      return nil
-    }
-  }
+    if !handle_tlsconn(tlsconn, &context) { return nil }
+  }    
+
   
   if context.Verify() {
     return &context
   }
   
   return nil
+}
+
+func handle_tlsconn(conn *tls.Conn, context *Context) bool {
+  conn.SetDeadline(time.Now().Add(1*time.Second)) // handshake has to occur in 1s
+  err := conn.Handshake()
+  if err != nil {
+    util.Log(0, "ERROR! TLS Handshake: %v", err)
+    return false
+  }
+  
+  var no_deadline time.Time
+  conn.SetDeadline(no_deadline)
+  
+  state := conn.ConnectionState()
+  if len(state.PeerCertificates) == 0 {
+    util.Log(0, "ERROR! TLS peer has no certificate")
+    return false
+  }
+  cert := state.PeerCertificates[0] // docs are unclear about this but I think leaf certificate is the first entry because that's as it is in tls.Certificate
+  err = cert.CheckSignatureFrom(config.CACert)
+  if err == nil {
+    if string(config.CACert.RawSubject) != string(cert.RawIssuer) {
+      err = fmt.Errorf("Certificate was issued by wrong CA: \"%v\" instead of \"%v\"", config.CACert.Subject, cert.Issuer)
+    }
+  }
+  if err != nil {
+    util.Log(0, "ERROR! TLS peer presented certificate not signed by trusted CA: %v", err)
+    return false
+  }
+  
+  for _, e := range cert.Extensions {
+    if len(e.Id) == 4 && e.Id[0] == 2 && e.Id[1] == 5 && e.Id[2] == 29 && e.Id[3] == 17 {
+      parseSANExtension(e.Value, context)
+    }
+  }
+  
+  return true
+}
+
+var gosaGNMyServer = string([]byte{0x2B,0x06,0x01,0x04,0x01,0x82,0xE5,0x39,0x01,0x01})
+var gosaGNConfigFile = string([]byte{0x2B,0x06,0x01,0x04,0x01,0x82,0xE5,0x39,0x01,0x02})
+var gosaGNSRVRecord = string([]byte{0x2B,0x06,0x01,0x04,0x01,0x82,0xE5,0x39,0x01,0x03})
+var gosaGNMyPeer = string([]byte{0x2B,0x06,0x01,0x04,0x01,0x82,0xE5,0x39,0x01,0x04})
+
+// adapted from the function of the same name from crypto/x509/x509.go
+func parseSANExtension(value []byte, context *Context) {
+  // RFC 5280, 4.2.1.6
+
+  // SubjectAltName ::= GeneralNames
+  //
+  // GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName
+  //
+  // GeneralName ::= CHOICE {
+  //      otherName                       [0]     OtherName,
+  //      rfc822Name                      [1]     IA5String,
+  //      dNSName                         [2]     IA5String,
+  //      x400Address                     [3]     ORAddress,
+  //      directoryName                   [4]     Name,
+  //      ediPartyName                    [5]     EDIPartyName,
+  //      uniformResourceIdentifier       [6]     IA5String,
+  //      iPAddress                       [7]     OCTET STRING,
+  //      registeredID                    [8]     OBJECT IDENTIFIER }
+  var seq asn1.RawValue
+  var rest []byte
+  var err error
+  if rest, err = asn1.Unmarshal(value, &seq); err != nil {
+    return
+  } else if len(rest) != 0 {
+    return
+  }
+  if !seq.IsCompound || seq.Tag != 16 || seq.Class != 0 {
+    return
+  }
+
+  context.PeerID.AllowedNames = []string{}
+  context.PeerID.AllowedIPs = []net.IP{}
+ 
+  rest = seq.Bytes
+  for len(rest) > 0 {
+    var v asn1.RawValue
+    rest, err = asn1.Unmarshal(rest, &v)
+    if err != nil {
+      return
+    }
+    switch v.Tag {
+      case 2: // dNSName
+              context.PeerID.AllowedNames = append(context.PeerID.AllowedNames, string(v.Bytes))
+      case 7: // iPAddress
+              switch len(v.Bytes) {
+                case net.IPv4len, net.IPv6len:
+                    context.PeerID.AllowedIPs = append(context.PeerID.AllowedIPs, net.IP(v.Bytes))
+              }
+      case 8: // registeredID
+              oid := string(v.Bytes)
+              switch oid {
+                case gosaGNMyServer:
+                         myServer = GetMyServer()
+                         if !myServer.IsUnspecified() {
+                           context.PeerID.AllowedIPs = append(context.PeerID.AllowedIPs, myServer)
+                         }
+                case gosaGNConfigFile:
+                         context.PeerID.AllowedIPs = append(context.PeerID.AllowedIPs, config.ServerIPsFromConfigFile...)
+                         context.PeerID.AllowedNames = append(context.PeerID.AllowedNames, config.ServerNamesFromConfigFile...)
+                case gosaGNSRVRecord:
+                         context.PeerID.AllowedNames = append(context.PeerID.AllowedNames, config.ServerNamesFromSRVRecords...)
+                case gosaGNMyPeer:
+                         // not implemented yet
+              }
+    }
+  }
+
+  return
 }
 
 
@@ -354,4 +444,27 @@ func (context *Context) Verify() bool {
 
 
   return true  
+}
+
+var myServer = net.IPv6unspecified
+var myServer_mutex sync.Mutex
+
+func GetMyServer() net.IP {
+  myServer_mutex.Lock()
+  defer myServer_mutex.Unlock()
+  return myServer
+}
+
+// server may include a port but it will be ignored. server must be
+// a numeric IP address.
+func SetMyServer(server string) {
+  myServer_mutex.Lock()
+  defer myServer_mutex.Unlock()
+  myServer = net.IPv6unspecified // in case something goes wrong
+  host, _, err := net.SplitHostPort(server)
+  if err != nil { return }
+  ip := net.ParseIP(host)
+  if ip != nil {
+    myServer = ip
+  }
 }

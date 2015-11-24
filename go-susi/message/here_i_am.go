@@ -29,6 +29,7 @@ import (
          "../xml"
          "github.com/mbenkmann/golib/util"
          "../config"
+         "../security"
        )
 
 var TotalRegistrations int32
@@ -36,6 +37,7 @@ var MissedRegistrations int32
 
 // sends a here_i_am message to target (HOST:PORT).
 func Send_here_i_am(target string) {
+  security.SetMyServer(target)
   here_i_am := xml.NewHash("xml", "header", "here_i_am")
   here_i_am.Add("here_i_am")
   here_i_am.Add("source", config.ServerSourceAddress)

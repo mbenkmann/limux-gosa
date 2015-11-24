@@ -169,6 +169,17 @@ var TempDir = ""
 // host:port addresses of peer servers read from config file.
 var PeerServers = []string{}
 
+// IPs of all servers listed with a numeric IP address in
+// [server]/ip or [ServerPackages]/address.
+var ServerIPsFromConfigFile = []net.IP{}
+
+// Names (without port) of all servers listed by name (i.e. not as
+// a numeric IP address) in [server]/ip or [ServerPackages]/address.
+var ServerNamesFromConfigFile = []string{}
+
+// Names (without) of all servers listed in "gosa-si" SRV records.
+var ServerNamesFromSRVRecords = []string{}
+
 // The preferred server to register at when in client-only mode.
 var PreferredServer = ""
 
@@ -186,7 +197,7 @@ type InterfaceInfo struct {
   Hostname string // hostname (without domain) of the above IP. If it begins with "ERROR!" it could not be determined
   Domain string   // domain of the above IP. If it begins with "ERROR!" it could not be determined
   Interface net.Interface // low level interface data
-  HasPeers bool // true if DNS has SRV records for tcp/gosa-si (if Domain could not be determined, this will always be false)
+  Peers []*net.SRV // SRV records for tcp/gosa-si (if Domain could not be determined, this will always be nil)
 }
 
 // Information about each non-loopback interface that is UP.
@@ -675,6 +686,24 @@ func ReadConfig() {
     PreferredServer += ServerListenAddress[strings.Index(ServerListenAddress,":"):]
   }
   
+  serversInConfigFile := make([]string, len(PeerServers))
+  copy(serversInConfigFile, PeerServers)
+  if PreferredServer != "" {
+    serversInConfigFile = append(serversInConfigFile, PreferredServer)
+  }
+  
+  for _, srv := range serversInConfigFile {
+    prefhost,_,err := net.SplitHostPort(srv)
+    if err == nil {
+      prefip := net.ParseIP(prefhost)
+      if prefip != nil {
+        ServerIPsFromConfigFile = append(ServerIPsFromConfigFile, prefip)
+      } else {
+        ServerNamesFromConfigFile = append(ServerNamesFromConfigFile, prefhost)
+      }
+    }
+  }
+  
   file, err := os.Open(ServersOUConfigPath)
   if err != nil {
     if os.IsNotExist(err) { 
@@ -844,7 +873,7 @@ func ReadNetwork() {
           util.Log(1, "INFO! LookupSRV(\"gosa-si\",\"tcp\",\"%v\"): %v", ifaceInfo.Domain, err) 
         } else 
         { 
-          ifaceInfo.HasPeers = (len(addrs) > 0)
+          ifaceInfo.Peers = addrs
         }
       }
       
@@ -854,7 +883,7 @@ func ReadNetwork() {
       if !strings.HasPrefix(ifaceInfo.IP, "ERROR!") { weight += 1 }
       if !strings.HasPrefix(ifaceInfo.Hostname, "ERROR!") { weight += 2 }
       if !strings.HasPrefix(ifaceInfo.Domain, "ERROR!") { weight += 4 }
-      if ifaceInfo.HasPeers { weight += 8 }
+      if len(ifaceInfo.Peers) > 0 { weight += 8 }
       
       if BestInterface < 0 || weight > best_interface_weight { 
         BestInterface = len(Interfaces) - 1 
@@ -892,6 +921,10 @@ func ReadNetwork() {
     } else {
       PreferredServer = pref
     }
+  }
+  
+  for _, srv := range Interfaces[BestInterface].Peers {
+    ServerNamesFromSRVRecords = append(ServerNamesFromSRVRecords, srv.Target)
   }
 }
 
