@@ -1,3 +1,9 @@
+gosa (2.8.186) trusty; urgency=medium
+
+  * go-susi: fix a comment
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 27 Nov 2015 15:56:30 +0100
+
 gosa (2.8.185) trusty; urgency=medium
 
   * go-susi: more TLS test cases and some fixes

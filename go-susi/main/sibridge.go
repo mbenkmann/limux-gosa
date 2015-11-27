@@ -412,7 +412,7 @@ func acceptConnections(listener *net.TCPListener, connections chan<- net.Conn) {
 }
 
 // Handles one or more messages received over conn. Each message is a single
-// line terminated by \n. The message may be encrypted as by message.GosaEncrypt().
+// line terminated by \n.
 func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
   connectionTracker.Push(true)
   defer connectionTracker.Pop()
