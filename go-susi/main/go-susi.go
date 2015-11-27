@@ -112,6 +112,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   if config.PrintVersion || config.PrintHelp { os.Exit(0) }
   
   config.ReadConfig()
+  config.ReadCertificates() // after config.ReadConfig()
   
   if config.PrintStats { os.Exit(printStats()) }
   
@@ -143,10 +144,9 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
     os.Exit(1)
   }
   util.Log(1, "INFO! DNS available")
-  
-  config.ReadCertificates() // after config.ReadConfig()
+
   config.ReadNetwork() // after config.ReadConfig()
-  
+
   // ATTENTION! DO NOT MOVE THE FOLLOWING CODE FURTHER DOWN!
   // We want to try listening on our socket as early in the program as possible,
   // so that we can bail out if another go-susi instance is already running
