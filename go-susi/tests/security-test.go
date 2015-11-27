@@ -17,6 +17,7 @@ GNU General Public License for more details.
 package tests
 
 import (
+         "os"
          "fmt"
          "net"
          "time"
@@ -24,6 +25,8 @@ import (
 
          "../security"
          "../config"
+         
+         "github.com/mbenkmann/golib/util"
        )
 
 
@@ -32,7 +35,12 @@ func Security_test() {
   fmt.Printf("\n==== security ===\n\n")
 
   config.CACertPath = "testdata/certs/ca.cert"
-    
+  
+  // do not spam console with expected errors but do
+  // store them in the log file (if any is configured)
+  util.LoggerRemove(os.Stderr)
+  defer util.LoggerAdd(os.Stderr)
+  
   cli, srv := tlsTest("1", "1")
   check(cli!=nil, true)
   check(srv!=nil, true)
@@ -51,6 +59,32 @@ func Security_test() {
   
   cli, srv = tlsTest("1","signedbywrongca")
   check(cli, nil)
+  check(srv!=nil, true)
+  
+  cli, srv = tlsTest("local", "2")
+  check(cli!=nil, true)
+  check(srv!=nil, true)
+  
+  cli, srv = tlsTest("badip", "2")
+  check(cli!=nil, true)
+  check(srv, nil)
+  
+  cli, srv = tlsTest("badname", "2")
+  check(cli!=nil, true)
+  check(srv, nil)
+  
+  cli, srv = tlsTest("localname", "2")
+  check(cli!=nil, true)
+  check(srv!=nil, true)
+  
+  security.SetMyServer("8.8.8.8")
+  cli, srv = tlsTest("myserver", "2")
+  check(cli!=nil, true)
+  check(srv, nil)
+  
+  security.SetMyServer("127.0.0.1")
+  cli, srv = tlsTest("myserver", "2")
+  check(cli!=nil, true)
   check(srv!=nil, true)
 }
 

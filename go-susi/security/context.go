@@ -38,6 +38,8 @@ import (
 
 // Information related to a TCP connection that's used for security checks.
 type Context struct {
+  // true if the connection uses TLS
+  TLS bool
   PeerID SubjectAltName
   Limits GosaConnectionLimits
   Access GosaAccessControl
@@ -222,7 +224,7 @@ func handle_tlsconn(conn *tls.Conn, context *Context) bool {
   conn.SetDeadline(time.Now().Add(1*time.Second)) // handshake has to occur in 1s
   err := conn.Handshake()
   if err != nil {
-    util.Log(0, "ERROR! TLS Handshake: %v", err)
+    util.Log(0, "ERROR! [SECURITY] TLS Handshake: %v", err)
     return false
   }
   
@@ -231,7 +233,7 @@ func handle_tlsconn(conn *tls.Conn, context *Context) bool {
   
   state := conn.ConnectionState()
   if len(state.PeerCertificates) == 0 {
-    util.Log(0, "ERROR! TLS peer has no certificate")
+    util.Log(0, "ERROR! [SECURITY] TLS peer has no certificate")
     return false
   }
   cert := state.PeerCertificates[0] // docs are unclear about this but I think leaf certificate is the first entry because that's as it is in tls.Certificate
@@ -242,7 +244,7 @@ func handle_tlsconn(conn *tls.Conn, context *Context) bool {
     }
   }
   if err != nil {
-    util.Log(0, "ERROR! TLS peer presented certificate not signed by trusted CA: %v", err)
+    util.Log(0, "ERROR! [SECURITY] TLS peer presented certificate not signed by trusted CA: %v", err)
     return false
   }
   
@@ -251,6 +253,8 @@ func handle_tlsconn(conn *tls.Conn, context *Context) bool {
       parseSANExtension(e.Value, context)
     }
   }
+  
+  context.TLS = true
   
   return true
 }
@@ -406,7 +410,7 @@ func (context *Context) Verify() bool {
   }
   
   if !ok {
-    util.Log(0, "ERROR! [SECURITY]: Certificate presented by %v is not valid for that IP (as determined by SubjectAltName extension)", peerIP)
+    util.Log(0, "ERROR! [SECURITY] Certificate presented by %v is not valid for that IP (as determined by SubjectAltName extension)", peerIP)
     return false
   }
 
@@ -438,7 +442,7 @@ func (context *Context) Verify() bool {
   }
   
   if !ok {
-    util.Log(0, "ERROR! [SECURITY]: Certificate presented by %v has GosaConnectionLimits extension with communicateWith that does not allow talking to me (%v, %v)", peerIP, config.ServerSourceAddress, fqname)
+    util.Log(0, "ERROR! [SECURITY] Certificate presented by %v has GosaConnectionLimits extension with communicateWith that does not allow talking to me (%v, %v)", peerIP, config.ServerSourceAddress, fqname)
     return false
   }
 
@@ -462,7 +466,7 @@ func SetMyServer(server string) {
   defer myServer_mutex.Unlock()
   myServer = net.IPv6unspecified // in case something goes wrong
   host, _, err := net.SplitHostPort(server)
-  if err != nil { return }
+  if err != nil { host = server } // in case there is no port
   ip := net.ParseIP(host)
   if ip != nil {
     myServer = ip

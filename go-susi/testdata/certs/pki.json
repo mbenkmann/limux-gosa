@@ -8,6 +8,11 @@
   "certfile1": "1.cert",
   "certfile2": "2.cert",
   "signedbywrongcafile": "signedbywrongca.cert",
+  "certfilelocal": "local.cert",
+  "certfilebadip": "badip.cert",
+  "certfilebadname": "badname.cert",
+  "certfilelocalname": "localname.cert",
+  "certfilemyserver": "myserver.cert",
   
   "ca-generatedKey": "$secp256r1 keygen()",
   "generatedKey1": "$secp256r1 keygen()",
@@ -223,6 +228,305 @@
             "critical": false,
             "extnValue": "$san SubjectAltName encode(DER)",
             "san": [ { "iPAddress": "$0.0.0.0" } ]
+          },
+          {
+            "extnID":"$id-ce-keyUsage",
+            "extnValue":"$'digitalSignature' KeyUsage encode(DER)"
+          },
+          {
+            "extnID": "$id-ce-extKeyUsage",
+            "critical": false,
+            "extnValue": "$extkeyusage ExtKeyUsageSyntax encode(DER)",
+            "extkeyusage": [ "$id-kp-serverAuth", "$id-kp-clientAuth" ]
+          },
+          {
+            "extnID": "$gosa-ce-accessControl",
+            "critical": false,
+            "extnValue": "$acl GosaAccessControl encode(DER)",
+            "acl": { 
+              "query": "queryAll",
+              "jobs":  "jobsAll"
+            }
+          }
+        ]
+      },
+      "signatureAlgorithm": "$sigAlg",
+      "signature": "$tbsCertificate TBSCertificate encode(DER) signkey sigAlg sign()"
+    },
+    "output": "$certificate Certificate encode(PEM) certfile write(if-missing)"
+  },
+  
+  ############# CERTIFICATE LOCALHOST ONLY ############################
+  "certificatelocal": {
+    "pubkey":  "$key1",
+    "signkey": "$ca-key",
+    "certfile": "$certfilelocal",
+      
+    "certificate": {
+      "tbsCertificate": {
+        "version": "v3",
+        
+        "serialNumber": 2,
+        
+        "signature": "$sigAlg",
+        "issuer": "$issuer-id",
+        "validity": {
+          "notBefore": { "utcTime": "151101000000Z" },
+          "notAfter":  { "utcTime": "251101000000Z" }
+        },
+        
+        "subject": {
+          "rdnSequence": [
+            [ { "type": "$id-at-commonName",       "value": "Cert Local" } ]
+          ]
+        },
+            
+        "subjectPublicKeyInfo": "$pubkey subjectPublicKeyInfo()",
+        "extensions": [
+          {
+            "extnID": "$id-ce-subjectAltName",
+            "critical": false,
+            "extnValue": "$san SubjectAltName encode(DER)",
+            "san": [ { "iPAddress": "$127.0.0.1" } ]
+          },
+          {
+            "extnID":"$id-ce-keyUsage",
+            "extnValue":"$'digitalSignature' KeyUsage encode(DER)"
+          },
+          {
+            "extnID": "$id-ce-extKeyUsage",
+            "critical": false,
+            "extnValue": "$extkeyusage ExtKeyUsageSyntax encode(DER)",
+            "extkeyusage": [ "$id-kp-serverAuth", "$id-kp-clientAuth" ]
+          },
+          {
+            "extnID": "$gosa-ce-accessControl",
+            "critical": false,
+            "extnValue": "$acl GosaAccessControl encode(DER)",
+            "acl": { 
+              "query": "queryAll",
+              "jobs":  "jobsAll"
+            }
+          }
+        ]
+      },
+      "signatureAlgorithm": "$sigAlg",
+      "signature": "$tbsCertificate TBSCertificate encode(DER) signkey sigAlg sign()"
+    },
+    "output": "$certificate Certificate encode(PEM) certfile write(if-missing)"
+  },
+  
+  ############# CERTIFICATE BAD IP ############################
+  "certificatebadip": {
+    "pubkey":  "$key1",
+    "signkey": "$ca-key",
+    "certfile": "$certfilebadip",
+      
+    "certificate": {
+      "tbsCertificate": {
+        "version": "v3",
+        
+        "serialNumber": 2,
+        
+        "signature": "$sigAlg",
+        "issuer": "$issuer-id",
+        "validity": {
+          "notBefore": { "utcTime": "151101000000Z" },
+          "notAfter":  { "utcTime": "251101000000Z" }
+        },
+        
+        "subject": {
+          "rdnSequence": [
+            [ { "type": "$id-at-commonName",       "value": "Cert Bad IP" } ]
+          ]
+        },
+            
+        "subjectPublicKeyInfo": "$pubkey subjectPublicKeyInfo()",
+        "extensions": [
+          {
+            "extnID": "$id-ce-subjectAltName",
+            "critical": false,
+            "extnValue": "$san SubjectAltName encode(DER)",
+            "san": [ { "iPAddress": "$127.0.0.2" } ]
+          },
+          {
+            "extnID":"$id-ce-keyUsage",
+            "extnValue":"$'digitalSignature' KeyUsage encode(DER)"
+          },
+          {
+            "extnID": "$id-ce-extKeyUsage",
+            "critical": false,
+            "extnValue": "$extkeyusage ExtKeyUsageSyntax encode(DER)",
+            "extkeyusage": [ "$id-kp-serverAuth", "$id-kp-clientAuth" ]
+          },
+          {
+            "extnID": "$gosa-ce-accessControl",
+            "critical": false,
+            "extnValue": "$acl GosaAccessControl encode(DER)",
+            "acl": { 
+              "query": "queryAll",
+              "jobs":  "jobsAll"
+            }
+          }
+        ]
+      },
+      "signatureAlgorithm": "$sigAlg",
+      "signature": "$tbsCertificate TBSCertificate encode(DER) signkey sigAlg sign()"
+    },
+    "output": "$certificate Certificate encode(PEM) certfile write(if-missing)"
+  },
+  
+  ############# CERTIFICATE BAD NAME ############################
+  "certificatebadname": {
+    "pubkey":  "$key1",
+    "signkey": "$ca-key",
+    "certfile": "$certfilebadname",
+      
+    "certificate": {
+      "tbsCertificate": {
+        "version": "v3",
+        
+        "serialNumber": 2,
+        
+        "signature": "$sigAlg",
+        "issuer": "$issuer-id",
+        "validity": {
+          "notBefore": { "utcTime": "151101000000Z" },
+          "notAfter":  { "utcTime": "251101000000Z" }
+        },
+        
+        "subject": {
+          "rdnSequence": [
+            [ { "type": "$id-at-commonName",       "value": "Cert Bad Name" } ]
+          ]
+        },
+            
+        "subjectPublicKeyInfo": "$pubkey subjectPublicKeyInfo()",
+        "extensions": [
+          {
+            "extnID": "$id-ce-subjectAltName",
+            "critical": false,
+            "extnValue": "$san SubjectAltName encode(DER)",
+            "san": [ { "dNSName": "*oocalhost" } ]
+          },
+          {
+            "extnID":"$id-ce-keyUsage",
+            "extnValue":"$'digitalSignature' KeyUsage encode(DER)"
+          },
+          {
+            "extnID": "$id-ce-extKeyUsage",
+            "critical": false,
+            "extnValue": "$extkeyusage ExtKeyUsageSyntax encode(DER)",
+            "extkeyusage": [ "$id-kp-serverAuth", "$id-kp-clientAuth" ]
+          },
+          {
+            "extnID": "$gosa-ce-accessControl",
+            "critical": false,
+            "extnValue": "$acl GosaAccessControl encode(DER)",
+            "acl": { 
+              "query": "queryAll",
+              "jobs":  "jobsAll"
+            }
+          }
+        ]
+      },
+      "signatureAlgorithm": "$sigAlg",
+      "signature": "$tbsCertificate TBSCertificate encode(DER) signkey sigAlg sign()"
+    },
+    "output": "$certificate Certificate encode(PEM) certfile write(if-missing)"
+  },
+  
+  ############# CERTIFICATE LOCALHOST AS NAME ############################
+  "certificatelocalname": {
+    "pubkey":  "$key1",
+    "signkey": "$ca-key",
+    "certfile": "$certfilelocalname",
+      
+    "certificate": {
+      "tbsCertificate": {
+        "version": "v3",
+        
+        "serialNumber": 2,
+        
+        "signature": "$sigAlg",
+        "issuer": "$issuer-id",
+        "validity": {
+          "notBefore": { "utcTime": "151101000000Z" },
+          "notAfter":  { "utcTime": "251101000000Z" }
+        },
+        
+        "subject": {
+          "rdnSequence": [
+            [ { "type": "$id-at-commonName",       "value": "Cert *ocalhost wild card name" } ]
+          ]
+        },
+            
+        "subjectPublicKeyInfo": "$pubkey subjectPublicKeyInfo()",
+        "extensions": [
+          {
+            "extnID": "$id-ce-subjectAltName",
+            "critical": false,
+            "extnValue": "$san SubjectAltName encode(DER)",
+            "san": [ { "dNSName": "*ocalhost" } ]
+          },
+          {
+            "extnID":"$id-ce-keyUsage",
+            "extnValue":"$'digitalSignature' KeyUsage encode(DER)"
+          },
+          {
+            "extnID": "$id-ce-extKeyUsage",
+            "critical": false,
+            "extnValue": "$extkeyusage ExtKeyUsageSyntax encode(DER)",
+            "extkeyusage": [ "$id-kp-serverAuth", "$id-kp-clientAuth" ]
+          },
+          {
+            "extnID": "$gosa-ce-accessControl",
+            "critical": false,
+            "extnValue": "$acl GosaAccessControl encode(DER)",
+            "acl": { 
+              "query": "queryAll",
+              "jobs":  "jobsAll"
+            }
+          }
+        ]
+      },
+      "signatureAlgorithm": "$sigAlg",
+      "signature": "$tbsCertificate TBSCertificate encode(DER) signkey sigAlg sign()"
+    },
+    "output": "$certificate Certificate encode(PEM) certfile write(if-missing)"
+  },
+  ############# CERTIFICATE GOSA-GN-MY-SERVER ############################
+  "certificatemyserver": {
+    "pubkey":  "$key1",
+    "signkey": "$ca-key",
+    "certfile": "$certfilemyserver",
+      
+    "certificate": {
+      "tbsCertificate": {
+        "version": "v3",
+        
+        "serialNumber": 2,
+        
+        "signature": "$sigAlg",
+        "issuer": "$issuer-id",
+        "validity": {
+          "notBefore": { "utcTime": "151101000000Z" },
+          "notAfter":  { "utcTime": "251101000000Z" }
+        },
+        
+        "subject": {
+          "rdnSequence": [
+            [ { "type": "$id-at-commonName",       "value": "gosa-gn-my-server client cert (total BS, I know)" } ]
+          ]
+        },
+            
+        "subjectPublicKeyInfo": "$pubkey subjectPublicKeyInfo()",
+        "extensions": [
+          {
+            "extnID": "$id-ce-subjectAltName",
+            "critical": false,
+            "extnValue": "$san SubjectAltName encode(DER)",
+            "san": [ { "registeredID": "$gosa-gn-my-server" } ]
           },
           {
             "extnID":"$id-ce-keyUsage",

@@ -317,6 +317,10 @@ func handle_request(tcpconn *net.TCPConn) {
       }
       buf.Write(readbuf[0:1])
       if readbuf[0] != starttls[i] { 
+        if config.TLSRequired {
+          util.Log(0, "ERROR! No STARTTLS from %v, but TLS is required", conn.RemoteAddr())
+          return
+        }
         break 
       }
       if readbuf[0] == '\n' {

@@ -82,6 +82,18 @@ func ProcessEncryptedMessage(buf *bytes.Buffer, context *security.Context) (repl
   }
   
   for attempt := 0 ; attempt < 4; attempt++ {
+    if attempt != 0 && config.TLSRequired {
+      util.Log(1, "INFO! [SECURITY] TLS-only mode => Decryption with old protocol will not be attempted")
+      //NOTE: This prevents the last ditch attempt to decrypt with all known
+      //      server and client keys. This attempt might still have produced a
+      //      result in case the connecting party is pre-TLS and we happen to
+      //      have its key in our database (from a time before our server was
+      //      configured to be TLS-only). However if the admin configured our
+      //      server to be TLS-only (by not putting any keys
+      //      in the config) we assume that he does not want pre-TLS
+      //      parties to connect.
+      break
+    }
     var keys_to_try []string
     
     switch attempt {
@@ -222,7 +234,7 @@ func tryToReestablishCommunicationWith(ip string) {
 //   reply: buffer containing the reply to return
 //   disconnect: true if connection should be terminated due to error
 func ProcessXMLMessage(xml *xml.Hash, context *security.Context, key string) (reply *bytes.Buffer, disconnect bool) {
-  if key == "dummy-key" && xml.Text("header") != "gosa_ping" {
+  if !context.TLS && key == "dummy-key" && xml.Text("header") != "gosa_ping" {
     util.Log(0, "ERROR! Rejecting non-ping message encrypted with dummy-key or not at all")
     return ErrorReplyBuffer("ERROR! Rejecting non-ping message encrypted with dummy-key or not at all"),true
   }

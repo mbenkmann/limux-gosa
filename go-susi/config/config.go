@@ -227,6 +227,9 @@ var TLSServerConfig *tls.Config
 // client, i.e. it initiates the connection.
 var TLSClientConfig *tls.Config
 
+// This is set to false if the config file specifies at least one module key.
+var TLSRequired = true
+
 // Maximum time allowed for detect-hardware-hook. If the hook does not complete
 // in this time, a standard detected_hardware message will be sent to the server.
 var DetectHardwareTimeout = 30 * time.Second
@@ -521,6 +524,8 @@ func ReadConfig() {
       ModuleKey[sectionname] = sectkey
     }
   }
+  
+  TLSRequired = len(ModuleKey) == 0
   
   if general, ok := conf["[general]"]; ok {
     if logfile, ok := general["log-file"]; ok {
