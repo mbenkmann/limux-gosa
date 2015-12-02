@@ -1,3 +1,9 @@
+gosa (2.8.188) trusty; urgency=medium
+
+  * go-susi: make sistats work with TLS
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 02 Dec 2015 12:50:01 +0100
+
 gosa (2.8.187) trusty; urgency=medium
 
   * go-susi: move ReadCertificates() up so that printStats() can use them

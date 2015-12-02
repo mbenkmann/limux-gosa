@@ -113,6 +113,11 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
   config.ReadConfig()
   config.ReadCertificates() // after config.ReadConfig()
+  if config.TLSRequired && config.TLSServerConfig == nil {
+    util.Log(0, "ERROR! No cert, no keys => no service")
+    util.LoggersFlush(5*time.Second)
+    os.Exit(1)
+  }
   
   if config.PrintStats { os.Exit(printStats()) }
   
@@ -422,21 +427,45 @@ func setConfigUnitTag() {
 
 func printStats() int {
   msg := "<xml><header>sistats</header></xml>"
-  encrypted := message.GosaEncrypt(msg, config.ModuleKey["[GOsaPackages]"])
+  
   conn, err := net.Dial("tcp", config.ServerSourceAddress)
   if err != nil {
-    fmt.Fprintf(os.Stderr, "Error connecting with %v: %v\n", config.ServerSourceAddress, err)
+    fmt.Fprintf(os.Stderr, "Error connecting to %v: %v\n", config.ServerSourceAddress, err)
     return 1
   }
   defer conn.Close()
-  err = util.SendLn(conn, encrypted, config.Timeout)
+  
+  if config.TLSClientConfig != nil {
+    conn.SetDeadline(time.Now().Add(1*time.Second)) // don't allow stalling on STARTTLS
+    
+    _, err = util.WriteAll(conn, starttls)
+    if err != nil {
+      fmt.Fprintf(os.Stderr, "Could not establish TLS connection with %v: %v\n", config.ServerSourceAddress, err)
+      return 1
+    }
+
+    var no_deadline time.Time
+    conn.SetDeadline(no_deadline)
+    
+    conn = tls.Client(conn, config.TLSServerConfig)
+    
+  } else {
+    msg = message.GosaEncrypt(msg, config.ModuleKey["[GOsaPackages]"])
+  }
+  
+  context := security.ContextFor(conn)
+  if context == nil { return 1 }
+  
+  err = util.SendLn(conn, msg, config.Timeout)
   if err != nil {
     fmt.Fprintf(os.Stderr, "Error sending to %v: %v\n", config.ServerSourceAddress, err)
     return 1
   }
   reply,_ := util.ReadLn(conn, 10*time.Second)
-  decrypted := message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
-  x,_ := xml.StringToHash(decrypted)
+  if config.TLSClientConfig == nil {
+    reply = message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
+  }
+  x,_ := xml.StringToHash(reply)
   x = x.First("answer1")
   if x == nil {
     fmt.Fprintf(os.Stderr, "No results received!\n")
