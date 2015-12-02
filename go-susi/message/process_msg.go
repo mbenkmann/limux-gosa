@@ -80,7 +80,7 @@ func ProcessEncryptedMessage(buf *bytes.Buffer, context *security.Context) (repl
   } else {
     util.Log(2, "DEBUG! Processing message: %v", buf.String())
   }
-  
+
   for attempt := 0 ; attempt < 4; attempt++ {
     if attempt != 0 && config.TLSRequired {
       util.Log(1, "INFO! [SECURITY] TLS-only mode => Decryption with old protocol will not be attempted")
@@ -238,7 +238,6 @@ func ProcessXMLMessage(xml *xml.Hash, context *security.Context, key string) (re
     util.Log(0, "ERROR! Rejecting non-ping message encrypted with dummy-key or not at all")
     return ErrorReplyBuffer("ERROR! Rejecting non-ping message encrypted with dummy-key or not at all"),true
   }
-
   reply = &bytes.Buffer{}
   disconnect = false
   
@@ -359,7 +358,9 @@ func ProcessXMLMessage(xml *xml.Hash, context *security.Context, key string) (re
   }
   
   disconnect = disconnect || reply.Contains("<error_string>")
-  GosaEncryptBuffer(reply, key)
+  if key != "dummy-key" {
+    GosaEncryptBuffer(reply, key)
+  }
   return
 }
 

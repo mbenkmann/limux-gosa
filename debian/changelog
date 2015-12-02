@@ -1,3 +1,9 @@
+gosa (2.8.190) trusty; urgency=medium
+
+  * go-susi: sistats now works with TLS!!! Yay!!!
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 02 Dec 2015 15:02:41 +0100
+
 gosa (2.8.189) trusty; urgency=medium
 
   * go-susi: add certificate debug output

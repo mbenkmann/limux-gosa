@@ -240,7 +240,7 @@ func handle_tlsconn(conn *tls.Conn, context *Context) bool {
   cert := state.PeerCertificates[0] // docs are unclear about this but I think leaf certificate is the first entry because that's as it is in tls.Certificate
   
   if util.LogLevel >= 2 { // because creating the dump is expensive
-    util.Log(2, "DEBUG! [SECURITY] Peer certificate:\n%v", CertificateInfo(cert))
+    util.Log(2, "DEBUG! [SECURITY] Peer certificate presented by %v:\n%v", conn.RemoteAddr(), CertificateInfo(cert))
   }
   
   err = cert.CheckSignatureFrom(config.CACert)

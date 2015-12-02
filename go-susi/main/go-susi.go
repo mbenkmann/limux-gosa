@@ -120,7 +120,11 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
     os.Exit(1)
   }
   
-  if config.PrintStats { os.Exit(printStats()) }
+  if config.PrintStats { 
+    code := printStats()
+    util.LoggersFlush(5*time.Second)
+    os.Exit(code)
+  }
   
   logfile, err := os.OpenFile(config.LogFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
   if err != nil {
@@ -302,7 +306,9 @@ var starttls = []byte{'S','T','A','R','T','T','L','S','\n'}
 func handle_request(tcpconn *net.TCPConn) {
   defer tcpconn.Close()
   defer atomic.AddInt32(&ActiveConnections, -1)
-  //defer util.Log(2, "DEBUG! Connection to %v closed", conn.RemoteAddr())
+  
+//  defer util.Log(2, "DEBUG! Connection to %v closed", tcpconn.RemoteAddr())
+//  util.Log(2, "DEBUG! Connection from %v", tcpconn.RemoteAddr())
   
   var err error
   
@@ -323,7 +329,9 @@ func handle_request(tcpconn *net.TCPConn) {
     for i := range starttls {
       n, err = conn.Read(readbuf[0:1])
       if n == 0 {
-        util.Log(0, "ERROR! Read error while looking for STARTTLS: %v", err)
+        if i != 0 { // Do not log an error for a port scan that just opens a connection and closes it immediately
+          util.Log(0, "ERROR! Read error while looking for STARTTLS from %v: %v", conn.RemoteAddr(), err)
+        }
         return
       }
       buf.Write(readbuf[0:1])
@@ -453,21 +461,23 @@ func printStats() int {
     var no_deadline time.Time
     conn.SetDeadline(no_deadline)
     
-    conn = tls.Client(conn, config.TLSServerConfig)
-    
+    conn = tls.Client(conn, config.TLSClientConfig)
+
   } else {
     msg = message.GosaEncrypt(msg, config.ModuleKey["[GOsaPackages]"])
   }
   
   context := security.ContextFor(conn)
   if context == nil { return 1 }
-  
+
   err = util.SendLn(conn, msg, config.Timeout)
   if err != nil {
     fmt.Fprintf(os.Stderr, "Error sending to %v: %v\n", config.ServerSourceAddress, err)
     return 1
   }
+
   reply,_ := util.ReadLn(conn, 10*time.Second)
+  
   if config.TLSClientConfig == nil {
     reply = message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
   }
