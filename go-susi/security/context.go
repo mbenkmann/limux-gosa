@@ -29,6 +29,7 @@ import (
          "time"
          "strings"
          "crypto/tls"
+         "crypto/x509"
          "encoding/asn1"
          
          "../db"
@@ -237,6 +238,11 @@ func handle_tlsconn(conn *tls.Conn, context *Context) bool {
     return false
   }
   cert := state.PeerCertificates[0] // docs are unclear about this but I think leaf certificate is the first entry because that's as it is in tls.Certificate
+  
+  if util.LogLevel >= 2 { // because creating the dump is expensive
+    util.Log(2, "DEBUG! [SECURITY] Peer certificate:\n%v", CertificateInfo(cert))
+  }
+  
   err = cert.CheckSignatureFrom(config.CACert)
   if err == nil {
     if string(config.CACert.RawSubject) != string(cert.RawIssuer) {
@@ -471,4 +477,106 @@ func SetMyServer(server string) {
   if ip != nil {
     myServer = ip
   }
+}
+
+// Returns human-readable information about cert.
+func CertificateInfo(cert *x509.Certificate) string {
+  s := []string{}
+  s = append(s, fmt.Sprintf("Version: %v\nSerial no.: %v\nIssuer: %v\nSubject: %v\nNotBefore: %v\nNotAfter: %v\n", cert.Version, cert.SerialNumber, cert.Issuer, cert.Subject, cert.NotBefore, cert.NotAfter))
+  for k := range KeyUsageString {
+    if cert.KeyUsage & k != 0 {
+      s = append(s, fmt.Sprintf("KeyUsage: %v\n", KeyUsageString[k]))
+    }
+  }
+  
+  for _, ext := range cert.Extensions {
+    s = append(s, fmt.Sprintf("Extension: %v critical=%v  % 02X\n", ext.Id, ext.Critical, ext.Value))
+  }
+  
+  for _, ext := range cert.ExtKeyUsage {
+    s = append(s, fmt.Sprintf("ExtKeyUsage: %v\n", ExtKeyUsageString[ext]))
+  }
+  
+  for _, ext := range cert.UnknownExtKeyUsage {
+    s = append(s, fmt.Sprintf("ExtKeyUsage: %v\n", ext))
+  }
+  
+  if cert.BasicConstraintsValid {
+    s = append(s, fmt.Sprintf("IsCA: %v\n", cert.IsCA))
+    if cert.MaxPathLen > 0 {
+      s = append(s, fmt.Sprintf("MaxPathLen: %v\n", cert.MaxPathLen))
+    }
+  }
+  
+  s = append(s, fmt.Sprintf("SubjectKeyId: % 02X\nAuthorityKeyId: % 02X\n", cert.SubjectKeyId, cert.AuthorityKeyId))
+  s = append(s, fmt.Sprintf("OCSPServer: %v\nIssuingCertificateURL: %v\n", cert.OCSPServer, cert.IssuingCertificateURL))
+  
+  oids := []string{}
+  for _, e := range cert.Extensions {
+    if len(e.Id) == 4 && e.Id[0] == 2 && e.Id[1] == 5 && e.Id[2] == 29 && e.Id[3] == 17 {
+      var seq asn1.RawValue
+      var rest []byte
+      var err error
+      if rest, err = asn1.Unmarshal(e.Value, &seq); err != nil {
+        continue
+      } else if len(rest) != 0 {
+        continue
+      }
+      if !seq.IsCompound || seq.Tag != 16 || seq.Class != 0 {
+        continue
+      }
+
+      rest = seq.Bytes
+      for len(rest) > 0 {
+        var v asn1.RawValue
+        rest, err = asn1.Unmarshal(rest, &v)
+        if err != nil {
+          break
+        }
+        if v.Tag == 8 { // registeredID
+          var oid asn1.ObjectIdentifier
+          _, err = asn1.Unmarshal(v.FullBytes, &oid)
+          if err != nil {
+            oids = append(oids, oid.String())
+          }
+        }
+      }
+    }
+  }
+  
+  s = append(s, fmt.Sprintf("DNSNames: %v\nEmailAddresses: %v\nIPAddresses: %v\nRegisteredIDs: %v\n", cert.DNSNames, cert.EmailAddresses, cert.IPAddresses, oids))
+  
+  s = append(s, fmt.Sprintf("PermittedDNSDomainsCritical: %v\nPermittedDNSDomains: %v\n", cert.PermittedDNSDomainsCritical, cert.PermittedDNSDomains))
+  
+  s = append(s, fmt.Sprintf("CRLDistributionPoints: %v\nPolicyIdentifiers: %v\n", cert.CRLDistributionPoints, cert.PolicyIdentifiers))
+  return strings.Join(s, "")
+}
+
+// Maps an x509.KeyUsage to a human-readable string.
+var KeyUsageString = map[x509.KeyUsage]string{
+  x509.KeyUsageDigitalSignature:  "digital signature",
+  x509.KeyUsageContentCommitment: "content commitment",
+  x509.KeyUsageKeyEncipherment:   "key encipherment",
+  x509.KeyUsageDataEncipherment:  "data encipherment",
+  x509.KeyUsageKeyAgreement:      "key agreement",
+  x509.KeyUsageCertSign:          "certificate signing",
+  x509.KeyUsageCRLSign:           "CRL signing",
+  x509.KeyUsageEncipherOnly:      "encipherment ONLY",
+  x509.KeyUsageDecipherOnly:      "decipherment ONLY",
+}
+
+// Maps an x509.ExtKeyUsage to a human-readable string.
+var ExtKeyUsageString = map[x509.ExtKeyUsage]string {
+  x509.ExtKeyUsageAny:        "any",
+  x509.ExtKeyUsageServerAuth: "server authentication",
+  x509.ExtKeyUsageClientAuth: "client authentication",
+  x509.ExtKeyUsageCodeSigning: "code signing",
+  x509.ExtKeyUsageEmailProtection: "email protection",
+  x509.ExtKeyUsageIPSECEndSystem: "IPSEC end system",
+  x509.ExtKeyUsageIPSECTunnel: "IPSEC tunnel",
+  x509.ExtKeyUsageIPSECUser: "IPSEC user",
+  x509.ExtKeyUsageTimeStamping: "time stamping",
+  x509.ExtKeyUsageOCSPSigning: "OCSP signing",
+  x509.ExtKeyUsageMicrosoftServerGatedCrypto: "MicrosoftServerGatedCrypto",
+  x509.ExtKeyUsageNetscapeServerGatedCrypto: "NetscapeServerGatedCrypto",
 }

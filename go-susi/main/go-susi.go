@@ -113,6 +113,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
   config.ReadConfig()
   config.ReadCertificates() // after config.ReadConfig()
+  
   if config.TLSRequired && config.TLSServerConfig == nil {
     util.Log(0, "ERROR! No cert, no keys => no service")
     util.LoggersFlush(5*time.Second)
@@ -151,6 +152,11 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   util.Log(1, "INFO! DNS available")
 
   config.ReadNetwork() // after config.ReadConfig()
+  
+  if config.TLSServerConfig != nil {
+    util.Log(1, "INFO! [SECURITY] CA certificate:\n%v", security.CertificateInfo(config.CACert))
+    util.Log(1, "INFO! [SECURITY] My certificate:\n%v", security.CertificateInfo(config.TLSServerConfig.Certificates[0].Leaf))
+  }
 
   // ATTENTION! DO NOT MOVE THE FOLLOWING CODE FURTHER DOWN!
   // We want to try listening on our socket as early in the program as possible,

@@ -1,3 +1,9 @@
+gosa (2.8.189) trusty; urgency=medium
+
+  * go-susi: add certificate debug output
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 02 Dec 2015 13:57:33 +0100
+
 gosa (2.8.188) trusty; urgency=medium
 
   * go-susi: make sistats work with TLS
