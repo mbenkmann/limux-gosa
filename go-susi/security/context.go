@@ -395,8 +395,10 @@ func (context *Context) Verify() bool {
     if err != nil {
       util.Log(0, "ERROR! LookupAddr(%v): %v", peerIP.String(), err)
     } else {
+      util.Log(2, "DEBUG! Comparing peer names %v against names from certificate %v", peerNames, context.PeerID.AllowedNames)
       for _, name := range context.PeerID.AllowedNames {
         for _, peerName := range peerNames {
+          peerName = strings.TrimRight(peerName, ".") // remove trailing "." returned by reverse lookup
           if strings.HasPrefix(name, "*") { // *.foo.de
             if strings.HasSuffix(peerName, name[1:]) {
               ok = true

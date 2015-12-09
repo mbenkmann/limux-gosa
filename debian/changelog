@@ -1,3 +1,9 @@
+gosa (2.8.194) trusty; urgency=medium
+
+  * go-susi: fix reverse lookup bug that caused peer certificates to be rejected erroneously
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 09 Dec 2015 18:02:27 +0100
+
 gosa (2.8.193) trusty; urgency=medium
 
   * go-susi: implement "deregistered" message as replacement to sending "Müll"
