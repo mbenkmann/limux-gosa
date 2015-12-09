@@ -60,6 +60,6 @@ func main() {
     }
     input.Write(buf)
   }
-  message.GosaEncryptBuffer(&input, os.Args[1])
+  security.GosaEncryptBuffer(&input, os.Args[1])
   fmt.Fprintln(os.Stdout, input.String())
 }

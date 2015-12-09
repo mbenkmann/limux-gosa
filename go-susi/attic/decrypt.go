@@ -46,7 +46,7 @@ func main() {
     os.Exit(0);
   }
   
-  msg := message.GosaDecrypt(os.Args[2], os.Args[1])
+  msg := security.GosaDecrypt(os.Args[2], os.Args[1])
   if msg == "" { 
     fmt.Fprintln(os.Stderr, "Cannot decrypt message with the provided key")
     os.Exit(1)

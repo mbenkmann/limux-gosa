@@ -240,7 +240,7 @@ func send(keyid string, x *xml.Hash) {
   if x.First("target") == nil {
     x.Add("target", config.ServerSourceAddress)
   }
-  util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(x.String(), key), config.Timeout)
+  util.SendLnTo(config.ServerSourceAddress, security.GosaEncrypt(x.String(), key), config.Timeout)
 }
 
 // Sends a GOSA message to the server being tested and
@@ -268,9 +268,9 @@ func gosa(typ string, x *xml.Hash) *xml.Hash {
     return xml.NewHash("error")
   }
   defer conn.Close()
-  util.SendLn(conn, message.GosaEncrypt(x.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+  util.SendLn(conn, security.GosaEncrypt(x.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
   reply,err := util.ReadLn(conn, config.Timeout)
-  reply = message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
+  reply = security.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
   if err == nil {
     x, err = xml.StringToHash(reply)
   }
@@ -716,7 +716,7 @@ func processMessage(str string, senderIP string, is_client bool) string {
   decrypted := ""
   for _, msg.Key = range keys {
     //fmt.Printf("Trying key %v\n",msg.Key)
-    decrypted = message.GosaDecrypt(str, msg.Key)
+    decrypted = security.GosaDecrypt(str, msg.Key)
     if decrypted != "" { break }
   }
   if decrypted == "" {
@@ -763,7 +763,7 @@ func processMessage(str string, senderIP string, is_client bool) string {
   // it may ask as for our database, so we need to be able to respond
   if header == "gosa_query_jobdb" {
     emptydb := fmt.Sprintf("<xml><header>query_jobdb</header><source>%v</source><target>GOSA</target></xml>",listen_address)
-    return message.GosaEncrypt(emptydb, config.ModuleKey["[GOsaPackages]"])
+    return security.GosaEncrypt(emptydb, config.ModuleKey["[GOsaPackages]"])
   }
   
   return ""

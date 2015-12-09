@@ -291,11 +291,11 @@ func SystemTest(daemon string, is_gosasi bool) {
   // Test if server understands messages with ";IP:PORT" attached (gosa-si 2.7 protocol)
   conn, err := net.Dial("tcp", config.ServerSourceAddress)
   check(err, nil)
-  encrypted_msg := message.GosaEncrypt("<xml><header>gosa_query_jobdb</header><where></where><source>GOSA</source><target>GOSA</target></xml>", config.ModuleKey["[GOsaPackages]"])
+  encrypted_msg := security.GosaEncrypt("<xml><header>gosa_query_jobdb</header><where></where><source>GOSA</source><target>GOSA</target></xml>", config.ModuleKey["[GOsaPackages]"])
   util.SendLn(conn, encrypted_msg + ";"+listen_address , config.Timeout)
   reply, err := util.ReadLn(conn, config.Timeout)
   if err == nil {
-    reply = message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
+    reply = security.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
     x, err = xml.StringToHash(reply)
   }
   if err != nil { x = xml.NewHash("error") }
@@ -307,10 +307,10 @@ func SystemTest(daemon string, is_gosasi bool) {
     conn, err := net.Dial("tcp", config.ServerSourceAddress)
     check(err, nil)
     encrypted_msg := "<xml><header>gosa_query_jobdb</header><where></where><source>GOSA</source><target>GOSA</target></xml>"
-    if repcount == 1 { encrypted_msg = message.GosaEncrypt(encrypted_msg, "dummy-key") }
+    if repcount == 1 { encrypted_msg = security.GosaEncrypt(encrypted_msg, "dummy-key") }
     util.SendLn(conn, encrypted_msg, config.Timeout)
     reply, err := util.ReadLn(conn, config.Timeout)
-    reply = message.GosaDecrypt(reply, "dummy-key")
+    reply = security.GosaDecrypt(reply, "dummy-key")
     check(strings.Contains(reply,"<error_string>"), true)
     if conn != nil { conn.Close() }
   }
@@ -386,9 +386,9 @@ func run_gosa_ping_tests() {
   if err != nil {
     reply = err.Error()
   } else {
-    util.SendLn(conn, message.GosaEncrypt("<xml><header>gosa_ping</header><source>GOSA</source><target>"+mac+"</target></xml>", config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+    util.SendLn(conn, security.GosaEncrypt("<xml><header>gosa_ping</header><source>GOSA</source><target>"+mac+"</target></xml>", config.ModuleKey["[GOsaPackages]"]), config.Timeout)
     reply, _ = util.ReadLn(conn, config.Timeout)
-    reply = message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
+    reply = security.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
     if reply != "" { reply = "" } else { reply = "error" }
     conn.Close()
   }
@@ -399,9 +399,9 @@ func run_gosa_ping_tests() {
   if err != nil {
     reply = err.Error()
   } else {
-    util.SendLn(conn, message.GosaEncrypt("<xml><header>gosa_ping</header><source>GOSA</source><target>0f:C3:d2:Aa:11:22</target></xml>", config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+    util.SendLn(conn, security.GosaEncrypt("<xml><header>gosa_ping</header><source>GOSA</source><target>0f:C3:d2:Aa:11:22</target></xml>", config.ModuleKey["[GOsaPackages]"]), config.Timeout)
     reply,_ = util.ReadLn(conn, config.Timeout)
-    reply = message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
+    reply = security.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
     conn.Close()
   }
   
@@ -454,7 +454,7 @@ func run_activate_new_client_test() {
   dh2 := "<detected_hardware ghMemSize='12345' gotoLdapServer='1:ldap01.tvc.example.com:ldap://ldap01.tvc.example.com/o=go-susi,c=de' gotoSndModule=\"snd_noisemaster\"><gotoMODULES>m3</gotoMODULES><GOTOModulES>m4</GOTOModulES></detected_hardware>"
   dh_string := strings.Replace(detected_hardware.String(),"<detected_hardware>",dh2+"<detected_hardware>",-1)
   t0 = time.Now()
-  util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(dh_string, keys[len(keys)-1]), config.Timeout)
+  util.SendLnTo(config.ServerSourceAddress, security.GosaEncrypt(dh_string, keys[len(keys)-1]), config.Timeout)
   check(waitlong(t0, "set_activated_for_installation").XML,"<xml></xml>") //check that we do NOT received safi
   check(waitlong(t0, "new_ldap_config").XML.Text("ldap_uri"), "ldap://ldap01.tvc.example.com")
   sys,err := db.SystemGetAllDataForMAC(mac, false)
@@ -1396,7 +1396,7 @@ func run_detected_hardware_tests() {
   dh2 := "<detected_hardware ghMemSize='12345' gotoLdapServer='1:ldap01.tvc.example.com:ldap://ldap01.tvc.example.com/o=go-susi,c=de' gotoSndModule=\"snd_noisemaster\"><gotoMODULES>m3</gotoMODULES><GOTOModulES>m4</GOTOModulES></detected_hardware>"
   dh_string := strings.Replace(detected_hardware.String(),"<detected_hardware>",dh2+"<detected_hardware>",-1)
   t0 = time.Now()
-  util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(dh_string, keys[len(keys)-1]), config.Timeout)
+  util.SendLnTo(config.ServerSourceAddress, security.GosaEncrypt(dh_string, keys[len(keys)-1]), config.Timeout)
   check(waitlong(t0, "set_activated_for_installation").XML,"<xml></xml>")
   check(waitlong(t0, "new_ldap_config").XML.Text("ldap_uri"), "ldap://ldap01.tvc.example.com")
   sys,err := db.SystemGetAllDataForMAC(mac, false)
@@ -1544,7 +1544,7 @@ func run_detected_hardware_tests() {
   
   t0 = time.Now()
   dh_string = "<xml><header>detected_hardware</header><detected_hardware macAddress='"+mac+"' ipHostNumber='"+config.IP+"'><cn>mrhyde</cn></detected_hardware></xml>"
-  util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(dh_string, config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+  util.SendLnTo(config.ServerSourceAddress, security.GosaEncrypt(dh_string, config.ModuleKey["[GOsaPackages]"]), config.Timeout)
   check(waitlong(t0, "set_activated_for_installation").XML,"<xml></xml>")
 
   sys, err = db.SystemGetAllDataForMAC(mac, false)
@@ -1569,7 +1569,7 @@ func run_detected_hardware_tests() {
   
   t0 = time.Now()
   dh_string = "<xml><header>detected_hardware</header><detected_hardware><macAddress>"+mac+"</macAddress><dn>cn=drjekyll,ou=systems,o=go-susi,c=de</dn></detected_hardware></xml>"
-  util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(dh_string, config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+  util.SendLnTo(config.ServerSourceAddress, security.GosaEncrypt(dh_string, config.ModuleKey["[GOsaPackages]"]), config.Timeout)
   check(waitlong(t0, "set_activated_for_installation").XML,"<xml></xml>")
 
   sys, err = db.SystemGetAllDataForMAC(mac, false)
@@ -1590,7 +1590,7 @@ func run_detected_hardware_tests() {
   
   t0 = time.Now()
   dh_string = "<xml><header>detected_hardware</header><detected_hardware><macAddress>"+mac+"</macAddress><dn>cn=drjekyll,c=de</dn></detected_hardware></xml>"
-  util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(dh_string, config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+  util.SendLnTo(config.ServerSourceAddress, security.GosaEncrypt(dh_string, config.ModuleKey["[GOsaPackages]"]), config.Timeout)
   check(waitlong(t0, "set_activated_for_installation").XML,"<xml></xml>")
 
   sys, err = db.SystemGetAllDataForMAC(mac, false)
@@ -1794,11 +1794,11 @@ func run_here_i_am_tests() {
   conn, err := net.Dial("tcp", config.ServerSourceAddress)
   check(err,nil)
   defer conn.Close()
-  util.SendLn(conn, message.GosaEncrypt("<xml><header>gosa_query_jobdb</header></xml>", keys[len(keys)-1]), config.Timeout)
+  util.SendLn(conn, security.GosaEncrypt("<xml><header>gosa_query_jobdb</header></xml>", keys[len(keys)-1]), config.Timeout)
   reply, err := util.ReadLn(conn, config.Timeout)
   var x *xml.Hash
   if err == nil {
-    reply = message.GosaDecrypt(reply, keys[len(keys)-1])
+    reply = security.GosaDecrypt(reply, keys[len(keys)-1])
     x, err = xml.StringToHash(reply)
   }
   if check(err, nil) {
@@ -2247,7 +2247,7 @@ func run_foreign_job_updates_tests() {
       if siserver == "missing" { job.Remove(xml.FilterSimple("siserver")) }
       job.FirstOrAdd("xmlmessage").SetText(base64.StdEncoding.EncodeToString([]byte(hash("xml(header(%v)source(%v)target(%v)timestamp(%v)macaddress(%v))",Jobs[0].Type,"GOSA",job.Text("macaddress"),Jobs[0].Timestamp,job.Text("macaddress")).String())))
       x.AddClone(job)
-      util.SendLnTo(config.ServerSourceAddress, message.GosaEncrypt(x.String(), keys[0]), config.Timeout)
+      util.SendLnTo(config.ServerSourceAddress, security.GosaEncrypt(x.String(), keys[0]), config.Timeout)
     }  
   }
   
@@ -2489,11 +2489,11 @@ func check_multiple_requests_over_one_connection() {
   
   for i :=0 ; i < 3; i++ {
     util.SendLn(conn, "\n\n\r\r\r\n\r\r\n", config.Timeout) // test that empty lines don't hurt
-    util.SendLn(conn, message.GosaEncrypt(get_all_jobs.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+    util.SendLn(conn, security.GosaEncrypt(get_all_jobs.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
     var x *xml.Hash
     reply, err := util.ReadLn(conn, config.Timeout)
     if err == nil {
-      reply = message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
+      reply = security.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
       x, err = xml.StringToHash(reply)
     }
     check(err, nil)
@@ -2512,10 +2512,10 @@ func check_connection_drop_on_error1() {
   if err != nil { return }
   defer conn.Close()
   
-  util.SendLn(conn, message.GosaEncrypt(x.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+  util.SendLn(conn, security.GosaEncrypt(x.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
   reply, err := util.ReadLn(conn, config.Timeout)
   if err == nil {
-    reply = message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
+    reply = security.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
     x, err = xml.StringToHash(reply)
   }
   check(err, nil)
@@ -2543,7 +2543,7 @@ func check_connection_drop_on_error2() {
   if err != nil { return }
   defer conn.Close()
   
-  util.SendLn(conn, message.GosaEncrypt(x.String(), "wuseldusel"), config.Timeout)
+  util.SendLn(conn, security.GosaEncrypt(x.String(), "wuseldusel"), config.Timeout)
   reply,_ := util.ReadLn(conn, config.Timeout)
   x, err = xml.StringToHash(reply)
   check(err, nil)

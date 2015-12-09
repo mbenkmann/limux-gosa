@@ -29,6 +29,7 @@ import (
          "../xml"
          "github.com/mbenkmann/golib/util"
          "../config"
+         "../security"
        )
 
 // Sends garbage to all clients listed in db.ClientsWeMayHave to
@@ -141,7 +142,7 @@ func (conn *ClientConnection) Tell(text string, ttl time.Duration) {
           break
         }
       
-        encrypted := GosaEncrypt(msg.Text, keys[0])
+        encrypted := security.GosaEncrypt(msg.Text, keys[0])
       
         tcpConn, err := net.Dial("tcp", conn.addr)
         if err != nil {

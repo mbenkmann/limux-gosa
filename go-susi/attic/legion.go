@@ -943,7 +943,7 @@ func execHereIAm(clients *[]int, args []string) {
         conn, err := net.Dial("tcp", config.ServerSourceAddress)
         if err == nil {
           defer conn.Close()
-          err = util.SendLn(conn, message.GosaEncrypt(hia.String(), config.ModuleKey["[ClientPackages]"]), d.Timeout)
+          err = util.SendLn(conn, security.GosaEncrypt(hia.String(), config.ModuleKey["[ClientPackages]"]), d.Timeout)
         }
         
         if err != nil {
@@ -1006,7 +1006,7 @@ func execSaveFaiLog(clients *[]int, args []string) {
         conn, err := net.Dial("tcp", config.ServerSourceAddress)
         if err == nil {
           defer conn.Close()
-          err = util.SendLn(conn, message.GosaEncrypt(sfl.String(), DEMONS[d.ID]), d.Timeout)
+          err = util.SendLn(conn, security.GosaEncrypt(sfl.String(), DEMONS[d.ID]), d.Timeout)
         }
         
         if err != nil {
@@ -1059,7 +1059,7 @@ func execFaimon(clients *[]int, args []string) {
         conn, err := net.Dial("tcp", clmsg_target)
         if err == nil {
           defer conn.Close()
-          err = util.SendLn(conn, message.GosaEncrypt(msg, DEMONS[d.ID]), timeout)
+          err = util.SendLn(conn, security.GosaEncrypt(msg, DEMONS[d.ID]), timeout)
         }
         
         if err != nil {
@@ -2055,10 +2055,10 @@ func gosa(typ string, x *xml.Hash) *xml.Hash {
     return xml.NewHash("error")
   }
   defer conn.Close()
-  util.SendLn(conn, message.GosaEncrypt(x.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
+  util.SendLn(conn, security.GosaEncrypt(x.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
   reply, err := util.ReadLn(conn, config.Timeout)
   if err == nil || err == io.EOF {
-    reply = message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
+    reply = security.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
     x, err = xml.StringToHash(reply)
   }
   if err != nil { x = xml.NewHash("error") }
@@ -2216,7 +2216,7 @@ func clientConnection(conn net.Conn, id int) {
   
   if len(data) == 0 { return } // no message, e.g. test connection by clmsg_progress.go:processing_finished_watcher()
   
-  m := message.GosaDecrypt(string(data), DEMONS[id])
+  m := security.GosaDecrypt(string(data), DEMONS[id])
   util.Log(2, "DEBUG! Message from %v for %v: %v", conn.RemoteAddr(), DEMONS[id], m)
   i1 := strings.Index(m, "<header>")
   i2 := strings.Index(m, "</header>")

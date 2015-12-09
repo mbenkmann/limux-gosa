@@ -34,6 +34,7 @@ import (
          "github.com/mbenkmann/golib/util"
          "github.com/mbenkmann/golib/bytes"
          "../config"
+         "../security"
        )
 
 var actionRegexp = regexp.MustCompile("^[_a-zA-Z-]+$")
@@ -242,7 +243,7 @@ func Send_clmsg_save_fai_log(target string, program string) {
   buffy.WriteString("</xml>")
   
   util.Log(1, "INFO! Sending %v bytes of log files to %v", buffy.Len(), target)
-  GosaEncryptBuffer(&buffy, clientpackageskey)
+  security.GosaEncryptBuffer(&buffy, clientpackageskey)
   util.SendLnTo(target, buffy.String(), config.Timeout)
   
   in.Write([]byte{'\n'}) // notify hook that transfer is complete

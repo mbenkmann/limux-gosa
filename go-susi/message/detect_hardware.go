@@ -24,6 +24,7 @@ import (
          "../xml"
          "github.com/mbenkmann/golib/util"
          "../config"
+         "../security"
        )
 
 // Handles "detect_hardware".
@@ -78,5 +79,5 @@ func sendDetectedHardwareReply(target string, c <-chan *xml.Hash) {
   // (We don't take the 1st because that would be "dummy-key").
   if clientpackageskey == "" { clientpackageskey = config.ModuleKeys[len(config.ModuleKeys)-1] }
   util.Log(1, "INFO! Sending detected_hardware to %v: %v", target, hwlist)
-  util.SendLnTo(target, GosaEncrypt(hwlist.String(), clientpackageskey), config.Timeout)
+  util.SendLnTo(target, security.GosaEncrypt(hwlist.String(), clientpackageskey), config.Timeout)
 }

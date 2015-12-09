@@ -40,6 +40,7 @@ import (
           "github.com/mbenkmann/golib/deque"
           "../config"
           "../message"
+          "../security"
        )
 
 const VERSION_MESSAGE = `sibridge %v (revision %v)
@@ -1189,12 +1190,12 @@ func commandRaw(line string, mode int) (reply string) {
   if mode == 0 {
     reply = <- message.Peer(TargetAddress).Ask(gosa_cmd, key)
   } else if mode == 1 {
-    reply = message.GosaEncrypt(gosa_cmd, key)
+    reply = security.GosaEncrypt(gosa_cmd, key)
   } else if mode == 2 {
-    reply = message.GosaDecrypt(gosa_cmd, key)
+    reply = security.GosaDecrypt(gosa_cmd, key)
     if reply == "" {
       for _, key := range config.ModuleKeys {
-        reply = message.GosaDecrypt(gosa_cmd, key)
+        reply = security.GosaDecrypt(gosa_cmd, key)
         if reply != "" { break }
       }
     }

@@ -31,6 +31,7 @@ import (
          "github.com/mbenkmann/golib/util"
          "../config"
          "../message"
+         "../security"
        )
 
 
@@ -255,7 +256,7 @@ func Forward(job *xml.Hash) bool {
     if err == nil {
       defer tcpconn.Close()
       util.Log(2, "DEBUG! Forwarding to %v: %v", siserver, request)
-      err = util.SendLn(tcpconn, message.GosaEncrypt(request, config.ModuleKey["[GOsaPackages]"]), 10*time.Second)
+      err = util.SendLn(tcpconn, security.GosaEncrypt(request, config.ModuleKey["[GOsaPackages]"]), 10*time.Second)
       if err == nil { return }
     }
     

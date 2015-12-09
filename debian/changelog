@@ -1,3 +1,9 @@
+gosa (2.8.192) trusty; urgency=medium
+
+  * go-susi: refactor GosaEn/Decrypt* from message into security package
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 09 Dec 2015 14:21:10 +0100
+
 gosa (2.8.191) trusty; urgency=medium
 
   * go-susi: replace hardcoded timeout with reference to config variable

@@ -32,6 +32,7 @@ import (
          "github.com/mbenkmann/golib/util"
          "github.com/mbenkmann/golib/deque"
          "../config"
+         "../security"
        )
 
 // A permanent connection to a peer. A PeerConnection is obtained via the
@@ -121,7 +122,7 @@ func (conn *PeerConnection) Tell(msg, key string) {
    key = keys[0]
   }
   util.Log(1, "INFO! Telling %v: %v", conn.addr, msg)
-  encrypted := GosaEncrypt(msg, key)
+  encrypted := security.GosaEncrypt(msg, key)
   conn.queue.Push(encrypted)
 }
 
@@ -165,14 +166,14 @@ func (conn *PeerConnection) Ask(request, key string) <-chan string {
     } else {
       defer tcpconn.Close()
       util.Log(1, "INFO! Asking %v: %v", conn.addr, request)
-      err = util.SendLn(tcpconn, GosaEncrypt(request, key), config.Timeout)
+      err = util.SendLn(tcpconn, security.GosaEncrypt(request, key), config.Timeout)
       // make sure handleConnection()/monitorConnection() notice that the peer is unreachable
       if err != nil && conn.tcpConn != nil { conn.tcpConn.Close() }
       reply, err := util.ReadLn(tcpconn, config.Timeout)
       if err != nil && err != io.EOF {
         util.Log(0, "ERROR! ReadLn(): ", err)
       }
-      reply = GosaDecrypt(reply, key)
+      reply = security.GosaDecrypt(reply, key)
       if reply == "" { 
         reply = ErrorReply("Communication error in Ask()") 
         // make sure handleConnection()/monitorConnection() notice that the peer is unreachable
