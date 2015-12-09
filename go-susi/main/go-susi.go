@@ -587,7 +587,7 @@ func faiProgressWatch() {
     
     util.Log(2, "DEBUG! Sending to %v: %v", target, x)
     msg := x.String()
-    go func(){util.SendLnTo(target, security.GosaEncrypt(msg, clientpackageskey), config.Timeout)}()
+    go func(){security.SendLnTo(target, msg, clientpackageskey, false)}()
     
     if strings.HasPrefix(line, "TASKEND savelog") { 
       message.Send_clmsg_save_fai_log(target, config.FAISavelogHookPath)

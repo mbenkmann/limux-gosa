@@ -243,8 +243,7 @@ func Send_clmsg_save_fai_log(target string, program string) {
   buffy.WriteString("</xml>")
   
   util.Log(1, "INFO! Sending %v bytes of log files to %v", buffy.Len(), target)
-  security.GosaEncryptBuffer(&buffy, clientpackageskey)
-  util.SendLnTo(target, buffy.String(), config.Timeout)
+  security.SendLnTo(target, buffy.String(), clientpackageskey, false)
   
   in.Write([]byte{'\n'}) // notify hook that transfer is complete
 }

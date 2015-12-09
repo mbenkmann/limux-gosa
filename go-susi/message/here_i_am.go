@@ -61,7 +61,7 @@ func Send_here_i_am(target string) {
   here_i_am.Add("new_passwd", clientpackageskey)
   
   util.Log(2, "DEBUG! Sending here_i_am to %v: %v", target, here_i_am)
-  util.SendLnTo(target, security.GosaEncrypt(here_i_am.String(), clientpackageskey), config.Timeout)
+  security.SendLnTo(target, here_i_am.String(), clientpackageskey, false)
 }
 
 

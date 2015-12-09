@@ -79,5 +79,5 @@ func sendDetectedHardwareReply(target string, c <-chan *xml.Hash) {
   // (We don't take the 1st because that would be "dummy-key").
   if clientpackageskey == "" { clientpackageskey = config.ModuleKeys[len(config.ModuleKeys)-1] }
   util.Log(1, "INFO! Sending detected_hardware to %v: %v", target, hwlist)
-  util.SendLnTo(target, security.GosaEncrypt(hwlist.String(), clientpackageskey), config.Timeout)
+  security.SendLnTo(target, hwlist.String(), clientpackageskey, false)
 }
