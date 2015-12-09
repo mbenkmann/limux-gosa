@@ -222,7 +222,7 @@ func ContextFor(conn net.Conn) *Context {
 }
 
 func handle_tlsconn(conn *tls.Conn, context *Context) bool {
-  conn.SetDeadline(time.Now().Add(1*time.Second)) // handshake has to occur in 1s
+  conn.SetDeadline(time.Now().Add(config.TimeoutTLS))
   err := conn.Handshake()
   if err != nil {
     util.Log(0, "ERROR! [SECURITY] TLS Handshake: %v", err)

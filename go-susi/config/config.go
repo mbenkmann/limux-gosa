@@ -219,6 +219,9 @@ var MaxConnections int32 = 512
 // is exceeded, the transmission is aborted.
 var Timeout = 5 * time.Minute
 
+// Maximum time permitted for STARTTLS and TLS handshake.
+var TimeoutTLS = 1 * time.Second
+
 // Config used for TLS handshake when go-susi is acting as the
 // server, i.e. the other party initiated the connection.
 var TLSServerConfig *tls.Config

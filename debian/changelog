@@ -1,3 +1,9 @@
+gosa (2.8.191) trusty; urgency=medium
+
+  * go-susi: replace hardcoded timeout with reference to config variable
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 09 Dec 2015 14:07:17 +0100
+
 gosa (2.8.190) trusty; urgency=medium
 
   * go-susi: sistats now works with TLS!!! Yay!!!
