@@ -20,7 +20,7 @@ import (
          "../xml"
          "github.com/mbenkmann/golib/util"
          "../config"
-         "../message"
+         "../security"
        )
 
 

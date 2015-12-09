@@ -302,7 +302,7 @@ func acceptConnections(listener *net.TCPListener, tcp_connections chan<- *net.TC
 var starttls = []byte{'S','T','A','R','T','T','L','S','\n'}
 
 // Handles one or more messages received over conn. Each message is a single
-// line terminated by \n. The message may be encrypted as by message.GosaEncrypt().
+// line terminated by \n. The message may be encrypted as by security.GosaEncrypt().
 func handle_request(tcpconn *net.TCPConn) {
   defer tcpconn.Close()
   defer atomic.AddInt32(&ActiveConnections, -1)
@@ -335,6 +335,10 @@ func handle_request(tcpconn *net.TCPConn) {
         return
       }
       buf.Write(readbuf[0:1])
+      if readbuf[0] == '\r' && starttls[i] == '\n' {
+        // Read the \n that must follow \r (we don't support lone CR line endings)
+        conn.Read(readbuf[0:1]) // ignore error. It will pop up again further down the line.
+      }
       if readbuf[0] != starttls[i] { 
         if config.TLSRequired {
           util.Log(0, "ERROR! No STARTTLS from %v, but TLS is required", conn.RemoteAddr())
@@ -441,50 +445,20 @@ func setConfigUnitTag() {
 
 func printStats() int {
   msg := "<xml><header>sistats</header></xml>"
-  
-  conn, err := net.Dial("tcp", config.ServerSourceAddress)
-  if err != nil {
-    fmt.Fprintf(os.Stderr, "Error connecting to %v: %v\n", config.ServerSourceAddress, err)
-    return 1
-  }
+
+  conn, context := security.SendLnTo(config.ServerSourceAddress, msg, config.ModuleKey["[GOsaPackages]"], true)
+  if conn == nil { return 1 }
   defer conn.Close()
-  
-  if config.TLSClientConfig != nil {
-    conn.SetDeadline(time.Now().Add(1*time.Second)) // don't allow stalling on STARTTLS
-    
-    _, err = util.WriteAll(conn, starttls)
-    if err != nil {
-      fmt.Fprintf(os.Stderr, "Could not establish TLS connection with %v: %v\n", config.ServerSourceAddress, err)
-      return 1
-    }
-
-    var no_deadline time.Time
-    conn.SetDeadline(no_deadline)
-    
-    conn = tls.Client(conn, config.TLSClientConfig)
-
-  } else {
-    msg = message.GosaEncrypt(msg, config.ModuleKey["[GOsaPackages]"])
-  }
-  
-  context := security.ContextFor(conn)
-  if context == nil { return 1 }
-
-  err = util.SendLn(conn, msg, config.Timeout)
-  if err != nil {
-    fmt.Fprintf(os.Stderr, "Error sending to %v: %v\n", config.ServerSourceAddress, err)
-    return 1
-  }
 
   reply,_ := util.ReadLn(conn, 10*time.Second)
   
-  if config.TLSClientConfig == nil {
-    reply = message.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
+  if !context.TLS {
+    reply = security.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
   }
   x,_ := xml.StringToHash(reply)
   x = x.First("answer1")
   if x == nil {
-    fmt.Fprintf(os.Stderr, "No results received!\n")
+    util.Log(0, "ERROR! No results received!\n")
     return 1
   }
   for c := x.FirstChild(); c != nil; c = c.Next() {
@@ -613,7 +587,7 @@ func faiProgressWatch() {
     
     util.Log(2, "DEBUG! Sending to %v: %v", target, x)
     msg := x.String()
-    go func(){util.SendLnTo(target, message.GosaEncrypt(msg, clientpackageskey), config.Timeout)}()
+    go func(){util.SendLnTo(target, security.GosaEncrypt(msg, clientpackageskey), config.Timeout)}()
     
     if strings.HasPrefix(line, "TASKEND savelog") { 
       message.Send_clmsg_save_fai_log(target, config.FAISavelogHookPath)

@@ -165,7 +165,7 @@ var mapIP2ReestablishDelay_mutex sync.Mutex
 //   2) sending (if config.RunServer) new_server messages to all known servers
 //      we find for the IP in our servers database.
 //   3) if config.RunServer and in 2) we did not find a server at that IP,
-//      maybe it's a client that thinks we are its server. Send "Müll" to
+//      maybe it's a client that thinks we are its server. Send "deregistered" to
 //      all ClientPorts in that case to cause re-registration.
 func tryToReestablishCommunicationWith(ip string) {
   // Wait a little to limit the rate of spam wars between
@@ -216,8 +216,9 @@ func tryToReestablishCommunicationWith(ip string) {
     if sendmuell {
       for _, port := range config.ClientPorts {
         addr := ip + ":" + port
-        if addr != config.ServerSourceAddress { // never send "Müll" to our own server
-          go util.SendLnTo(addr, "Müll", config.Timeout)
+        if addr != config.ServerSourceAddress { // never send "deregistered" to our own server
+          dereg :=  "<xml><header>deregistered</header><source>"+config.ServerSourceAddress+"</source><target>"+addr+"</target></xml>"
+          go security.SendLnTo(addr, dereg, "", false)
         }
       }
     }
@@ -244,6 +245,7 @@ func ProcessXMLMessage(xml *xml.Hash, context *security.Context, key string) (re
     case "new_ldap_config":     new_ldap_config(xml)
     case "new_ntp_config":      new_foo_config(xml)
     case "registered":          registered(xml)
+    case "deregistered":        deregistered(xml)
     case "usr_msg":             usr_msg(xml)
     case "set_activated_for_installation": set_activated_for_installation(xml)
     case "detect_hardware":     detect_hardware(xml)

@@ -32,7 +32,6 @@ import (
          "crypto/x509"
          "encoding/asn1"
          
-         "../db"
          "github.com/mbenkmann/golib/util"
          "../config"
        )
@@ -174,7 +173,7 @@ func ContextFor(conn net.Conn) *Context {
   // config file), so we set this flag by default for known peer servers.
   // This is only the default setting. An installation that uses its own
   // certificates instead of the default ones, may override this behaviour.
-  context.Access.Query.QueryJobs = false
+  /*context.Access.Query.QueryJobs = false
   peerIPStr := context.PeerID.IP.String()
   for _, known := range db.ServerAddresses() {
     knownip,_,_ := net.SplitHostPort(known)
@@ -182,7 +181,7 @@ func ContextFor(conn net.Conn) *Context {
       context.Access.Query.QueryJobs = true
       break
     }
-  }
+  }*/
   context.Access.Query.QueryJobs = true
   
   context.Access.Jobs.Lock = true

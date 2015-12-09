@@ -32,15 +32,16 @@ import (
          "../security"
        )
 
-// Sends garbage to all clients listed in db.ClientsWeMayHave to
+// Sends deregistered to all clients listed in db.ClientsWeMayHave to
 // prompt them to send new here_i_am messages.
 func CheckPossibleClients() {
   for child := db.ClientsWeMayHave.FirstChild(); child != nil; child = child.Next() {
     client := child.Element()
     addr := client.Text("client")
-    if addr == config.ServerSourceAddress { continue } // do not send Müll to ourselves
-    util.Log(1, "INFO! Sending 'Müll' to %v", addr)
-    go util.SendLnTo(addr, "Müll", config.Timeout)
+    if addr == config.ServerSourceAddress { continue } // do not send deregistered to ourselves
+    util.Log(1, "INFO! Sending 'deregistered' to %v", addr)
+    dereg :=  "<xml><header>deregistered</header><source>"+config.ServerSourceAddress+"</source><target>"+addr+"</target></xml>"
+    go security.SendLnTo(addr, dereg, "", false)
   }
 }
 

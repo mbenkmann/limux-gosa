@@ -30,6 +30,7 @@ import (
          "../xml"
          "github.com/mbenkmann/golib/util"
          "../config"
+         "../security"
        )
 
 // Stores our own and foreign clients. Format:
@@ -221,7 +222,8 @@ func ClientUpdate(client *xml.Hash) {
   old := clientDB.Replace(filter, false, client)
   
   // if the update assigns a client that was previously assigned to this server to
-  // another server, double-check this new assignment by sending Müll to the the
+  // another server, double-check this new assignment by sending a
+  // deregistered message to the
   // client, which will cause it to send us a here_i_am if it still feels attached
   // to us. That here_i_am will then undo the incorrect assignment.
   if client.Text("source") != config.ServerSourceAddress {
@@ -233,14 +235,15 @@ func ClientUpdate(client *xml.Hash) {
         // gosa-si-client always picks a new server when receiving an undecryptable
         // message instead of trying to re-register at its current server.
         delay := time.Duration(rand.Intn(60))*time.Second
-        util.Log(1, "INFO! Client taken away from us. Verifying by sending 'Müll' to %v after waiting %v", addr, delay)
+        util.Log(1, "INFO! Client taken away from us. Verifying by sending 'deregistered' to %v after waiting %v", addr, delay)
         go func(){ 
           time.Sleep(delay)
           if c := ClientWithAddress(addr); c != nil && c.Text("source") == config.ServerSourceAddress {
             util.Log(1, "INFO! Client %v has returned to us => Will not spam it.", addr)
           } else {
             util.Log(1, "INFO! Spamming client %v.", addr)
-            util.SendLnTo(addr, "Müll", config.Timeout)
+            dereg :=  "<xml><header>deregistered</header><source>"+config.ServerSourceAddress+"</source><target>"+addr+"</target></xml>"
+            security.SendLnTo(addr, dereg, "", false)
           }
         }()
       }

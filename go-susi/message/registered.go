@@ -52,6 +52,13 @@ func registered(xmlmsg *xml.Hash) {
   if server != "" { registrationQueue.Push(xmlmsg.Clone()) }
 }
 
+// Handles the message "deregistered".
+//  xmlmsg: the decrypted and parsed message
+func deregistered(xmlmsg *xml.Hash) {
+  server := xmlmsg.Text("source")
+  if server != "" { registrationQueue.Push(xmlmsg.Clone()) }
+}
+
 // Infinite loop that handles registering and staying registered at
 // a server.
 func RegistrationHandler() {
@@ -62,7 +69,16 @@ func RegistrationHandler() {
     var r string
     switch rn := rn.(type) {
       case string: r = rn
-      case *xml.Hash: r = rn.Text("source")
+      case *xml.Hash: server := rn.Text("source")
+                      if rn.Text("header") == "deregistered" {
+                        if server != currentServer {
+                          continue // ignore deregistered from servers we don't want to be registered at
+                        }
+                        util.Log(1, "INFO! Received \"deregistered\" => Confirming that I'm still registered at %v", currentServer)
+                        r = "confirm"
+                      } else {
+                        r = server
+                      }
       case chan string: if registrationState > 0 { rn <- currentServer } else { rn <- "" }
                         continue
       default: panic("RegistrationHandler(): Unexpected type in registrationQueue")
