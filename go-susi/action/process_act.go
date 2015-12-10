@@ -21,7 +21,6 @@ MA  02110-1301, USA.
 package action
 
 import ( 
-         "net"
          "time"
          "strings"
          "strconv"
@@ -252,15 +251,14 @@ func Forward(job *xml.Hash) bool {
   job_clone := job.Clone()
   
   go util.WithPanicHandler(func(){
-    tcpconn, err := net.Dial("tcp", siserver)
-    if err == nil {
-      defer tcpconn.Close()
-      util.Log(2, "DEBUG! Forwarding to %v: %v", siserver, request)
-      err = util.SendLn(tcpconn, security.GosaEncrypt(request, config.ModuleKey["[GOsaPackages]"]), 10*time.Second)
-      if err == nil { return }
+    util.Log(2, "DEBUG! Forwarding to %v: %v", siserver, request)
+    conn, _ := security.SendLnTo(siserver, request, config.ModuleKey["[GOsaPackages]"], true)
+    if conn != nil {
+      conn.Close()
+      return
     }
     
-    util.Log(0, "ERROR! %v: Could not forward %v for client %v to server %v => Will try to execute job myself.", err, headertag, macaddress, siserver)
+    util.Log(0, "ERROR! Could not forward %v for client %v to server %v => Will try to execute job myself.", headertag, macaddress, siserver)
     
     job_clone.FirstOrAdd("result").SetText("none")
     job_clone.FirstOrAdd("progress").SetText("forward-failed")

@@ -1,3 +1,9 @@
+gosa (2.8.199) trusty; urgency=medium
+
+  * go-susi: Forwarding of jobs to another si-server now uses TLS if certificate is available
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 10 Dec 2015 13:06:28 +0100
+
 gosa (2.8.198) trusty; urgency=medium
 
   * go-susi: additional log message for when reply to gosa_query_jobd is delayed intentionally
