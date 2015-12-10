@@ -47,6 +47,13 @@ func SendLnTo(target, msg, key string, keep_open bool) (net.Conn, *Context) {
     defer conn.Close()
   }
   
+  // enable keep alive to avoid connections hanging forever in case of routing issues etc.
+  err = conn.(*net.TCPConn).SetKeepAlive(true)
+  if err != nil {
+    util.Log(0, "ERROR! SetKeepAlive: %v", err)
+    // This is not fatal => Don't abort send attempt
+  }
+  
   if config.TLSClientConfig != nil {
     conn.SetDeadline(time.Now().Add(config.TimeoutTLS)) // don't allow stalling on STARTTLS
     
