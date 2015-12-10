@@ -250,6 +250,17 @@ func send(keyid string, x *xml.Hash) {
 // and <source>GOSA</source> as well as <target>GOSA</target> (unless a subelement
 // of the respective name is already present).
 func gosa(typ string, x *xml.Hash) *xml.Hash {
+  return gosa2(typ, x, true)
+}
+
+// Like gosa() but does not read a reply.
+func gosa_noreply(typ string, x *xml.Hash) {
+  gosa2(typ, x, false)
+}
+
+// Like gosa() but if read_reply == false, no reply will be read and nil
+// will be returned
+func gosa2(typ string, x *xml.Hash, read_reply bool) *xml.Hash {
   if !strings.HasPrefix(typ, "gosa_") && !strings.HasPrefix(typ, "job_") {
     typ = "gosa_" + typ
   }
@@ -269,12 +280,18 @@ func gosa(typ string, x *xml.Hash) *xml.Hash {
   }
   defer conn.Close()
   util.SendLn(conn, security.GosaEncrypt(x.String(), config.ModuleKey["[GOsaPackages]"]), config.Timeout)
-  reply,err := util.ReadLn(conn, config.Timeout)
-  reply = security.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
-  if err == nil {
-    x, err = xml.StringToHash(reply)
+  if read_reply {
+    reply,err := util.ReadLn(conn, config.Timeout)
+    reply = security.GosaDecrypt(reply, config.ModuleKey["[GOsaPackages]"])
+    if err == nil {
+      x, err = xml.StringToHash(reply)
+    }
+    if err != nil { x = xml.NewHash("error") }
+    if err != nil {
+      util.Log(0, "ERROR! While reading reply in test-helpers.go:gosa(): %v\nIf this is a timeout error for a request that does not return a reply, use gosa_noreply() instead of gosa()", err)
+      time.Sleep(60*time.Second)
+    }
   }
-  if err != nil { x = xml.NewHash("error") }
   return x
 }
 

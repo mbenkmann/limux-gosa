@@ -260,19 +260,23 @@ func SystemTest(daemon string, is_gosasi bool) {
   check_answer(a2, Jobs[2].Plainname, "none", "waiting", listen_address, Jobs[2].MAC, Jobs[2].Timestamp, Jobs[2].Periodic, Jobs[2].Trigger())
 
   // clear jobdb  
-  x = gosa("delete_jobdb_entry", hash("xml(where())"))
+  gosa_noreply("delete_jobdb_entry", hash("xml(where())"))
   
   // Because the above delete affects a job belonging to the test server,
   // go-susi doesn't delete it directly but forwards the request to the
   // test server. Wait a little to make sure the communication is finished.
-  time.Sleep(reply_timeout)
+  time.Sleep(config.GosaQueryJobdbMaxDelay)
   
   // now add 2 jobs that are the same in all respects except the timestamp
   x = gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(%v))",Jobs[1].MAC, Jobs[0].Timestamp, Jobs[1].MAC, Jobs[1].Periodic))
   check(x.Text("answer1"), "0")
   x = gosa("job_trigger_action_lock", hash("xml(target(%v)timestamp(%v)macaddress(%v)periodic(%v))",Jobs[1].MAC, Jobs[1].Timestamp, Jobs[1].MAC, Jobs[1].Periodic))
   check(x.Text("answer1"), "0")
-  
+
+  // Because the plainname is filled in by a background job, wait a little
+  // or the plainname subtest further below may fail.
+  time.Sleep(config.GosaQueryJobdbMaxDelay)
+
   x = gosa("query_jobdb", hash("xml(where())"))
   siFail(checkTags(x, "header,source,target,answer1,answer2,session_id?"),"")
   a1 = x.First("answer1")
@@ -479,7 +483,7 @@ func run_activate_new_client_test() {
     }
     
     t0 = time.Now()
-    gosa("set_activated_for_installation", hash("xml(target(%v)macaddress(%v))",mac,mac))
+    gosa_noreply("set_activated_for_installation", hash("xml(target(%v)macaddress(%v))",mac,mac))
     safi := waitlong(t0, "set_activated_for_installation").XML
     if check(checkTags(safi, "header,source,target,faistate,set_activated_for_installation"),"") {
       check(safi.Text("header"), "set_activated_for_installation")
@@ -2345,11 +2349,11 @@ func run_foreign_job_updates_tests() {
   
   // Clear out the test job. 
   send("",hash("xml(header(foreign_job_updates)source(%v)target(%v)sync(all))",listen_address,config.ServerSourceAddress))
-  gosa("delete_jobdb_entry", hash("xml(where())"))
+  gosa_noreply("delete_jobdb_entry", hash("xml(where())"))
   
   // create a job on the testee
-  gosa(Jobs[0].Type, hash("xml(target(%v)timestamp(%v)macaddress(%v))",Jobs[0].MAC,Jobs[0].Timestamp,Jobs[0].MAC))
-  time.Sleep(reply_timeout)
+  gosa_noreply(Jobs[0].Type, hash("xml(target(%v)timestamp(%v)macaddress(%v))",Jobs[0].MAC,Jobs[0].Timestamp,Jobs[0].MAC))
+  time.Sleep(config.GosaQueryJobdbMaxDelay)
   // check if it's been successfully created
   x = gosa("query_jobdb", hash("xml(where())"))
   check(checkTags(x, "header,source,target,answer1,session_id?"),"")
