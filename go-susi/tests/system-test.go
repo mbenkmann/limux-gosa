@@ -2351,6 +2351,11 @@ func run_foreign_job_updates_tests() {
   send("",hash("xml(header(foreign_job_updates)source(%v)target(%v)sync(all))",listen_address,config.ServerSourceAddress))
   gosa_noreply("delete_jobdb_entry", hash("xml(where())"))
   
+  // Wait for db to be cleared before creating new jobs to prevent
+  // the delete command from being processed after the job creations due
+  // to goroutine scheduling
+  time.Sleep(config.GosaQueryJobdbMaxDelay)
+  
   // create a job on the testee
   gosa_noreply(Jobs[0].Type, hash("xml(target(%v)timestamp(%v)macaddress(%v))",Jobs[0].MAC,Jobs[0].Timestamp,Jobs[0].MAC))
   time.Sleep(config.GosaQueryJobdbMaxDelay)

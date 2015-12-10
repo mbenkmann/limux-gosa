@@ -1,3 +1,9 @@
+gosa (2.8.201) trusty; urgency=medium
+
+  * go-susi: yet another test suite timing fix
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 10 Dec 2015 14:21:11 +0100
+
 gosa (2.8.200) trusty; urgency=medium
 
   * go-susi: enable keep-alive in security.SendLnTo()
