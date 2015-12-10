@@ -1,3 +1,9 @@
+gosa (2.8.196) trusty; urgency=medium
+
+  * go-susi: Makefile: add -u argument to go get to always update to the newest version of golib
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 10 Dec 2015 12:57:37 +0100
+
 gosa (2.8.195) trusty; urgency=medium
 
   * go-susi: make more places use TLS connections if we have a cert
