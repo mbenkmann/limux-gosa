@@ -48,7 +48,10 @@ func gosa_query_jobdb(xmlmsg *xml.Hash) *xml.Hash {
   // If necessary, wait for the effects of forwarded modify requests
   t_forward := db.MostRecentForwardModifyRequestTime.At(0).(time.Time)
   delay := config.GosaQueryJobdbMaxDelay - time.Since(t_forward)
-  if delay > 0 { time.Sleep(delay) }
+  if delay > 0 { 
+    util.Log(1, "INFO! Waiting %v before replying to gosa_query_jobdb to allow forwarded job modifications to take effect", delay)
+    time.Sleep(delay)
+  }
   
   jobdb_xml := db.JobsQuery(filter)
   
