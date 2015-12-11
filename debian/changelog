@@ -1,3 +1,9 @@
+gosa (2.8.202) trusty; urgency=medium
+
+  * go-susi: TLS support for clients should now be complete
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 11 Dec 2015 12:09:54 +0100
+
 gosa (2.8.201) trusty; urgency=medium
 
   * go-susi: yet another test suite timing fix

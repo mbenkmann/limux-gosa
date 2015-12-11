@@ -43,6 +43,7 @@ var RequestProcessingTime int64
 
 type ClientStats struct {
   KnownClients int
+  KnownTLSClients int
   MyClients int
   MyClientsUp int32
 }
@@ -50,6 +51,10 @@ type ClientStats struct {
 func (s *ClientStats) Accepts(x *xml.Hash) bool {
   if x == nil { return false }
   s.KnownClients++
+  keys := x.Get("key")
+  if len(keys) > 0 && keys[0] == "" {
+    s.KnownTLSClients++
+  }
   if x.Text("source") == config.ServerSourceAddress {
     s.MyClients++
     go func(a string, i *int32){
@@ -98,6 +103,7 @@ func sistats() *xml.Hash {
   db.ClientsQuery(&clistats)
   time.Sleep(2*time.Second) // give Up checks time to succeed
   answer.Add("KnownClients", clistats.KnownClients)
+  answer.Add("KnownTLSClients", clistats.KnownTLSClients)
   up := atomic.LoadInt32(&clistats.MyClientsUp)
   answer.Add("MyClientsUp", up)
   answer.Add("MyClientsDown", clistats.MyClients-int(up))

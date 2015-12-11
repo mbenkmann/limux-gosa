@@ -119,7 +119,11 @@ func (conn *ClientConnection) Tell(text string, ttl time.Duration) {
         if conn.addr == config.ServerSourceAddress {
           // If sending to myself (e.g. new_ldap_config), fake a client object
           client = xml.NewHash("xml","source",config.ServerSourceAddress)
-          client.Add("key", config.ModuleKey["[ClientPackages]"])
+          key := "" // default to empty key which signals TLS
+          if config.TLSClientConfig == nil {
+            key = config.ModuleKey["[ClientPackages]"]
+          }
+          client.Add("key", key)
         } else {
           util.Log(0, "ERROR! Client %v not found in clientdb", conn.addr)
           continue
@@ -142,26 +146,42 @@ func (conn *ClientConnection) Tell(text string, ttl time.Duration) {
           util.Log(0, "ERROR! No key known for client %v", conn.addr)
           break
         }
-      
-        encrypted := security.GosaEncrypt(msg.Text, keys[0])
-      
-        tcpConn, err := net.Dial("tcp", conn.addr)
-        if err != nil {
-          util.Log(0,"ERROR! Dial() could not connect to %v: %v",conn.addr, err)
-          continue
+
+        encrypted := msg.Text // default is unencrypted for TLS connection
+
+        var tcpConn net.Conn
+        var err error
+
+        if keys[0] == "" { // TLS client
+          // We just use security.SendLnTo() to establish the TLS connection
+          // The empty line that is sent is ignored by the receiving go-susi.
+          tcpConn, _ = security.SendLnTo(conn.addr, "", "", true)
+          if tcpConn == nil {
+            // Error message already logged by SendLnTo()
+            continue
+          }
+        } else { // non-TLS client
+          encrypted = security.GosaEncrypt(msg.Text, keys[0])
+          
+          tcpConn, err = net.Dial("tcp", conn.addr)
+          if err != nil {
+            util.Log(0,"ERROR! Dial() could not connect to %v: %v", conn.addr, err)
+            continue
+          }
+
+          err = tcpConn.(*net.TCPConn).SetKeepAlive(true)
+          if err != nil {
+            util.Log(0, "ERROR! SetKeepAlive: %v", err)
+            // This is not fatal => Don't abort send attempt
+          }
         }
-        
+
         if msg.Expires.Before(time.Now()) {
           util.Log(0, "ERROR! Connection to %v established, but TTL %v has expired in the meantime => Message will not be sent", conn.addr, ttl)
+          tcpConn.Close()
           break
         }
-        
-        err = tcpConn.(*net.TCPConn).SetKeepAlive(true)
-        if err != nil {
-          util.Log(0, "ERROR! SetKeepAlive: %v", err)
-          // This is not fatal => Don't abort send attempt
-        }
-        
+
         util.Log(2, "DEBUG! Sending message to %v encrypted with key %v", conn.addr, keys[0])
         err = util.SendLn(tcpConn, encrypted, config.Timeout) 
         tcpConn.Close()

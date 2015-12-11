@@ -53,6 +53,13 @@ func Send_here_i_am(target string) {
   // (We don't take the 1st because that would be "dummy-key").
   if clientpackageskey == "" { clientpackageskey = config.ModuleKeys[len(config.ModuleKeys)-1] }
   
+  // If we have a certificate, we only register at servers that support
+  // TLS. The empty string key in the client database signals to the server
+  // that it should use TLS when contacting us.
+  if config.TLSClientConfig != nil {
+    clientpackageskey = ""
+  }
+  
   // We don't generate random keys as it adds no security.
   // Everybody who has the ClientPackages key can decrypt the
   // key exchange messages, so a random key would only be as
