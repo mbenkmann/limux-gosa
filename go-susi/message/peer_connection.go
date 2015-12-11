@@ -113,8 +113,11 @@ func (conn *PeerConnection) stopDowntime() {
 // If key == "" the first key from db.ServerKeys(peer) is used.
 func (conn *PeerConnection) Tell(msg, key string) {
   if conn.err != nil { return }
-  if key == "" {
-   keys := db.ServerKeys(conn.addr)
+  keys := db.ServerKeys(conn.addr)
+  // If we use TLS and the target does, too
+  if config.TLSClientConfig != nil && len(keys) > 0 && keys[0] == "" {
+    key = ""
+  } else if key == "" {
    if len(keys) == 0 {
      util.Log(0, "ERROR! PeerConnection.Tell: No key known for peer %v", conn.addr)
      return
@@ -122,8 +125,12 @@ func (conn *PeerConnection) Tell(msg, key string) {
    key = keys[0]
   }
   util.Log(1, "INFO! Telling %v: %v", conn.addr, msg)
-  encrypted := security.GosaEncrypt(msg, key)
-  conn.queue.Push(encrypted)
+  // If key == "" at this point, we're using TLS
+  if key == "" {
+    conn.queue.Push(msg)
+  } else {
+    conn.queue.Push(security.GosaEncrypt(msg, key))
+  }
 }
 
 // Encrypts request with key, sends it to the peer and returns a channel 
@@ -145,9 +152,12 @@ func (conn *PeerConnection) Ask(request, key string) <-chan string {
     close(c)
     return c
   }
-  
-  if key == "" {
-   keys := db.ServerKeys(conn.addr)
+
+  keys := db.ServerKeys(conn.addr)  
+  // If we use TLS and the target does, too
+  if config.TLSClientConfig != nil && len(keys) > 0 && keys[0] == "" {
+    key = ""
+  } else if key == "" {
    if len(keys) == 0 {
      c<-ErrorReply("PeerConnection.Ask: No key known for peer " + conn.addr)
      close(c)
@@ -158,7 +168,21 @@ func (conn *PeerConnection) Ask(request, key string) <-chan string {
   
   go util.WithPanicHandler(func(){
     defer close(c)
-    tcpconn, err := net.Dial("tcp", conn.addr)
+    var tcpconn net.Conn
+    var err error
+    if key == "" { // TLS
+      // We just use security.SendLnTo() to establish the TLS connection
+      // The empty line that is sent is ignored by the receiving go-susi.
+      tcpconn, _ = security.SendLnTo(conn.addr, "", "", true)
+      if tcpconn == nil {
+        // Unfortunately we don't have the actual error from SendLnTo(), so generate
+        // a generic one.
+        err = fmt.Errorf("Could not establish TLS connection to %v", conn.addr)
+      }
+    } else {
+      tcpconn, err = net.Dial("tcp", conn.addr)
+    }
+
     if err != nil {
       c<-ErrorReply(err)
       // make sure handleConnection()/monitorConnection() notice that the peer is unreachable
@@ -166,14 +190,20 @@ func (conn *PeerConnection) Ask(request, key string) <-chan string {
     } else {
       defer tcpconn.Close()
       util.Log(1, "INFO! Asking %v: %v", conn.addr, request)
-      err = util.SendLn(tcpconn, security.GosaEncrypt(request, key), config.Timeout)
+      encrypted := request
+      if key != "" {
+        encrypted = security.GosaEncrypt(request, key)
+      }
+      err = util.SendLn(tcpconn, encrypted, config.Timeout)
       // make sure handleConnection()/monitorConnection() notice that the peer is unreachable
       if err != nil && conn.tcpConn != nil { conn.tcpConn.Close() }
       reply, err := util.ReadLn(tcpconn, config.Timeout)
       if err != nil && err != io.EOF {
         util.Log(0, "ERROR! ReadLn(): ", err)
       }
-      reply = security.GosaDecrypt(reply, key)
+      if key != "" {
+        reply = security.GosaDecrypt(reply, key)
+      }
       if reply == "" { 
         reply = ErrorReply("Communication error in Ask()") 
         // make sure handleConnection()/monitorConnection() notice that the peer is unreachable
@@ -322,16 +352,30 @@ func (conn *PeerConnection) handleConnection() {
       if conn.tcpConn != nil { conn.tcpConn.Close() } // make sure connection is closed in case the error didn't
       
       // try to re-establish connection
-      conn.tcpConn, err = net.Dial("tcp", conn.addr)
-      
+      keys := db.ServerKeys(conn.addr)
+      // If we use TLS and the peer does, too, or we don't know => use TLS
+      if config.TLSClientConfig != nil && ( len(keys) == 0 || keys[0] == "" ) {
+        // We just use security.SendLnTo() to establish the TLS connection
+        // The empty line that is sent is ignored by the receiving go-susi.
+        conn.tcpConn, _ = security.SendLnTo(conn.addr, "", "", true)
+        if conn.tcpConn == nil {
+          // Unfortunately we don't have the actual error from SendLnTo(), so generate
+          // a generic one.
+          err = fmt.Errorf("Could not establish TLS connection to %v", conn.addr)
+        }
+      } else {
+        conn.tcpConn, err = net.Dial("tcp", conn.addr)
+        if err != nil {
+          errkeepalive := conn.tcpConn.(*net.TCPConn).SetKeepAlive(true)
+          if errkeepalive != nil {
+            util.Log(0, "ERROR! SetKeepAlive: %v", errkeepalive)
+          }
+        }
+      }
+
       if err == nil {
         util.Log(2, "DEBUG! handleConnection() re-connected to %v", conn.addr)
-      
-        err = conn.tcpConn.(*net.TCPConn).SetKeepAlive(true)
-        if err != nil {
-          util.Log(0, "ERROR! SetKeepAlive: %v", err)
-        }
-       
+
         conn.stopDowntime() 
         go monitorConnection(conn.tcpConn, &conn.queue)  
         // try to re-send message

@@ -1,3 +1,9 @@
+gosa (2.8.206) trusty; urgency=medium
+
+  * go-susi: TLS support for server-server communication (broken, ATM)
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 11 Dec 2015 19:28:23 +0100
+
 gosa (2.8.205) trusty; urgency=medium
 
   * go-susi: proper TLS validation of loopback IP even for go-susi --stats

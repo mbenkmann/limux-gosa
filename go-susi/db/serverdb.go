@@ -137,6 +137,9 @@ func addServer(server string) {
     }
     key = config.ModuleKey["[ServerPackages]"] + strings.Replace(key, ".", "", -1)
     server_xml := xml.NewHash("xml", "source", source)
+    // If we have a TLS config, assume the peer does, too, and mark it as
+    // such by storing an empty string as key.
+    if config.TLSClientConfig != nil { key = "" }
     server_xml.Add("key", key)
     ServerUpdate(server_xml)
   }
