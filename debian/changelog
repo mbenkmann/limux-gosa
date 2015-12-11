@@ -1,3 +1,12 @@
+gosa (2.8.203) trusty; urgency=medium
+
+  * go-susi: translate all loopback addresses to our external address when doing TLS verification
+  * This allows a localhost connection to succeed with a certificate for the external IP
+  * address and allows a connection from the external IP address to succeed with a
+  * certificate for 127.0.0.1
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 11 Dec 2015 14:17:45 +0100
+
 gosa (2.8.202) trusty; urgency=medium
 
   * go-susi: TLS support for clients should now be complete

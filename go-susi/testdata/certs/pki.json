@@ -347,7 +347,7 @@
             "extnID": "$id-ce-subjectAltName",
             "critical": false,
             "extnValue": "$san SubjectAltName encode(DER)",
-            "san": [ { "iPAddress": "$127.0.0.2" } ]
+            "san": [ { "iPAddress": "$128.0.0.1" } ]
           },
           {
             "extnID":"$id-ce-keyUsage",

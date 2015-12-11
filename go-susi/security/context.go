@@ -141,8 +141,12 @@ func ContextFor(conn net.Conn) *Context {
   var context Context
   
   ip := conn.RemoteAddr().(*net.TCPAddr).IP
-  context.PeerID.IP = make([]byte, len(ip))
-  copy(context.PeerID.IP, ip)
+  if ip.IsLoopback() {
+    context.PeerID.IP = net.ParseIP(config.IP)
+  } else {
+    context.PeerID.IP = make([]byte, len(ip))
+    copy(context.PeerID.IP, ip)
+  }
   
   // everybody may connect
   context.PeerID.AllowedIPs = []net.IP{net.IPv4(0,0,0,0)}
@@ -349,6 +353,9 @@ func (context *Context) Verify() bool {
   peerIP := context.PeerID.IP
   ok := false
   for _, ip := range context.PeerID.AllowedIPs {
+    if ip.IsLoopback() {
+      ip = net.ParseIP(config.IP)
+    }
     if ip.Equal(peerIP) {
       ok = true
       break

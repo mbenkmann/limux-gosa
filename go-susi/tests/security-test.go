@@ -40,7 +40,7 @@ func Security_test() {
   // store them in the log file (if any is configured)
   util.LoggerRemove(os.Stderr)
   defer util.LoggerAdd(os.Stderr)
-  
+
   cli, srv := tlsTest("1", "1")
   check(cli!=nil, true)
   check(srv!=nil, true)
@@ -75,7 +75,7 @@ func Security_test() {
   
   cli, srv = tlsTest("localname", "2")
   check(cli!=nil, true)
-  check(srv!=nil, true)
+  check(srv, nil) // because *ocalhost does not match the actual resolved name
   
   security.SetMyServer("8.8.8.8")
   cli, srv = tlsTest("myserver", "2")
