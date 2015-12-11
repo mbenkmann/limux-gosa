@@ -120,12 +120,6 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
     os.Exit(1)
   }
   
-  if config.PrintStats { 
-    code := printStats()
-    util.LoggersFlush(5*time.Second)
-    os.Exit(code)
-  }
-  
   logfile, err := os.OpenFile(config.LogFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
   if err != nil {
     util.Log(0, "ERROR! %v", err)
@@ -137,6 +131,12 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
     util.LoggerAdd(util.LogFile(logfile.Name()))
   }
   util.LogLevel = config.LogLevel
+  
+  if config.PrintStats { 
+    code := printStats()
+    util.LoggersFlush(5*time.Second)
+    os.Exit(code)
+  }
   
   util.Log(0, "=============================================================================")
   util.Log(0, "INFO! go-susi %v started", config.Version)

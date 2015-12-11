@@ -1,3 +1,9 @@
+gosa (2.8.204) trusty; urgency=medium
+
+  * go-susi: log to logfile even for go-susi --stats
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 11 Dec 2015 16:01:14 +0100
+
 gosa (2.8.203) trusty; urgency=medium
 
   * go-susi: translate all loopback addresses to our external address when doing TLS verification
