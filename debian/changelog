@@ -1,3 +1,9 @@
+gosa (2.8.205) trusty; urgency=medium
+
+  * go-susi: proper TLS validation of loopback IP even for go-susi --stats
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 11 Dec 2015 16:25:39 +0100
+
 gosa (2.8.204) trusty; urgency=medium
 
   * go-susi: log to logfile even for go-susi --stats

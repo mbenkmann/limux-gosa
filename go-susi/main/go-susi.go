@@ -133,6 +133,12 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   util.LogLevel = config.LogLevel
   
   if config.PrintStats { 
+    // We nead ReadNetwork() to determine config.IP which is necessary
+    // for TLS certificate validation. We call this inside the if config.Printstats
+    // block instead of outside because for a go-susi daemon it is important
+    // to wait for DNS before calling ReadNetwork() which is something
+    // we don't want to do for the --stats call.
+    config.ReadNetwork()
     code := printStats()
     util.LoggersFlush(5*time.Second)
     os.Exit(code)
