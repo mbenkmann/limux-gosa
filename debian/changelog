@@ -1,3 +1,9 @@
+gosa (2.8.212) trusty; urgency=medium
+
+  * sibridge: -l now takes a port argument, requires TLS and accepts non-localhost connections
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 18 Dec 2015 22:19:36 +0100
+
 gosa (2.8.211) trusty; urgency=medium
 
   * sibridge: Read config from gosa.conf instead of gosa-si/server.conf

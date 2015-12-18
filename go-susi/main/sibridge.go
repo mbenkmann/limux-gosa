@@ -33,6 +33,7 @@ import (
           "strings"
           "syscall"
           "regexp"
+          "crypto/tls"
           
           "../db"
           "../xml"
@@ -63,8 +64,10 @@ Remote control for an siserver at targetserver:targetport.
              ATTENTION! developer messages include keys!
 
 -c <file>    read config from <file> instead of default location
--l           listen for socket connections (from localhost only) on
-             siserver port +10.
+-l <port>    listen for socket connections on <port>
+             Always uses TLS without STARTTLS (unlike go-susi).
+             TLS client authentication is required. Access controls
+             are the same as for go-susi.
 -e <string>  execute commands from <string>
 -f <file>    execute commands from <file>. If <file> is not an ordinary
              file, it will be processed concurrently with other special
@@ -289,9 +292,6 @@ func main() {
   if TargetAddress == "" {
     TargetAddress = config.ServerSourceAddress
   }
-  colon := strings.Index(config.ServerListenAddress, ":")
-  port,_ := strconv.Atoi(config.ServerListenAddress[colon+1:])
-  config.ServerListenAddress = fmt.Sprintf("127.0.0.1:%d", port+10) 
   config.ServerSourceAddress = config.IP + config.ServerListenAddress[strings.Index(config.ServerListenAddress,":"):]
   
   util.LogLevel = config.LogLevel
@@ -382,6 +382,11 @@ func main() {
   
   // If requested, accept TCP connections
   if ListenForConnections {
+    if config.TLSServerConfig == nil {
+      util.Log(0, "ERROR! -l option requires TLS certificates to be configured")
+      util.LoggersFlush(5*time.Second)
+      os.Exit(1)
+    }
     tcp_addr, err := net.ResolveTCPAddr("tcp4", config.ServerListenAddress)
     if err != nil {
       util.Log(0, "ERROR! ResolveTCPAddr: %v", err)
@@ -439,7 +444,17 @@ func acceptConnections(listener *net.TCPListener, connections chan<- net.Conn) {
     if err != nil { 
       util.Log(0, "ERROR! AcceptTCP: %v", err) 
     } else {
-      connections <- tcpConn
+      err = tcpConn.SetKeepAlive(true)
+      if err != nil {
+        util.Log(0, "ERROR! SetKeepAlive: %v", err)
+      }
+      conn := tls.Server(tcpConn, config.TLSServerConfig)
+      context := security.ContextFor(conn)
+      if context != nil {
+        connections <- conn
+      } else {
+        tcpConn.Close()
+      }
     }
   }
 }
@@ -453,14 +468,7 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
   defer util.Log(1, "INFO! Connection to %v closed", conn.RemoteAddr())
   
   var err error
-  
-  if tcpconn,ok := conn.(*net.TCPConn); ok {
-    err = tcpconn.SetKeepAlive(true)
-    if err != nil {
-      util.Log(0, "ERROR! SetKeepAlive: %v", err)
-    }
-  }
-  
+
   // If the user does not specify any machines in the command,
   // the list of machines from the previous command will be used.
   // The following slice is passed via pointer with every call of
@@ -1417,7 +1425,13 @@ func ReadArgs(args []string) {
         config.ServerConfigPath = args[i]
       }
     } else if arg == "-l" {
-      ListenForConnections = true
+      i++
+      if i >= len(args) {
+        util.Log(0, "ERROR! ReadArgs: missing argument to -l")
+      } else {
+        config.ServerListenAddress = ":"+args[i]
+        ListenForConnections = true
+      }
     } else if arg == "-i" {
       Interactive = true
     } else if arg == "-e" {
