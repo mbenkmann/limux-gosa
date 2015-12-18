@@ -446,13 +446,38 @@ can be used if you want to use i.e. kerberos to authenticate the users.
 The
 .I gosaSupportURI
 defines the major gosa-si server host and the password for GOsa to connect to it.
-can be used if you want to use i.e. kerberos to authenticate the users.
+The password is not required if TLS certificates are provided and the gosa-si
+uses TLS.
 
 The format is:
 
 .nf
 credentials@host:port
 .fi
+.PP
+
+.B caCertificate
+.I path
+.PP
+The path of the PEM certificate file of the CA used to sign the
+certificates used for securing TLS connections of gosa-si.
+.PP
+
+.B certificate
+.I path
+.PP
+The path of the PEM certificate file to use for authenticating with the gosa-si
+server configured via
+.I gosaSupportURI
+instead of using a password.
+.PP
+
+.B keyfile
+.I path
+.PP
+The path of the PEM key file corresponding to the
+.I certificate
+for authenticating with the gosa-si.
 .PP
 
 .B gosaSupportTimeout

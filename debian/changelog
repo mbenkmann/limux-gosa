@@ -1,3 +1,13 @@
+gosa (2.8.211) trusty; urgency=medium
+
+  * sibridge: Read config from gosa.conf instead of gosa-si/server.conf
+  * This change is necessary because the certificate sibridge needs to use
+  * to access go-susi is the one from GOsa, not the one used by the go-susi server
+  * itself because the server certificate will not usually have the permission bits
+  * set for doing the stuff sibridge needs to do.
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 18 Dec 2015 20:03:21 +0100
+
 gosa (2.8.210) trusty; urgency=medium
 
   * sibridge: support TLS

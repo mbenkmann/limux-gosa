@@ -257,6 +257,7 @@ var ServerStates = []string{"X_X", "O_O", "@_@", "O_@", "x_~", "^.^", "@_~", "^_
 var TimestampRE = regexp.MustCompile("^([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})$")
 
 func main() {
+  config.ServerConfigPath = "/etc/gosa/gosa.conf"
   // This is NOT config.ReadArgs() !!
   ReadArgs(os.Args[1:])
   
@@ -276,8 +277,8 @@ func main() {
   if config.PrintVersion || config.PrintHelp { os.Exit(0) }
   
   config.Init()
-  config.ReadConfig()
-  config.ReadCertificates() // after config.ReadConfig()
+  ReadConfig() // This is NOT config.ReadConfig() !!
+  config.ReadCertificates() // after ReadConfig()
   
   if config.TLSRequired && config.TLSServerConfig == nil {
     util.Log(0, "ERROR! No cert, no keys => no service")
@@ -1471,6 +1472,77 @@ func ReadArgs(args []string) {
       util.Log(0, "ERROR! ReadArgs: Unknown command line switch: %v", arg)
     }
   }
+}
+
+// unlike config.ReadConfig() this function reads /etc/gosa/gosa.conf
+func ReadConfig() {
+  conf, _ := xml.FileToHash(config.ServerConfigPath)
+  // Ignore parsing errors (such as "stray text outside tag").
+  // The result is always valid even if it may be partial data.
+  
+  conf = conf.First("main")
+  if conf == nil {
+    util.Log(0, "ERROR! %v: No <main> section", config.ServerConfigPath)
+    return
+  }
+  
+  target, err := util.Resolve(TargetAddress, config.IP)
+  if err != nil { target = TargetAddress }
+  
+  found := false
+  locs := []string{}
+  for loc := conf.First("location"); loc != nil; loc = loc.Next() {
+    if x := loc.Text("caCertificate"); x != "" {
+      config.CACertPath = x
+    }
+    if x := loc.Text("certificate"); x != "" {
+      config.CertPath = x
+    }
+    if x := loc.Text("keyfile"); x != "" {
+      config.CertKeyPath = x
+    }
+    gosasi := strings.SplitN(loc.Text("gosaSupportURI"), "@", 2)
+    key := ""
+    server := gosasi[len(gosasi)-1]
+    locs = append(locs, server)
+    if len(gosasi) > 1 { key = gosasi[0] }
+    server_resolved, err := util.Resolve(server, config.IP)
+    if err != nil { server_resolved = server }
+    // If this <location> section is the right one for TargetAddress
+    if server == target || server_resolved == target ||
+       server == TargetAddress || server_resolved == TargetAddress {
+      
+      found = true
+      
+      if key != "" {
+        config.ModuleKeys = append(config.ModuleKeys, key)
+        config.ModuleKey["[GOsaPackages]"] = key
+      }
+      
+      if ldap := loc.First("referral"); ldap != nil {
+        uri := ldap.Text("URI")
+        if idx := strings.Index(uri, "="); idx > 0 {
+          if idx = strings.LastIndex(uri[0:idx],"/"); idx > 0 {
+            config.LDAPURI = uri[0:idx]
+            config.LDAPBase = uri[idx+1:]
+            config.LDAPAdmin = ldap.Text("adminDn")
+            err := ioutil.WriteFile(config.LDAPAdminPasswordFile, []byte(ldap.Text("adminPassword")), 0600)
+            if err != nil { util.Log(0, "ERROR! Could not write admin password to file: %v", err) }
+            config.LDAPUser = config.LDAPAdmin
+            config.LDAPUserPasswordFile = config.LDAPAdminPasswordFile
+          }
+        }
+      }
+      
+      break
+    }
+  }
+  
+  if !found {
+    util.Log(0, "ERROR! %v: No <location> section for %v (have: %v)", config.ServerConfigPath, TargetAddress, locs)
+  }
+  
+  config.TLSRequired = len(config.ModuleKey) == 0
 }
 
 type TimeoutError struct{}
