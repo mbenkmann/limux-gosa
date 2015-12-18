@@ -332,6 +332,12 @@ func handle_request(tcpconn *net.TCPConn) {
   n := 1
   
   if config.TLSServerConfig != nil {
+    // If TLS is required, we need to see a STARTTLS before the timeout.
+    // If TLS is optional we need to accept idle connections for backwards compatibility
+    if config.TLSRequired {
+      conn.SetDeadline(time.Now().Add(config.TimeoutTLS))
+    }
+    
     for i := range starttls {
       n, err = conn.Read(readbuf[0:1])
       if n == 0 {
@@ -348,6 +354,7 @@ func handle_request(tcpconn *net.TCPConn) {
       if readbuf[0] != starttls[i] { 
         if config.TLSRequired {
           util.Log(0, "ERROR! No STARTTLS from %v, but TLS is required", conn.RemoteAddr())
+          util.WriteAll(conn, []byte(message.ErrorReply("STARTTLS is required to connect")))
           return
         }
         break 

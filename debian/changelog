@@ -1,3 +1,9 @@
+gosa (2.8.208) trusty; urgency=medium
+
+  * go-susi: add timeout for sending STARTTLS if TLS-only mode; send error reply to peer if STARTTLS is required
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 18 Dec 2015 10:36:53 +0100
+
 gosa (2.8.207) trusty; urgency=medium
 
   * go-susi: fix brokenness after TLS server support
