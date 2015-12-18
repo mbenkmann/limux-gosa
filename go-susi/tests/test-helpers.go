@@ -727,6 +727,9 @@ func handleConnection(conn net.Conn, is_client bool) {
 }
 
 func processMessage(str string, senderIP string, is_client bool) string {
+  str = strings.TrimSpace(str)
+  if str == "" { return "" } // ignore empty messages
+  
   var err error
   msg := queueElement{IsClientMessage:is_client}
   

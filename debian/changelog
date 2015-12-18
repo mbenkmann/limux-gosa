@@ -1,3 +1,9 @@
+gosa (2.8.207) trusty; urgency=medium
+
+  * go-susi: fix brokenness after TLS server support
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 18 Dec 2015 09:54:37 +0100
+
 gosa (2.8.206) trusty; urgency=medium
 
   * go-susi: TLS support for server-server communication (broken, ATM)

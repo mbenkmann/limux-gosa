@@ -199,7 +199,7 @@ func (conn *PeerConnection) Ask(request, key string) <-chan string {
       if err != nil && conn.tcpConn != nil { conn.tcpConn.Close() }
       reply, err := util.ReadLn(tcpconn, config.Timeout)
       if err != nil && err != io.EOF {
-        util.Log(0, "ERROR! ReadLn(): ", err)
+        util.Log(0, "ERROR! ReadLn(): %v", err)
       }
       if key != "" {
         reply = security.GosaDecrypt(reply, key)
@@ -365,7 +365,7 @@ func (conn *PeerConnection) handleConnection() {
         }
       } else {
         conn.tcpConn, err = net.Dial("tcp", conn.addr)
-        if err != nil {
+        if err == nil {
           errkeepalive := conn.tcpConn.(*net.TCPConn).SetKeepAlive(true)
           if errkeepalive != nil {
             util.Log(0, "ERROR! SetKeepAlive: %v", errkeepalive)
