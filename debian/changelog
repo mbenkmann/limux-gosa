@@ -1,3 +1,9 @@
+gosa (2.8.209) trusty; urgency=medium
+
+  * go-susi: Finally get rid of the errors in the log for various CLMSG_* messages
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 18 Dec 2015 13:14:29 +0100
+
 gosa (2.8.208) trusty; urgency=medium
 
   * go-susi: add timeout for sending STARTTLS if TLS-only mode; send error reply to peer if STARTTLS is required

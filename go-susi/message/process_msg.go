@@ -304,6 +304,11 @@ func ProcessXMLMessage(xml *xml.Hash, context *security.Context, key string) (re
       case "CLMSG_PROGRESS":      if handleServerMessage() {clmsg_progress(xml) }
       case "CLMSG_TASKDIE":       if handleServerMessage() {clmsg_taskdie(xml) }
       case "CLMSG_GOTOACTIVATION":if handleServerMessage() {clmsg_gotoactivation(xml) }
+      case "CLMSG_HOOK",
+           "CLMSG_TASKBEGIN",
+           "CLMSG_check",
+           "CLMSG_TASKEND":
+                                  util.Log(2, "DEBUG! ProcessXMLMessage: '%v'\n=======start FAI message=======\n%v\n=======end FAI message=======", xml.Text("header"), xml.String())
       case "job_set_activated_for_installation",
            "gosa_set_activated_for_installation":
                                   if handleServerMessage() { gosa_set_activated_for_installation(xml) }
