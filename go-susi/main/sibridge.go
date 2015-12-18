@@ -277,6 +277,14 @@ func main() {
   
   config.Init()
   config.ReadConfig()
+  config.ReadCertificates() // after config.ReadConfig()
+  
+  if config.TLSRequired && config.TLSServerConfig == nil {
+    util.Log(0, "ERROR! No cert, no keys => no service")
+    util.LoggersFlush(5*time.Second)
+    os.Exit(1)
+  }
+  
   if TargetAddress == "" {
     TargetAddress = config.ServerSourceAddress
   }
@@ -310,6 +318,29 @@ func main() {
   
   if r := <-target_reachable; !r {
     os.Exit(1)
+  }
+  
+  // If we support TLS, check if the target does, too
+  // and mark it in the serverdb if it does.
+  if config.TLSClientConfig != nil {
+    // do not log errors for failed TLS connection attempt
+    util.LogLevel = -1
+    conn, _ := security.SendLnTo(TargetAddress, "", "", true)
+    util.LogLevel = config.LogLevel
+    if conn != nil { // TLS connection has succeeded
+      conn.Close()
+      server, err := util.Resolve(TargetAddress, config.IP)
+      if err == nil {
+        ip, port, err := net.SplitHostPort(server)
+        if err == nil {
+          source := ip + ":" + port
+          server_xml := xml.NewHash("xml", "source", source)
+          server_xml.Add("key", "") // key=="" is marker for TLS-support
+          db.ServerUpdate(server_xml)
+          util.Log(1, "INFO! %v (%v) supports TLS", TargetAddress, source)
+        }
+      }
+    }
   }
   
   // Create channels for receiving events. 

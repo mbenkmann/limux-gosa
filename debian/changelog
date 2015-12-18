@@ -1,3 +1,9 @@
+gosa (2.8.210) trusty; urgency=medium
+
+  * sibridge: support TLS
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 18 Dec 2015 17:30:19 +0100
+
 gosa (2.8.209) trusty; urgency=medium
 
   * go-susi: Finally get rid of the errors in the log for various CLMSG_* messages
