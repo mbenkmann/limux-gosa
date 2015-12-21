@@ -1,3 +1,9 @@
+gosa (2.8.213) trusty; urgency=medium
+
+  * GOsa: implement TLS support when connecting to gosa-si
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 21 Dec 2015 13:56:18 +0100
+
 gosa (2.8.212) trusty; urgency=medium
 
   * sibridge: -l now takes a port argument, requires TLS and accepts non-localhost connections

@@ -24,7 +24,7 @@ class gosaSupportDaemon
 {
   private $s_host       = "";
   private $i_port       = 0;
-  private $s_encryption_key = "";
+  private $encryption_opts = ""; // see SocketClient::setEncryptionKey()
 
   private $o_sock       = NULL;
   private $f_timeout    = 2;
@@ -74,9 +74,16 @@ class gosaSupportDaemon
     if ($config->get_cfg_value("core","gosaSupportURI") != ""){
 
       if ($this->s_host == ""){
-        $this->s_host= preg_replace("/^.*@([^:]+):.*$/", "$1", $config->get_cfg_value("core","gosaSupportURI"));
-        $this->i_port= preg_replace("/^.*@[^:]+:(.*)$/", "$1", $config->get_cfg_value("core","gosaSupportURI"));
-        $this->s_encryption_key = preg_replace("/^(.*)@[^:]+:.*$/", "$1", $config->get_cfg_value("core","gosaSupportURI"));
+        $this->s_host= preg_replace("/^.*@/", "", $config->get_cfg_value("core","gosaSupportURI"));
+        $this->i_port= preg_replace("/^.*:/", "", $config->get_cfg_value("core","gosaSupportURI"));
+        $this->encryption_opts = preg_replace("/^(.*)@[^:]+:.*$/", "$1", $config->get_cfg_value("core","gosaSupportURI"));
+        $tls_opts = array("ca-certificate" => $config->get_cfg_value("core","caCertificate"),
+                          "certificate" => $config->get_cfg_value("core","certificate"),
+                          "keyfile" => $config->get_cfg_value("core","keyfile")
+                    );
+        if ($tls_opts['certificate']) {
+          $this->encryption_opts = $tls_opts;
+        }
       }
       $this->is_configured = TRUE;
       $this->f_timeout = $timeout;
@@ -101,7 +108,7 @@ class gosaSupportDaemon
     if(!empty($this->s_host) && !empty($this->i_port)){
       $this->o_sock = new Socket_Client($this->s_host,$this->i_port,TRUE,$this->f_timeout);
       if($this->o_sock->connected()){ 
-        $this->o_sock->setEncryptionKey($this->s_encryption_key); 
+        $this->o_sock->setEncryptionKey($this->encryption_opts); 
         $this->is_connected = TRUE;
       }else{
         $this->set_error($this->o_sock->get_error());

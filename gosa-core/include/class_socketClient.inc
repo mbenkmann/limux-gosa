@@ -25,9 +25,12 @@ class Socket_Client
   private $host 	= "";
   private $port 	= "";
   private $timeout= "";
+  private $context = NULL;
   private $errno	= "";
   private $errstr	= "";
   private $b_data_send = FALSE;
+  private $b_use_tls = FALSE;
+  private $b_tls_hands_shaken = FALSE;
   private $handle	= NULL;
   private $bytes_read = 0;
   private $error = "";
@@ -45,6 +48,14 @@ class Socket_Client
     $this->host= $host;
     $this->port= $port;
     $this->timeout= $timeout;
+    $opts = array(
+               'ssl'=>array(
+                 'verify_peer_name'=>FALSE,
+                 'allow_self_signed'=>FALSE,
+                 'capture_peer_cert'=>TRUE
+               )
+            );
+    $this->context= stream_context_create($opts);
     $this->reset_error();
 
     /* Connect if needed */
@@ -53,20 +64,48 @@ class Socket_Client
     }
   }
 
-
+  // $key argument is either:
+  //   string: old-style encryption password
+  //   array: TLS-parameters "ca-certificate", "certificate" and "keyfile" where
+  //          each maps to a file path of the respective PEM-encoded certificate/key.
   public function setEncryptionKey($key)
   {
-    if(!function_exists("mcrypt_get_iv_size")){
-      $this->set_error(msgPool::missingext("mcrypt"));
-      $this->ckey = "";
-      $this->b_encrypt = FALSE;
-    }
+    if (is_array($key)) {
+      stream_context_set_option($this->context, 'ssl', 'cafile', $key['ca-certificate']);
+      stream_context_set_option($this->context, 'ssl', 'local_cert', $key['certificate']);
+      stream_context_set_option($this->context, 'ssl', 'local_pk', $key['keyfile']);
+      if($this->handle){
+        stream_context_set_option($this->handle, 'ssl', 'cafile', $key['ca-certificate']);
+        stream_context_set_option($this->handle, 'ssl', 'local_cert', $key['certificate']);
+        stream_context_set_option($this->handle, 'ssl', 'local_pk', $key['keyfile']);
+      }
+      
+      $this->b_encrypt = FALSE; // TLS is already encrypted. Don't double-encrypt.
+      $this->b_use_tls = TRUE;
+      
+    } else {
+      $this->b_use_tls = FALSE;
+      
+      if (is_null($this->td)) {
+        /* Open the cipher */
+        $this->td = mcrypt_module_open('rijndael-128', '', 'cbc', '');
+    
+        /* Create the IV and determine the keysize length */
+        $this->iv = substr(md5('GONICUS GmbH'),0, mcrypt_enc_get_iv_size($this->td));
+        $this->ks = mcrypt_enc_get_key_size($this->td);
+      }
+      
+      if(!function_exists("mcrypt_get_iv_size")){
+        $this->set_error(msgPool::missingext("mcrypt"));
+        $this->ckey = "";
+        $this->b_encrypt = FALSE;
+      }
 
-    if ($this->connected()){
-      $this->ckey = substr(md5($key), 0, $this->ks);
-      $this->b_encrypt = TRUE;
+      if ($this->connected()){
+        $this->ckey = substr(md5($key), 0, $this->ks);
+        $this->b_encrypt = TRUE;
+      }
     }
-
     return($this->b_encrypt);
   }
 
@@ -76,6 +115,10 @@ class Socket_Client
     if($this->b_encrypt){
       mcrypt_generic_init($this->td, $this->ckey, $this->iv);
       $data = base64_encode(mcrypt_generic($this->td, $data));
+    } else {
+      // If we do not encrypt, we need to get rid of embedded newlines
+      // because newline terminates the message
+      $data = str_replace("\n", "", $data);
     }
     return($data);
   }
@@ -102,19 +145,13 @@ class Socket_Client
   public function open()
   {
     $this->reset_error();
-    $this->handle = @fsockopen($this->host, $this->port, $this->errno, $this->errstr, $this->timeout);
+    $this->b_tls_hands_shaken = FALSE;
+    $this->handle = @stream_socket_client("tcp://{$this->host}:{$this->port}", $this->errno, $this->errstr, $this->timeout, STREAM_CLIENT_CONNECT, $this->context);
     if(!$this->handle){
       $this->handle = NULL;
       $this->set_error(sprintf(_("Socket connection to %s:%s failed: %s"), bold($this->host), bold($this->port), $this->errstr));
     }else{
       $this->b_data_send = TRUE;
-
-      /* Open the cipher */
-      $this->td = mcrypt_module_open('rijndael-128', '', 'cbc', '');
-
-      /* Create the IV and determine the keysize length */
-      $this->iv = substr(md5('GONICUS GmbH'),0, mcrypt_enc_get_iv_size($this->td));
-      $this->ks = mcrypt_enc_get_key_size($this->td);
     }
   }
 
@@ -147,6 +184,16 @@ class Socket_Client
 
   public function write($data){
     if($this->handle){
+      if ($this->b_use_tls && !$this->b_tls_hands_shaken) {
+        fputs($this->handle, "STARTTLS\n");
+        $result = stream_socket_enable_crypto($this->handle, TRUE, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+        if ($result !== TRUE) {
+          $this->set_error('TLS handshake failed');
+          $this->b_data_send = FALSE;
+          return $this->b_data_send;
+        }
+        $this->b_tls_hands_shaken = TRUE;
+      }
       $data = $this->encrypt($data);
       fputs($this->handle, $data."\n");
       $this->b_data_send = TRUE;
