@@ -1,3 +1,10 @@
+gosa (2.8.215) trusty; urgency=medium
+
+  * gosa-fai-helpers: upgrade php5-cli from Recommends to Depends.
+  * I hope this finally prevents Apache from being installed by default.
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 22 Dec 2015 11:58:59 +0100
+
 gosa (2.8.214) trusty; urgency=medium
 
   * gosa-fai-helpers: upgrade php5-cli from Suggests to Recommends

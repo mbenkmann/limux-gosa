@@ -194,8 +194,8 @@ Description: LDAP schema for GOsa² fai plugin
 
 Package: gosa-fai-helpers
 Architecture: all
-Depends: ${misc:Depends}, php5-ldap
-Recommends: php5-cli, multistrap, gosa-debdb, ldap-utils
+Depends: ${misc:Depends}, php5-ldap, php5-cli
+Recommends: multistrap, gosa-debdb, ldap-utils
 Description: support programs for GOsa²+FAI
  This package includes programs useful for performing OS installations
  using GOsa²+FAI. This includes stuff related to PXE boots, FAI root file systems
