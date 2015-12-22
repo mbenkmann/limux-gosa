@@ -1,3 +1,9 @@
+gosa (2.8.214) trusty; urgency=medium
+
+  * gosa-fai-helpers: upgrade php5-cli from Suggests to Recommends
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 22 Dec 2015 11:47:44 +0100
+
 gosa (2.8.213) trusty; urgency=medium
 
   * GOsa: implement TLS support when connecting to gosa-si
