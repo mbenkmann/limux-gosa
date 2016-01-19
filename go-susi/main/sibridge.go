@@ -1408,6 +1408,13 @@ func parseJob(j string, template *jobDescriptor) bool {
 
 // Parses args and sets config variables accordingly.
 func ReadArgs(args []string) {
+  // If there is no -l switch, use a non-existent port as default
+  // because this will be used as <source> in messages and if we
+  // use an existing port and happen to hit the same port as the
+  // go-susi we are contacting on localhost, then we get a panic() from
+  // Peer() because it looks like we're trying to peer with ourselves.
+  config.ServerListenAddress = ":99999"
+  
   config.LogLevel = 0
   for i := 0; i < len(args); i++ {
     arg := args[i]
