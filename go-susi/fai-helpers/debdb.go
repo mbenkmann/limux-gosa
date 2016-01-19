@@ -821,7 +821,7 @@ func generate_kernel_list() {
 
 func updatedb() {
   noerrors := process_releases_files()
-  noerrors = noerrors && process_packages_files()
+  noerrors = process_packages_files() && noerrors // do not swap these 2! Short-circuit evaluation would prevent process_packages_files from running
   // If noerrors, we only use the template data from cache.
   // Otherwise we also use the cache to provide missing packages.
   readcache(noerrors)
@@ -1084,14 +1084,16 @@ func process_releases_files() (ok bool) {
                        if len(release_lines) == 1 {
                          fmt.Fprintf(os.Stderr, "Error reading %v/dists/%v/Release", reporepopath2release_todo[reporepopath].Repo, reporepopath2release_todo[reporepopath].Repopath)
                          if HaveCache[reporepopath] {
-                           fmt.Fprintf(os.Stderr, " => Some data will be filled in from cache!")
+                           fmt.Fprintf(os.Stderr, " => Some data will be filled in from cache THIS TIME!")
                            // We only set ok=false if have_cache[...]. Otherwise a
                            // repository entry in LDAP that doesn't work anymore
                            // would permanently prevent old package data from
-                           // being purged fromt the cache.
+                           // being purged from the cache.
                            // Another way to put it: If it hasn't worked last time
                            // then it's ok if it doesn't work this time.
                            ok = false
+                         } else {
+                           fmt.Fprintf(os.Stderr, " => Some data may be missing!")
                          }
                          fmt.Fprintln(os.Stderr)
                        } else {
@@ -1349,9 +1351,6 @@ func readcache(templatesonly bool) {
   }
 
   if !templatesonly {
-    for reporepopath := range HaveCache {
-      WillHaveCache[reporepopath] = true
-    }
     Repopath2Index = Repopath2IndexWithCache
   }
   

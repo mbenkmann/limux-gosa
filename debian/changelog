@@ -1,3 +1,15 @@
+gosa (2.8.217) trusty; urgency=medium
+
+  * fai-helpers: debdb: bugfix: A repository that went away after being cached would permanently prevent the package list from being refreshed.
+  * Old behaviour: If even a single Release file could not be read for any repository already in the
+  * cache, ONLY the cache data would be used (even if other repositories are still up).
+  * New behaviour: The package list will always be refreshed even if some Release files
+  * are unavailable. Cached data from a repository that goes away will only be used once.
+  * If the same repository is unavailable in 2 subsequent calls of debdb update, its package
+  * data is gone from the cache.
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 19 Jan 2016 10:58:05 +0100
+
 gosa (2.8.216) trusty; urgency=medium
 
   * gosa-fai-helpers: generate_package_list: Support "Verbose" environment variable as described in manual
