@@ -1,6 +1,14 @@
 #!/bin/bash
+case "$Verbose" in
+  1) v="-v" ;;
+  2) v="-vv" ;;
+  3) v="-vvv" ;;
+  4) v="-vvvv" ;;
+  *) unset v ;;
+esac
+
 case "$0" in
-  *package*) debdb update --debconf="$PackageListDebconf" "$PackageListCacheDir/generate_package_list.cache" "$PackageListFAIrepository"
-             debdb packages "$PackageListCacheDir/generate_package_list.cache" ;;
-  *kernel*)  debdb kernels  "$PackageListCacheDir/generate_package_list.cache" ;;
+  *package*) debdb $v update --debconf="$PackageListDebconf" "$PackageListCacheDir/generate_package_list.cache" "$PackageListFAIrepository"
+             debdb $v packages "$PackageListCacheDir/generate_package_list.cache" ;;
+  *kernel*)  debdb $v kernels  "$PackageListCacheDir/generate_package_list.cache" ;;
 esac

@@ -1,3 +1,9 @@
+gosa (2.8.216) trusty; urgency=medium
+
+  * gosa-fai-helpers: generate_package_list: Support "Verbose" environment variable as described in manual
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 19 Jan 2016 08:35:32 +0100
+
 gosa (2.8.215) trusty; urgency=medium
 
   * gosa-fai-helpers: upgrade php5-cli from Recommends to Depends.
