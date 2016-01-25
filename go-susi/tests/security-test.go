@@ -34,7 +34,7 @@ import (
 func Security_test() {
   fmt.Printf("\n==== security ===\n\n")
 
-  config.CACertPath = "testdata/certs/ca.cert"
+  config.CACertPath = []string{"testdata/certs/ca.cert"}
   
   // do not spam console with expected errors but do
   // store them in the log file (if any is configured)
@@ -86,11 +86,20 @@ func Security_test() {
   cli, srv = tlsTest("myserver", "2")
   check(cli!=nil, true)
   check(srv!=nil, true)
+  
+  cli, srv = tlsTest("limits", "2")
+  check(cli!=nil, true)
+  if check(srv!=nil, true) {
+    check(srv.Limits.TotalTime, time.Duration(98765)*time.Millisecond)
+    check(srv.Limits.TotalBytes, 123456789012345)
+  }
 }
 
 func tlsTest(client, server string) (*security.Context, *security.Context) {
   config.CertPath = "testdata/certs/" + server + ".cert"
   config.CertKeyPath = "testdata/certs/" + server + ".key"
+  config.TLSServerConfig = nil
+  config.TLSClientConfig = nil
   config.ReadCertificates()
   server_conf := config.TLSServerConfig
   
@@ -100,8 +109,14 @@ func tlsTest(client, server string) (*security.Context, *security.Context) {
   } else { 
     config.CertPath = "testdata/certs/" + client + ".cert"
     config.CertKeyPath = "testdata/certs/" + client + ".key"
+    config.TLSServerConfig = nil
+    config.TLSClientConfig = nil
     config.ReadCertificates()
     client_conf = config.TLSClientConfig
+  }
+  
+  if server_conf == nil || client_conf == nil {
+    panic("TLS config broken")
   }
   
   c1 := make(chan *security.Context)

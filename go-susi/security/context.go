@@ -25,8 +25,10 @@ import (
          "fmt"
          "net"
          "math"
+         "math/big"
          "sync"
          "time"
+         "errors"
          "strings"
          "crypto/tls"
          "crypto/x509"
@@ -246,12 +248,17 @@ func handle_tlsconn(conn *tls.Conn, context *Context) bool {
     util.Log(2, "DEBUG! [SECURITY] Peer certificate presented by %v:\n%v", conn.RemoteAddr(), CertificateInfo(cert))
   }
   
-  err = cert.CheckSignatureFrom(config.CACert)
-  if err == nil {
-    if string(config.CACert.RawSubject) != string(cert.RawIssuer) {
-      err = fmt.Errorf("Certificate was issued by wrong CA: \"%v\" instead of \"%v\"", config.CACert.Subject, cert.Issuer)
+  for _, cacert := range config.CACert {
+    err = cert.CheckSignatureFrom(cacert)
+    if err == nil {
+      if string(cacert.RawSubject) != string(cert.RawIssuer) {
+        err = fmt.Errorf("Certificate was issued by wrong CA: \"%v\" instead of \"%v\"", cacert.Subject, cert.Issuer)
+      } else {
+        break // stop checking if we found a match for a CA. err == nil here!
+      }
     }
   }
+  
   if err != nil {
     util.Log(0, "ERROR! [SECURITY] TLS peer presented certificate not signed by trusted CA: %v", err)
     return false
@@ -260,6 +267,14 @@ func handle_tlsconn(conn *tls.Conn, context *Context) bool {
   for _, e := range cert.Extensions {
     if len(e.Id) == 4 && e.Id[0] == 2 && e.Id[1] == 5 && e.Id[2] == 29 && e.Id[3] == 17 {
       parseSANExtension(e.Value, context)
+    } else if len(e.Id) == 9 && e.Id[0] == 1 && e.Id[1] == 3 && e.Id[2] == 6 && e.Id[3] == 1 && e.Id[4] == 4 && e.Id[5] == 1 && e.Id[6] == 45753 && e.Id[7] == 1 {
+      switch e.Id[8] {
+        case 5: err = parseConnectionLimits(e.Value, context)
+                if err != nil { util.Log(0, "ERROR! [SECURITY] GosaConnectionLimits: %v", err) }
+        case 6: //err = parseAccessControl(e.Value, context)
+                //if err != nil { util.Log(0, "ERROR! [SECURITY] GosaAccessControl: %v", err) }
+      }
+      
     }
   }
   
@@ -272,6 +287,8 @@ var gosaGNMyServer = string([]byte{0x2B,0x06,0x01,0x04,0x01,0x82,0xE5,0x39,0x01,
 var gosaGNConfigFile = string([]byte{0x2B,0x06,0x01,0x04,0x01,0x82,0xE5,0x39,0x01,0x02})
 var gosaGNSRVRecord = string([]byte{0x2B,0x06,0x01,0x04,0x01,0x82,0xE5,0x39,0x01,0x03})
 var gosaGNMyPeer = string([]byte{0x2B,0x06,0x01,0x04,0x01,0x82,0xE5,0x39,0x01,0x04})
+const universal = 0
+const context_specific = 2
 
 // adapted from the function of the same name from crypto/x509/x509.go
 func parseSANExtension(value []byte, context *Context) {
@@ -299,7 +316,7 @@ func parseSANExtension(value []byte, context *Context) {
   } else if len(rest) != 0 {
     return
   }
-  if !seq.IsCompound || seq.Tag != 16 || seq.Class != 0 {
+  if !seq.IsCompound || seq.Tag != 16 || seq.Class != universal {
     return
   }
 
@@ -343,6 +360,71 @@ func parseSANExtension(value []byte, context *Context) {
   return
 }
 
+
+func parseConnectionLimits(value []byte, context *Context) error {
+  var seq asn1.RawValue
+  var rest []byte
+  var err error
+  if rest, err = asn1.Unmarshal(value, &seq); err != nil {
+    return err
+  } else if len(rest) != 0 {
+    return errors.New("Garbage after GosaConnectionLimits")
+  }
+  if !seq.IsCompound || seq.Tag != 16 || seq.Class != universal {
+    return errors.New("GosaConnectionLimits has incorrect ASN.1 type")
+  }
+
+  rest = seq.Bytes
+  for len(rest) > 0 {
+    var v asn1.RawValue
+    rest, err = asn1.Unmarshal(rest, &v)
+    if err != nil {
+      return err
+    }
+    if v.Class == context_specific {
+      switch v.Tag {
+        case 0: // totalTime  [0] INTEGER OPTIONAL
+                n, err := asn1Int0(&v)
+                if err != nil {
+                  util.Log(0, "WARNING! [SECURITY] GosaConnectionLimits.TotalTime: %v", err)
+                } else {
+                  context.Limits.TotalTime = time.Millisecond * time.Duration(n)
+                }
+        case 1: // totalBytes  [1] INTEGER OPTIONAL
+                n, err := asn1Int0(&v)
+                if err != nil {
+                  util.Log(0, "WARNING! [SECURITY] GosaConnectionLimits.TotalBytes: %v", err)
+                } else {
+                  context.Limits.TotalBytes = int64(n)
+                }
+        default:
+                util.Log(0, "WARNING! [SECURITY] GosaConnectionLimits contains data with unknown tag %v", v.Tag)
+      }
+    } else {
+      util.Log(0, "WARNING! [SECURITY] GosaConnectionLimits contains data with strange tag (class not CONTEXT-SPECIFIC)")
+    }
+  }
+  
+  return nil
+}
+
+var tooBig = big.NewInt(281474976710656)
+
+// Parses an ASN.1 integer in v and converts all negative values and
+// all values that exceed 281474976710656 to 0.
+// If an error occurs during parsing, returns 0 and the error.
+func asn1Int0(v *asn1.RawValue) (uint64, error) {
+  i := big.NewInt(0)
+  _, err := asn1.UnmarshalWithParams(v.FullBytes, &i, fmt.Sprintf("tag:%d",v.Tag))
+  if err != nil {
+    return 0, err
+  }
+  if i.Sign() <= 0 || i.Cmp(tooBig) >= 0 {
+    return 0, nil
+  }
+  
+  return uint64(i.Int64()), nil
+}
 
 // Performs security checks on the context, in particular whether
 // the 2 endpoints are allowed to communicate with each other.

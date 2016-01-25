@@ -77,7 +77,11 @@ class gosaSupportDaemon
         $this->s_host= preg_replace("/^.*@/", "", $config->get_cfg_value("core","gosaSupportURI"));
         $this->i_port= preg_replace("/^.*:/", "", $config->get_cfg_value("core","gosaSupportURI"));
         $this->encryption_opts = preg_replace("/^(.*)@[^:]+:.*$/", "$1", $config->get_cfg_value("core","gosaSupportURI"));
-        $tls_opts = array("ca-certificate" => $config->get_cfg_value("core","caCertificate"),
+          // caCertificate may contain multiple paths separated by spaces
+          // We only use the first one (at this time). The others are used by
+          // sibridge, however.
+        $caCert = preg_replace("/ .*/","",$config->get_cfg_value("core","caCertificate"));
+        $tls_opts = array("ca-certificate" => $caCert,
                           "certificate" => $config->get_cfg_value("core","certificate"),
                           "keyfile" => $config->get_cfg_value("core","keyfile")
                     );

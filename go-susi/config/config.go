@@ -73,11 +73,11 @@ var ServerConfigPath = "/etc/gosa-si/server.conf"
 // Path of the client config file.
 var ClientConfigPath = "/etc/gosa-si/client.conf"
 
-// Path of the CA certificate used to authenticate all other certificates.
-var CACertPath = "/etc/gosa-si/ca.cert"
+// Path(s) of the CA certificate(s) used to authenticate all other certificates.
+var CACertPath = []string{"/etc/gosa-si/ca.cert"}
 
-// The parsed CA certificate.
-var CACert *x509.Certificate
+// The parsed CA certificate(s).
+var CACert []*x509.Certificate
 
 // Path of the certificate go-susi will present to the other party when
 // connecting with TLS.
@@ -424,7 +424,7 @@ func ReadArgs(args []string) {
       JobDBPath = testdir + "/jobdb.xml"
       ServerDBPath = testdir + "/serverdb.xml"
       ClientDBPath = testdir + "/clientdb.xml"
-      CACertPath = testdir + "/ca.cert"
+      CACertPath = []string{testdir + "/ca.cert"}
       CertPath = testdir + "/si.cert"
       CertKeyPath = testdir + "/si.key"
 
@@ -627,7 +627,7 @@ func ReadConfig() {
   
   if tlsconf, ok:= conf["[tls]"]; ok {
     if cacert,ok := tlsconf["ca-certificate"]; ok {
-      CACertPath = cacert
+      CACertPath = []string{cacert}
     }
     if cert,ok := tlsconf["certificate"]; ok {
       CertPath = cert
@@ -735,6 +735,8 @@ func ReadConfig() {
 }
 
 func ReadCertificates() {  
+  have_something_valid := false
+  certpool := x509.NewCertPool()
   tlscert, err := tls.LoadX509KeyPair(CertPath, CertKeyPath)
   if err != nil {
     util.Log(0, "ERROR! tls.LoadX509KeyPair: %v", err)
@@ -744,61 +746,66 @@ func ReadCertificates() {
       util.Log(0, "ERROR! x509.ParseCertificate(%v): %v", CertPath, err)
     } else {
         
-      root_ca, err := ioutil.ReadFile(CACertPath)
-      if err != nil {
-        util.Log(0, "ERROR! ReadFile: %v", err)
-      } else {
-        blk,_ := pem.Decode(root_ca)
-        if blk == nil { blk = &pem.Block{} }
-        CACert, err = x509.ParseCertificate(blk.Bytes)
+      for _, cacert_path := range CACertPath {
+        root_ca, err := ioutil.ReadFile(cacert_path)
         if err != nil {
-          util.Log(0, "ERROR! x509.ParseCertificate(%v): %v", CACertPath, err)
+          util.Log(0, "ERROR! ReadFile: %v", err)
         } else {
-        
-          certpool := x509.NewCertPool()
-          if !certpool.AppendCertsFromPEM(root_ca) {
-            util.Log(0, "ERROR! AppendCertsFromPEM: %v", err)
-          }
-              
-          TLSClientConfig = &tls.Config{Certificates:[]tls.Certificate{tlscert},
-                                        RootCAs:certpool,
-                                        NextProtos:[]string{},
-                                        ClientAuth:tls.RequireAnyClientCert,
-                                        ClientCAs:certpool,
-                                        ServerName:"",
-                                        SessionTicketsDisabled:true,
-                                        
-                                        // We do our own verification in
-                                        // security.ContextFor(). We can't use the
-                                        // verification from the library because it
-                                        // does not support all of the subjectAltName
-                                        // variants we do (in particular registeredID
-                                        // types).
-                                        InsecureSkipVerify:true,
-                                        }
+          blk,_ := pem.Decode(root_ca)
+          if blk == nil { blk = &pem.Block{} }
+          cacert, err := x509.ParseCertificate(blk.Bytes)
+          if err != nil {
+            util.Log(0, "ERROR! x509.ParseCertificate(%v): %v", cacert_path, err)
+          } else {
           
-          TLSServerConfig = &tls.Config{Certificates:[]tls.Certificate{tlscert},
-                                        RootCAs:certpool,
-                                        NextProtos:[]string{},
-                                        ClientAuth:tls.RequireAnyClientCert,
-                                        ClientCAs:certpool,
-                                        ServerName:"",
-                                        SessionTicketsDisabled:true,
-                                        
-                                        // We do our own verification in
-                                        // security.ContextFor(). We can't use the
-                                        // verification from the library because it
-                                        // does not support all of the subjectAltName
-                                        // variants we do (in particular registeredID
-                                        // types).
-                                        InsecureSkipVerify:true,
-                                        }
+            CACert = append(CACert, cacert)
+            
+            if !certpool.AppendCertsFromPEM(root_ca) {
+              util.Log(0, "ERROR! AppendCertsFromPEM: %v", err)
+            } else {
+              have_something_valid = true
+            }
+          }
         }
       }
     }
   }
 
-  if TLSServerConfig == nil {
+  if have_something_valid {
+    TLSClientConfig = &tls.Config{Certificates:[]tls.Certificate{tlscert},
+                                  RootCAs:certpool,
+                                  NextProtos:[]string{},
+                                  ClientAuth:tls.RequireAnyClientCert,
+                                  ClientCAs:certpool,
+                                  ServerName:"",
+                                  SessionTicketsDisabled:true,
+                                  
+                                  // We do our own verification in
+                                  // security.ContextFor(). We can't use the
+                                  // verification from the library because it
+                                  // does not support all of the subjectAltName
+                                  // variants we do (in particular registeredID
+                                  // types).
+                                  InsecureSkipVerify:true,
+                                  }
+    
+    TLSServerConfig = &tls.Config{Certificates:[]tls.Certificate{tlscert},
+                                  RootCAs:certpool,
+                                  NextProtos:[]string{},
+                                  ClientAuth:tls.RequireAnyClientCert,
+                                  ClientCAs:certpool,
+                                  ServerName:"",
+                                  SessionTicketsDisabled:true,
+                                  
+                                  // We do our own verification in
+                                  // security.ContextFor(). We can't use the
+                                  // verification from the library because it
+                                  // does not support all of the subjectAltName
+                                  // variants we do (in particular registeredID
+                                  // types).
+                                  InsecureSkipVerify:true,
+                                  }
+  } else {
     util.Log(0, "WARNING! TLS is DISABLED!")
   }
 }

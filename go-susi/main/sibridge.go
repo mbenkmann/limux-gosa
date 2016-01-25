@@ -1514,7 +1514,7 @@ func ReadConfig() {
   locs := []string{}
   for loc := conf.First("location"); loc != nil; loc = loc.Next() {
     if x := loc.Text("caCertificate"); x != "" {
-      config.CACertPath = x
+      config.CACertPath = strings.Fields(x)
     }
     if x := loc.Text("certificate"); x != "" {
       config.CertPath = x

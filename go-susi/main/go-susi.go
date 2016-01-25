@@ -164,7 +164,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   config.ReadNetwork() // after config.ReadConfig()
   
   if config.TLSServerConfig != nil {
-    util.Log(1, "INFO! [SECURITY] CA certificate:\n%v", security.CertificateInfo(config.CACert))
+    util.Log(1, "INFO! [SECURITY] CA certificate:\n%v", security.CertificateInfo(config.CACert[0]))
     util.Log(1, "INFO! [SECURITY] My certificate:\n%v", security.CertificateInfo(config.TLSServerConfig.Certificates[0].Leaf))
   }
 

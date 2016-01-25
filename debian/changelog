@@ -1,3 +1,9 @@
+gosa (2.8.219) trusty; urgency=medium
+
+  * support multiple caCertificate entries in gosa.conf for use with sibridge; started certificate extension parsing
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 25 Jan 2016 12:02:17 +0100
+
 gosa (2.8.218) trusty; urgency=medium
 
   * sibridge: fix "panic: Peer() called with my own address. This is a bug!" when using localhost as target
