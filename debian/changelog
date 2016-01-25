@@ -1,3 +1,9 @@
+gosa (2.8.220) trusty; urgency=medium
+
+  * go-susi: parse gosaConnectionLimits certificate extension
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 25 Jan 2016 12:41:19 +0100
+
 gosa (2.8.219) trusty; urgency=medium
 
   * support multiple caCertificate entries in gosa.conf for use with sibridge; started certificate extension parsing

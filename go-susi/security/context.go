@@ -397,6 +397,48 @@ func parseConnectionLimits(value []byte, context *Context) error {
                 } else {
                   context.Limits.TotalBytes = int64(n)
                 }
+        case 2: // messageBytes  [2] INTEGER OPTIONAL
+                n, err := asn1Int0(&v)
+                if err != nil {
+                  util.Log(0, "WARNING! [SECURITY] GosaConnectionLimits.MessageBytes: %v", err)
+                } else {
+                  context.Limits.MessageBytes = int64(n)
+                }
+        case 3: // connPerHour  [3] INTEGER OPTIONAL
+                n, err := asn1Int0(&v)
+                if err != nil {
+                  util.Log(0, "WARNING! [SECURITY] GosaConnectionLimits.ConnPerHour: %v", err)
+                } else {
+                  context.Limits.ConnPerHour = int(n)
+                }
+        case 4: // connParallel  [4] INTEGER OPTIONAL
+                n, err := asn1Int0(&v)
+                if err != nil {
+                  util.Log(0, "WARNING! [SECURITY] GosaConnectionLimits.ConnParallel: %v", err)
+                } else {
+                  context.Limits.ConnParallel = int(n)
+                }
+        case 5: // maxLogFiles  [5] INTEGER OPTIONAL
+                n, err := asn1Int0(&v)
+                if err != nil {
+                  util.Log(0, "WARNING! [SECURITY] GosaConnectionLimits.MaxLogFiles: %v", err)
+                } else {
+                  context.Limits.MaxLogFiles = int(n)
+                }
+        case 6: // maxAnswers  [6] INTEGER OPTIONAL
+                n, err := asn1Int0(&v)
+                if err != nil {
+                  util.Log(0, "WARNING! [SECURITY] GosaConnectionLimits.MaxAnswers: %v", err)
+                } else {
+                  context.Limits.MaxAnswers = int(n)
+                }
+        case 7: // communicateWith  [7] SEQUENCE OF UTF8String OPTIONAL
+                names, err := asn1SeqUtf8(&v)
+                if err != nil {
+                  util.Log(0, "WARNING! [SECURITY] GosaConnectionLimits.CommunicateWith: %v", err)
+                } else {
+                  context.Limits.CommunicateWith = names
+                }
         default:
                 util.Log(0, "WARNING! [SECURITY] GosaConnectionLimits contains data with unknown tag %v", v.Tag)
       }
@@ -425,6 +467,18 @@ func asn1Int0(v *asn1.RawValue) (uint64, error) {
   
   return uint64(i.Int64()), nil
 }
+
+// Parses an ASN.1 SEQUENCE OF UTF8String and returns it.
+// If an error occurs during parsing, returns nil and the error.
+func asn1SeqUtf8(v *asn1.RawValue) ([]string, error) {
+  names := []string{}
+  _, err := asn1.UnmarshalWithParams(v.FullBytes, &names, fmt.Sprintf("tag:%d",v.Tag))
+  if err != nil {
+    return nil, err
+  }
+  return names, nil
+}
+
 
 // Performs security checks on the context, in particular whether
 // the 2 endpoints are allowed to communicate with each other.

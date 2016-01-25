@@ -92,6 +92,12 @@ func Security_test() {
   if check(srv!=nil, true) {
     check(srv.Limits.TotalTime, time.Duration(98765)*time.Millisecond)
     check(srv.Limits.TotalBytes, 123456789012345)
+    check(srv.Limits.MessageBytes, 76767542)
+    check(srv.Limits.ConnPerHour, 3289)
+    check(srv.Limits.ConnParallel, 348201284)
+    check(srv.Limits.MaxLogFiles, 700499)
+    check(srv.Limits.MaxAnswers, 4)
+    check(srv.Limits.CommunicateWith, []string{"foo.tvc.muenchen.de:8089", "nobody", "1.2.3.4", "*"})
   }
 }
 

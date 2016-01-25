@@ -614,7 +614,13 @@
             "extnValue": "$limits GosaConnectionLimits encode(DER)",
             "limits": { 
               "totalTime": "98765",
-              "totalBytes": "123456789012345"
+              "totalBytes": "123456789012345",
+              "messageBytes": "76767542",
+              "connPerHour": "3289",
+              "connParallel": "348201284",
+              "maxLogFiles": "700499",
+              "maxAnswers": "4",
+              "communicateWith": ["foo.tvc.muenchen.de:8089", "nobody", "1.2.3.4", "*"]
             }
           }
         ]
