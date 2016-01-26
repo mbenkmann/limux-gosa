@@ -622,7 +622,7 @@
             "acl": { 
               "misc": "debug, peer",
               "query": "queryJobs",
-              "jobs": "lock, unlock, abort, install, update",
+              "jobs": "lock, unlock, abort, install, update, userMsg",
               "incoming": ["ldap://*","ldaps://","foobar://foo.bar:987/blafasel"],
               "ldapUpdate": "ip, mac",
               "detectedHw": "unprompted, dn, cn, ipHostNumber"

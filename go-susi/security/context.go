@@ -116,6 +116,7 @@ type GosaAccessJobs struct {
   Update bool
   ModifyJobs bool
   NewSys bool
+  UserMsg bool
 }
 
 type GosaAccessLDAPIncoming []string
