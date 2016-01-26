@@ -1,3 +1,9 @@
+gosa (2.8.221) trusty; urgency=medium
+
+  * go-susi: parsing of GOsa certificate extensions finished
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 26 Jan 2016 10:28:29 +0100
+
 gosa (2.8.220) trusty; urgency=medium
 
   * go-susi: parse gosaConnectionLimits certificate extension

@@ -29,6 +29,7 @@ import (
          "sync"
          "time"
          "errors"
+         "reflect"
          "strings"
          "crypto/tls"
          "crypto/x509"
@@ -100,10 +101,12 @@ type GosaAccessMisc struct {
 }
 
 type GosaAccessQuery struct {
+  QueryAll bool
   QueryJobs bool
 }
 
 type GosaAccessJobs struct {
+  JobsAll bool
   Lock bool
   Unlock bool
   Shutdown bool
@@ -133,23 +136,7 @@ type GosaAccessLDAPDetectedHardware struct {
   MACAddress bool
 }
 
-// Returns a *security.Context for the provided connection.
-// If conn is a *tls.Conn, the context will be filled in from the
-// certificate presented by the peer. If conn is a *net.TCPConn,
-// default values will be used.
-// This function also performs some security checks. If one of them
-// fails, an ERROR is logged and nil is returned.
-func ContextFor(conn net.Conn) *Context {
-  var context Context
-  
-  ip := conn.RemoteAddr().(*net.TCPAddr).IP
-  if ip.IsLoopback() {
-    context.PeerID.IP = net.ParseIP(config.IP)
-  } else {
-    context.PeerID.IP = make([]byte, len(ip))
-    copy(context.PeerID.IP, ip)
-  }
-  
+func setLegacyDefaults(context *Context) {
   // everybody may connect
   context.PeerID.AllowedIPs = []net.IP{net.IPv4(0,0,0,0)}
   // no need for names, since AllowedIPs already allows everybody
@@ -188,8 +175,10 @@ func ContextFor(conn net.Conn) *Context {
       break
     }
   }*/
+  context.Access.Query.QueryAll = true
   context.Access.Query.QueryJobs = true
   
+  context.Access.Jobs.JobsAll = true
   context.Access.Jobs.Lock = true
   context.Access.Jobs.Unlock = true
   context.Access.Jobs.Shutdown = true
@@ -213,11 +202,78 @@ func ContextFor(conn net.Conn) *Context {
   context.Access.DetectedHW.CN = true
   context.Access.DetectedHW.IPHostNumber = true
   context.Access.DetectedHW.MACAddress = true
+}
+
+func setTLSDefaults(context *Context) {
+  context.PeerID.AllowedIPs = []net.IP{}
+  context.PeerID.AllowedNames = []string{}
+  
+  context.Limits.TotalTime = 0
+  context.Limits.TotalBytes = math.MaxInt64
+  context.Limits.MessageBytes = math.MaxInt64
+  context.Limits.ConnPerHour = 36000 // 10 per second
+  context.Limits.ConnParallel = 32
+  context.Limits.MaxLogFiles = 64
+  context.Limits.MaxAnswers = math.MaxInt32
+  context.Limits.CommunicateWith = []string{ config.ServerSourceAddress }
+
+  context.Access.Misc.Debug = false
+  context.Access.Misc.Wake = false
+  context.Access.Misc.Peer = false
+  
+  context.Access.Query.QueryAll = false
+  context.Access.Query.QueryJobs = false
+  
+  context.Access.Jobs.JobsAll = false
+  context.Access.Jobs.Lock = false
+  context.Access.Jobs.Unlock = false
+  context.Access.Jobs.Shutdown = false
+  context.Access.Jobs.Wake = false
+  context.Access.Jobs.Abort = false
+  context.Access.Jobs.Install = false
+  context.Access.Jobs.Update = false
+  context.Access.Jobs.ModifyJobs = false
+  context.Access.Jobs.NewSys = false
+
+  context.Access.Incoming = []string{"ldap://*", "ldaps://*"}
+  
+  context.Access.LDAPUpdate.CN = false
+  context.Access.LDAPUpdate.IP = false
+  context.Access.LDAPUpdate.MAC = false
+  context.Access.LDAPUpdate.DH = false
+  
+  context.Access.DetectedHW.Unprompted = false
+  context.Access.DetectedHW.Template = false
+  context.Access.DetectedHW.DN = false
+  context.Access.DetectedHW.CN = false
+  context.Access.DetectedHW.IPHostNumber = false
+  context.Access.DetectedHW.MACAddress = false
+}
+
+// Returns a *security.Context for the provided connection.
+// If conn is a *tls.Conn, the context will be filled in from the
+// certificate presented by the peer. If conn is a *net.TCPConn,
+// default values will be used.
+// This function also performs some security checks. If one of them
+// fails, an ERROR is logged and nil is returned.
+func ContextFor(conn net.Conn) *Context {
+  var context Context
+  
+  ip := conn.RemoteAddr().(*net.TCPAddr).IP
+  if ip.IsLoopback() {
+    context.PeerID.IP = net.ParseIP(config.IP)
+  } else {
+    context.PeerID.IP = make([]byte, len(ip))
+    copy(context.PeerID.IP, ip)
+  }
+  
+  // Defaults for non-TLS connections. Will be overwritten with TLS defaults
+  // if this is a TLS connection.
+  setLegacyDefaults(&context)
 
   if tlsconn, ok := conn.(*tls.Conn); ok {
     if !handle_tlsconn(tlsconn, &context) { return nil }
   }    
-
   
   if context.Verify() {
     return &context
@@ -264,6 +320,8 @@ func handle_tlsconn(conn *tls.Conn, context *Context) bool {
     return false
   }
   
+  setTLSDefaults(context)
+  
   for _, e := range cert.Extensions {
     if len(e.Id) == 4 && e.Id[0] == 2 && e.Id[1] == 5 && e.Id[2] == 29 && e.Id[3] == 17 {
       parseSANExtension(e.Value, context)
@@ -271,8 +329,8 @@ func handle_tlsconn(conn *tls.Conn, context *Context) bool {
       switch e.Id[8] {
         case 5: err = parseConnectionLimits(e.Value, context)
                 if err != nil { util.Log(0, "ERROR! [SECURITY] GosaConnectionLimits: %v", err) }
-        case 6: //err = parseAccessControl(e.Value, context)
-                //if err != nil { util.Log(0, "ERROR! [SECURITY] GosaAccessControl: %v", err) }
+        case 6: err = parseAccessControl(e.Value, context)
+                if err != nil { util.Log(0, "ERROR! [SECURITY] GosaAccessControl: %v", err) }
       }
       
     }
@@ -448,6 +506,76 @@ func parseConnectionLimits(value []byte, context *Context) error {
   }
   
   return nil
+}
+
+func parseAccessControl(value []byte, context *Context) error {
+  var seq asn1.RawValue
+  var rest []byte
+  var err error
+  if rest, err = asn1.Unmarshal(value, &seq); err != nil {
+    return err
+  } else if len(rest) != 0 {
+    return errors.New("Garbage after GosaAccessControl")
+  }
+  if !seq.IsCompound || seq.Tag != 16 || seq.Class != universal {
+    return errors.New("GosaAccessControl has incorrect ASN.1 type")
+  }
+
+  rest = seq.Bytes
+  for len(rest) > 0 {
+    var v asn1.RawValue
+    rest, err = asn1.Unmarshal(rest, &v)
+    if err != nil {
+      return err
+    }
+    if v.Class == context_specific {
+      switch v.Tag {
+        case 0: // misc  [0] GosaAccessMisc  OPTIONAL
+                asn1BitString("GosaAccessControl.Misc", &v, &context.Access.Misc)
+        case 1: // query [1] GosaAccessQuery OPTIONAL
+                asn1BitString("GosaAccessControl.Query", &v, &context.Access.Query)
+        case 2: // jobs  [2] GosaAccessJobs  OPTIONAL
+                asn1BitString("GosaAccessControl.Jobs", &v, &context.Access.Jobs)
+        case 3: // incoming   [3] GosaAccessLDAPIncoming OPTIONAL
+                names, err := asn1SeqUtf8(&v)
+                if err != nil {
+                  util.Log(0, "WARNING! [SECURITY] GosaAccessControl.Incoming: %v", err)
+                } else {
+                  context.Access.Incoming = names
+                }
+        case 4: // ldapUpdate [4] GosaAccessLDAPUpdate   OPTIONAL
+                asn1BitString("GosaAccessControl.LDAPUpdate", &v, &context.Access.LDAPUpdate)
+        case 5: // detectedHw [5] GosaAccessLDAPDetectedHardware OPTIONAL
+                asn1BitString("GosaAccessControl.DetectedHW", &v, &context.Access.DetectedHW)
+        default:
+                util.Log(0, "WARNING! [SECURITY] GosaAccessControl contains data with unknown tag %v", v.Tag)
+      }
+    } else {
+      util.Log(0, "WARNING! [SECURITY] GosaAccessControl contains data with strange tag (class not CONTEXT-SPECIFIC)")
+    }
+  }
+  
+  return nil
+}
+
+// Parses a BIT STRING in v and stores the bits in targetstruct which has to be
+// a pointer to a struct containing only bool public fields.
+// If targetstruct has an incorrect type this function will panic().
+// If an ASN.1 parsing error occurs, it will be logged and the log message
+// will refer to the field that causes the error by the name errorname.
+func asn1BitString(errorname string, v *asn1.RawValue, targetstruct interface{}) {
+  var bits asn1.BitString
+  _, err := asn1.UnmarshalWithParams(v.FullBytes, &bits, fmt.Sprintf("tag:%d",v.Tag))
+  if err != nil {
+    util.Log(0, "WARNING! [SECURITY] %v: %v", errorname, err)
+    return
+  }
+  
+  target := reflect.ValueOf(targetstruct).Elem()
+  n := target.NumField()
+  for i := 0; i < n; i++ {
+    target.Field(i).SetBool(bits.At(i)==1)
+  }
 }
 
 var tooBig = big.NewInt(281474976710656)

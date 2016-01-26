@@ -14,6 +14,7 @@
   "certfilelocalname": "localname.cert",
   "certfilemyserver": "myserver.cert",
   "certfilelimits": "limits.cert",
+  "certfilelimits2": "limits2.cert",
   
   "ca-generatedKey": "$secp256r1 keygen()",
   "generatedKey1": "$secp256r1 keygen()",
@@ -600,13 +601,83 @@
             "extkeyusage": [ "$id-kp-serverAuth", "$id-kp-clientAuth" ]
           },
           {
+            "extnID": "$gosa-ce-connectionLimits",
+            "critical": false,
+            "extnValue": "$limits GosaConnectionLimits encode(DER)",
+            "limits": { 
+              "totalTime": "98765",
+              "totalBytes": "123456789012345",
+              "messageBytes": "76767542",
+              "connPerHour": "3289",
+              "connParallel": "348201284",
+              "maxLogFiles": "700499",
+              "maxAnswers": "4",
+              "communicateWith": ["foo.tvc.muenchen.de:8089", "nobody", "1.2.3.4", "*"]
+            }
+          },
+          {
             "extnID": "$gosa-ce-accessControl",
             "critical": false,
             "extnValue": "$acl GosaAccessControl encode(DER)",
             "acl": { 
-              "query": "queryAll",
-              "jobs":  "jobsAll"
+              "misc": "debug, peer",
+              "query": "queryJobs",
+              "jobs": "lock, unlock, abort, install, update",
+              "incoming": ["ldap://*","ldaps://","foobar://foo.bar:987/blafasel"],
+              "ldapUpdate": "ip, mac",
+              "detectedHw": "unprompted, dn, cn, ipHostNumber"
             }
+          }
+        ]
+      },
+      "signatureAlgorithm": "$sigAlg",
+      "signature": "$tbsCertificate TBSCertificate encode(DER) signkey sigAlg sign()"
+    },
+    "output": "$certificate Certificate encode(PEM) certfile write(if-missing)"
+  },
+  
+  ############# CERTIFICATE WITH LOTS OF LIMITS 2 ############################
+  "limits2": {
+    "pubkey":  "$key2",
+    "signkey": "$ca-key",
+    "certfile": "$certfilelimits2",
+      
+    "certificate": {
+      "tbsCertificate": {
+        "version": "v3",
+        
+        "serialNumber": 3,
+        
+        "signature": "$sigAlg",
+        "issuer": "$issuer-id",
+        "validity": {
+          "notBefore": { "utcTime": "151101000000Z" },
+          "notAfter":  { "utcTime": "251101000000Z" }
+        },
+        
+        "subject": {
+          "rdnSequence": [
+            [ { "type": "$id-at-commonName",       "value": "Limits 2" } ]
+          ]
+        },
+            
+        "subjectPublicKeyInfo": "$pubkey subjectPublicKeyInfo()",
+        "extensions": [
+          {
+            "extnID": "$id-ce-subjectAltName",
+            "critical": false,
+            "extnValue": "$san SubjectAltName encode(DER)",
+            "san": [ { "iPAddress": "$0.0.0.0" } ]
+          },
+          {
+            "extnID":"$id-ce-keyUsage",
+            "extnValue":"$'digitalSignature' KeyUsage encode(DER)"
+          },
+          {
+            "extnID": "$id-ce-extKeyUsage",
+            "critical": false,
+            "extnValue": "$extkeyusage ExtKeyUsageSyntax encode(DER)",
+            "extkeyusage": [ "$id-kp-serverAuth", "$id-kp-clientAuth" ]
           },
           {
             "extnID": "$gosa-ce-connectionLimits",
@@ -621,6 +692,19 @@
               "maxLogFiles": "700499",
               "maxAnswers": "4",
               "communicateWith": ["foo.tvc.muenchen.de:8089", "nobody", "1.2.3.4", "*"]
+            }
+          },
+          {
+            "extnID": "$gosa-ce-accessControl",
+            "critical": false,
+            "extnValue": "$acl GosaAccessControl encode(DER)",
+            "acl": { 
+              "misc": "wake",
+              "query": "queryAll",
+              "jobs": "jobsAll, shutdown, wake, modifyJobs, newSys",
+              "incoming": ["ldap://*","blafasel://foo.bar:987/foobar"],
+              "ldapUpdate": "cn, dh ",
+              "detectedHw": "template, macAddress"
             }
           }
         ]
