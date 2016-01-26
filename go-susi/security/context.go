@@ -137,7 +137,7 @@ type GosaAccessLDAPDetectedHardware struct {
   MACAddress bool
 }
 
-func setLegacyDefaults(context *Context) {
+func SetLegacyDefaults(context *Context) {
   // everybody may connect
   context.PeerID.AllowedIPs = []net.IP{net.IPv4(0,0,0,0)}
   // no need for names, since AllowedIPs already allows everybody
@@ -205,7 +205,7 @@ func setLegacyDefaults(context *Context) {
   context.Access.DetectedHW.MACAddress = true
 }
 
-func setTLSDefaults(context *Context) {
+func SetTLSDefaults(context *Context) {
   context.PeerID.AllowedIPs = []net.IP{}
   context.PeerID.AllowedNames = []string{}
   
@@ -270,7 +270,7 @@ func ContextFor(conn net.Conn) *Context {
   
   // Defaults for non-TLS connections. Will be overwritten with TLS defaults
   // if this is a TLS connection.
-  setLegacyDefaults(&context)
+  SetLegacyDefaults(&context)
 
   if tlsconn, ok := conn.(*tls.Conn); ok {
     if !handle_tlsconn(tlsconn, &context) { return nil }
@@ -321,7 +321,7 @@ func handle_tlsconn(conn *tls.Conn, context *Context) bool {
     return false
   }
   
-  setTLSDefaults(context)
+  SetTLSDefaults(context)
   
   for _, e := range cert.Extensions {
     if len(e.Id) == 4 && e.Id[0] == 2 && e.Id[1] == 5 && e.Id[2] == 29 && e.Id[3] == 17 {

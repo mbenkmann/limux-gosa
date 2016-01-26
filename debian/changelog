@@ -1,3 +1,9 @@
+gosa (2.8.224) trusty; urgency=medium
+
+  * sibridge: implemented access controls for TLS connections
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 26 Jan 2016 14:11:19 +0100
+
 gosa (2.8.223) trusty; urgency=medium
 
   * sibridge: make "decrypt" command actually attempt all keys from the config file as the doc says it does.

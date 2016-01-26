@@ -431,7 +431,7 @@ func main() {
                       util.Log(1, "INFO! Received signal \"%v\"", sig)
                     }
                     
-      case conn:= <-connections : // *net.TCPConn
+      case conn:= <-connections : // net.Conn
                     util.Log(1, "INFO! Incoming TCP request from %v", conn.RemoteAddr())
                     go util.WithPanicHandler(func(){handle_request(conn, connectionTracker)})
     }
@@ -450,12 +450,7 @@ func acceptConnections(listener *net.TCPListener, connections chan<- net.Conn) {
         util.Log(0, "ERROR! SetKeepAlive: %v", err)
       }
       conn := tls.Server(tcpConn, config.TLSServerConfig)
-      context := security.ContextFor(conn)
-      if context != nil {
-        connections <- conn
-      } else {
-        tcpConn.Close()
-      }
+      connections <- conn
     }
   }
 }
@@ -469,6 +464,14 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
   defer util.Log(1, "INFO! Connection to %v closed", conn.RemoteAddr())
   
   var err error
+  
+  var context *security.Context
+  switch conn.(type) {
+    case *tls.Conn: context = security.ContextFor(conn)
+                    if context == nil { return }
+    default: context = &security.Context{}
+             security.SetLegacyDefaults(context)
+  }
 
   // If the user does not specify any machines in the command,
   // the list of machines from the previous command will be used.
@@ -540,7 +543,7 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
       start += eol+1
       if message != "" { // ignore empty lines
         var reply string
-        reply,repeat = processMessage(message, &jobs)
+        reply,repeat = processMessage(message, &jobs, context)
         repeat_command = message + "\n"
         
         // if we already have more data, cancel repeat immediately
@@ -578,13 +581,15 @@ func (j *jobDescriptor) HasDate() bool { return j.Date != "" }
 func (j *jobDescriptor) HasTime() bool { return j.Time != "" }
 func (j *jobDescriptor) HasSub() bool { return j.Sub != "" }
 
+const PERMISSION_DENIED = "! PERMISSION DENIED"
+
 // msg must be non-empty.
 // joblist: see comment in handle_request() for explanation
 //
 // Returns:
 //  reply: text to send back to the requestor
 //  repeat: if non-0, if the requestor does not send anything within that time, repeat the same command
-func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat time.Duration) {
+func processMessage(msg string, joblist *[]jobDescriptor, context *security.Context) (reply string, repeat time.Duration) {
   fields := strings.Fields(msg)
   
   idx := strings.Index(fields[0],"->")
@@ -607,6 +612,11 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
   var sys_to_copy *xml.Hash
   
   if strings.HasSuffix(cmd,"->") {
+    // Early permissions check to avoid all the database queries if
+    // the client does not have permission to use the command anyway.
+    if !context.Access.LDAPUpdate.DH || !context.Access.DetectedHW.DN {
+      return PERMISSION_DENIED, 0
+    }
     template := jobDescriptor{}
     if !parseMachine(cmd[0:len(cmd)-2], &template) {
       return "! Cannot find system to copy: "+cmd, 0
@@ -743,38 +753,82 @@ func processMessage(msg string, joblist *[]jobDescriptor) (reply string, repeat 
   
   if is_job_cmd {
     for k := range *joblist { (*joblist)[k].Job = cmd }
-    reply = commandJob(joblist)
+    reply = commandJob(joblist, context)
   } else if cmd == "help" {
     reply = HELP_MESSAGE
   } else if cmd == "qq" {
-    reply = commandGosa("gosa_query_jobdb", false,joblist)
-    repeat = 5*time.Second
+    if context.Access.Query.QueryJobs || context.Access.Query.QueryAll {
+      reply = commandGosa("gosa_query_jobdb", false,joblist)
+      repeat = 5*time.Second
+    } else {
+      reply = PERMISSION_DENIED
+    }
   } else if cmd == "xx" {
-    reply = commandExamine(joblist)
-    repeat = 2*time.Second
+    if context.Access.Query.QueryAll {
+      reply = commandExamine(joblist)
+      repeat = 2*time.Second
+    } else {
+      reply = PERMISSION_DENIED
+    }
   } else if cmd == "examine" {
-    reply = commandExamine(joblist)
+    if context.Access.Query.QueryAll {
+      reply = commandExamine(joblist)
+    } else {
+      reply = PERMISSION_DENIED
+    }
   } else if cmd == "query" {
-    reply = commandGosa("gosa_query_jobdb",false,joblist)
+    if context.Access.Query.QueryJobs || context.Access.Query.QueryAll {
+      reply = commandGosa("gosa_query_jobdb",false,joblist)
+    } else {
+      reply = PERMISSION_DENIED
+    }
   } else if cmd == "raw" {
-    reply = commandRaw(template.Sub, 0)
+    if context.Access.Misc.Debug {
+      reply = commandRaw(template.Sub, 0)
+    } else {
+      reply = PERMISSION_DENIED
+    }
   } else if cmd == "encrypt" {
     reply = commandRaw(template.Sub, 1)
   } else if cmd == "decrypt" {
     reply = commandRaw(template.Sub, 2)
   } else if cmd == "kill" {
-    reply = commandKill(joblist)
+    if context.Access.LDAPUpdate.DH && context.Access.DetectedHW.DN {
+      reply = commandKill(joblist)
+    } else {
+      reply = PERMISSION_DENIED
+    }
   } else if cmd == "copy" {
-    reply = commandCopy(sys_to_copy, joblist)
+    if context.Access.LDAPUpdate.DH && context.Access.DetectedHW.DN { // we did this check earlier, but for completeness' sake we have it here, too.
+      reply = commandCopy(sys_to_copy, joblist)
+    } else {
+      reply = PERMISSION_DENIED
+    }
   } else if cmd == ".release" {
-    reply = commandRelease(joblist)
+    if context.Access.LDAPUpdate.DH {
+      reply = commandRelease(joblist)
+    } else {
+      reply = PERMISSION_DENIED
+    }
   } else if cmd == ".classes" {
-    reply = commandClasses(joblist)
+    if context.Access.LDAPUpdate.DH {
+      reply = commandClasses(joblist)
+    } else {
+      reply = PERMISSION_DENIED
+    }
   } else if cmd == ".deb" {
-    reply = commandDeb(joblist)
+    if context.Access.LDAPUpdate.DH {
+      reply = commandDeb(joblist)
+    } else {
+      reply = PERMISSION_DENIED
+    }
   } else if cmd == "delete" {
-    reply = strings.Replace(commandGosa("gosa_query_jobdb",true,joblist),"==","<-",-1)+"\n"+
+    if context.Access.Jobs.ModifyJobs || context.Access.Jobs.JobsAll {
+      reply = strings.Replace(commandGosa("gosa_query_jobdb",true,joblist),"==","<-",-1)+"\n"+
             commandGosa("gosa_delete_jobdb_entry",true,joblist)
+    } else {
+      reply = PERMISSION_DENIED
+    } 
     *joblist = []jobDescriptor{} // reset selected machines
   }
   
@@ -976,7 +1030,7 @@ func commandDeb(joblist *[]jobDescriptor) (reply string) {
   return reply
 }
 
-func commandJob(joblist *[]jobDescriptor) (reply string) {
+func commandJob(joblist *[]jobDescriptor, context *security.Context) (reply string) {
   reply = ""
   for _, j := range *joblist {
     if j.Name == "*" { continue }
@@ -986,8 +1040,24 @@ func commandJob(joblist *[]jobDescriptor) (reply string) {
     header := "job_trigger_action_" + j.Job
     if j.Job == "send_user_msg" { header = "job_" + j.Job }
     xmlmess := fmt.Sprintf("<xml><header>%v</header><source>GOSA</source><target>%v</target><macaddress>%v</macaddress><timestamp>%v</timestamp></xml>", header, j.MAC, j.MAC, j.Date+j.Time)
-    gosa_reply := <- message.Peer(TargetAddress).Ask(xmlmess, config.ModuleKey["[GOsaPackages]"])
-    reply += parseGosaReply(gosa_reply)
+    permitted := false
+    switch j.Job {
+      case "lock":     permitted = context.Access.Jobs.Lock || context.Access.Jobs.JobsAll
+      case "activate": permitted = context.Access.Jobs.Unlock || context.Access.Jobs.JobsAll
+      case "reboot",
+           "halt":     permitted = context.Access.Jobs.Shutdown || context.Access.Jobs.JobsAll
+      case "wake":     permitted = context.Access.Jobs.Wake || context.Access.Jobs.JobsAll
+      case "localboot":permitted = context.Access.Jobs.Abort || context.Access.Jobs.JobsAll
+      case "reinstall":permitted = context.Access.Jobs.Install || context.Access.Jobs.JobsAll
+      case "update":   permitted = context.Access.Jobs.Update || context.Access.Jobs.JobsAll
+      case "send_user_msg":permitted = context.Access.Jobs.UserMsg || context.Access.Jobs.JobsAll
+    }
+    if permitted {
+      gosa_reply := <- message.Peer(TargetAddress).Ask(xmlmess, config.ModuleKey["[GOsaPackages]"])
+      reply += parseGosaReply(gosa_reply)
+    } else {
+      reply += PERMISSION_DENIED
+    }
   }
   if reply == "" { reply = "NO JOBS" }
   return reply
