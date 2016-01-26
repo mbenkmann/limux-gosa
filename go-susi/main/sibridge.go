@@ -66,8 +66,9 @@ Remote control for an siserver at targetserver:targetport.
 -c <file>    read config from <file> instead of default location
 -l <port>    listen for socket connections on <port>
              Always uses TLS without STARTTLS (unlike go-susi).
-             TLS client authentication is required. Access controls
-             are the same as for go-susi.
+             TLS client authentication is required. GOsa extensions
+             with appropriate access control bits need to be present
+             in the client certificate.
 -e <string>  execute commands from <string>
 -f <file>    execute commands from <file>. If <file> is not an ordinary
              file, it will be processed concurrently with other special
@@ -1526,7 +1527,10 @@ func ReadConfig() {
     key := ""
     server := gosasi[len(gosasi)-1]
     locs = append(locs, server)
-    if len(gosasi) > 1 { key = gosasi[0] }
+    if len(gosasi) > 1 { 
+      key = gosasi[0]
+      config.ModuleKeys = append(config.ModuleKeys, key)
+    }
     server_resolved, err := util.Resolve(server, config.IP)
     if err != nil { server_resolved = server }
     // If this <location> section is the right one for TargetAddress
@@ -1536,7 +1540,6 @@ func ReadConfig() {
       found = true
       
       if key != "" {
-        config.ModuleKeys = append(config.ModuleKeys, key)
         config.ModuleKey["[GOsaPackages]"] = key
       }
       
