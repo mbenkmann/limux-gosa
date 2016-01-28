@@ -211,6 +211,16 @@ Commands:
               You must select the machines by using any other
               command (such as "examine") prior to ".deb".
   
+  .description: Set the LDAP attribute "description".
+              Argument types: strings
+              When called with no argument, the existing description
+              attribute is deleted.
+  
+  .gocomment: Set the LDAP attribute "goComment"
+              Argument types: strings
+              When called with no argument, the existing goComment
+              attribute is deleted.
+  
   examine, x: Print info about machine(s).
               Argument types: Machine
               Client states: x_x o_o o_O ~_^ X_x ^_^ o_^ ^,^
@@ -562,8 +572,8 @@ var jobs      = []string{"update","softupdate","reboot","halt","install",  "rein
 // It's important that the jobs are at the beginning of the commands slice,
 // because we use that fact later to distinguish between commands that refer to
 // jobs and other commands.
-var commands  = append(jobs,                                                                                                                                                             "help","x",      "examine", "query_jobdb","query_jobs","jobs", "delete_jobs","delete_jobdb_entry","qq","xx","kill", ".release", ".classes", ".debianrepository", ".repository", "raw", "encrypt", "decrypt")
-var canonical = []string{"update","update"    ,"reboot","halt","reinstall","reinstall",  "wake","localboot","lock","activate","activate","send_user_msg","send_user_msg","send_user_msg","help","examine","examine", "query",      "query",     "query","delete",     "delete"            ,"qq","xx","kill", ".release", ".classes", ".deb"             , ".deb"       , "raw", "encrypt", "decrypt"}
+var commands  = append(jobs,                                                                                                                                                             "help","x",      "examine", "query_jobdb","query_jobs","jobs", "delete_jobs","delete_jobdb_entry","qq","xx","kill", ".release", ".classes", ".debianrepository", ".repository", "raw", "encrypt", "decrypt", ".gocomment", ".description")
+var canonical = []string{"update","update"    ,"reboot","halt","reinstall","reinstall",  "wake","localboot","lock","activate","activate","send_user_msg","send_user_msg","send_user_msg","help","examine","examine", "query",      "query",     "query","delete",     "delete"            ,"qq","xx","kill", ".release", ".classes", ".deb"             , ".deb"       , "raw", "encrypt", "decrypt", ".gocomment", ".description"}
 
 type jobDescriptor struct {
   MAC string
@@ -822,6 +832,18 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
     } else {
       reply = PERMISSION_DENIED
     }
+  } else if cmd == ".description" {
+    if context.Access.LDAPUpdate.DH {
+      reply = commandSetStringAttr("description", joblist)
+    } else {
+      reply = PERMISSION_DENIED
+    }
+  } else if cmd == ".gocomment" {
+    if context.Access.LDAPUpdate.DH {
+      reply = commandSetStringAttr("gocomment", joblist)
+    } else {
+      reply = PERMISSION_DENIED
+    }
   } else if cmd == "delete" {
     if context.Access.Jobs.ModifyJobs || context.Access.Jobs.JobsAll {
       reply = strings.Replace(commandGosa("gosa_query_jobdb",true,joblist),"==","<-",-1)+"\n"+
@@ -1030,6 +1052,29 @@ func commandDeb(joblist *[]jobDescriptor) (reply string) {
   return reply
 }
 
+func commandSetStringAttr(attr string, joblist *[]jobDescriptor) (reply string) {
+  for _, j := range *joblist {
+    if j.Name == "*" { continue }
+    
+    if reply != "" { reply += "\n" }
+    
+    newattrvalue := []string{}
+    if j.Sub != "" {
+      newattrvalue = []string{j.Sub}
+    }
+    
+    err := db.SystemSetStateMulti(j.MAC, attr, newattrvalue)
+    if err != nil {
+      reply += err.Error()
+    } else {
+      reply += "UPDATED " + j.Name + " ("+j.MAC+")"
+    }
+    
+    reply += "\n" + examine(&j)
+  }
+  return reply
+}
+
 func commandJob(joblist *[]jobDescriptor, context *security.Context) (reply string) {
   reply = ""
   for _, j := range *joblist {
@@ -1106,6 +1151,8 @@ func examine(j *jobDescriptor) (reply string) {
     gotomode := sys.Text("gotomode")
     faistate := sys.Text("faistate")
     faiclass := sys.Text("faiclass")
+    gocomment := sys.Text("gocomment")
+    description := sys.Text("description")
     release := "unknown"
     if strings.Index(faiclass,":")>=0 { release = faiclass[strings.Index(faiclass,":"):] }
     
@@ -1119,6 +1166,12 @@ func examine(j *jobDescriptor) (reply string) {
     for _,class := range strings.Fields(faiclass) {
       if class[0] == ':' { continue }
       reply += " " + class
+    }
+    if description != "" {
+      reply += "\n    description: " + description
+    }
+    if gocomment != "" {
+      reply += "\n    goComment: " + gocomment
     }
     if grps.FirstChild() != nil {
       reply += "\n    inherits from:"
