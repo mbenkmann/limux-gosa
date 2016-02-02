@@ -482,6 +482,20 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
     default: context = &security.Context{}
              security.SetLegacyDefaults(context)
   }
+  
+  var totalDeadline time.Time // zero value means "no deadline"
+  if context.Limits.TotalTime > 0 {
+    totalDeadline = time.Now().Add(context.Limits.TotalTime)
+  }
+  
+  var bytesRemaining int64 = 9223372036854775807
+  if context.Limits.TotalBytes > 0 {
+    bytesRemaining = context.Limits.TotalBytes
+  }
+  var messageBytesRemaining int64 = 9223372036854775807
+  if context.Limits.MessageBytes > 0 {
+    messageBytesRemaining = context.Limits.MessageBytes
+  }
 
   // If the user does not specify any machines in the command,
   // the list of machines from the previous command will be used.
@@ -499,18 +513,46 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
   for n != 0 {
     util.Log(2, "DEBUG! Receiving from %v", conn.RemoteAddr())
     
-    var deadline time.Time // zero value means "no deadline"
-    if repeat > 0 { deadline = time.Now().Add(repeat) }
+    deadline := totalDeadline
+    if repeat > 0 {
+      deadline2 := time.Now().Add(repeat)
+      if deadline.IsZero() || deadline2.Before(deadline) {
+        deadline = deadline2
+      }
+    }
     conn.SetReadDeadline(deadline)
-    n, err = conn.Read(buf[i:])
+    
+    // Test bytesRemaining before Read() because the previous SendLn() with the
+    // previous reply may have brought bytesRemaining below 0.
+    if bytesRemaining <= 0 || messageBytesRemaining <= 0 {
+      util.Log(0, "WARNING! [SECURITY] %v has exceeded TotalBytes or MessageBytes allowed by certificate => Force disconnect", conn.RemoteAddr())
+      return
+    }
+    
+    maxread := len(buf) - i
+    if int64(maxread) > bytesRemaining {
+      maxread = int(bytesRemaining)
+    }
+    if int64(maxread) > messageBytesRemaining {
+      maxread = int(messageBytesRemaining)
+    }
+    
+    n, err = conn.Read(buf[i:i+maxread])
     if neterr,ok := err.(net.Error); ok && neterr.Timeout() {
       n = copy(buf[i:], repeat_command)
       err = nil
     }
-    
+
+    if !totalDeadline.IsZero() && totalDeadline.Before(time.Now()) {
+      util.Log(0, "WARNING! [SECURITY] %v has exceed TotalTime allowed by certificate => Force disconnect", conn.RemoteAddr())
+      return
+    }
+
     repeat = 0  
     i += n
-    
+    bytesRemaining -= int64(n)
+    messageBytesRemaining -= int64(n)
+
     if err != nil && err != io.EOF {
       util.Log(0, "ERROR! Read: %v", err)
     }
@@ -548,6 +590,13 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
         break
       }
       
+      // Found a message? Restart messageBytesRemaining counter
+      messageBytesRemaining = 9223372036854775807
+      if context.Limits.MessageBytes > 0 {
+        messageBytesRemaining = context.Limits.MessageBytes
+      }
+      messageBytesRemaining -= int64(i - (start+eol)) // subtract bytes already read from next message
+      
       // process the message and get a reply (if applicable)
       message := strings.TrimSpace(string(buf[start:start+eol]))
       start += eol+1
@@ -562,6 +611,7 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
         if reply != "" {
           util.Log(2, "DEBUG! Sending reply to %v: %v", conn.RemoteAddr(), reply)
           util.SendLn(conn, reply, config.Timeout)
+          bytesRemaining -= int64(len(reply))
         }
       }
     }

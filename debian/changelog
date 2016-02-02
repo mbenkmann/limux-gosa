@@ -1,3 +1,9 @@
+gosa (2.8.227) trusty; urgency=medium
+
+  * sibridge: implemented TotalBytes, MessageBytes and TotalTime connection limits
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 02 Feb 2016 16:49:32 +0100
+
 gosa (2.8.226) trusty; urgency=medium
 
   * go-susi: update manual with details on the TLS protocol
