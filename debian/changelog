@@ -1,3 +1,9 @@
+gosa (2.8.228) trusty; urgency=medium
+
+  * sibridge: implemented connPerHour and connParallel TLS connection limits
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 04 Feb 2016 12:51:00 +0100
+
 gosa (2.8.227) trusty; urgency=medium
 
   * sibridge: implemented TotalBytes, MessageBytes and TotalTime connection limits

@@ -455,6 +455,11 @@ func acceptConnections(listener *net.TCPListener, connections chan<- net.Conn) {
     if err != nil { 
       util.Log(0, "ERROR! AcceptTCP: %v", err) 
     } else {
+      if !security.ConnectionLimitsRegister(tcpConn.RemoteAddr()) {
+        // do not log to avoid logspam in case of an attack
+        tcpConn.Close()
+        continue
+      }
       err = tcpConn.SetKeepAlive(true)
       if err != nil {
         util.Log(0, "ERROR! SetKeepAlive: %v", err)
@@ -470,6 +475,7 @@ func acceptConnections(listener *net.TCPListener, connections chan<- net.Conn) {
 func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
   connectionTracker.Push(true)
   defer connectionTracker.Pop()
+  defer security.ConnectionLimitsDeregister(conn.RemoteAddr())
   defer conn.Close()
   defer util.Log(1, "INFO! Connection to %v closed", conn.RemoteAddr())
   
@@ -482,6 +488,8 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
     default: context = &security.Context{}
              security.SetLegacyDefaults(context)
   }
+  
+  security.ConnectionLimitsUpdate(context)
   
   var totalDeadline time.Time // zero value means "no deadline"
   if context.Limits.TotalTime > 0 {
