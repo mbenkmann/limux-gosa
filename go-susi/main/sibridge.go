@@ -456,7 +456,8 @@ func acceptConnections(listener *net.TCPListener, connections chan<- net.Conn) {
       util.Log(0, "ERROR! AcceptTCP: %v", err) 
     } else {
       if !security.ConnectionLimitsRegister(tcpConn.RemoteAddr()) {
-        // do not log to avoid logspam in case of an attack
+        // do not log unless debugging to avoid logspam in case of an attack
+        util.Log(2, "DEBUG! [SECURITY] Rejecting connection from %v", tcpConn.RemoteAddr())
         tcpConn.Close()
         continue
       }

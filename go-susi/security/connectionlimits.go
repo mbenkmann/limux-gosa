@@ -85,11 +85,16 @@ func ConnectionLimitsRegister(addr net.Addr) bool {
   }
   
   if lim.maxactive > 0 && lim.active >= lim.maxactive {
+    // do not log unless debugging to avoid logspam in case of an attack
+    util.Log(2, "DEBUG! [SECURITY] %v exceeded ConnParallel %v", ip, lim.active)
     return false
   }
   
   delta := lim.last.Sub(lim.first)
-  if lim.maxPerHour > 0 && delta > 0 && (time.Duration(lim.attempts)*time.Hour)/delta > time.Duration(lim.maxPerHour) {
+  connPerHour := (time.Duration(lim.attempts)*time.Hour)/delta
+  if lim.maxPerHour > 0 && delta > 0 && connPerHour > time.Duration(lim.maxPerHour) {
+    // do not log unless debugging to avoid logspam in case of an attack
+    util.Log(2, "DEBUG! [SECURITY] %v exceeded ConnPerHour: %v > %v", ip, connPerHour, lim.maxPerHour)
     return false
   }
   
