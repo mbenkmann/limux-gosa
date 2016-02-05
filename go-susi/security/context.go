@@ -260,12 +260,15 @@ func SetTLSDefaults(context *Context) {
 func ContextFor(conn net.Conn) *Context {
   var context Context
   
-  ip := conn.RemoteAddr().(*net.TCPAddr).IP
-  if ip.IsLoopback() {
-    context.PeerID.IP = net.ParseIP(config.IP)
-  } else {
-    context.PeerID.IP = make([]byte, len(ip))
-    copy(context.PeerID.IP, ip)
+  ip := net.IPv4zero
+  if raddr, ok := conn.RemoteAddr().(*net.TCPAddr); ok {
+    ip = raddr.IP
+    if ip.IsLoopback() {
+      context.PeerID.IP = net.ParseIP(config.IP)
+    } else {
+      context.PeerID.IP = make([]byte, len(ip))
+      copy(context.PeerID.IP, ip)
+    }
   }
   
   // Defaults for non-TLS connections. Will be overwritten with TLS defaults
