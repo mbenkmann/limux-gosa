@@ -91,7 +91,8 @@ func ConnectionLimitsRegister(addr net.Addr) bool {
   }
   
   delta := lim.last.Sub(lim.first)
-  connPerHour := (time.Duration(lim.attempts)*time.Hour)/delta
+  var connPerHour time.Duration
+  if delta > 0 { connPerHour = (time.Duration(lim.attempts)*time.Hour)/delta }
   if lim.maxPerHour > 0 && delta > 0 && connPerHour > time.Duration(lim.maxPerHour) {
     // do not log unless debugging to avoid logspam in case of an attack
     util.Log(2, "DEBUG! [SECURITY] %v exceeded ConnPerHour: %v > %v", ip, connPerHour, lim.maxPerHour)
