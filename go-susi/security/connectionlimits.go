@@ -49,7 +49,7 @@ func ConnectionLimitsRegister(addr net.Addr) bool {
   // least significant byte in the IP address.
   bin := int(ip[len(ip)-1])
   
-  ipstr := string(ip)
+  ipstr := string(ip.To16()) // To16 for normalization of IPv4 addresses
   now := time.Now()
   ago1h := now.Add(-1*time.Hour)
   ago2h := now.Add(-2*time.Hour)
@@ -102,6 +102,8 @@ func ConnectionLimitsRegister(addr net.Addr) bool {
   decrement the counter of parallel connections for that address.
   This function MUST be called if ConnectionLimitsRegister(addr) has
   returned true and MUST NOT be called if it has returned false.
+  
+  addr must be an IP address.
 */
 func ConnectionLimitsDeregister(addr net.Addr) {
   ip := net.ParseIP(strings.Split(addr.String(),":")[0])
@@ -110,7 +112,7 @@ func ConnectionLimitsDeregister(addr net.Addr) {
     return
   }
   bin := int(ip[len(ip)-1])
-  ipstr := string(ip)
+  ipstr := string(ip.To16()) // To16 for normalization of IPv4 addresses
   
   limiters[bin].mutex.Lock()
   defer limiters[bin].mutex.Unlock()
@@ -136,7 +138,7 @@ func ConnectionLimitsDeregister(addr net.Addr) {
 func ConnectionLimitsUpdate(context *Context) {
   ip := context.PeerID.IP
   bin := int(ip[len(ip)-1])
-  ipstr := string(ip)
+  ipstr := string(ip.To16()) // To16 for normalization of IPv4 addresses
   limiters[bin].mutex.Lock()
   defer limiters[bin].mutex.Unlock()
   

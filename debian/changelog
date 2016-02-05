@@ -1,3 +1,9 @@
+gosa (2.8.232) trusty; urgency=medium
+
+  * sibridge: more bugfixing of connection limits checks
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 05 Feb 2016 11:01:00 +0100
+
 gosa (2.8.231) trusty; urgency=medium
 
   * go-susi/sibridge: make sure IP address field in context is never nil; just defensive programming

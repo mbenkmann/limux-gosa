@@ -475,7 +475,11 @@ func acceptConnections(listener *net.TCPListener, connections chan<- net.Conn) {
 func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
   connectionTracker.Push(true)
   defer connectionTracker.Pop()
-  defer security.ConnectionLimitsDeregister(conn.RemoteAddr())
+    // only call deregister if the remote address is a valid IP address.
+    // This avoids error log entries for console connections
+  if net.ParseIP(strings.Split(conn.RemoteAddr().String(),":")[0]) != nil {
+    defer security.ConnectionLimitsDeregister(conn.RemoteAddr())
+  }
   defer conn.Close()
   defer util.Log(1, "INFO! Connection to %v closed", conn.RemoteAddr())
   
@@ -485,11 +489,10 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
   switch conn.(type) {
     case *tls.Conn: context = security.ContextFor(conn)
                     if context == nil { return }
+                    security.ConnectionLimitsUpdate(context)
     default: context = &security.Context{}
              security.SetLegacyDefaults(context)
   }
-  
-  security.ConnectionLimitsUpdate(context)
   
   var totalDeadline time.Time // zero value means "no deadline"
   if context.Limits.TotalTime > 0 {
