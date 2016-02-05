@@ -1,3 +1,9 @@
+gosa (2.8.237) trusty; urgency=medium
+
+  * go-susi: implemented TotalTime certificate restriction
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 05 Feb 2016 16:09:44 +0100
+
 gosa (2.8.236) trusty; urgency=medium
 
   * go-susi: more test files and doc update

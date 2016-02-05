@@ -300,7 +300,13 @@ func acceptConnections(listener *net.TCPListener, tcp_connections chan<- *net.TC
       if Shutdown { return }
       util.Log(0, "ERROR! AcceptTCP: %v", err) 
     } else {
-      tcp_connections <- tcpConn
+      if !security.ConnectionLimitsRegister(tcpConn.RemoteAddr()) {
+        // do not log unless debugging to avoid logspam in case of an attack
+        util.Log(2, "DEBUG! [SECURITY] Rejecting connection from %v", tcpConn.RemoteAddr())
+        tcpConn.Close()
+      } else {
+        tcp_connections <- tcpConn
+      }
     }
   }
 }
@@ -310,6 +316,7 @@ var starttls = []byte{'S','T','A','R','T','T','L','S','\n'}
 // Handles one or more messages received over conn. Each message is a single
 // line terminated by \n. The message may be encrypted as by security.GosaEncrypt().
 func handle_request(tcpconn *net.TCPConn) {
+  defer security.ConnectionLimitsDeregister(tcpconn.RemoteAddr())
   defer tcpconn.Close()
   defer atomic.AddInt32(&ActiveConnections, -1)
   
@@ -368,10 +375,22 @@ func handle_request(tcpconn *net.TCPConn) {
   
   context := security.ContextFor(conn)
   if context == nil { return }
+  security.ConnectionLimitsUpdate(context)
+  
+  var totalDeadline time.Time // zero value means "no deadline"
+  if context.Limits.TotalTime > 0 {
+    totalDeadline = time.Now().Add(context.Limits.TotalTime)
+  }
   
   for n != 0 {
+    conn.SetDeadline(totalDeadline)
     //util.Log(2, "DEBUG! Receiving from %v", conn.RemoteAddr())
     n, err = conn.Read(readbuf)
+    
+    if !totalDeadline.IsZero() && totalDeadline.Before(time.Now()) {
+      util.Log(0, "WARNING! [SECURITY] %v has exceed TotalTime allowed by certificate => Force disconnect", conn.RemoteAddr())
+      return
+    }
     
     if err != nil && err != io.EOF {
       util.Log(0, "ERROR! Read: %v", err)
@@ -382,6 +401,7 @@ func handle_request(tcpconn *net.TCPConn) {
     if n == 0 && err == nil {
       util.Log(0, "ERROR! Read 0 bytes but no error reported")
     }
+    
     
     // Find complete lines terminated by '\n' and process them.
     for start := 0;; {
@@ -415,9 +435,12 @@ func handle_request(tcpconn *net.TCPConn) {
         if reply.Len() > 0 {
           util.Log(2, "DEBUG! Sending %v bytes reply to %v", reply.Len(), conn.RemoteAddr())
           
-          var deadline time.Time // zero value means "no deadline"
-          if config.Timeout >= 0 { deadline = time.Now().Add(config.Timeout) }
-          conn.SetWriteDeadline(deadline)
+          if config.Timeout >= 0 {
+            deadline := time.Now().Add(config.Timeout)
+            if totalDeadline.IsZero() || deadline.Before(totalDeadline) {
+              conn.SetWriteDeadline(deadline)
+            }
+          }
   
           _, err := util.WriteAll(conn, reply.Bytes())
           if err != nil {
