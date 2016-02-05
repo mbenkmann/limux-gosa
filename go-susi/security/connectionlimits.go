@@ -21,6 +21,7 @@ import (
          "net"
          "sync"
          "time"
+         "strings"
 
          "github.com/mbenkmann/golib/util"
        )
@@ -37,7 +38,7 @@ import (
   addr must be an IP address or this function will return false.
 */
 func ConnectionLimitsRegister(addr net.Addr) bool {
-  ip := net.ParseIP(addr.String())
+  ip := net.ParseIP(strings.Split(addr.String(),":")[0])
   if ip == nil {
     util.Log(0, "ERROR! [SECURITY] ConnectionLimitsRegister() called with invalid address: %v", addr)
     return false
@@ -103,7 +104,7 @@ func ConnectionLimitsRegister(addr net.Addr) bool {
   returned true and MUST NOT be called if it has returned false.
 */
 func ConnectionLimitsDeregister(addr net.Addr) {
-  ip := net.ParseIP(addr.String())
+  ip := net.ParseIP(strings.Split(addr.String(),":")[0])
   if ip == nil {
     util.Log(0, "ERROR! [SECURITY] ConnectionLimitsDeregister() called with invalid address: %v", addr)
     return

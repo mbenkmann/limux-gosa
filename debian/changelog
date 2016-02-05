@@ -1,3 +1,9 @@
+gosa (2.8.229) trusty; urgency=medium
+
+  * sibridge: fix bug preventing connection caused by connection limits implemetation
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 05 Feb 2016 09:10:33 +0100
+
 gosa (2.8.228) trusty; urgency=medium
 
   * sibridge: implemented connPerHour and connParallel TLS connection limits
