@@ -52,7 +52,6 @@ func ConnectionLimitsRegister(addr net.Addr) bool {
   ipstr := string(ip.To16()) // To16 for normalization of IPv4 addresses
   now := time.Now()
   ago1h := now.Add(-1*time.Hour)
-  ago2h := now.Add(-2*time.Hour)
   ago30min := now.Add(-30*time.Minute)
   
   limiters[bin].mutex.Lock()
@@ -75,14 +74,15 @@ func ConnectionLimitsRegister(addr net.Addr) bool {
     lim.attempts = 0
   }
   
-  if lim.first.After(ago2h) { // if first connection attempt less than 2h ago
-    lim.last = now            // use normal computation attempts/(last-first)
-    lim.attempts++
-  } else { // if first connection attempt more than 2h ago => fix up times to avoid skewed result (imagine 1 year between first and last connection; connPerHour would always be 0)
-    lim.attempts = int64((30*time.Minute*time.Duration(lim.attempts))/lim.last.Sub(lim.first)) // last-first is always > 0 because we can only get into this branch if last is less than 1h ago but first is more than 2h ago
+  // if first connection attempt is more than 1h ago, adjust
+  // first and count (based on average) so that first is only 30min ago.
+  if lim.first.Before(ago1h) {
+    lim.attempts = int64((30*time.Minute*time.Duration(lim.attempts))/now.Sub(lim.first)) 
     lim.first = ago30min
-    lim.last = now
   }
+  
+  lim.last = now
+  lim.attempts++
   
   if lim.maxactive > 0 && lim.active >= lim.maxactive {
     // do not log unless debugging to avoid logspam in case of an attack
@@ -90,12 +90,9 @@ func ConnectionLimitsRegister(addr net.Addr) bool {
     return false
   }
   
-  delta := lim.last.Sub(lim.first)
-  var connPerHour time.Duration
-  if delta > 0 { connPerHour = (time.Duration(lim.attempts)*time.Hour)/delta }
-  if lim.maxPerHour > 0 && delta > 0 && connPerHour > time.Duration(lim.maxPerHour) {
+  if lim.maxPerHour > 0 && lim.attempts > lim.maxPerHour {
     // do not log unless debugging to avoid logspam in case of an attack
-    util.Log(2, "DEBUG! [SECURITY] %v exceeded ConnPerHour: %v > %v", ip, connPerHour, lim.maxPerHour)
+    util.Log(2, "DEBUG! [SECURITY] %v exceeded ConnPerHour: %v > %v", ip, lim.attempts, lim.maxPerHour)
     return false
   }
   

@@ -1,3 +1,9 @@
+gosa (2.8.235) trusty; urgency=medium
+
+  * sibridge: hopefully connPerHour limiting works now
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 05 Feb 2016 11:57:08 +0100
+
 gosa (2.8.234) trusty; urgency=medium
 
   * sibridge: fix division by 0 introduced by additional logging
