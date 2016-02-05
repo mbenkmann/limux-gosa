@@ -15,6 +15,7 @@
   "certfilemyserver": "myserver.cert",
   "certfilelimits": "limits.cert",
   "certfilelimits2": "limits2.cert",
+  "certfilelimitsmanual": "limitsmanual.cert",
   
   "ca-generatedKey": "$secp256r1 keygen()",
   "generatedKey1": "$secp256r1 keygen()",
@@ -705,6 +706,72 @@
               "incoming": ["ldap://*","blafasel://foo.bar:987/foobar"],
               "ldapUpdate": "cn, dh ",
               "detectedHw": "template, macAddress"
+            }
+          }
+        ]
+      },
+      "signatureAlgorithm": "$sigAlg",
+      "signature": "$tbsCertificate TBSCertificate encode(DER) signkey sigAlg sign()"
+    },
+    "output": "$certificate Certificate encode(PEM) certfile write(if-missing)"
+  },
+  
+  ############# CERTIFICATE FOR MANUAL LIMITS TESTING ############################
+  "limitsmanual": {
+    "pubkey":  "$key1",
+    "signkey": "$ca-key",
+    "certfile": "$certfilelimitsmanual",
+      
+    "certificate": {
+      "tbsCertificate": {
+        "version": "v3",
+        
+        "serialNumber": 3,
+        
+        "signature": "$sigAlg",
+        "issuer": "$issuer-id",
+        "validity": {
+          "notBefore": { "utcTime": "151101000000Z" },
+          "notAfter":  { "utcTime": "251101000000Z" }
+        },
+        
+        "subject": {
+          "rdnSequence": [
+            [ { "type": "$id-at-commonName",       "value": "Limits for Manual Testing" } ]
+          ]
+        },
+            
+        "subjectPublicKeyInfo": "$pubkey subjectPublicKeyInfo()",
+        "extensions": [
+          {
+            "extnID": "$id-ce-subjectAltName",
+            "critical": false,
+            "extnValue": "$san SubjectAltName encode(DER)",
+            "san": [ { "iPAddress": "$0.0.0.0" } ]
+          },
+          {
+            "extnID":"$id-ce-keyUsage",
+            "extnValue":"$'digitalSignature' KeyUsage encode(DER)"
+          },
+          {
+            "extnID": "$id-ce-extKeyUsage",
+            "critical": false,
+            "extnValue": "$extkeyusage ExtKeyUsageSyntax encode(DER)",
+            "extkeyusage": [ "$id-kp-serverAuth", "$id-kp-clientAuth" ]
+          },
+          {
+            "extnID": "$gosa-ce-connectionLimits",
+            "critical": false,
+            "extnValue": "$limits GosaConnectionLimits encode(DER)",
+            "limits": { 
+              "totalTime": "60000",
+              "totalBytes": "800",
+              "messageBytes": "40",
+              "connPerHour": "10",
+              "connParallel": "3",
+              "maxLogFiles": "3",
+              "maxAnswers": "4",
+              "communicateWith": ["*.muenchen.de"]
             }
           }
         ]
