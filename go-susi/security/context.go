@@ -138,6 +138,10 @@ type GosaAccessLDAPDetectedHardware struct {
 }
 
 func SetLegacyDefaults(context *Context) {
+  if len(context.PeerID.IP) == 0 {
+    context.PeerID.IP = net.IPv4(0,0,0,0)
+  }
+  
   // everybody may connect
   context.PeerID.AllowedIPs = []net.IP{net.IPv4(0,0,0,0)}
   // no need for names, since AllowedIPs already allows everybody
