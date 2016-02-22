@@ -544,7 +544,7 @@ func JobsRemoveLocal(filter xml.HashFilter, stop_periodic bool) {
 func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
   if update.Text("status") == "done" {
     stop_periodic := 
-                ( update.Get("periodic") != nil && 
+                ( len(update.Get("periodic")) != 0 && 
                   ( update.Text("periodic") == "" || 
                     update.Text("periodic") == "none" ) )
     JobsRemoveLocal(filter, stop_periodic)

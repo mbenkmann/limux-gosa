@@ -1,3 +1,9 @@
+gosa (2.8.238) trusty; urgency=medium
+
+  * go-susi: Fix bug that causes periodic install/update jobs to not actually be repeated
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 22 Feb 2016 11:28:23 +0100
+
 gosa (2.8.237) trusty; urgency=medium
 
   * go-susi: implemented TotalTime certificate restriction
