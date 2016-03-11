@@ -1,3 +1,9 @@
+gosa (2.8.240) trusty; urgency=medium
+
+  * go-susi: implemented MessageBytes and TotalBytes certificate restrictions
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 11 Mar 2016 12:12:14 +0100
+
 gosa (2.8.239) trusty; urgency=medium
 
   * sibridge: fix type in WARNING message

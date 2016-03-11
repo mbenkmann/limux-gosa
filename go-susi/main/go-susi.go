@@ -381,14 +381,30 @@ func handle_request(tcpconn *net.TCPConn) {
   if context.Limits.TotalTime > 0 {
     totalDeadline = time.Now().Add(context.Limits.TotalTime)
   }
+
+  var bytesRemaining int64 = 9223372036854775807
+  if context.Limits.TotalBytes > 0 {
+    bytesRemaining = context.Limits.TotalBytes
+  }
+  var messageBytesRemaining int64 = 9223372036854775807
+  if context.Limits.MessageBytes > 0 {
+    messageBytesRemaining = context.Limits.MessageBytes
+  }
   
   for n != 0 {
+    if bytesRemaining < int64(len(readbuf)) {
+      readbuf = readbuf[0:bytesRemaining]
+    }
+    if messageBytesRemaining < int64(len(readbuf)) {
+      readbuf = readbuf[0:messageBytesRemaining]
+    }
+
     conn.SetDeadline(totalDeadline)
     //util.Log(2, "DEBUG! Receiving from %v", conn.RemoteAddr())
     n, err = conn.Read(readbuf)
     
     if !totalDeadline.IsZero() && totalDeadline.Before(time.Now()) {
-      util.Log(0, "WARNING! [SECURITY] %v has exceed TotalTime allowed by certificate => Force disconnect", conn.RemoteAddr())
+      util.Log(0, "WARNING! [SECURITY] %v has exceeded TotalTime allowed by certificate => Force disconnect", conn.RemoteAddr())
       return
     }
     
@@ -398,10 +414,11 @@ func handle_request(tcpconn *net.TCPConn) {
     if err == io.EOF {
       util.Log(2, "DEBUG! Connection closed by %v", conn.RemoteAddr())
     }
-    if n == 0 && err == nil {
+    if n == 0 && err == nil && len(readbuf) > 0 {
       util.Log(0, "ERROR! Read 0 bytes but no error reported")
     }
     
+    bytesRemaining -= int64(n)
     
     // Find complete lines terminated by '\n' and process them.
     for start := 0;; {
@@ -412,14 +429,26 @@ func handle_request(tcpconn *net.TCPConn) {
       
       // no \n found, append to buf and continue reading
       if eol == n {
+        messageBytesRemaining -= int64(n-start) // can never result in negative mBR because we never read more than mBR
         buf.Write(readbuf[start:n])
         break
       }
       
-      // append to rest of line to buffered contents
+      // append rest of line to buffered contents
       buf.Write(readbuf[start:eol])
       start = eol+1
-      
+
+      // We never read more than messageBytesRemaining, so if we get here
+      // not only do we have a complete message, we also know that it does
+      // not exceed context.Limits.MessageBytes.
+      // Unlike for context.Limits.TotalBytes reply bytes do not count
+      // against the per message limit. So we can just reset messageBytesRemaining
+      // to its starting value to prepare it for the next message.
+      messageBytesRemaining = 9223372036854775807
+      if context.Limits.MessageBytes > 0 {
+        messageBytesRemaining = context.Limits.MessageBytes
+      }
+
       buf.TrimSpace()
       
       // process the message and get a reply (if applicable)
@@ -431,6 +460,13 @@ func handle_request(tcpconn *net.TCPConn) {
         RequestProcessingTimes.Push(request_time)
         request_time -= RequestProcessingTimes.Next().(time.Duration)
         atomic.AddInt64(&message.RequestProcessingTime, int64(request_time))
+
+        bytesRemaining -= int64(reply.Len())
+        if bytesRemaining < 0 { // == 0 is still okay
+          reply.Reset()
+          util.Log(0, "WARNING! [SECURITY] Sending %v bytes reply to %v would exceed TotalBytes allowed by certificate => Force disconnect without reply", reply.Len(), conn.RemoteAddr())
+          return
+        }
         
         if reply.Len() > 0 {
           util.Log(2, "DEBUG! Sending %v bytes reply to %v", reply.Len(), conn.RemoteAddr())
@@ -463,7 +499,9 @@ func handle_request(tcpconn *net.TCPConn) {
     }
   }
   
-  if  buf.Len() != 0 {
+  if bytesRemaining <= 0 || messageBytesRemaining <= 0 {
+    util.Log(0, "WARNING! [SECURITY] %v has exceeded TotalBytes or MessageBytes allowed by certificate => Force disconnect", conn.RemoteAddr())
+  } else if buf.Len() != 0 {
     util.Log(0, "ERROR! Incomplete message from %v (i.e. not terminated by \"\\n\") of %v bytes: %v", conn.RemoteAddr(),buf.Len(), buf.String())
   }
 }
