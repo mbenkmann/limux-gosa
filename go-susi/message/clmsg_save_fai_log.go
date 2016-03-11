@@ -49,7 +49,8 @@ func match(data []byte, i int, s string) bool {
 
 // Handles the message "CLMSG_save_fai_log".
 //  buf: the decrypted message
-func clmsg_save_fai_log(buf *bytes.Buffer) {
+//  context: the security context
+func clmsg_save_fai_log(buf *bytes.Buffer, context *security.Context) {
   macaddress := ""
   action := ""
   start := 0
@@ -150,8 +151,15 @@ func clmsg_save_fai_log(buf *bytes.Buffer) {
   }
   
   files = append(files, end+8)
+  fcount := context.Limits.MaxLogFiles
+  if fcount <= 0 { fcount = 999999 }
   
   for i := 0; i < len(files)-1; i+=2 {
+    if fcount--; fcount < 0 {
+      util.Log(0, "WARNING! [SECURITY] %v has sent more than the %v log files allowed by certificate => Ignoring excess files", context.PeerID.IP, context.Limits.MaxLogFiles)
+      break
+    }
+    
     fname := string(data[files[i]:files[i+1]])
     logdata := data[files[i+1]+1:files[i+2]-8]
     util.Log(1, "INFO! Processing \"%v\" (%vkB)", fname, len(logdata)/1000)

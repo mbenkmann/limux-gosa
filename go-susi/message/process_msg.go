@@ -121,7 +121,7 @@ func ProcessEncryptedMessage(buf *bytes.Buffer, context *security.Context) (repl
         // is so large and parsing it to XML doesn't really gain us anything.
         if buf.Contains("<CLMSG_save_fai_log>") {
           if handleServerMessage() {
-            clmsg_save_fai_log(buf)
+            clmsg_save_fai_log(buf, context)
           }
           return &bytes.Buffer{}, false
         }
