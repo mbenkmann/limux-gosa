@@ -30,13 +30,15 @@ import (
          "github.com/mbenkmann/golib/util"
          "github.com/mbenkmann/golib/deque"
          "../config"
+         "../security"
        )
 
 // Handles the message "gosa_query_jobdb".
 //  xmlmsg: the decrypted and parsed message
+//  context: the security context
 // Returns:
 //  unencrypted reply
-func gosa_query_jobdb(xmlmsg *xml.Hash) *xml.Hash {
+func gosa_query_jobdb(xmlmsg *xml.Hash, context *security.Context) *xml.Hash {
   where := xmlmsg.First("where")
   if where == nil { where = xml.NewHash("where") }
   filter, err := xml.WhereFilter(where)
@@ -53,6 +55,8 @@ func gosa_query_jobdb(xmlmsg *xml.Hash) *xml.Hash {
     time.Sleep(delay)
   }
   
+  filter = security.LimitFilter(filter, int64(context.Limits.MaxAnswers), context.PeerID.IP.String())
+
   jobdb_xml := db.JobsQuery(filter)
   
   // sort jobs

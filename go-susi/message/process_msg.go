@@ -269,11 +269,11 @@ func ProcessXMLMessage(xml *xml.Hash, context *security.Context, key string) (re
                                          reply.WriteString(gosa_ping(xml))
                                          disconnect = true
                                        }
-      case "gosa_query_jobdb":         if handleServerMessage() { gosa_query_jobdb(xml).WriteTo(reply) }
-      case "gosa_query_fai_server":    if handleServerMessage() { gosa_query_fai_server(xml).WriteTo(reply) }
-      case "gosa_query_fai_release":   if handleServerMessage() { gosa_query_fai_release(xml).WriteTo(reply) }
+      case "gosa_query_jobdb":         if handleServerMessage() { gosa_query_jobdb(xml, context).WriteTo(reply) }
+      case "gosa_query_fai_server":    if handleServerMessage() { gosa_query_fai_server(xml, context).WriteTo(reply) }
+      case "gosa_query_fai_release":   if handleServerMessage() { gosa_query_fai_release(xml, context).WriteTo(reply) }
       case "gosa_query_packages_list": if handleServerMessage() { 
-                                         pkg := gosa_query_packages_list(xml)
+                                         pkg := gosa_query_packages_list(xml, context)
                                          pkg.WriteTo(reply)
                                          pkg.Destroy()
                                        }
@@ -288,7 +288,7 @@ func ProcessXMLMessage(xml *xml.Hash, context *security.Context, key string) (re
                                        }
       case "gosa_get_available_kernel":   
                                        if handleServerMessage() {
-                                         gosa_get_available_kernel(xml).WriteTo(reply)
+                                         gosa_get_available_kernel(xml,context).WriteTo(reply)
                                        }
       case "new_server":          if handleServerMessage() { new_server(xml) }
       case "confirm_new_server":  if handleServerMessage() { confirm_new_server(xml) }

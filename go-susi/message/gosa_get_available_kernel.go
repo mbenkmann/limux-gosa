@@ -26,13 +26,15 @@ import (
          "../db"
          "../xml"
          "../config"
+         "../security"
        )
 
 // Handles the message "gosa_get_available_kernel".
 //  xmlmsg: the decrypted and parsed message
+//  context: the security context
 // Returns:
 //  unencrypted reply
-func gosa_get_available_kernel(xmlmsg *xml.Hash) *xml.Hash {
+func gosa_get_available_kernel(xmlmsg *xml.Hash, context *security.Context) *xml.Hash {
   reply := xml.NewHash("xml","header","get_available_kernel")
   reply.Add("source", config.ServerSourceAddress)
   reply.Add("target", xmlmsg.Text("source"))
@@ -40,7 +42,9 @@ func gosa_get_available_kernel(xmlmsg *xml.Hash) *xml.Hash {
   reply.Add("get_available_kernel")
   
   var count uint64 = 1
-  kernels := db.FAIKernels(xml.FilterSimple("fai_release",xmlmsg.Text("fai_release")))
+  filter := xml.FilterSimple("fai_release",xmlmsg.Text("fai_release"))
+  filter = security.LimitFilter(filter, int64(context.Limits.MaxAnswers), context.PeerID.IP.String())
+  kernels := db.FAIKernels(filter)
   for kernel := kernels.First("kernel"); kernel != nil; kernel = kernel.Next() {
     answer := xml.NewHash("answer"+strconv.FormatUint(count, 10))
     answer.SetText(kernel.Text("cn"))

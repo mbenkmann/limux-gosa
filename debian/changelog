@@ -1,3 +1,9 @@
+gosa (2.8.242) trusty; urgency=medium
+
+  * go-susi: implemented maxAnswers certificate limit
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 11 Mar 2016 17:27:34 +0100
+
 gosa (2.8.241) trusty; urgency=medium
 
   * go-susi: implemented maxLogFiles certificate limit

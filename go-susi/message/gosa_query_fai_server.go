@@ -26,18 +26,26 @@ import (
          "../db"
          "../xml"
          "../config"
+         "../security"
+
+         "github.com/mbenkmann/golib/util"
        )
 
 // Handles the message "gosa_query_fai_server".
 //  xmlmsg: the decrypted and parsed message
+//  context: the security context
 // Returns:
 //  unencrypted reply
-func gosa_query_fai_server(xmlmsg *xml.Hash) *xml.Hash {
+func gosa_query_fai_server(xmlmsg *xml.Hash, context *security.Context) *xml.Hash {
   serversdb := db.FAIServers()
   servers := xml.NewHash("xml","header", "query_fai_server")
   
   var count uint64 = 1
   for child := serversdb.FirstChild(); child != nil; child = child.Next() {
+    if context.Limits.MaxAnswers > 0 && count == uint64(context.Limits.MaxAnswers) {
+      util.Log(0, "WARNING! [SECURITY] Request from %v generated too many answers => Truncating answer list\n", context.PeerID.IP)
+      break
+    }
     answer := child.Remove()
     answer.Rename("answer"+strconv.FormatUint(count, 10))
     servers.AddWithOwnership(answer)

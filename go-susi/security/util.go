@@ -23,6 +23,7 @@ import (
          
          "github.com/mbenkmann/golib/util"
          "../config"
+         "../xml"
        )
 
 var starttls = []byte{'S','T','A','R','T','T','L','S','\n'}
@@ -91,4 +92,34 @@ func SendLnTo(target, msg, key string, keep_open bool) (net.Conn, *Context) {
   }
   
   return nil, nil
+}
+
+type limitFilter struct {
+  f xml.HashFilter
+  max int64
+  requester string
+}
+
+func (f *limitFilter) Accepts(item *xml.Hash) bool {
+  if f.max < 0 { return false }
+  accepts := f.f.Accepts(item)
+  if accepts {
+    if f.max--; f.max < 0 {
+      util.Log(0, "WARNING! [SECURITY] Request from %v generated too many answers => Truncating answer list\n", f.requester)
+      accepts = false
+    }
+  }
+  return accepts
+}
+
+// Returns a filter that passes decisions on to filter f until
+// f has accepted max entries (max<=0 means no limit).
+// At that point a warning is logged
+// and all further entries will be rejected.
+// requester is a string that will be included in the warning as
+// identifier of the party that made the request that caused
+// excessive answers to be generated.
+func LimitFilter(f xml.HashFilter, max int64, requester string) xml.HashFilter {
+  if max <= 0 { return f }
+  return &limitFilter{f,max,requester}
 }

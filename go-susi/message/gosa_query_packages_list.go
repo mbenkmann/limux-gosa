@@ -26,13 +26,15 @@ import (
          "../xml"
          "github.com/mbenkmann/golib/util"
          "../config"
+         "../security"
        )
 
 // Handles the message "gosa_query_packages_list".
 //  xmlmsg: the decrypted and parsed message
+//  context: the security context
 // Returns:
 //  unencrypted reply
-func gosa_query_packages_list(xmlmsg *xml.Hash) *xml.Hash {
+func gosa_query_packages_list(xmlmsg *xml.Hash, context *security.Context) *xml.Hash {
   where := xmlmsg.First("where")
   if where == nil { where = xml.NewHash("where") }
   filter, err := xml.WhereFilter(where)
@@ -61,10 +63,11 @@ func gosa_query_packages_list(xmlmsg *xml.Hash) *xml.Hash {
     if distele.Name() != "distribution" { continue } // not the element we're looking for
     distribution = distele.Text()
   }
-  
+
+  filter = security.LimitFilter(filter, int64(context.Limits.MaxAnswers), context.PeerID.IP.String())
   packagesdb := db.FAIPackages(filter)
   packages := xml.NewHash("xml","header","query_packages_list")
-  
+
   var count uint64 = 1
   for child := packagesdb.FirstChild(); child != nil; child = child.Next() {
     answer := child.Remove()
