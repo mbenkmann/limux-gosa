@@ -556,7 +556,7 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
     }
 
     if !totalDeadline.IsZero() && totalDeadline.Before(time.Now()) {
-      util.Log(0, "WARNING! [SECURITY] %v has exceed TotalTime allowed by certificate => Force disconnect", conn.RemoteAddr())
+      util.Log(0, "WARNING! [SECURITY] %v has exceeded TotalTime allowed by certificate => Force disconnect", conn.RemoteAddr())
       return
     }
 

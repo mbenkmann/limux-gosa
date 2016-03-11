@@ -1,3 +1,9 @@
+gosa (2.8.239) trusty; urgency=medium
+
+  * sibridge: fix type in WARNING message
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 11 Mar 2016 11:06:01 +0100
+
 gosa (2.8.238) trusty; urgency=medium
 
   * go-susi: Fix bug that causes periodic install/update jobs to not actually be repeated
