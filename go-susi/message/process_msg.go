@@ -58,11 +58,17 @@ func ErrorReplyBuffer(msg interface{}) *bytes.Buffer {
   return &b
 }
 
-func handleServerMessage() bool {
+func handleServerMessage(bit bool, name string) bool {
   if !config.RunServer {
     util.Log(0, "WARNING! Ignoring server message because operating in client-only mode")
+    return false
+  } else {
+    if !bit {
+      util.Log(0, "WARNING! [SECURITY] Ignoring message because access control bit \"%s\" is not set in certificate", name)
+      return false
+    }
   }
-  return config.RunServer
+  return true
 }
 
 // Takes a possibly encrypted message in buf and processes it, returning a reply.
@@ -120,7 +126,7 @@ func ProcessEncryptedMessage(buf *bytes.Buffer, context *security.Context) (repl
         // special case for CLMSG_save_fai_log because this kind of message
         // is so large and parsing it to XML doesn't really gain us anything.
         if buf.Contains("<CLMSG_save_fai_log>") {
-          if handleServerMessage() {
+          if handleServerMessage(true,"") {
             clmsg_save_fai_log(buf, context)
           }
           return &bytes.Buffer{}, false
@@ -249,8 +255,16 @@ func ProcessXMLMessage(xml *xml.Hash, context *security.Context, key string) (re
     case "usr_msg":             usr_msg(xml)
     case "set_activated_for_installation": set_activated_for_installation(xml)
     case "detect_hardware":     detect_hardware(xml)
-    case "sistats":             sistats().WriteTo(reply)
-    case "panic":               go func(){panic("Panic by user request")}()
+    case "sistats":             if !context.Access.Query.QueryAll {
+                                  util.Log(0, "WARNING! [SECURITY] Ignoring \"sistats\" query because access control bit \"queryAll\" is not set in certificate")
+                                } else {
+                                  sistats().WriteTo(reply)
+                                }
+    case "panic":               if !context.Access.Misc.Debug {
+                                  util.Log(0, "WARNING! [SECURITY] Ignoring \"panic\" command because access control bit \"debug\" is not set in certificate")
+                                } else {
+                                  go func(){panic("Panic by user request")}()
+                                }
     case "trigger_action_halt",      // "Anhalten"
          "trigger_action_localboot", // "Erzwinge lokalen Start"
          "trigger_action_reboot",    // "Neustarten"
@@ -265,45 +279,45 @@ func ProcessXMLMessage(xml *xml.Hash, context *security.Context, key string) (re
   is_server_message := !is_client_message
   if is_server_message {
     switch xml.Text("header") {
-      case "gosa_ping":                if handleServerMessage() {
+      case "gosa_ping":                if handleServerMessage(context.Access.Query.QueryAll, "queryAll") {
                                          reply.WriteString(gosa_ping(xml))
                                          disconnect = true
                                        }
-      case "gosa_query_jobdb":         if handleServerMessage() { gosa_query_jobdb(xml, context).WriteTo(reply) }
-      case "gosa_query_fai_server":    if handleServerMessage() { gosa_query_fai_server(xml, context).WriteTo(reply) }
-      case "gosa_query_fai_release":   if handleServerMessage() { gosa_query_fai_release(xml, context).WriteTo(reply) }
-      case "gosa_query_packages_list": if handleServerMessage() { 
+      case "gosa_query_jobdb":         if handleServerMessage(context.Access.Query.QueryJobs||context.Access.Query.QueryAll,"queryJobs") { gosa_query_jobdb(xml, context).WriteTo(reply) }
+      case "gosa_query_fai_server":    if handleServerMessage(context.Access.Query.QueryAll,"queryAll") { gosa_query_fai_server(xml, context).WriteTo(reply) }
+      case "gosa_query_fai_release":   if handleServerMessage(context.Access.Query.QueryAll,"queryAll") { gosa_query_fai_release(xml, context).WriteTo(reply) }
+      case "gosa_query_packages_list": if handleServerMessage(context.Access.Query.QueryAll,"queryAll") { 
                                          pkg := gosa_query_packages_list(xml, context)
                                          pkg.WriteTo(reply)
                                          pkg.Destroy()
                                        }
-      case "gosa_show_log_by_mac":     if handleServerMessage() { gosa_show_log_by_mac(xml).WriteTo(reply) }
+      case "gosa_show_log_by_mac":     if handleServerMessage(context.Access.Query.QueryAll,"queryAll") { gosa_show_log_by_mac(xml).WriteTo(reply) }
       case "gosa_show_log_files_by_date_and_mac": 
-                                       if handleServerMessage() { 
+                                       if handleServerMessage(context.Access.Query.QueryAll,"queryAll") { 
                                          gosa_show_log_files_by_date_and_mac(xml).WriteTo(reply)
                                        }
       case "gosa_get_log_file_by_date_and_mac":   
-                                       if handleServerMessage() { 
+                                       if handleServerMessage(context.Access.Query.QueryAll,"queryAll") { 
                                          gosa_get_log_file_by_date_and_mac(xml).WriteTo(reply)
                                        }
       case "gosa_get_available_kernel":   
-                                       if handleServerMessage() {
+                                       if handleServerMessage(context.Access.Query.QueryAll,"queryAll") {
                                          gosa_get_available_kernel(xml,context).WriteTo(reply)
                                        }
-      case "new_server":          if handleServerMessage() { new_server(xml) }
-      case "confirm_new_server":  if handleServerMessage() { confirm_new_server(xml) }
-      case "foreign_job_updates": if handleServerMessage() { foreign_job_updates(xml) }
-      case "new_foreign_client":  if handleServerMessage() { new_foreign_client(xml) }
-      case "information_sharing": if handleServerMessage() { information_sharing(xml) }
-      case "here_i_am":           if handleServerMessage() { here_i_am(xml) }
-      case "new_key":             if handleServerMessage() { new_key(xml) }
-      case "detected_hardware":   if handleServerMessage() { detected_hardware(xml) }
-      case "CLMSG_CURRENTLY_LOGGED_IN": if handleServerMessage() { clmsg_currently_logged_in(xml) }
-      case "CLMSG_LOGIN":         if handleServerMessage() { clmsg_login(xml) }
-      case "CLMSG_LOGOUT":        if handleServerMessage() {clmsg_logout(xml) }
-      case "CLMSG_PROGRESS":      if handleServerMessage() {clmsg_progress(xml) }
-      case "CLMSG_TASKDIE":       if handleServerMessage() {clmsg_taskdie(xml) }
-      case "CLMSG_GOTOACTIVATION":if handleServerMessage() {clmsg_gotoactivation(xml) }
+      case "new_server":          if handleServerMessage(context.Access.Misc.Peer,"peer") { new_server(xml) }
+      case "confirm_new_server":  if handleServerMessage(context.Access.Misc.Peer,"peer") { confirm_new_server(xml) }
+      case "foreign_job_updates": if handleServerMessage(context.Access.Misc.Peer,"peer") { foreign_job_updates(xml) }
+      case "new_foreign_client":  if handleServerMessage(true,"") { new_foreign_client(xml) }
+      case "information_sharing": if handleServerMessage(true,"") { information_sharing(xml) }
+      case "here_i_am":           if handleServerMessage(true,"") { here_i_am(xml) }
+      case "new_key":             if handleServerMessage(true,"") { new_key(xml) }
+      case "detected_hardware":   if handleServerMessage(true,"") { detected_hardware(xml) }
+      case "CLMSG_CURRENTLY_LOGGED_IN": if handleServerMessage(true,"") { clmsg_currently_logged_in(xml) }
+      case "CLMSG_LOGIN":         if handleServerMessage(true,"") { clmsg_login(xml) }
+      case "CLMSG_LOGOUT":        if handleServerMessage(true,"") {clmsg_logout(xml) }
+      case "CLMSG_PROGRESS":      if handleServerMessage(true,"") {clmsg_progress(xml) }
+      case "CLMSG_TASKDIE":       if handleServerMessage(true,"") {clmsg_taskdie(xml) }
+      case "CLMSG_GOTOACTIVATION":if handleServerMessage(true,"") {clmsg_gotoactivation(xml) }
       case "CLMSG_HOOK",
            "CLMSG_TASKBEGIN",
            "CLMSG_check",
@@ -311,46 +325,82 @@ func ProcessXMLMessage(xml *xml.Hash, context *security.Context, key string) (re
                                   util.Log(2, "DEBUG! ProcessXMLMessage: '%v'\n=======start FAI message=======\n%v\n=======end FAI message=======", xml.Text("header"), xml.String())
       case "job_set_activated_for_installation",
            "gosa_set_activated_for_installation":
-                                  if handleServerMessage() { gosa_set_activated_for_installation(xml) }
-      case "gosa_trigger_action_lock",      // "Sperre"
-           "gosa_trigger_action_halt",      // "Anhalten"
-           "gosa_trigger_action_localboot", // "Erzwinge lokalen Start"
-           "gosa_trigger_action_reboot",    // "Neustarten"
-           "gosa_trigger_action_faireboot", // "Job abbrechen"
-           "gosa_trigger_action_activate",  // "Sperre aufheben"
-           "gosa_trigger_action_update",    // "Aktualisieren"
-           "gosa_trigger_action_reinstall", // "Neuinstallation"
-           "gosa_trigger_action_wake":      // "Aufwecken"
-                                  if handleServerMessage() {
+                                  if handleServerMessage(context.Access.Jobs.Unlock||context.Access.Jobs.JobsAll,"unlock") { gosa_set_activated_for_installation(xml) }
+      case "gosa_trigger_action_lock":      // "Sperre"
+                                  if handleServerMessage(context.Access.Jobs.Lock||context.Access.Jobs.JobsAll,"lock") {
                                     gosa_trigger_action(xml).WriteTo(reply)
                                   }
-      case "job_trigger_action_lock",      // "Sperre"
-           "job_trigger_action_halt",      // "Anhalten"
-           "job_trigger_action_localboot", // "Erzwinge lokalen Start"
-           "job_trigger_action_reboot",    // "Neustarten"
-           "job_trigger_action_faireboot", // "Job abbrechen"
-           "job_trigger_action_activate",  // "Sperre aufheben"
-           "job_trigger_action_update",    // "Aktualisieren"
-           "job_trigger_action_reinstall", // "Neuinstallation"
-           "job_trigger_action_wake":      // "Aufwecken"
-                                  if handleServerMessage() {
+      case "gosa_trigger_action_reboot",    // "Neustarten"
+           "gosa_trigger_action_halt":      // "Anhalten"
+                                  if handleServerMessage(context.Access.Jobs.Shutdown||context.Access.Jobs.JobsAll,"shutdown") {
+                                    gosa_trigger_action(xml).WriteTo(reply)
+                                  }
+      case "gosa_trigger_action_localboot", // "Erzwinge lokalen Start"
+           "gosa_trigger_action_faireboot": // "Job abbrechen"
+                                  if handleServerMessage(context.Access.Jobs.Abort||context.Access.Jobs.JobsAll,"abort") {
+                                    gosa_trigger_action(xml).WriteTo(reply)
+                                  }
+      case "gosa_trigger_action_activate":  // "Sperre aufheben"
+                                  if handleServerMessage(context.Access.Jobs.Unlock||context.Access.Jobs.JobsAll,"unlock") {
+                                    gosa_trigger_action(xml).WriteTo(reply)
+                                  }
+      case "gosa_trigger_action_update":    // "Aktualisieren"
+                                  if handleServerMessage(context.Access.Jobs.Update||context.Access.Jobs.JobsAll,"update") {
+                                    gosa_trigger_action(xml).WriteTo(reply)
+                                  }
+      case "gosa_trigger_action_reinstall": // "Neuinstallation"
+                                  if handleServerMessage(context.Access.Jobs.Install||context.Access.Jobs.JobsAll,"install") {
+                                    gosa_trigger_action(xml).WriteTo(reply)
+                                  }
+      case "gosa_trigger_action_wake":      // "Aufwecken"
+                                  if handleServerMessage(context.Access.Jobs.Wake||context.Access.Jobs.JobsAll,"wake") {
+                                    gosa_trigger_action(xml).WriteTo(reply)
+                                  }
+      case "job_trigger_action_lock":      // "Sperre"
+                                  if handleServerMessage(context.Access.Jobs.Lock||context.Access.Jobs.JobsAll,"lock") {
+                                    job_trigger_action(xml).WriteTo(reply)
+                                  }
+      case "job_trigger_action_halt",      // "Anhalten"
+           "job_trigger_action_reboot":    // "Neustarten"
+                                  if handleServerMessage(context.Access.Jobs.Shutdown||context.Access.Jobs.JobsAll,"shutdown") {
+                                    job_trigger_action(xml).WriteTo(reply)
+                                  }
+      case "job_trigger_action_localboot", // "Erzwinge lokalen Start"
+           "job_trigger_action_faireboot": // "Job abbrechen"
+                                  if handleServerMessage(context.Access.Jobs.Abort||context.Access.Jobs.JobsAll,"abort") {
+                                    job_trigger_action(xml).WriteTo(reply)
+                                  }
+      case "job_trigger_action_activate":  // "Sperre aufheben"
+                                  if handleServerMessage(context.Access.Jobs.Unlock||context.Access.Jobs.JobsAll,"unlock") {
+                                    job_trigger_action(xml).WriteTo(reply)
+                                  }
+      case "job_trigger_action_update":    // "Aktualisieren"
+                                  if handleServerMessage(context.Access.Jobs.Update||context.Access.Jobs.JobsAll,"update") {
+                                    job_trigger_action(xml).WriteTo(reply)
+                                  }
+      case "job_trigger_action_reinstall": // "Neuinstallation"
+                                  if handleServerMessage(context.Access.Jobs.Install||context.Access.Jobs.JobsAll,"install") {
+                                    job_trigger_action(xml).WriteTo(reply)
+                                  }
+      case "job_trigger_action_wake":      // "Aufwecken"
+                                  if handleServerMessage(context.Access.Jobs.Wake||context.Access.Jobs.JobsAll,"wake") {
                                     job_trigger_action(xml).WriteTo(reply)
                                   }
       case "gosa_trigger_activate_new",
            "job_trigger_activate_new":
-                                  if handleServerMessage() {
+                                  if handleServerMessage(context.Access.Jobs.NewSys||context.Access.Jobs.JobsAll,"newSys") {
                                     job_trigger_activate_new(xml).WriteTo(reply)
                                   }
       case "gosa_send_user_msg",
-           "job_send_user_msg":   if handleServerMessage() { job_send_user_msg(xml).WriteTo(reply) }
-      case "trigger_wake":        if handleServerMessage() {
+           "job_send_user_msg":   if handleServerMessage(context.Access.Jobs.UserMsg||context.Access.Jobs.JobsAll,"userMsg") { job_send_user_msg(xml).WriteTo(reply) }
+      case "trigger_wake":        if handleServerMessage(context.Access.Misc.Wake,"wake") {
                                     trigger_wake(xml)
                                   }
       
       case "gosa_delete_jobdb_entry":
-                                  if handleServerMessage() { gosa_delete_jobdb_entry(xml).WriteTo(reply) }
+                                  if handleServerMessage(context.Access.Jobs.ModifyJobs,"modifyJobs") { gosa_delete_jobdb_entry(xml).WriteTo(reply) }
       case "gosa_update_status_jobdb_entry":
-                                  if handleServerMessage() { gosa_update_status_jobdb_entry(xml).WriteTo(reply) }
+                                  if handleServerMessage(context.Access.Jobs.ModifyJobs,"modifyJobs") { gosa_update_status_jobdb_entry(xml).WriteTo(reply) }
     default:
           is_server_message = false
     }

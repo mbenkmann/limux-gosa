@@ -1,3 +1,9 @@
+gosa (2.8.243) trusty; urgency=medium
+
+  * go-susi: implement GosaAccessJobs, GosaAccessQuery and GosaAccessMisc bits from certificate restrictions
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 18 Mar 2016 16:53:23 +0100
+
 gosa (2.8.242) trusty; urgency=medium
 
   * go-susi: implemented maxAnswers certificate limit
