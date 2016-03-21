@@ -348,7 +348,7 @@ func handle_request(tcpconn *net.TCPConn) {
     for i := range starttls {
       n, err = conn.Read(readbuf[0:1])
       if n == 0 {
-        if i != 0 { // Do not log an error for a port scan that just opens a connection and closes it immediately
+        if i != 0 || err != io.EOF { // Do not log an error for a port scan that just opens a connection and closes it immediately
           util.Log(0, "ERROR! Read error while looking for STARTTLS from %v: %v", conn.RemoteAddr(), err)
         }
         return
