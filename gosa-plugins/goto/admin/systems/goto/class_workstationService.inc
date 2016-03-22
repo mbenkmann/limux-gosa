@@ -11,7 +11,7 @@ class workservice extends plugin
     var $gotoXColordepth= "";
     var $gotoXHsync= "";
     var $gotoXVsync= "";
-    var $AutoSync = true;
+    var $AutoSync = false;
     var $gotoXKbModel= "";
     var $gotoXKbLayout= "";
     var $gotoXKbVariant= "";
@@ -214,12 +214,11 @@ class workservice extends plugin
         /* Load hardware list */
         $this->loadHardwareList();
 
-        if (preg_match("/\+/",$this->gotoXHsync)){
+        if ($this->AutoSync || preg_match("/\+/",$this->gotoXHsync) || (!$this->InheritXYSync && empty($this->gotoXHsync))){
           $this->AutoSync = true;
           $this->gotoXHsync = preg_replace("/\+/","-",$this->gotoXHsync);
           $this->gotoXVsync = preg_replace("/\+/","-",$this->gotoXVsync);
         }
-
 
         if($this->is_account && !$this->view_logged){
             $this->view_logged = TRUE;
@@ -682,6 +681,10 @@ class workservice extends plugin
             $this->AutoSync = true;
             $this->gotoXHsync = preg_replace("/\+/","-",$this->gotoXHsync);
             $this->gotoXVsync = preg_replace("/\+/","-",$this->gotoXVsync);
+        }
+
+        if(!empty($this->gotoXHsync) && !empty($this->gotoXVsync)) {
+            $this->InheritXYSync = FALSE;
         }
     }
 }

@@ -1,3 +1,9 @@
+gosa (2.8.245) trusty; urgency=medium
+
+  * fix buggy DDC checkbox behaviour introduced with commit 975d0a3
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 22 Mar 2016 10:54:43 +0100
+
 gosa (2.8.244) trusty; urgency=medium
 
   * go-susi: improve diagnostics
