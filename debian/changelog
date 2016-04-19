@@ -1,3 +1,9 @@
+gosa (2.8.246) trusty; urgency=medium
+
+  * fix CSV-import of multiple items
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 19 Apr 2016 11:19:24 +0200
+
 gosa (2.8.245) trusty; urgency=medium
 
   * fix buggy DDC checkbox behaviour introduced with commit 975d0a3

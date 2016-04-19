@@ -315,9 +315,9 @@ class CopyPasteHandler {
           $col_names = str_getcsv($firstline, $delimiter, $enclosure, $escape);
           
           $num_cols = count($col_names);
-          $have_col = array();
           
           while (($data = fgetcsv($handle, 0, $delimiter, $enclosure, $escape)) !== FALSE) {
+            $have_col = array();
             $num = count($data);
             if ($num == $num_cols) {
               $ldapdata = $this->current['source_data'];
