@@ -1,3 +1,9 @@
+gosa (2.8.247) trusty; urgency=medium
+
+  * trickler.go: program for simulating choppy/slow connection to test certificate policies
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 29 Apr 2016 16:07:21 +0200
+
 gosa (2.8.246) trusty; urgency=medium
 
   * fix CSV-import of multiple items
