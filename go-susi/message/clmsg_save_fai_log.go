@@ -178,7 +178,8 @@ func clmsg_save_fai_log(buf *bytes.Buffer, context *security.Context) {
 
 // Executes program and reads from its standard output log files to transfer to
 // the target server. See fai-savelog-hook in the manual.
-func Send_clmsg_save_fai_log(target string, program string) {
+// hookname is the name of the hook for use in log messages.
+func Send_clmsg_save_fai_log(target string, program string, hookname string) {
   var buffy bytes.Buffer
   defer buffy.Reset()
   
@@ -187,7 +188,7 @@ func Send_clmsg_save_fai_log(target string, program string) {
   // (We don't take the 1st because that would be "dummy-key").
   if clientpackageskey == "" { clientpackageskey = config.ModuleKeys[len(config.ModuleKeys)-1] }
   
-  util.Log(1, "INFO! Launching fai-savelog-hook %v", program)
+  util.Log(1, "INFO! Launching %v %v", hookname, program)
   start := time.Now()
   env := config.HookEnvironment()
   cmd := exec.Command(program)
@@ -234,7 +235,7 @@ func Send_clmsg_save_fai_log(target string, program string) {
     }
 
     line = strings.TrimSpace(line)
-    if line == "install" || line == "softupdate" {
+    if line == "install" || line == "softupdate" || line == "audit" {
       fai_action = line
       break
     }
@@ -242,7 +243,7 @@ func Send_clmsg_save_fai_log(target string, program string) {
     buffy.WriteString(line)
   }
   
-  util.Log(1, "INFO! Received %v bytes in %v from fai-savelog-hook", buffy.Len(), time.Since(start))
+  util.Log(1, "INFO! Received %v bytes in %v from %v", buffy.Len(), time.Since(start), hookname)
   
   buffy.WriteString("</CLMSG_save_fai_log>")
   buffy.WriteString("<fai_action>")

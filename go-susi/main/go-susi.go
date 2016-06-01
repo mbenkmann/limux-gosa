@@ -664,7 +664,7 @@ func faiProgressWatch() {
     go func(){security.SendLnTo(target, msg, clientpackageskey, false)}()
     
     if strings.HasPrefix(line, "TASKEND savelog") { 
-      message.Send_clmsg_save_fai_log(target, config.FAISavelogHookPath)
+      message.Send_clmsg_save_fai_log(target, config.FAISavelogHookPath, "fai-savelog-hook")
     }
   }
 }
