@@ -138,6 +138,11 @@ var FAIProgressHookPath = "/usr/lib/go-susi/fai_progress"
 // sent to the server as CLMSG_save_fai_log message.
 var FAISavelogHookPath = "/usr/lib/go-susi/fai_savelog"
 
+// Path to a hook called when "TASKEND audit" is seen in the output
+// from the FAIProgressHookPath program. The output from the hook is
+// sent to the server as CLMSG_save_fai_log message.
+var FAIAuditHookPath = "/usr/lib/go-susi/fai_audit"
+
 // Path where log files from CLMSG_save_fai_log are stored.
 // Within this directory go-susi creates sub-directories named
 // after the clients' MAC addresses and symlinks named after the
@@ -569,6 +574,9 @@ func ReadConfig() {
     }
     if fai_savelog, ok := general["fai-savelog-hook"]; ok {
       FAISavelogHookPath = fai_savelog
+    }
+    if fai_audit, ok := general["fai-audit-hook"]; ok {
+      FAIAuditHookPath = fai_audit
     }
   }
   

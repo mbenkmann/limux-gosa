@@ -387,6 +387,31 @@ test -n "$new_ntp_config" && {
 exit 0
 `), 0755)
 
+  trigger_action := tempdir+"/trigger_action"
+  ioutil.WriteFile(trigger_action, []byte(`#!/bin/bash
+case $header in
+  trigger_action_audit)
+                        echo TASKEND audit >>`+tempdir+`/fai-monitor.log
+                        ;;
+esac
+exit 0
+`), 0755)
+
+  fai_progress := tempdir+"/fai_progress"
+  ioutil.WriteFile(fai_progress, []byte(`#!/bin/bash
+touch `+tempdir+`/fai-monitor.log
+exec tail -f `+tempdir+`/fai-monitor.log
+`), 0755)
+
+  fai_audit := tempdir+"/fai_audit"
+  ioutil.WriteFile(fai_audit, []byte(`#!/bin/bash
+echo log_file:foo.xml:Zm9vCg==
+echo log_file:bar.xml:YmFyCg==
+echo audit
+read
+exit 0
+`), 0755)
+
   pxelinux := tempdir+"/pxelinux.txt"
   ioutil.WriteFile(pxelinux, []byte("This is\000pxelinux.0"), 0644)
   
@@ -400,6 +425,9 @@ package-list-hook = `+tempdir+`/generate_package_list
 user-msg-hook = `+tempdir+`/send_user_msg
 pxelinux-cfg-hook = `+tempdir+`/generate_pxelinux_cfg
 new-config-hook = `+tempdir+`/update_config
+trigger-action-hook = `+tempdir+`/trigger_action
+fai-progress-hook = `+tempdir+`/fai_progress
+fai-audit-hook = `+tempdir+`/fai_audit
 
 [bus]
 enabled = false

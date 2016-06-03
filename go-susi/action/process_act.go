@@ -87,6 +87,7 @@ func Init() { // not init() because we need to call it from go-susi.go
                                                done = false    
               case "trigger_action_reinstall": Reinstall(job) // "Neuinstallation"
                                                done = false
+              case "trigger_action_audit":     /* nothing */  // "Auditieren"
               default:
                    util.Log(0, "ERROR! Unknown headertag in PendingActions for job: %v", job)
             }
@@ -114,7 +115,7 @@ func Init() { // not init() because we need to call it from go-susi.go
             case "set_activated_for_installation",
                  "trigger_action_activate":  // "Sperre aufheben"
             case "trigger_action_wake":      // "Aufwecken"
-            
+            case "trigger_action_audit":     // "Auditieren"
             case "trigger_action_update",    // "Aktualisieren"
                  "trigger_action_reinstall": // "Neuinstallation"
                  macaddress := job.Text("macaddress")

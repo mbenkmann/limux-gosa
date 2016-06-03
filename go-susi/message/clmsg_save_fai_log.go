@@ -89,10 +89,12 @@ func clmsg_save_fai_log(buf *bytes.Buffer, context *security.Context) {
     return
   }
   
-  util.Log(1, "INFO! Received log files from client %v. Assuming CLMSG_PROGRESS 100", macaddress)
-  progress_msg := xml.NewHash("xml","CLMSG_PROGRESS","100")
-  progress_msg.Add("macaddress", macaddress)
-  clmsg_progress(progress_msg)
+  if action != "audit" {
+    util.Log(1, "INFO! Received log files from client %v. Assuming CLMSG_PROGRESS 100", macaddress)
+    progress_msg := xml.NewHash("xml","CLMSG_PROGRESS","100")
+    progress_msg.Add("macaddress", macaddress)
+    clmsg_progress(progress_msg)
+  }
   
   timestamp := util.MakeTimestamp(time.Now())
   logname := action+"_"+timestamp[0:8]+"_"+timestamp[8:]

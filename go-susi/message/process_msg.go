@@ -271,6 +271,7 @@ func ProcessXMLMessage(xml *xml.Hash, context *security.Context, key string) (re
          "trigger_action_faireboot", // "Job abbrechen"
          "trigger_action_update",    // "Aktualisieren"
          "trigger_action_reinstall", // "Neuinstallation"
+         "trigger_action_audit",     // "Auditieren"
          "trigger_action_instant_update": trigger_action_foo(xml)
   default:                      
     is_client_message = false
@@ -356,6 +357,10 @@ func ProcessXMLMessage(xml *xml.Hash, context *security.Context, key string) (re
                                   if handleServerMessage(context.Access.Jobs.Wake||context.Access.Jobs.JobsAll,"wake") {
                                     gosa_trigger_action(xml).WriteTo(reply)
                                   }
+      case "gosa_trigger_action_audit":      // "Auditieren"
+                                  if handleServerMessage(context.Access.Jobs.Audit||context.Access.Jobs.JobsAll,"audit") {
+                                    gosa_trigger_action(xml).WriteTo(reply)
+                                  }
       case "job_trigger_action_lock":      // "Sperre"
                                   if handleServerMessage(context.Access.Jobs.Lock||context.Access.Jobs.JobsAll,"lock") {
                                     job_trigger_action(xml).WriteTo(reply)
@@ -384,6 +389,10 @@ func ProcessXMLMessage(xml *xml.Hash, context *security.Context, key string) (re
                                   }
       case "job_trigger_action_wake":      // "Aufwecken"
                                   if handleServerMessage(context.Access.Jobs.Wake||context.Access.Jobs.JobsAll,"wake") {
+                                    job_trigger_action(xml).WriteTo(reply)
+                                  }
+      case "job_trigger_action_audit":      // "Auditieren"
+                                  if handleServerMessage(context.Access.Jobs.Audit||context.Access.Jobs.JobsAll,"audit") {
                                     job_trigger_action(xml).WriteTo(reply)
                                   }
       case "gosa_trigger_activate_new",

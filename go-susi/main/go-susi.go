@@ -665,6 +665,8 @@ func faiProgressWatch() {
     
     if strings.HasPrefix(line, "TASKEND savelog") { 
       message.Send_clmsg_save_fai_log(target, config.FAISavelogHookPath, "fai-savelog-hook")
+    } else if strings.HasPrefix(line, "TASKEND audit") { 
+      message.Send_clmsg_save_fai_log(target, config.FAIAuditHookPath, "fai-audit-hook")
     }
   }
 }

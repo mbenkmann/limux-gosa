@@ -1,3 +1,9 @@
+gosa (2.8.249) trusty; urgency=medium
+
+  * go-susi: trigger audit hook on TASKEND audit; send audit files to server
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 03 Jun 2016 17:59:57 +0200
+
 gosa (2.8.248) trusty; urgency=medium
 
   * go-susi: preparations for audit related messages

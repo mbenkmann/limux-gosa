@@ -373,10 +373,16 @@ func SystemTest(daemon string, is_gosasi bool) {
     run_trigger_activate_new_tests()
     run_tftp_tests()
     run_new_foo_config_tests()
+    run_audit_tests()
   }
   
   run_activate_new_client_test()
   run_gosa_ping_tests()
+}
+
+func run_audit_tests() {
+  gosa("job_trigger_action_audit", hash("xml(macaddress(%v)target(%v))",config.MAC,config.ServerSourceAddress))
+  time.Sleep(2*time.Second)
 }
 
 func run_gosa_ping_tests() {
