@@ -1,3 +1,9 @@
+gosa (2.8.251) trusty; urgency=medium
+
+  * go-susi: audit test data generation script
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 08 Jun 2016 12:03:16 +0200
+
 gosa (2.8.250) trusty; urgency=medium
 
   * attic wollist: compile on Ubuntu 64bit

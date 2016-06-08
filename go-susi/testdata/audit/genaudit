@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# COLUMNS=200 dpkg -l|sed -n -r 's/^(..) +([^ ]+) +([^ ]+).*/<entry>\n  <key>\2<\/key>\n  <version>\3<\/version>\n  <status>\1<\/status>\n  <update\/>\n<\/entry>\n/p' >/tmp/pkg.xml
+ 
+countdown=5000
+count=0
+
+mkdir -p fai
+
+digs="0 1 2 3 4 5 6 7 8 9 a b c d e f"
+
+for a in $digs; do
+for b in $digs; do
+for c in $digs; do
+for d in $digs; do
+for e in $digs; do
+for f in $digs; do
+
+r=$RANDOM
+r=${r##${r%?}}
+if [ $r -gt 6 ]; then
+  mac="f0:12:c3:$f$e:$d$c:$b$a"
+  
+  count=$(($count + 1))
+  name="$(sed -n ${count}p demons.list)"
+  ip=10.$(($count / 65536)).$(($count / 256)).$(($count % 256))
+  echo $mac $ip $name
+  
+  dir="fai/$mac"
+  mkdir $dir
+  
+  ln -s $mac fai/$name
+  
+  for ts in 20060601_120000 20060602_120000 20060603_120000 20060604_120000 20060605_120000 20060606_120000 20060607_120000 20060608_120000 20060609_120000 20060610_120000 20060611_120000 ; do
+    mkdir $dir/audit-$ts
+    cp audit-template/packages.xml $dir/audit-$ts
+    cp audit-template/sources.xml $dir/audit-$ts
+    r=$RANDOM
+    r=${r##${r%?}}
+    case $r in
+      0|1|2) sed -i /ZSH/d $dir/audit-$ts/packages.xml ;;
+      3|4|5) sed -i /ASH/d $dir/audit-$ts/packages.xml ;;
+    esac
+    
+    case $RANDOM in
+      *0|*1|*2|*3)  sed -i s/ASH/1.1/ $dir/audit-$ts/packages.xml ;;
+      *4|*5|*6)     sed -i s/ASH/1.2/ $dir/audit-$ts/packages.xml ;;
+      *7|*8|*9)     sed -i s/ASH/1.3/ $dir/audit-$ts/packages.xml ;;
+    esac
+    
+    sed -i s/ZSH/2.2/ $dir/audit-$ts/packages.xml
+    
+    num=${ts#200606}
+    num=${num%_120000}
+    if [ $num != 11 ]; then
+      case $RANDOM in
+       *0|*1|*2|*3|*4) sed -r -i 's/(<key>.)/\1'$num/ $dir/audit-$ts/packages.xml ;;
+       *) sed -r -i 's/(<version>.)/\1'$num/ $dir/audit-$ts/packages.xml ;;
+      esac
+    fi
+    
+    for file in packages.xml sources.xml ; do
+      case $RANDOM in
+        *0|*1|*2|*3)  sed -i s/TIMESTAMP/$ts/ $dir/audit-$ts/$file ;;
+        *4|*5|*6)     sed -i /TIMESTAMP/d $dir/audit-$ts/$file ;;
+        *7|*8|*9)     sed -i s/TIMESTAMP/20000101120000/ $dir/audit-$ts/$file ;;
+      esac
+      
+      case $RANDOM in
+        *0|*1|*2|*3)  sed -i s/MACADDRESS/$mac/ $dir/audit-$ts/$file ;;
+        *4|*5|*6)     sed -i /MACADDRESS/d $dir/audit-$ts/$file ;;
+        *7|*8|*9)     sed -i s/MACADDRESS/WR:ON:GM:AC:AD:DR/ $dir/audit-$ts/$file ;;
+      esac
+      
+      case $RANDOM in
+        *0|*1|*2|*3)  sed -i s/IPADDRESS/$ip/ $dir/audit-$ts/$file ;;
+        *4|*5|*6)     sed -i /IPADDRESS/d $dir/audit-$ts/$file ;;
+        *7|*8|*9)     sed -i s/IPADDRESS/0.0.0.0/ $dir/audit-$ts/$file ;;
+      esac
+      
+      case $RANDOM in
+        *0|*1|*2|*3)  sed -i s/HOSTNAME/$name/ $dir/audit-$ts/$file ;;
+        *4|*5|*6)     sed -i /HOSTNAME/d $dir/audit-$ts/$file ;;
+        *7|*8|*9)     sed -i s/HOSTNAME/wrongname/ $dir/audit-$ts/$file ;;
+      esac
+    done
+        
+  done
+  
+  countdown=$(($countdown - 1))
+  if [ $countdown = 0 ]; then
+    exit 0
+  fi
+fi
+
+done
+done
+done
+done    
+done
+done
