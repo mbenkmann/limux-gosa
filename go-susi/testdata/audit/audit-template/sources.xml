@@ -1,0 +1,30 @@
+<audit>
+  <timestamp>TIMESTAMP</timestamp>
+  <macaddress>MACADDRESS</macaddress>
+  <ipaddress>IPADDRESS</ipaddress>
+  <hostname>HOSTNAME</hostname>
+  
+  <entry>
+    <key>0</key>
+    <file>sources.list</file>
+    <repo>http://dak.buildserv-new.tvc.susi.de/</repo>
+    <distribution>wanderer</distribution>
+    <components>	main  universe		multiverse restricted ff partner  </components>
+  </entry>
+  
+  <entry>
+    <key>1</key>
+    <file>sources.list</file>
+    <repo>http://devmaster.susi.de</repo>
+    <distribution>gorg/2.2</distribution>
+    <components> main  universe		multiverse foo restricted</components>
+  </entry>
+  
+  <entry>
+    <key>2</key>
+    <file>security.list</file>
+    <repo>http://sec.susi.de</repo>
+    <distribution>gorg/2.2</distribution>
+    <components>security main</components>
+  </entry>
+</audit>

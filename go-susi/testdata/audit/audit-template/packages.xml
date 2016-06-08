@@ -1,0 +1,9531 @@
+<audit>
+  <timestamp>TIMESTAMP</timestamp>
+  <macaddress>MACADDRESS</macaddress>
+  <ipaddress>IPADDRESS</ipaddress>
+  <hostname>HOSTNAME</hostname>
+  
+  <entry>
+    <key>accountsservice</key>
+    <version>0.6.35-0ubuntu7.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>acl</key>
+    <version>2.2.52-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>acpid</key>
+    <version>1:2.0.21-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>adduser</key>
+    <version>3.113+nmu3ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>alsa-base</key>
+    <version>1.0.25+dfsg-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>alsa-utils</key>
+    <version>1.0.27.2-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>apparmor</key>
+    <version>2.8.95~2430-0ubuntu5.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>apport</key>
+    <version>2.14.1-0ubuntu3.21</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>apport-symptoms</key>
+    <version>0.20</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>apt</key>
+    <version>1.0.1ubuntu2.14</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>apt-transport-https</key>
+    <version>1.0.1ubuntu2.14</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>apt-utils</key>
+    <version>1.0.1ubuntu2.14</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>apt-xapian-index</key>
+    <version>0.45ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>aptitude</key>
+    <version>0.6.8.2-1ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>aptitude-common</key>
+    <version>0.6.8.2-1ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+  
+  <entry><key>ash</key><version>ASH</version><status>ii</status><update></update></entry>
+
+  <entry>
+    <key>aspell</key>
+    <version>0.60.7~20110707-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>aspell-en</key>
+    <version>7.1-0-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>at</key>
+    <version>3.1.14-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>at-spi2-core</key>
+    <version>2.10.2.is.2.10.1-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>attr</key>
+    <version>1:2.4.47-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>autoconf</key>
+    <version>2.69-6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>automake</key>
+    <version>1:1.14.1-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>autotools-dev</key>
+    <version>20130810.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>base-files</key>
+    <version>7.2ubuntu5.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>base-passwd</key>
+    <version>3.5.33</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>bash</key>
+    <version>4.3-7ubuntu1.5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>bash-completion</key>
+    <version>1:2.1-4ubuntu0.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>bc</key>
+    <version>1.06.95-8ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>beep</key>
+    <version>1.3-3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>bind9-host</key>
+    <version>1:9.9.5.dfsg-3ubuntu0.8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>binfmt-support</key>
+    <version>2.1.4-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>binutils</key>
+    <version>2.24-5ubuntu14.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>biosdevname</key>
+    <version>0.4.1-0ubuntu6.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>bridge-utils</key>
+    <version>1.5-6ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>bsdmainutils</key>
+    <version>9.0.5ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>bsdutils</key>
+    <version>1:2.20.1-5.1ubuntu20.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>btrfs-tools</key>
+    <version>3.12-1ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>build-essential</key>
+    <version>11.6ubuntu6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>busybox-initramfs</key>
+    <version>1:1.21.0-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>busybox-static</key>
+    <version>1:1.21.0-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>byobu</key>
+    <version>5.77-0ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>bzip2</key>
+    <version>1.0.6-5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ca-certificates</key>
+    <version>20160104ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ca-certificates-java</key>
+    <version>20130815ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>cabextract</key>
+    <version>1.4-4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>cadaver</key>
+    <version>0.23.3-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>colord</key>
+    <version>1.0.6-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>comerr-dev</key>
+    <version>2.1-1.42.9-3ubuntu1.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>command-not-found</key>
+    <version>0.3ubuntu12</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>command-not-found-data</key>
+    <version>0.3ubuntu12</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>config-package-dev</key>
+    <version>5.1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>console-setup</key>
+    <version>1.70ubuntu8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>coreutils</key>
+    <version>8.21-1ubuntu5.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>cpio</key>
+    <version>2.11+dfsg-1ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>cpp</key>
+    <version>4:4.8.2-1ubuntu6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>cpp-4.8</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>cpu-checker</key>
+    <version>0.7-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>crda</key>
+    <version>1.1.2-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>cron</key>
+    <version>3.0pl1-124ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>cryptsetup</key>
+    <version>2:1.6.1-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>cryptsetup-bin</key>
+    <version>2:1.6.1-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>cups-bsd</key>
+    <version>1.7.2-0ubuntu1.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>cups-client</key>
+    <version>1.7.2-0ubuntu1.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>cups-common</key>
+    <version>1.7.2-0ubuntu1.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>curl</key>
+    <version>7.35.0-1ubuntu2.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dash</key>
+    <version>0.5.7-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dbus</key>
+    <version>1.6.18-0ubuntu4.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dbus-x11</key>
+    <version>1.6.18-0ubuntu4.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dconf-gsettings-backend:amd64</key>
+    <version>0.20.0-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dconf-service</key>
+    <version>0.20.0-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dctrl-tools</key>
+    <version>2.23ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>debconf</key>
+    <version>1.5.51ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>debconf-i18n</key>
+    <version>1.5.51ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>debhelper</key>
+    <version>9.20131227ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>debianutils</key>
+    <version>4.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>desktop-file-utils</key>
+    <version>0.22-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>devscripts</key>
+    <version>2.14.1ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dh-apparmor</key>
+    <version>2.8.95~2430-0ubuntu5.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dh-python</key>
+    <version>1.20140128-1ubuntu8.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dictionaries-common</key>
+    <version>1.20.5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>diffstat</key>
+    <version>1.58-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>diffutils</key>
+    <version>1:3.3-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>distro-info-data</key>
+    <version>0.18ubuntu0.5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dmidecode</key>
+    <version>2.12-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dmsetup</key>
+    <version>2:1.02.77-6ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dnsutils</key>
+    <version>1:9.9.5.dfsg-3ubuntu0.8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dosbox</key>
+    <version>0.74-3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dosfstools</key>
+    <version>3.0.26-1ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dpkg</key>
+    <version>1.17.5ubuntu5.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dpkg-dev</key>
+    <version>1.17.5ubuntu5.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>dput</key>
+    <version>0.9.6.4ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>e2fslibs:amd64</key>
+    <version>1.42.9-3ubuntu1.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>e2fslibs-dev</key>
+    <version>1.42.9-3ubuntu1.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>e2fsprogs</key>
+    <version>1.42.9-3ubuntu1.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ecryptfs-utils</key>
+    <version>104-0ubuntu1.14.04.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ed</key>
+    <version>1.9-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>efibootmgr</key>
+    <version>0.5.4-7ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>eject</key>
+    <version>2.1.5+deb1+cvs20081104-13.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>emdebian-archive-keyring</key>
+    <version>2.0.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>enchant</key>
+    <version>1.6.0-10ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ethtool</key>
+    <version>1:3.13-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>exiftran</key>
+    <version>2.07-11</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>exiv2</key>
+    <version>0.23-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fakeroot</key>
+    <version>1.20-3ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>feh</key>
+    <version>2.9.3-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>file</key>
+    <version>1:5.14-2ubuntu3.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>findutils</key>
+    <version>4.4.2-7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>firefox</key>
+    <version>47.0~b9+build1-0ubuntu0.14.</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fluxbox</key>
+    <version>1.3.5-2msb2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fontconfig</key>
+    <version>2.11.0-0ubuntu4.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fontconfig-config</key>
+    <version>2.11.0-0ubuntu4.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-dejavu</key>
+    <version>2.34-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-dejavu-core</key>
+    <version>2.34-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-dejavu-extra</key>
+    <version>2.34-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-droid</key>
+    <version>1:4.3-3ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-horai-umefont</key>
+    <version>460-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-ipafont</key>
+    <version>00303-12ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-ipafont-gothic</key>
+    <version>00303-12ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-ipafont-mincho</key>
+    <version>00303-12ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-ipafont-nonfree-jisx0208</key>
+    <version>1:00103-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-ipafont-nonfree-uigothic</key>
+    <version>00203-23</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-liberation</key>
+    <version>1.07.3-3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-mona</key>
+    <version>2.90-7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-monapo</key>
+    <version>20090423-9</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-opensymbol</key>
+    <version>2:102.6+LibO4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-sil-gentium</key>
+    <version>20081126:1.02-13</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-sil-gentium-basic</key>
+    <version>1.1-7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-takao-gothic</key>
+    <version>003.02.01-9ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-takao-mincho</key>
+    <version>003.02.01-9ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-takao-pgothic</key>
+    <version>003.02.01-9ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-ubuntu-font-family-console</key>
+    <version>0.80-0ubuntu6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-unfonts-core</key>
+    <version>1.0.3.is.1.0.2-080608-10ubu</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-vlgothic</key>
+    <version>20130607-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fonts-wqy-microhei</key>
+    <version>0.2.0-beta-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>friendly-recovery</key>
+    <version>0.2.25</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ftp</key>
+    <version>0.17-28</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>fuse</key>
+    <version>2.9.2-4ubuntu4.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>g++</key>
+    <version>4:4.8.2-1ubuntu6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>g++-4.8</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gawk</key>
+    <version>1:4.0.1+dfsg-2.1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gcc</key>
+    <version>4:4.8.2-1ubuntu6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gcc-4.8</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gcc-4.8-base:amd64</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gcc-4.8-base:i386</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gcc-4.8-multilib</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gcc-4.9-base:amd64</key>
+    <version>4.9.3-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gcc-4.9-base:i386</key>
+    <version>4.9.3-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gcc-multilib</key>
+    <version>4:4.8.2-1ubuntu6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gccgo</key>
+    <version>4:4.9-1ubuntu6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gccgo-4.9</key>
+    <version>4.9.3-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gconf-service</key>
+    <version>3.2.6-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gconf-service-backend</key>
+    <version>3.2.6-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gconf2</key>
+    <version>3.2.6-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gconf2-common</key>
+    <version>3.2.6-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gdb</key>
+    <version>7.7.1-0ubuntu5~14.04.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gdisk</key>
+    <version>0.8.8-1ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>geeqie</key>
+    <version>1:1.1-8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>geeqie-common</key>
+    <version>1:1.1-8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>geoip-database</key>
+    <version>20140313-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gettext</key>
+    <version>0.18.3.1-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gettext-base</key>
+    <version>0.18.3.1-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ghostscript</key>
+    <version>9.10~dfsg-0ubuntu10.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>giblib1:amd64</key>
+    <version>1.2.4-9</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gimp</key>
+    <version>2.8.10-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gimp-data</key>
+    <version>2.8.10-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gir1.2-glib-2.0</key>
+    <version>1.40.0-1ubuntu0.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>git</key>
+    <version>1:1.9.1-1ubuntu0.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>git-man</key>
+    <version>1:1.9.1-1ubuntu0.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gitk</key>
+    <version>1:1.9.1-1ubuntu0.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>glib-networking:amd64</key>
+    <version>2.40.0-1ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>glib-networking-common</key>
+    <version>2.40.0-1ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>glib-networking-services</key>
+    <version>2.40.0-1ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gnome-exe-thumbnailer</key>
+    <version>0.9.3-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gnupg</key>
+    <version>1.4.16-1ubuntu2.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>goto-ldap</key>
+    <version>13.3.5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gpgv</key>
+    <version>1.4.16-1ubuntu2.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>grep</key>
+    <version>2.16-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>groff-base</key>
+    <version>1.22.2-5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>grub-common</key>
+    <version>2.02~beta2-9ubuntu1.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>grub-gfxpayload-lists</key>
+    <version>0.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>grub-pc</key>
+    <version>2.02~beta2-9ubuntu1.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>grub-pc-bin</key>
+    <version>2.02~beta2-9ubuntu1.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>grub2-common</key>
+    <version>2.02~beta2-9ubuntu1.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gsettings-desktop-schemas</key>
+    <version>3.10.1-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gsfonts</key>
+    <version>1:8.11+urwcyr1.0.7~pre44-4.</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gstreamer1.0-plugins-base:amd64</key>
+    <version>1.2.4-1~ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gstreamer1.0-plugins-good:amd64</key>
+    <version>1.2.4-1~ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gstreamer1.0-x:amd64</key>
+    <version>1.2.4-1~ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gvfs:amd64</key>
+    <version>1.20.3-0ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gvfs-common</key>
+    <version>1.20.3-0ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gvfs-daemons</key>
+    <version>1.20.3-0ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gvfs-libs:amd64</key>
+    <version>1.20.3-0ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>gzip</key>
+    <version>1.6-3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>hardening-includes</key>
+    <version>2.5ubuntu2.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>hdparm</key>
+    <version>9.43-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>hicolor-icon-theme</key>
+    <version>0.13-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>hostname</key>
+    <version>3.15ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>hunspell-en-us</key>
+    <version>20070829-4ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>icedtea-7-jre-jamvm:amd64</key>
+    <version>7u101-2.6.6-0ubuntu0.14.04.</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>icedtea-7-plugin:amd64</key>
+    <version>1.5.3-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>icedtea-netx:amd64</key>
+    <version>1.5.3-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>icedtea-netx-common</key>
+    <version>1.5.3-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>icedtea-plugin</key>
+    <version>1.5.3-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>icoutils</key>
+    <version>0.31.0-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ifupdown</key>
+    <version>0.7.47.2ubuntu4.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>imagemagick</key>
+    <version>8:6.7.7.10-6ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>imagemagick-common</key>
+    <version>8:6.7.7.10-6ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>info</key>
+    <version>5.2.0.dfsg.1-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>init-system-helpers</key>
+    <version>1.14</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>initramfs-tools</key>
+    <version>0.103ubuntu4.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>initramfs-tools-bin</key>
+    <version>0.103ubuntu4.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>initscripts</key>
+    <version>2.88dsf-41ubuntu6.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>inkscape</key>
+    <version>0.48.4-3ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>insserv</key>
+    <version>1.14.0-5ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>install-info</key>
+    <version>5.2.0.dfsg.1-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>installation-report</key>
+    <version>2.54ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>intltool</key>
+    <version>0.50.2-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>intltool-debian</key>
+    <version>0.35.0+20060710.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>iproute2</key>
+    <version>3.12.0-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>iptables</key>
+    <version>1.4.21-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>iputils-ping</key>
+    <version>3:20121221-4ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>iputils-tracepath</key>
+    <version>3:20121221-4ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ipxe-qemu</key>
+    <version>1.0.0+git-20131111.c3d1e78-</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>irqbalance</key>
+    <version>1.0.6-2ubuntu0.14.04.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>isc-dhcp-client</key>
+    <version>4.2.4-7ubuntu12.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>isc-dhcp-common</key>
+    <version>4.2.4-7ubuntu12.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>iso-codes</key>
+    <version>3.52-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>java-common</key>
+    <version>0.51</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>joe</key>
+    <version>3.7-2.3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>kbd</key>
+    <version>1.15.5-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>keyboard-configuration</key>
+    <version>1.70ubuntu8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>keyutils</key>
+    <version>1.5.6-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>klibc-utils</key>
+    <version>2.0.3-0ubuntu1.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>kmod</key>
+    <version>15-0ubuntu6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>krb5-locales</key>
+    <version>1.12+dfsg-2ubuntu5.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>landscape-common</key>
+    <version>14.12-0ubuntu0.14.04</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>language-pack-en</key>
+    <version>1:14.04+20150219</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>language-pack-en-base</key>
+    <version>1:14.04+20150219</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>language-selector-common</key>
+    <version>0.129.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>laptop-detect</key>
+    <version>0.13.7ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ldap-utils</key>
+    <version>2.4.31-1+nmu2ubuntu8.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>less</key>
+    <version>458-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>lib32asan0</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>lib32atomic1</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>lib32gcc-4.8-dev</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>lib32gcc1</key>
+    <version>1:4.9.3-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>lib32gomp1</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>lib32itm1</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>lib32quadmath0</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libaa1:amd64</key>
+    <version>1.4p5-41</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libaccountsservice0:amd64</key>
+    <version>0.6.35-0ubuntu7.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libacl1:amd64</key>
+    <version>2.2.52-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libaio1:amd64</key>
+    <version>0.3.109-4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libalgorithm-diff-perl</key>
+    <version>1.19.02-3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libalgorithm-diff-xs-perl</key>
+    <version>0.04-2build4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libalgorithm-merge-perl</key>
+    <version>0.08-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libamd2.3.1:amd64</key>
+    <version>1:4.2.1-3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libapparmor-perl</key>
+    <version>2.8.95~2430-0ubuntu5.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libapparmor1:amd64</key>
+    <version>2.8.95~2430-0ubuntu5.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libapt-inst1.5:amd64</key>
+    <version>1.0.1ubuntu2.14</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libapt-pkg-perl</key>
+    <version>0.1.29build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libapt-pkg4.12:amd64</key>
+    <version>1.0.1ubuntu2.14</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libarchive-extract-perl</key>
+    <version>0.70-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libarchive-zip-perl</key>
+    <version>1.30-7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libarchive13:amd64</key>
+    <version>3.1.2-7ubuntu2.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libasan0:amd64</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libasn1-8-heimdal:amd64</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libasn1-8-heimdal:i386</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libasound2:amd64</key>
+    <version>1.0.27.2-3ubuntu7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libasound2:i386</key>
+    <version>1.0.27.2-3ubuntu7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libasound2-data</key>
+    <version>1.0.27.2-3ubuntu7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libasound2-plugins:amd64</key>
+    <version>1.0.27-2ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libasound2-plugins:i386</key>
+    <version>1.0.27-2ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libaspell15</key>
+    <version>0.60.7~20110707-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libasprintf-dev:amd64</key>
+    <version>0.18.3.1-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libasprintf0c2:amd64</key>
+    <version>0.18.3.1-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libasyncns0:amd64</key>
+    <version>0.8-4ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libasyncns0:i386</key>
+    <version>0.8-4ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libatasmart4:amd64</key>
+    <version>0.19-3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libatk-bridge2.0-0:amd64</key>
+    <version>2.10.2-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libatk-wrapper-java</key>
+    <version>0.30.4-4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libatk-wrapper-java-jni:amd64</key>
+    <version>0.30.4-4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libatk1.0-0:amd64</key>
+    <version>2.10.0-2ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libatk1.0-data</key>
+    <version>2.10.0-2ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libatkmm-1.6-1:amd64</key>
+    <version>2.22.7-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libatomic1:amd64</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libatspi2.0-0:amd64</key>
+    <version>2.10.2.is.2.10.1-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libattr1:amd64</key>
+    <version>1:2.4.47-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libaudit-common</key>
+    <version>1:2.3.2-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libaudit1:amd64</key>
+    <version>1:2.3.2-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libauthen-sasl-perl</key>
+    <version>2.1500-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libautodie-perl</key>
+    <version>2.23-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libavahi-client3:amd64</key>
+    <version>0.6.31-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libavahi-client3:i386</key>
+    <version>0.6.31-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libavahi-common-data:amd64</key>
+    <version>0.6.31-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libavahi-common-data:i386</key>
+    <version>0.6.31-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libavahi-common3:amd64</key>
+    <version>0.6.31-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libavahi-common3:i386</key>
+    <version>0.6.31-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libavahi-glib1:amd64</key>
+    <version>0.6.31-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libavahi-gobject0:amd64</key>
+    <version>0.6.31-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libavahi-ui-gtk3-0:amd64</key>
+    <version>0.6.31-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libavc1394-0:amd64</key>
+    <version>0.5.4-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libbabl-0.1-0:amd64</key>
+    <version>0.1.10-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libbind9-90</key>
+    <version>1:9.9.5.dfsg-3ubuntu0.8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libblas3</key>
+    <version>1.2.20110419-7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libblkid1:amd64</key>
+    <version>2.20.1-5.1ubuntu20.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libbluetooth3:amd64</key>
+    <version>4.101-0ubuntu13.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libbonobo2-0:amd64</key>
+    <version>2.32.1-0ubuntu5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libbonobo2-common</key>
+    <version>2.32.1-0ubuntu5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libboost-date-time1.54.0:amd64</key>
+    <version>1.54.0-4ubuntu3.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libboost-iostreams1.54.0:amd64</key>
+    <version>1.54.0-4ubuntu3.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libboost-system1.54.0:amd64</key>
+    <version>1.54.0-4ubuntu3.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libboost-thread1.54.0:amd64</key>
+    <version>1.54.0-4ubuntu3.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libbrlapi0.6:amd64</key>
+    <version>5.0-2ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libbsd-dev</key>
+    <version>0.6.0-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libbsd0:amd64</key>
+    <version>0.6.0-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libbz2-1.0:amd64</key>
+    <version>1.0.6-5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libc-bin</key>
+    <version>2.19-0ubuntu6.9</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libc-dev-bin</key>
+    <version>2.19-0ubuntu6.9</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libc6:amd64</key>
+    <version>2.19-0ubuntu6.9</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libc6:i386</key>
+    <version>2.19-0ubuntu6.9</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libc6-dbg:amd64</key>
+    <version>2.19-0ubuntu6.9</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libc6-dev:amd64</key>
+    <version>2.19-0ubuntu6.9</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libc6-dev-i386</key>
+    <version>2.19-0ubuntu6.9</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libc6-dev-x32</key>
+    <version>2.19-0ubuntu6.9</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libc6-i386</key>
+    <version>2.19-0ubuntu6.9</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libc6-x32</key>
+    <version>2.19-0ubuntu6.9</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcaca0:amd64</key>
+    <version>0.99.beta18-1ubuntu5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcairo-gobject2:amd64</key>
+    <version>1.13.0~20140204-0ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcairo2:amd64</key>
+    <version>1.13.0~20140204-0ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcairomm-1.0-1:amd64</key>
+    <version>1.10.0-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcamd2.3.1:amd64</key>
+    <version>1:4.2.1-3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcanberra-gtk3-0:amd64</key>
+    <version>0.30-0ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcanberra-gtk3-module:amd64</key>
+    <version>0.30-0ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcanberra0:amd64</key>
+    <version>0.30-0ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcap-ng0</key>
+    <version>0.7.3-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcap2:amd64</key>
+    <version>1:2.24-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcap2-bin</key>
+    <version>1:2.24-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcapi20-3:amd64</key>
+    <version>1:3.25+dfsg1-3.3ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcapi20-3:i386</key>
+    <version>1:3.25+dfsg1-3.3ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libccolamd2.8.0:amd64</key>
+    <version>1:4.2.1-3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcdparanoia0:amd64</key>
+    <version>3.10.2+debian-11</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcdr-0.0-0</key>
+    <version>0.0.15-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcgmanager0:amd64</key>
+    <version>0.24-0ubuntu7.5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcgmanager0:i386</key>
+    <version>0.24-0ubuntu7.5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcholmod2.1.2:amd64</key>
+    <version>1:4.2.1-3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libck-connector0:amd64</key>
+    <version>0.4.5-3.1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libclass-accessor-perl</key>
+    <version>0.34-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libclone-perl</key>
+    <version>0.36-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcloog-isl4:amd64</key>
+    <version>0.18.2-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libclucene-contribs1:amd64</key>
+    <version>2.3.3.4-4build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libclucene-core1:amd64</key>
+    <version>2.3.3.4-4build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcmis-0.4-4</key>
+    <version>0.4.1-3ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcolamd2.8.0:amd64</key>
+    <version>1:4.2.1-3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcolord1:amd64</key>
+    <version>1.0.6-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcolorhug1:amd64</key>
+    <version>1.0.6-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcomerr2:amd64</key>
+    <version>1.42.9-3ubuntu1.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcomerr2:i386</key>
+    <version>1.42.9-3ubuntu1.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcommon-sense-perl</key>
+    <version>3.72-2build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libconfig-auto-perl</key>
+    <version>0.42-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libconfig-inifiles-perl</key>
+    <version>2.82-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libconvert-asn1-perl</key>
+    <version>0.26-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcroco3:amd64</key>
+    <version>0.6.8-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcrypt-rijndael-perl</key>
+    <version>1.12-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcryptsetup4</key>
+    <version>2:1.6.1-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcups2:amd64</key>
+    <version>1.7.2-0ubuntu1.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcups2:i386</key>
+    <version>1.7.2-0ubuntu1.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcupsfilters1:amd64</key>
+    <version>1.0.52-0ubuntu1.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcupsimage2:amd64</key>
+    <version>1.7.2-0ubuntu1.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcurl3:amd64</key>
+    <version>7.35.0-1ubuntu2.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcurl3-gnutls:amd64</key>
+    <version>7.35.0-1ubuntu2.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libcwidget3</key>
+    <version>0.5.16-3.5ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdatrie1:amd64</key>
+    <version>0.2.8-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdb5.3:amd64</key>
+    <version>5.3.28-3ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdb5.3:i386</key>
+    <version>5.3.28-3ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdbus-1-3:amd64</key>
+    <version>1.6.18-0ubuntu4.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdbus-1-3:i386</key>
+    <version>1.6.18-0ubuntu4.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdbus-glib-1-2:amd64</key>
+    <version>0.100.2-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdbusmenu-glib4:amd64</key>
+    <version>12.10.3+14.04.20140612-0ubu</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdbusmenu-gtk4:amd64</key>
+    <version>12.10.3+14.04.20140612-0ubu</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdconf1:amd64</key>
+    <version>0.20.0-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdebconfclient0:amd64</key>
+    <version>0.187ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdevmapper-event1.02.1:amd64</key>
+    <version>2:1.02.77-6ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdevmapper1.02.1:amd64</key>
+    <version>2:1.02.77-6ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdigest-hmac-perl</key>
+    <version>1.03+dfsg-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdistro-info-perl</key>
+    <version>0.12</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdjvulibre-text</key>
+    <version>3.5.25.4-3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdjvulibre21:amd64</key>
+    <version>3.5.25.4-3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdns100</key>
+    <version>1:9.9.5.dfsg-3ubuntu0.8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdpkg-perl</key>
+    <version>1.17.5ubuntu5.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdrm-intel1:amd64</key>
+    <version>2.4.64-1~ubuntu14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdrm-intel1:i386</key>
+    <version>2.4.64-1~ubuntu14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdrm-nouveau2:amd64</key>
+    <version>2.4.64-1~ubuntu14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdrm-nouveau2:i386</key>
+    <version>2.4.64-1~ubuntu14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdrm-radeon1:amd64</key>
+    <version>2.4.64-1~ubuntu14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdrm-radeon1:i386</key>
+    <version>2.4.64-1~ubuntu14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdrm2:amd64</key>
+    <version>2.4.64-1~ubuntu14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdrm2:i386</key>
+    <version>2.4.64-1~ubuntu14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libdv4:amd64</key>
+    <version>1.0.0-6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libecryptfs0</key>
+    <version>104-0ubuntu1.14.04.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libedit2:amd64</key>
+    <version>3.1-20130712-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libelf1:amd64</key>
+    <version>0.158-0ubuntu5.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libelf1:i386</key>
+    <version>0.158-0ubuntu5.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libemail-valid-perl</key>
+    <version>1.192-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libenchant1c2a:amd64</key>
+    <version>1.6.0-10ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libencode-locale-perl</key>
+    <version>1.03-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libept1.4.12:amd64</key>
+    <version>1.0.12</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liberror-perl</key>
+    <version>0.17-1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libestr0</key>
+    <version>0.1.9-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libevent-2.0-5:amd64</key>
+    <version>2.0.21-stable-1ubuntu1.14.0</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libexif12:amd64</key>
+    <version>0.6.21-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libexif12:i386</key>
+    <version>0.6.21-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libexiv2-12</key>
+    <version>0.23-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libexpat1:amd64</key>
+    <version>2.1.0-4ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libexpat1:i386</key>
+    <version>2.1.0-4ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libexpat1-dev:amd64</key>
+    <version>2.1.0-4ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libexporter-lite-perl</key>
+    <version>0.02-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libexttextcat-2.0-0</key>
+    <version>3.4.3-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libexttextcat-data</key>
+    <version>3.4.3-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfakeroot:amd64</key>
+    <version>1.20-3ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfdt1:amd64</key>
+    <version>1.4.0+dfsg-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libffi6:amd64</key>
+    <version>3.1~rc1+r3.0.13-12ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libffi6:i386</key>
+    <version>3.1~rc1+r3.0.13-12ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfftw3-double3:amd64</key>
+    <version>3.3.3-7ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfile-basedir-perl</key>
+    <version>0.03-1fakesync1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfile-copy-recursive-perl</key>
+    <version>0.38-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfile-desktopentry-perl</key>
+    <version>0.07-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfile-fcntllock-perl</key>
+    <version>0.14-2build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfile-listing-perl</key>
+    <version>6.04-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfile-mimeinfo-perl</key>
+    <version>0.22-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libflac8:amd64</key>
+    <version>1.3.0-2ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libflac8:i386</key>
+    <version>1.3.0-2ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfont-afm-perl</key>
+    <version>1.20-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfontconfig1:amd64</key>
+    <version>2.11.0-0ubuntu4.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfontconfig1:i386</key>
+    <version>2.11.0-0ubuntu4.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfontenc1:amd64</key>
+    <version>1:1.1.2-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfreetype6:amd64</key>
+    <version>2.5.2-1ubuntu2.5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfreetype6:i386</key>
+    <version>2.5.2-1ubuntu2.5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfribidi0:amd64</key>
+    <version>0.19.6-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libfuse2:amd64</key>
+    <version>2.9.2-4ubuntu4.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgc1c2:amd64</key>
+    <version>1:7.2d-5ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgcc-4.8-dev:amd64</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgcc1:amd64</key>
+    <version>1:4.9.3-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgcc1:i386</key>
+    <version>1:4.9.3-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgck-1-0:amd64</key>
+    <version>3.10.1-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgconf-2-4:amd64</key>
+    <version>3.2.6-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgconf2-4:amd64</key>
+    <version>3.2.6-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgcr-3-common</key>
+    <version>3.10.1-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgcr-base-3-1:amd64</key>
+    <version>3.10.1-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgcrypt11:amd64</key>
+    <version>1.5.3-2ubuntu4.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgcrypt11:i386</key>
+    <version>1.5.3-2ubuntu4.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgd3:amd64</key>
+    <version>2.1.0-3ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgd3:i386</key>
+    <version>2.1.0-3ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgdbm3:amd64</key>
+    <version>1.8.3-12build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgdk-pixbuf2.0-0:amd64</key>
+    <version>2.30.7-0ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgdk-pixbuf2.0-common</key>
+    <version>2.30.7-0ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgegl-0.2-0:amd64</key>
+    <version>0.2.0-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgeoclue0:amd64</key>
+    <version>0.12.99-3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgeoip1:amd64</key>
+    <version>1.6.0-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgettextpo-dev:amd64</key>
+    <version>0.18.3.1-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgettextpo0:amd64</key>
+    <version>0.18.3.1-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgfortran3:amd64</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgif4:amd64</key>
+    <version>4.1.6-11</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgif4:i386</key>
+    <version>4.1.6-11</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgimp2.0</key>
+    <version>2.8.10-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgirepository-1.0-1</key>
+    <version>1.40.0-1ubuntu0.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgl1-mesa-dri:amd64</key>
+    <version>10.1.3-0ubuntu0.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgl1-mesa-dri:i386</key>
+    <version>10.1.3-0ubuntu0.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgl1-mesa-glx:amd64</key>
+    <version>10.1.3-0ubuntu0.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgl1-mesa-glx:i386</key>
+    <version>10.1.3-0ubuntu0.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libglade2-0:amd64</key>
+    <version>1:2.6.4-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libglapi-mesa:amd64</key>
+    <version>10.1.3-0ubuntu0.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libglapi-mesa:i386</key>
+    <version>10.1.3-0ubuntu0.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libglib2.0-0:amd64</key>
+    <version>2.40.2-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libglib2.0-0:i386</key>
+    <version>2.40.2-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libglib2.0-data</key>
+    <version>2.40.2-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libglibmm-2.4-1c2a:amd64</key>
+    <version>2.39.93-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libglu1-mesa:amd64</key>
+    <version>9.0.0-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libglu1-mesa:i386</key>
+    <version>9.0.0-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgmp10:amd64</key>
+    <version>2:5.1.3+dfsg-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgnome2-0:amd64</key>
+    <version>2.32.1-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgnome2-bin</key>
+    <version>2.32.1-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgnome2-common</key>
+    <version>2.32.1-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgnomevfs2-0:amd64</key>
+    <version>1:2.24.4-1ubuntu6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgnomevfs2-common</key>
+    <version>1:2.24.4-1ubuntu6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgnomevfs2-extra:amd64</key>
+    <version>1:2.24.4-1ubuntu6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgnutls-openssl27:amd64</key>
+    <version>2.12.23-12ubuntu2.5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgnutls26:amd64</key>
+    <version>2.12.23-12ubuntu2.5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgnutls26:i386</key>
+    <version>2.12.23-12ubuntu2.5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgo5:amd64</key>
+    <version>4.9.3-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgomp1:amd64</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgosa-perl</key>
+    <version>13.3.5.tramp</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgosa-perl-doc</key>
+    <version>13.3.5.tramp</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgpg-error0:amd64</key>
+    <version>1.12-0.2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgpg-error0:i386</key>
+    <version>1.12-0.2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgphoto2-6:amd64</key>
+    <version>2.5.3.1-1ubuntu2.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgphoto2-6:i386</key>
+    <version>2.5.3.1-1ubuntu2.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgphoto2-l10n</key>
+    <version>2.5.3.1-1ubuntu2.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgphoto2-port10:amd64</key>
+    <version>2.5.3.1-1ubuntu2.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgphoto2-port10:i386</key>
+    <version>2.5.3.1-1ubuntu2.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgpm2:amd64</key>
+    <version>1.20.4-6.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgpm2:i386</key>
+    <version>1.20.4-6.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgraphite2-3:amd64</key>
+    <version>1.3.6-1ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgs9</key>
+    <version>9.10~dfsg-0ubuntu10.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgs9-common</key>
+    <version>9.10~dfsg-0ubuntu10.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgsl0ldbl</key>
+    <version>1.16+dfsg-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgssapi-krb5-2:amd64</key>
+    <version>1.12+dfsg-2ubuntu5.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgssapi-krb5-2:i386</key>
+    <version>1.12+dfsg-2ubuntu5.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgssapi-perl</key>
+    <version>0.28-2build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgssapi3-heimdal:amd64</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgssapi3-heimdal:i386</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgstreamer-plugins-base0.10-0:amd64</key>
+    <version>0.10.36-1.1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgstreamer-plugins-base0.10-0:i386</key>
+    <version>0.10.36-1.1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgstreamer-plugins-base1.0-0:amd64</key>
+    <version>1.2.4-1~ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgstreamer-plugins-good1.0-0:amd64</key>
+    <version>1.2.4-1~ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgstreamer0.10-0:amd64</key>
+    <version>0.10.36-1.2ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgstreamer0.10-0:i386</key>
+    <version>0.10.36-1.2ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgstreamer1.0-0:amd64</key>
+    <version>1.2.4-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgtk-3-0:amd64</key>
+    <version>3.10.8-0ubuntu1.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgtk-3-bin</key>
+    <version>3.10.8-0ubuntu1.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgtk-3-common</key>
+    <version>3.10.8-0ubuntu1.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgtk-vnc-2.0-0</key>
+    <version>0.5.3-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgtk2.0-0:amd64</key>
+    <version>2.24.23-0ubuntu1.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgtk2.0-bin</key>
+    <version>2.24.23-0ubuntu1.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgtk2.0-common</key>
+    <version>2.24.23-0ubuntu1.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgtkmm-2.4-1c2a:amd64</key>
+    <version>1:2.24.4-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgtkspell0</key>
+    <version>2.0.16-1ubuntu7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgudev-1.0-0:amd64</key>
+    <version>1:204-5ubuntu20.19</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgusb2:amd64</key>
+    <version>0.1.6-5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libgvnc-1.0-0</key>
+    <version>0.5.3-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libharfbuzz-icu0:amd64</key>
+    <version>0.9.27-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libharfbuzz0b:amd64</key>
+    <version>0.9.27-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhcrypto4-heimdal:amd64</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhcrypto4-heimdal:i386</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhdb9-heimdal:amd64</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libheimbase1-heimdal:amd64</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libheimbase1-heimdal:i386</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libheimntlm0-heimdal:amd64</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libheimntlm0-heimdal:i386</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhsqldb1.8.0-java</key>
+    <version>1.8.0.10+dfsg-3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhtml-form-perl</key>
+    <version>6.03-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhtml-format-perl</key>
+    <version>2.11-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhtml-parser-perl</key>
+    <version>3.71-1build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhtml-tagset-perl</key>
+    <version>3.20-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhtml-tree-perl</key>
+    <version>5.03-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhttp-cookies-perl</key>
+    <version>6.00-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhttp-daemon-perl</key>
+    <version>6.01-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhttp-date-perl</key>
+    <version>6.02-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhttp-message-perl</key>
+    <version>6.06-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhttp-negotiate-perl</key>
+    <version>6.00-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhunspell-1.3-0:amd64</key>
+    <version>1.3.2-6ubuntu2.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhx509-5-heimdal:amd64</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhx509-5-heimdal:i386</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libhyphen0</key>
+    <version>2.8.6-3ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libice6:amd64</key>
+    <version>2:1.0.8-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libice6:i386</key>
+    <version>2:1.0.8-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libicu52:amd64</key>
+    <version>52.1-3ubuntu0.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libid3tag0</key>
+    <version>0.15.1b-10ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libidl-common</key>
+    <version>0.8.14-0.2ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libidl0:amd64</key>
+    <version>0.8.14-0.2ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libidn11:amd64</key>
+    <version>1.28-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libiec61883-0:amd64</key>
+    <version>1.2.0-0.1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libieee1284-3:amd64</key>
+    <version>0.2.11-12</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libieee1284-3:i386</key>
+    <version>0.2.11-12</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libijs-0.35</key>
+    <version>0.35-8build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libilmbase6:amd64</key>
+    <version>1.0.1-6ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libimlib2</key>
+    <version>1.4.6-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libio-html-perl</key>
+    <version>1.00-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libio-pty-perl</key>
+    <version>1:1.08-1build4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libio-socket-inet6-perl</key>
+    <version>2.71-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libio-socket-ssl-perl</key>
+    <version>1.965-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libio-string-perl</key>
+    <version>1.08-3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libio-stringy-perl</key>
+    <version>2.110-5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libipc-run-perl</key>
+    <version>0.92-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libipc-system-simple-perl</key>
+    <version>1.25-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libisc95</key>
+    <version>1:9.9.5.dfsg-3ubuntu0.8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libisccc90</key>
+    <version>1:9.9.5.dfsg-3ubuntu0.8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libisccfg90</key>
+    <version>1:9.9.5.dfsg-3ubuntu0.8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libisl10:amd64</key>
+    <version>0.12.2-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libitm1:amd64</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libiw30:amd64</key>
+    <version>30~pre9-8ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjack-jackd2-0:amd64</key>
+    <version>1.9.9.5+20130622git7de15e7a</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjack-jackd2-0:i386</key>
+    <version>1.9.9.5+20130622git7de15e7a</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjasper1:amd64</key>
+    <version>1.900.1-14ubuntu3.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjavascriptcoregtk-1.0-0:amd64</key>
+    <version>2.4.10-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjavascriptcoregtk-3.0-0:amd64</key>
+    <version>2.4.10-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjbig0:amd64</key>
+    <version>2.0-2ubuntu4.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjbig0:i386</key>
+    <version>2.0-2ubuntu4.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjbig2dec0</key>
+    <version>0.11+20120125-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjpeg-progs</key>
+    <version>8c-2ubuntu8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjpeg-turbo-progs</key>
+    <version>1.3.0-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjpeg-turbo8:amd64</key>
+    <version>1.3.0-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjpeg-turbo8:i386</key>
+    <version>1.3.0-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjpeg8:amd64</key>
+    <version>8c-2ubuntu8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjpeg8:i386</key>
+    <version>8c-2ubuntu8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjson-c2:amd64</key>
+    <version>0.11-3ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjson-c2:i386</key>
+    <version>0.11-3ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjson-perl</key>
+    <version>2.61-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjson-xs-perl</key>
+    <version>2.340-1build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libjson0:amd64</key>
+    <version>0.11-3ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libk5crypto3:amd64</key>
+    <version>1.12+dfsg-2ubuntu5.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libk5crypto3:i386</key>
+    <version>1.12+dfsg-2ubuntu5.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libkdc2-heimdal:amd64</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libkeyutils1:amd64</key>
+    <version>1.5.6-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libkeyutils1:i386</key>
+    <version>1.5.6-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libklibc</key>
+    <version>2.0.3-0ubuntu1.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libkmod2:amd64</key>
+    <version>15-0ubuntu6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libkrb5-26-heimdal:amd64</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libkrb5-26-heimdal:i386</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libkrb5-3:amd64</key>
+    <version>1.12+dfsg-2ubuntu5.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libkrb5-3:i386</key>
+    <version>1.12+dfsg-2ubuntu5.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libkrb5support0:amd64</key>
+    <version>1.12+dfsg-2ubuntu5.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libkrb5support0:i386</key>
+    <version>1.12+dfsg-2ubuntu5.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblangtag-common</key>
+    <version>0.5.1-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblangtag1</key>
+    <version>0.5.1-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblapack3</key>
+    <version>3.5.0-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblcms1:amd64</key>
+    <version>1.19.dfsg-1.2ubuntu5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblcms2-2:amd64</key>
+    <version>2.5-0ubuntu4.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblcms2-2:i386</key>
+    <version>2.5-0ubuntu4.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libldap-2.4-2:amd64</key>
+    <version>2.4.31-1+nmu2ubuntu8.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libldap-2.4-2:i386</key>
+    <version>2.4.31-1+nmu2ubuntu8.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libldb1:amd64</key>
+    <version>1:1.1.24-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblensfun-data</key>
+    <version>0.2.8-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblensfun0</key>
+    <version>0.2.8-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblircclient0</key>
+    <version>0.9.0-0ubuntu5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblist-moreutils-perl</key>
+    <version>0.33-1build3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libllvm3.4:amd64</key>
+    <version>1:3.4-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libllvm3.4:i386</key>
+    <version>1:3.4-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblocale-gettext-perl</key>
+    <version>1.05-7build3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblockfile-bin</key>
+    <version>1.09-6ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblockfile1:amd64</key>
+    <version>1.09-6ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblog-message-simple-perl</key>
+    <version>0.10-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblqr-1-0:amd64</key>
+    <version>0.4.1-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libltdl7:amd64</key>
+    <version>2.4.2-1.7ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libltdl7:i386</key>
+    <version>2.4.2-1.7ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblwp-mediatypes-perl</key>
+    <version>6.02-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblwp-protocol-https-perl</key>
+    <version>6.04-2ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblwres90</key>
+    <version>1:9.9.5.dfsg-3ubuntu0.8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblzma5:amd64</key>
+    <version>5.1.1alpha+20120614-2ubuntu</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblzma5:i386</key>
+    <version>5.1.1alpha+20120614-2ubuntu</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liblzo2-2:amd64</key>
+    <version>2.06-1.2ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmagic1:amd64</key>
+    <version>1:5.14-2ubuntu3.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmagick++5:amd64</key>
+    <version>8:6.7.7.10-6ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmagickcore5:amd64</key>
+    <version>8:6.7.7.10-6ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmagickcore5-extra:amd64</key>
+    <version>8:6.7.7.10-6ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmagickwand5:amd64</key>
+    <version>8:6.7.7.10-6ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmailtools-perl</key>
+    <version>2.12-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmhash2:amd64</key>
+    <version>0.9.9.9-4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmikmod2:amd64</key>
+    <version>3.1.16-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmng2:amd64</key>
+    <version>2.0.2-0ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmodule-pluggable-perl</key>
+    <version>5.1-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmount1:amd64</key>
+    <version>2.20.1-5.1ubuntu20.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmpc3:amd64</key>
+    <version>1.0.1-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmpdec2:amd64</key>
+    <version>2.4.0-6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmpfr4:amd64</key>
+    <version>3.1.2-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmpg123-0:amd64</key>
+    <version>1.16.0-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmpg123-0:i386</key>
+    <version>1.16.0-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmspub-0.0-0</key>
+    <version>0.0.6-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmtdev1:amd64</key>
+    <version>1.1.4-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libmythes-1.2-0</key>
+    <version>2:1.2.2-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libncurses5:amd64</key>
+    <version>5.9+20140118-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libncurses5:i386</key>
+    <version>5.9+20140118-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libncursesw5:amd64</key>
+    <version>5.9+20140118-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libneon27-gnutls</key>
+    <version>0.30.0-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnet-dns-perl</key>
+    <version>0.68-1.2build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnet-domain-tld-perl</key>
+    <version>1.70-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnet-http-perl</key>
+    <version>6.06-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnet-ip-perl</key>
+    <version>1.26-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnet-ldap-perl</key>
+    <version>1:0.5800-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnet-libidn-perl</key>
+    <version>0.12.ds-1build4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnet-smtp-ssl-perl</key>
+    <version>1.01-3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnet-ssleay-perl</key>
+    <version>1.58-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnetpbm10</key>
+    <version>2:10.0-15ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnettle4:amd64</key>
+    <version>2.7.1-1ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnewt0.52:amd64</key>
+    <version>0.52.15-2ubuntu5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnfnetlink0:amd64</key>
+    <version>1.0.1-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnih-dbus1:amd64</key>
+    <version>1.0.3-4ubuntu25</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnih-dbus1:i386</key>
+    <version>1.0.3-4ubuntu25</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnih1:amd64</key>
+    <version>1.0.3-4ubuntu25</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnih1:i386</key>
+    <version>1.0.3-4ubuntu25</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnl-3-200:amd64</key>
+    <version>3.2.21-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnl-genl-3-200:amd64</key>
+    <version>3.2.21-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnotify-bin</key>
+    <version>0.7.6-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnotify4:amd64</key>
+    <version>0.7.6-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnspr4:amd64</key>
+    <version>2:4.10.10-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnss-winbind:amd64</key>
+    <version>2:4.3.9+dfsg-0ubuntu0.14.04</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnss3:amd64</key>
+    <version>2:3.21-0ubuntu0.14.04.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnss3-1d:amd64</key>
+    <version>2:3.21-0ubuntu0.14.04.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnss3-nssdb</key>
+    <version>2:3.21-0ubuntu0.14.04.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libntdb1:amd64</key>
+    <version>1.0-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libnuma1:amd64</key>
+    <version>2.0.9~rc5-1ubuntu3.14.04.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libodbc1:amd64</key>
+    <version>2.2.14p2-5ubuntu5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libogg0:amd64</key>
+    <version>1.3.1-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libogg0:i386</key>
+    <version>1.3.1-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libopenal-data</key>
+    <version>1:1.14-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libopenal1:amd64</key>
+    <version>1:1.14-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libopenal1:i386</key>
+    <version>1:1.14-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libopenexr6:amd64</key>
+    <version>1.6.1-7ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liborbit-2-0:amd64</key>
+    <version>1:2.14.19-0.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liborbit2:amd64</key>
+    <version>1:2.14.19-0.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liborc-0.4-0:amd64</key>
+    <version>1:0.4.18-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liborc-0.4-0:i386</key>
+    <version>1:0.4.18-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liborcus-0.6-0</key>
+    <version>0.5.1-7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libosmesa6:amd64</key>
+    <version>10.1.3-0ubuntu0.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libosmesa6:i386</key>
+    <version>10.1.3-0ubuntu0.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libp11-kit-gnome-keyring:amd64</key>
+    <version>3.10.1-1ubuntu4.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libp11-kit-gnome-keyring:i386</key>
+    <version>3.10.1-1ubuntu4.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libp11-kit0:amd64</key>
+    <version>0.20.2-2ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libp11-kit0:i386</key>
+    <version>0.20.2-2ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpam-cap:amd64</key>
+    <version>1:2.24-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpam-modules:amd64</key>
+    <version>1.1.8-1ubuntu2.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpam-modules-bin</key>
+    <version>1.1.8-1ubuntu2.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpam-runtime</key>
+    <version>1.1.8-1ubuntu2.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpam-systemd:amd64</key>
+    <version>204-5ubuntu20.19</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpam-winbind:amd64</key>
+    <version>2:4.3.9+dfsg-0ubuntu0.14.04</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpam0g:amd64</key>
+    <version>1.1.8-1ubuntu2.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpango-1.0-0:amd64</key>
+    <version>1.36.3-1ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpangocairo-1.0-0:amd64</key>
+    <version>1.36.3-1ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpangoft2-1.0-0:amd64</key>
+    <version>1.36.3-1ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpangomm-1.4-1:amd64</key>
+    <version>2.34.0-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpaper-utils</key>
+    <version>1.1.24+nmu2ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpaper1:amd64</key>
+    <version>1.1.24+nmu2ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libparse-debcontrol-perl</key>
+    <version>2.005-4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libparse-debian-packages-perl</key>
+    <version>0.03-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libparse-debianchangelog-perl</key>
+    <version>1.2.0-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libparted0debian1:amd64</key>
+    <version>2.3-19ubuntu1.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpcap-dev</key>
+    <version>1.5.3-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpcap0.8:amd64</key>
+    <version>1.5.3-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpcap0.8-dev</key>
+    <version>1.5.3-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpci3:amd64</key>
+    <version>1:3.2.1-1ubuntu5.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpciaccess0:amd64</key>
+    <version>0.13.2-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpciaccess0:i386</key>
+    <version>0.13.2-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpcre3:amd64</key>
+    <version>1:8.31-2ubuntu2.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpcre3:i386</key>
+    <version>1:8.31-2ubuntu2.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpcsclite1:amd64</key>
+    <version>1.8.10-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libperl5.18</key>
+    <version>5.18.2-2ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libperlio-gzip-perl</key>
+    <version>0.18-1build3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpipeline1:amd64</key>
+    <version>1.3.0-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpixman-1-0:amd64</key>
+    <version>0.30.2-2ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libplymouth2:amd64</key>
+    <version>0.8.8-0ubuntu17.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpng12-0:amd64</key>
+    <version>1.2.50-1ubuntu2.14.04.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpng12-0:i386</key>
+    <version>1.2.50-1ubuntu2.14.04.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpod-latex-perl</key>
+    <version>0.61-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpolkit-agent-1-0:amd64</key>
+    <version>0.105-4ubuntu3.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpolkit-backend-1-0:amd64</key>
+    <version>0.105-4ubuntu3.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpolkit-gobject-1-0:amd64</key>
+    <version>0.105-4ubuntu3.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpoppler-glib8:amd64</key>
+    <version>0.24.5-2ubuntu4.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpoppler44:amd64</key>
+    <version>0.24.5-2ubuntu4.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpopt0:amd64</key>
+    <version>1.16-8ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libprocps3:amd64</key>
+    <version>1:3.3.9-1ubuntu2.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libproxy1:amd64</key>
+    <version>0.4.11-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpulse-mainloop-glib0:amd64</key>
+    <version>1:4.0-0ubuntu11.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpulse0:amd64</key>
+    <version>1:4.0-0ubuntu11.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpulse0:i386</key>
+    <version>1:4.0-0ubuntu11.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpython-stdlib:amd64</key>
+    <version>2.7.5-5ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpython2.7:amd64</key>
+    <version>2.7.6-8ubuntu0.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpython2.7-dev:amd64</key>
+    <version>2.7.6-8ubuntu0.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpython2.7-minimal:amd64</key>
+    <version>2.7.6-8ubuntu0.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpython2.7-stdlib:amd64</key>
+    <version>2.7.6-8ubuntu0.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpython3-stdlib:amd64</key>
+    <version>3.4.0-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpython3.4:amd64</key>
+    <version>3.4.3-1ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpython3.4-minimal:amd64</key>
+    <version>3.4.3-1ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libpython3.4-stdlib:amd64</key>
+    <version>3.4.3-1ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libquadmath0:amd64</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>librados2</key>
+    <version>0.80.11-0ubuntu1.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libraptor2-0:amd64</key>
+    <version>2.0.13-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>librasqal3:amd64</key>
+    <version>0.9.32-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libraw1394-11:amd64</key>
+    <version>2.1.0-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>librbd1</key>
+    <version>0.80.11-0ubuntu1.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>librdf0:amd64</key>
+    <version>1.0.17-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreadline-dev:amd64</key>
+    <version>6.3-4ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreadline5:amd64</key>
+    <version>5.2+dfsg-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreadline6:amd64</key>
+    <version>6.3-4ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreadline6-dev:amd64</key>
+    <version>6.3-4ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-avmedia-backend-gstreamer</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-base</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-base-core</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-base-drivers</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-calc</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-common</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-core</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-draw</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-gnome</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-gtk</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-impress</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-java-common</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-math</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-pdfimport</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-report-builder-bin</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-sdbc-firebird</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-sdbc-hsqldb</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-style-galaxy</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-style-human</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libreoffice-writer</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libroken18-heimdal:amd64</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libroken18-heimdal:i386</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>librsvg2-2:amd64</key>
+    <version>2.40.2-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>librsvg2-common:amd64</key>
+    <version>2.40.2-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>librtmp0:amd64</key>
+    <version>2.4+20121230.gitdf6c518-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsamplerate0:amd64</key>
+    <version>0.1.8-7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsamplerate0:i386</key>
+    <version>0.1.8-7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsane:amd64</key>
+    <version>1.0.23-3ubuntu3.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsane:i386</key>
+    <version>1.0.23-3ubuntu3.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsane-common</key>
+    <version>1.0.23-3ubuntu3.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsasl2-2:amd64</key>
+    <version>2.1.25.dfsg1-17build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsasl2-2:i386</key>
+    <version>2.1.25.dfsg1-17build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsasl2-modules:amd64</key>
+    <version>2.1.25.dfsg1-17build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsasl2-modules:i386</key>
+    <version>2.1.25.dfsg1-17build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsasl2-modules-db:amd64</key>
+    <version>2.1.25.dfsg1-17build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsasl2-modules-db:i386</key>
+    <version>2.1.25.dfsg1-17build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsctp1:amd64</key>
+    <version>1.0.15+dfsg-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsdl-net1.2:amd64</key>
+    <version>1.2.8-4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsdl-sound1.2:amd64</key>
+    <version>1.0.3-7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsdl1.2debian:amd64</key>
+    <version>1.2.15-8ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libseccomp2:amd64</key>
+    <version>2.1.0+dfsg-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsecret-1-0:amd64</key>
+    <version>0.16-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsecret-common</key>
+    <version>0.16-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libselinux1:amd64</key>
+    <version>2.2.2-1ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libselinux1:i386</key>
+    <version>2.2.2-1ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsemanage-common</key>
+    <version>2.2-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsemanage1:amd64</key>
+    <version>2.2-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsepol1:amd64</key>
+    <version>2.2-1ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libservlet3.0-java</key>
+    <version>7.0.52-1ubuntu0.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libshout3:amd64</key>
+    <version>2.3.1-3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsigc++-2.0-0c2a:amd64</key>
+    <version>2.2.10-0.2ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsigsegv2:amd64</key>
+    <version>2.10-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libslang2:amd64</key>
+    <version>2.2.4-15ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libslp1</key>
+    <version>1.2.1-9ubuntu0.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsm6:amd64</key>
+    <version>2:1.2.1-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsm6:i386</key>
+    <version>2:1.2.1-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsmbclient:amd64</key>
+    <version>2:4.3.9+dfsg-0ubuntu0.14.04</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsndfile1:amd64</key>
+    <version>1.0.25-7ubuntu2.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsndfile1:i386</key>
+    <version>1.0.25-7ubuntu2.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsocket6-perl</key>
+    <version>0.25-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsoup2.4-1:amd64</key>
+    <version>2.44.2-1ubuntu2.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libspeex1:amd64</key>
+    <version>1.2~rc1.1-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libspeexdsp1:amd64</key>
+    <version>1.2~rc1.1-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libspeexdsp1:i386</key>
+    <version>1.2~rc1.1-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libspice-client-glib-2.0-8:amd64</key>
+    <version>0.22-0nocelt2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libspice-client-gtk-3.0-4:amd64</key>
+    <version>0.22-0nocelt2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libspice-server1:amd64</key>
+    <version>0.12.4-0nocelt2ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsqlite3-0:amd64</key>
+    <version>3.8.2-1ubuntu2.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsqlite3-0:i386</key>
+    <version>3.8.2-1ubuntu2.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libss2:amd64</key>
+    <version>1.42.9-3ubuntu1.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libssl-dev:amd64</key>
+    <version>1.0.1f-1ubuntu2.19</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libssl1.0.0:amd64</key>
+    <version>1.0.1f-1ubuntu2.19</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libssl1.0.0:i386</key>
+    <version>1.0.1f-1ubuntu2.19</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libstartup-notification0:amd64</key>
+    <version>0.12-3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libstdc++-4.8-dev:amd64</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libstdc++6:amd64</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libstdc++6:i386</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsub-identify-perl</key>
+    <version>0.04-1build3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsub-name-perl</key>
+    <version>0.05-1build4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libswitch-perl</key>
+    <version>2.16-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsystemd-daemon0:amd64</key>
+    <version>204-5ubuntu20.19</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libsystemd-login0:amd64</key>
+    <version>204-5ubuntu20.19</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtag1-vanilla:amd64</key>
+    <version>1.9.1-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtag1c2a:amd64</key>
+    <version>1.9.1-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtalloc2:amd64</key>
+    <version>2.1.5-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtasn1-6:amd64</key>
+    <version>3.4-3ubuntu0.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtasn1-6:i386</key>
+    <version>3.4-3ubuntu0.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtcl8.6:amd64</key>
+    <version>8.6.1-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtdb1:amd64</key>
+    <version>1.3.8-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtelepathy-glib0:amd64</key>
+    <version>0.22.1-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libterm-ui-perl</key>
+    <version>0.42-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtevent0:amd64</key>
+    <version>0.9.28-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtext-charwidth-perl</key>
+    <version>0.04-7build3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtext-iconv-perl</key>
+    <version>1.7-5build2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtext-levenshtein-perl</key>
+    <version>0.06~01-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtext-soundex-perl</key>
+    <version>3.4-1build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtext-wrapi18n-perl</key>
+    <version>0.06-7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libthai-data</key>
+    <version>0.1.20-3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libthai0:amd64</key>
+    <version>0.1.20-3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtheora0:amd64</key>
+    <version>1.1.1+dfsg.1-3.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtidy-0.99-0</key>
+    <version>20091223cvs-1.2ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtie-ixhash-perl</key>
+    <version>1.23-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtiff5:amd64</key>
+    <version>4.0.3-7ubuntu0.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtiff5:i386</key>
+    <version>4.0.3-7ubuntu0.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtimedate-perl</key>
+    <version>2.3000-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtinfo-dev:amd64</key>
+    <version>5.9+20140118-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtinfo5:amd64</key>
+    <version>5.9+20140118-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtinfo5:i386</key>
+    <version>5.9+20140118-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtk8.6:amd64</key>
+    <version>8.6.1-3ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtsan0:amd64</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtxc-dxtn-s2tc0:amd64</key>
+    <version>0~git20131104-1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libtxc-dxtn-s2tc0:i386</key>
+    <version>0~git20131104-1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libudev1:amd64</key>
+    <version>204-5ubuntu20.19</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libudev1:i386</key>
+    <version>204-5ubuntu20.19</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libudisks2-0:amd64</key>
+    <version>2.1.3-1ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libumfpack5.6.2:amd64</key>
+    <version>1:4.2.1-3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libunistring0:amd64</key>
+    <version>0.9.3-5ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>liburi-perl</key>
+    <version>1.60-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libusb-0.1-4:amd64</key>
+    <version>2:0.1.12-23.3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libusb-1.0-0:amd64</key>
+    <version>2:1.0.17-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libusb-1.0-0:i386</key>
+    <version>2:1.0.17-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libusbredirhost1:amd64</key>
+    <version>0.6-2ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libusbredirparser1:amd64</key>
+    <version>0.6-2ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libustr-1.0-1:amd64</key>
+    <version>1.0.4-3ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libutempter0</key>
+    <version>1.1.5-4build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libuuid1:amd64</key>
+    <version>2.20.1-5.1ubuntu20.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libuuid1:i386</key>
+    <version>2.20.1-5.1ubuntu20.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libv4l-0:amd64</key>
+    <version>1.0.1-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libv4l-0:i386</key>
+    <version>1.0.1-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libv4lconvert0:amd64</key>
+    <version>1.0.1-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libv4lconvert0:i386</key>
+    <version>1.0.1-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libvisio-0.0-0</key>
+    <version>0.0.31-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libvisual-0.4-0:amd64</key>
+    <version>0.4.0-5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libvisual-0.4-plugins:amd64</key>
+    <version>0.4.0.dfsg.1-7build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libvncserver0:amd64</key>
+    <version>0.9.9+dfsg-1ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libvorbis0a:amd64</key>
+    <version>1.3.2-1.3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libvorbis0a:i386</key>
+    <version>1.3.2-1.3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libvorbisenc2:amd64</key>
+    <version>1.3.2-1.3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libvorbisenc2:i386</key>
+    <version>1.3.2-1.3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libvorbisfile3:amd64</key>
+    <version>1.3.2-1.3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libvpx1:amd64</key>
+    <version>1.3.0-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libvpx1:i386</key>
+    <version>1.3.0-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libvte-2.90-9</key>
+    <version>1:0.34.9-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libvte-2.90-common</key>
+    <version>1:0.34.9-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwavpack1:amd64</key>
+    <version>4.70.0-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwayland-client0:amd64</key>
+    <version>1.4.0-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwayland-cursor0:amd64</key>
+    <version>1.4.0-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwbclient0:amd64</key>
+    <version>2:4.3.9+dfsg-0ubuntu0.14.04</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwebkitgtk-1.0-0:amd64</key>
+    <version>2.4.10-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwebkitgtk-1.0-common</key>
+    <version>2.4.10-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwebkitgtk-3.0-0:amd64</key>
+    <version>2.4.10-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwebkitgtk-3.0-common</key>
+    <version>2.4.10-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwebp5:amd64</key>
+    <version>0.4.0-4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwind0-heimdal:amd64</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwind0-heimdal:i386</key>
+    <version>1.6~git20131207+dfsg-1ubunt</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwmf-bin</key>
+    <version>0.2.8.4-10.3ubuntu1.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwmf0.2-7:amd64</key>
+    <version>0.2.8.4-10.3ubuntu1.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwpd-0.9-9</key>
+    <version>0.9.9-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwpg-0.2-2</key>
+    <version>0.2.2-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwps-0.2-2</key>
+    <version>0.2.9-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwrap0:amd64</key>
+    <version>7.6.q-25</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwrap0:i386</key>
+    <version>7.6.q-25</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwrap0-dev:amd64</key>
+    <version>7.6.q-25</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwww-perl</key>
+    <version>6.05-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libwww-robotrules-perl</key>
+    <version>6.01-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libx11-6:amd64</key>
+    <version>2:1.6.2-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libx11-6:i386</key>
+    <version>2:1.6.2-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libx11-data</key>
+    <version>2:1.6.2-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libx11-xcb1:amd64</key>
+    <version>2:1.6.2-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libx11-xcb1:i386</key>
+    <version>2:1.6.2-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libx32asan0</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libx32atomic1</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libx32gcc-4.8-dev</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libx32gcc1</key>
+    <version>1:4.9.3-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libx32gomp1</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libx32itm1</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libx32quadmath0</key>
+    <version>4.8.4-2ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxapian22</key>
+    <version>1.2.16-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxau6:amd64</key>
+    <version>1:1.0.8-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxau6:i386</key>
+    <version>1:1.0.8-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxaw7:amd64</key>
+    <version>2:1.0.12-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcb-dri2-0:amd64</key>
+    <version>1.10-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcb-dri2-0:i386</key>
+    <version>1.10-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcb-dri3-0:amd64</key>
+    <version>1.10-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcb-dri3-0:i386</key>
+    <version>1.10-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcb-glx0:amd64</key>
+    <version>1.10-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcb-glx0:i386</key>
+    <version>1.10-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcb-present0:amd64</key>
+    <version>1.10-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcb-present0:i386</key>
+    <version>1.10-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcb-render0:amd64</key>
+    <version>1.10-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcb-shape0:amd64</key>
+    <version>1.10-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcb-shm0:amd64</key>
+    <version>1.10-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcb-sync1:amd64</key>
+    <version>1.10-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcb-sync1:i386</key>
+    <version>1.10-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcb-util0:amd64</key>
+    <version>0.3.8-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcb1:amd64</key>
+    <version>1.10-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcb1:i386</key>
+    <version>1.10-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcomposite1:amd64</key>
+    <version>1:0.4.4-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcomposite1:i386</key>
+    <version>1:0.4.4-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcursor1:amd64</key>
+    <version>1:1.1.14-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxcursor1:i386</key>
+    <version>1:1.1.14-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxdamage1:amd64</key>
+    <version>1:1.1.4-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxdamage1:i386</key>
+    <version>1:1.1.4-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxdmcp6:amd64</key>
+    <version>1:1.1.1-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxdmcp6:i386</key>
+    <version>1:1.1.1-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxen-4.4</key>
+    <version>4.4.2-0ubuntu0.14.04.5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxenstore3.0</key>
+    <version>4.4.2-0ubuntu0.14.04.5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxext6:amd64</key>
+    <version>2:1.3.2-1ubuntu0.0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxext6:i386</key>
+    <version>2:1.3.2-1ubuntu0.0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxfixes3:amd64</key>
+    <version>1:5.0.1-1ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxfixes3:i386</key>
+    <version>1:5.0.1-1ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxfont1:amd64</key>
+    <version>1:1.4.7-1ubuntu0.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxft2:amd64</key>
+    <version>2.3.1-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxi6:amd64</key>
+    <version>2:1.7.1.901-1ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxi6:i386</key>
+    <version>2:1.7.1.901-1ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxinerama1:amd64</key>
+    <version>2:1.1.3-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxinerama1:i386</key>
+    <version>2:1.1.3-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxkbcommon0:amd64</key>
+    <version>0.4.1-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxkbfile1:amd64</key>
+    <version>1:1.0.8-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxml-namespacesupport-perl</key>
+    <version>1.11-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxml-parser-perl</key>
+    <version>2.41-1build3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxml-sax-base-perl</key>
+    <version>1.07-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxml-sax-expat-perl</key>
+    <version>0.40-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxml-sax-perl</key>
+    <version>0.99+dfsg-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxml-simple-perl</key>
+    <version>2.20-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxml2:amd64</key>
+    <version>2.9.1+dfsg1-3ubuntu4.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxml2:i386</key>
+    <version>2.9.1+dfsg1-3ubuntu4.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxml2-dev:amd64</key>
+    <version>2.9.1+dfsg1-3ubuntu4.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxmu6:amd64</key>
+    <version>2:1.1.1-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxmuu1:amd64</key>
+    <version>2:1.1.1-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxpm4:amd64</key>
+    <version>1:3.5.10-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxpm4:i386</key>
+    <version>1:3.5.10-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxrandr2:amd64</key>
+    <version>2:1.4.2-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxrandr2:i386</key>
+    <version>2:1.4.2-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxrender1:amd64</key>
+    <version>1:0.9.8-1build0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxrender1:i386</key>
+    <version>1:0.9.8-1build0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxshmfence1:amd64</key>
+    <version>1.1-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxshmfence1:i386</key>
+    <version>1.1-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxslt1-dev:amd64</key>
+    <version>1.1.28-2build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxslt1.1:amd64</key>
+    <version>1.1.28-2build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxslt1.1:i386</key>
+    <version>1.1.28-2build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxss1:amd64</key>
+    <version>1:1.2.2-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxt6:amd64</key>
+    <version>1:1.1.4-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxt6:i386</key>
+    <version>1:1.1.4-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxtables10</key>
+    <version>1.4.21-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxtst6:amd64</key>
+    <version>2:1.2.2-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxv1:amd64</key>
+    <version>2:1.0.10-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxvmc1:amd64</key>
+    <version>2:1.0.8-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxxf86dga1:amd64</key>
+    <version>2:1.1.4-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxxf86vm1:amd64</key>
+    <version>1:1.1.3-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libxxf86vm1:i386</key>
+    <version>1:1.1.3-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libyajl2:amd64</key>
+    <version>2.0.4-4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libyaml-libyaml-perl</key>
+    <version>0.41-5ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>libyaml-perl</key>
+    <version>0.84-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>lintian</key>
+    <version>2.5.22ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-firmware</key>
+    <version>1.127.22</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-generic</key>
+    <version>3.13.0.87.93</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-headers-3.13.0-77</key>
+    <version>3.13.0-77.121</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-headers-3.13.0-77-generic</key>
+    <version>3.13.0-77.121</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-headers-3.13.0-83</key>
+    <version>3.13.0-83.127</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-headers-3.13.0-83-generic</key>
+    <version>3.13.0-83.127</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-headers-3.13.0-85</key>
+    <version>3.13.0-85.129</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-headers-3.13.0-85-generic</key>
+    <version>3.13.0-85.129</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-headers-3.13.0-87</key>
+    <version>3.13.0-87.133</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-headers-3.13.0-87-generic</key>
+    <version>3.13.0-87.133</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-headers-generic</key>
+    <version>3.13.0.87.93</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-image-3.13.0-77-generic</key>
+    <version>3.13.0-77.121</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-image-3.13.0-83-generic</key>
+    <version>3.13.0-83.127</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-image-3.13.0-85-generic</key>
+    <version>3.13.0-85.129</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-image-3.13.0-87-generic</key>
+    <version>3.13.0-87.133</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-image-extra-3.13.0-77-generic</key>
+    <version>3.13.0-77.121</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-image-extra-3.13.0-83-generic</key>
+    <version>3.13.0-83.127</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-image-extra-3.13.0-85-generic</key>
+    <version>3.13.0-85.129</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-image-extra-3.13.0-87-generic</key>
+    <version>3.13.0-87.133</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-image-generic</key>
+    <version>3.13.0.87.93</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-libc-dev:amd64</key>
+    <version>3.13.0-87.133</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-sound-base</key>
+    <version>1.0.25+dfsg-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-source</key>
+    <version>3.13.0.87.93</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>linux-source-3.13.0</key>
+    <version>3.13.0-87.133</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>lksctp-tools</key>
+    <version>1.0.15+dfsg-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>locales</key>
+    <version>2.13+git20120306-12.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>lockfile-progs</key>
+    <version>0.1.17</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>login</key>
+    <version>1:4.1.5.1-1ubuntu9.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>logrotate</key>
+    <version>3.8.7-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>lp-solve</key>
+    <version>5.5.0.13-7build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>lsb-base</key>
+    <version>4.1+Debian11ubuntu6.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>lsb-release</key>
+    <version>4.1+Debian11ubuntu6.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>lshw</key>
+    <version>02.16-2ubuntu1.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>lsof</key>
+    <version>4.86+dfsg-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ltrace</key>
+    <version>0.7.3-4ubuntu5.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>lvm2</key>
+    <version>2.02.98-6ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>m4</key>
+    <version>1.4.17-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>make</key>
+    <version>3.81-8.2ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>makedev</key>
+    <version>2.3.1-93ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>man-db</key>
+    <version>2.6.7.1-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>manpages</key>
+    <version>3.54-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>manpages-dev</key>
+    <version>3.54-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>mawk</key>
+    <version>1.3.3-17ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>memtest86+</key>
+    <version>4.20-1.1ubuntu8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>menu</key>
+    <version>2.1.46ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>mercurial</key>
+    <version>2.8.2-1ubuntu1.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>mercurial-common</key>
+    <version>2.8.2-1ubuntu1.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>mesa-utils</key>
+    <version>8.1.0-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>mime-support</key>
+    <version>3.54ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>miscfiles</key>
+    <version>1.4.2.dfsg.1-9.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>mlocate</key>
+    <version>0.26-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>module-init-tools</key>
+    <version>15-0ubuntu6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>mount</key>
+    <version>2.20.1-5.1ubuntu20.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>mountall</key>
+    <version>2.53</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>msb-customizations</key>
+    <version>1-3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>msr-tools</key>
+    <version>1.3-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>mtr-tiny</key>
+    <version>0.85-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>multiarch-support</key>
+    <version>2.19-0ubuntu6.9</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>multistrap</key>
+    <version>2.2.0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>nano</key>
+    <version>2.2.6-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>nasm</key>
+    <version>2.10.09-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ncurses-base</key>
+    <version>5.9+20140118-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ncurses-bin</key>
+    <version>5.9+20140118-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ncurses-term</key>
+    <version>5.9+20140118-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>net-tools</key>
+    <version>1.60-25ubuntu2.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>netbase</key>
+    <version>5.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>netcat-openbsd</key>
+    <version>1.105-7ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>netpbm</key>
+    <version>2:10.0-15ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>notification-daemon</key>
+    <version>0.7.6-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ntfs-3g</key>
+    <version>1:2013.1.13AR.1-2ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ntpdate</key>
+    <version>1:4.2.6.p5+dfsg-3ubuntu2.14</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ocl-icd-libopencl1:amd64</key>
+    <version>2.1.3-4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ocl-icd-libopencl1:i386</key>
+    <version>2.1.3-4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>odbcinst</key>
+    <version>2.2.14p2-5ubuntu5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>odbcinst1debian2:amd64</key>
+    <version>2.2.14p2-5ubuntu5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>openjdk-7-jre:amd64</key>
+    <version>7u101-2.6.6-0ubuntu0.14.04.</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>openjdk-7-jre-headless:amd64</key>
+    <version>7u101-2.6.6-0ubuntu0.14.04.</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>openssh-client</key>
+    <version>1:6.6p1-2ubuntu2.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>openssh-server</key>
+    <version>1:6.6p1-2ubuntu2.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>openssh-sftp-server</key>
+    <version>1:6.6p1-2ubuntu2.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>openssl</key>
+    <version>1.0.1f-1ubuntu2.19</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>os-prober</key>
+    <version>1.63ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>p11-kit-modules:amd64</key>
+    <version>0.20.2-2ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>p11-kit-modules:i386</key>
+    <version>0.20.2-2ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>p7zip</key>
+    <version>9.20.1~dfsg.1-4+deb7u1build</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>parted</key>
+    <version>2.3-19ubuntu1.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>passwd</key>
+    <version>1:4.1.5.1-1ubuntu9.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>patch</key>
+    <version>2.7.1-4ubuntu2.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>patchutils</key>
+    <version>0.3.2-3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>pciutils</key>
+    <version>1:3.2.1-1ubuntu5.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>perl</key>
+    <version>5.18.2-2ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>perl-base</key>
+    <version>5.18.2-2ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>perl-modules</key>
+    <version>5.18.2-2ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>perlmagick</key>
+    <version>8:6.7.7.10-6ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>php5-cli</key>
+    <version>5.5.9+dfsg-1ubuntu4.17</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>php5-common</key>
+    <version>5.5.9+dfsg-1ubuntu4.17</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>php5-json</key>
+    <version>1.3.2-2build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>php5-ldap</key>
+    <version>5.5.9+dfsg-1ubuntu4.17</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>php5-readline</key>
+    <version>5.5.9+dfsg-1ubuntu4.17</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>php5-xdebug</key>
+    <version>2.2.3-2build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>pkg-config</key>
+    <version>0.26-1ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>plymouth</key>
+    <version>0.8.8-0ubuntu17.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>plymouth-theme-ubuntu-text</key>
+    <version>0.8.8-0ubuntu17.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>pmount</key>
+    <version>0.9.23-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>po-debconf</key>
+    <version>1.0.16+nmu2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>policykit-1</key>
+    <version>0.105-4ubuntu3.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>policykit-1-gnome</key>
+    <version>0.105-1ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>poppler-data</key>
+    <version>0.4.6-4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>popularity-contest</key>
+    <version>1.57ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>powermgmt-base</key>
+    <version>1.31build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ppp</key>
+    <version>2.4.5-5.1ubuntu2.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>pppconfig</key>
+    <version>2.3.19ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>pppoeconf</key>
+    <version>1.20ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>procps</key>
+    <version>1:3.3.9-1ubuntu2.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>psmisc</key>
+    <version>22.20-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python</key>
+    <version>2.7.5-5ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-apt</key>
+    <version>0.9.3.5ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-apt-common</key>
+    <version>0.9.3.5ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-cairo</key>
+    <version>1.8.8-1ubuntu5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-chardet</key>
+    <version>2.0.1-2build2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-chardet-whl</key>
+    <version>2.2.1-2~ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-colorama</key>
+    <version>0.2.5-0.1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-colorama-whl</key>
+    <version>0.2.5-0.1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-configobj</key>
+    <version>4.7.2+ds-5build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-crypto</key>
+    <version>2.6.1-4build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-debian</key>
+    <version>0.1.21+nmu2ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-distlib</key>
+    <version>0.1.8-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-distlib-whl</key>
+    <version>0.1.8-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-distutils-extra</key>
+    <version>2.38-1build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-dnspython</key>
+    <version>1.11.1-1build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-gdbm</key>
+    <version>2.7.5-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-gobject-2</key>
+    <version>2.28.6-12build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-gtk2</key>
+    <version>2.24.0-3ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-html5lib</key>
+    <version>0.999-3~ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-html5lib-whl</key>
+    <version>0.999-3~ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-ldb</key>
+    <version>1:1.1.24-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-lxml</key>
+    <version>3.3.3-1ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-minimal</key>
+    <version>2.7.5-5ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-ntdb</key>
+    <version>1.0-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-numpy</key>
+    <version>1:1.8.2-0ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-openssl</key>
+    <version>0.13-2ubuntu6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-pam</key>
+    <version>0.4.2-13.1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-pip</key>
+    <version>1.5.4-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-pip-whl</key>
+    <version>1.5.4-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-pkg-resources</key>
+    <version>3.3-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-requests</key>
+    <version>2.2.1-1ubuntu0.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-requests-whl</key>
+    <version>2.2.1-1ubuntu0.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-samba</key>
+    <version>2:4.3.9+dfsg-0ubuntu0.14.04</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-serial</key>
+    <version>2.6-1build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-setuptools</key>
+    <version>3.3-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-setuptools-whl</key>
+    <version>3.3-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-six</key>
+    <version>1.5.2-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-six-whl</key>
+    <version>1.5.2-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-talloc</key>
+    <version>2.1.5-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-tdb</key>
+    <version>1.3.8-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-twisted-bin</key>
+    <version>13.2.0-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-twisted-core</key>
+    <version>13.2.0-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-urllib3</key>
+    <version>1.7.1-1ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-urllib3-whl</key>
+    <version>1.7.1-1ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-wheel</key>
+    <version>0.24.0-1~ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-xapian</key>
+    <version>1.2.16-2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python-zope.interface</key>
+    <version>4.0.5-1ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python2.7</key>
+    <version>2.7.6-8ubuntu0.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python2.7-minimal</key>
+    <version>2.7.6-8ubuntu0.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3</key>
+    <version>3.4.0-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-apport</key>
+    <version>2.14.1-0ubuntu3.21</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-apt</key>
+    <version>0.9.3.5ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-chardet</key>
+    <version>2.2.1-2~ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-commandnotfound</key>
+    <version>0.3ubuntu12</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-dbus</key>
+    <version>1.2.0-2build2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-debian</key>
+    <version>0.1.21+nmu2ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-distupgrade</key>
+    <version>1:0.220.8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-gdbm:amd64</key>
+    <version>3.4.3-1~14.04.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-gi</key>
+    <version>3.12.0-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-magic</key>
+    <version>1:5.14-2ubuntu3.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-minimal</key>
+    <version>3.4.0-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-newt</key>
+    <version>0.52.15-2ubuntu5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-pkg-resources</key>
+    <version>3.3-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-problem-report</key>
+    <version>2.14.1-0ubuntu3.21</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-pycurl</key>
+    <version>7.19.3-0ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-six</key>
+    <version>1.5.2-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-software-properties</key>
+    <version>0.92.37.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-uno</key>
+    <version>1:4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3-update-manager</key>
+    <version>1:0.196.14</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3.4</key>
+    <version>3.4.3-1ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>python3.4-minimal</key>
+    <version>3.4.3-1ubuntu1~14.04.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>qemu-keymaps</key>
+    <version>2.0.0+dfsg-2ubuntu1.24</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>qemu-kvm</key>
+    <version>2.0.0+dfsg-2ubuntu1.24</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>qemu-system-common</key>
+    <version>2.0.0+dfsg-2ubuntu1.24</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>qemu-system-x86</key>
+    <version>2.0.0+dfsg-2ubuntu1.24</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>qemu-utils</key>
+    <version>2.0.0+dfsg-2ubuntu1.24</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>quilt</key>
+    <version>0.61-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>readline-common</key>
+    <version>6.3-4ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>resolvconf</key>
+    <version>1.69ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>rsync</key>
+    <version>3.1.0-2ubuntu0.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>rsyslog</key>
+    <version>7.4.4-1ubuntu2.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>run-one</key>
+    <version>1.17-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>samba</key>
+    <version>2:4.3.9+dfsg-0ubuntu0.14.04</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>samba-common</key>
+    <version>2:4.3.9+dfsg-0ubuntu0.14.04</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>samba-common-bin</key>
+    <version>2:4.3.9+dfsg-0ubuntu0.14.04</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>samba-dsdb-modules</key>
+    <version>2:4.3.9+dfsg-0ubuntu0.14.04</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>samba-libs:amd64</key>
+    <version>2:4.3.9+dfsg-0ubuntu0.14.04</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>samba-vfs-modules</key>
+    <version>2:4.3.9+dfsg-0ubuntu0.14.04</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>screen</key>
+    <version>4.1.0~20120320gitdb59704-9</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>seabios</key>
+    <version>1.7.4-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>sed</key>
+    <version>4.2.2-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>sensible-utils</key>
+    <version>0.0.9</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>sgml-base</key>
+    <version>1.26+nmu4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>shared-mime-info</key>
+    <version>1.2-0ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>sharutils</key>
+    <version>1:4.14-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>slapd</key>
+    <version>2.4.31-1+nmu2ubuntu8.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>smbclient</key>
+    <version>2:4.3.9+dfsg-0ubuntu0.14.04</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>socat</key>
+    <version>1.7.2.3-1lhm1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>software-properties-common</key>
+    <version>0.92.37.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>sound-theme-freedesktop</key>
+    <version>0.8-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>spice-client-glib-usb-acl-helper</key>
+    <version>0.22-0nocelt2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ssh-import-id</key>
+    <version>3.21-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>strace</key>
+    <version>4.8-1ubuntu5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>sudo</key>
+    <version>1.8.9p5-1ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>systemd-services</key>
+    <version>204-5ubuntu20.19</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>systemd-shim</key>
+    <version>6-2bzr1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>sysv-rc</key>
+    <version>2.88dsf-41ubuntu6.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>sysvinit-utils</key>
+    <version>2.88dsf-41ubuntu6.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>t1utils</key>
+    <version>1.37-2ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>tar</key>
+    <version>1.27.1-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>tasksel</key>
+    <version>2.88ubuntu15</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>tasksel-data</key>
+    <version>2.88ubuntu15</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>tcl</key>
+    <version>8.6.0+6ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>tcl8.6</key>
+    <version>8.6.1-4ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>tcpd</key>
+    <version>7.6.q-25</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>tcpdump</key>
+    <version>4.5.1-2ubuntu1.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>tdb-tools</key>
+    <version>1.3.8-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>telnet</key>
+    <version>0.17-36build2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>tidy</key>
+    <version>20091223cvs-1.2ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>time</key>
+    <version>1.7-24</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>tk</key>
+    <version>8.6.0+6ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>tk8.6</key>
+    <version>8.6.1-3ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>tmux</key>
+    <version>1.8-5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>transfig</key>
+    <version>1:3.2.5.e-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ttf-kochi-gothic</key>
+    <version>20030809-15</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ttf-mscorefonts-installer</key>
+    <version>3.4+nmu1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ttf-wqy-microhei</key>
+    <version>0.2.0-beta-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>tzdata</key>
+    <version>2016d-0ubuntu0.14.04</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>tzdata-java</key>
+    <version>2016d-0ubuntu0.14.04</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ubuntu-keyring</key>
+    <version>2012.05.19</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ubuntu-minimal</key>
+    <version>1.325</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ubuntu-release-upgrader-core</key>
+    <version>1:0.220.8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ubuntu-standard</key>
+    <version>1.325</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ucf</key>
+    <version>3.0027+nmu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>udev</key>
+    <version>204-5ubuntu20.19</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>udisks2</key>
+    <version>2.1.3-1ubuntu0.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ufraw-batch</key>
+    <version>0.19.2-2ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ufw</key>
+    <version>0.34~rc-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>unattended-upgrades</key>
+    <version>0.82.1ubuntu2.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>unixodbc</key>
+    <version>2.2.14p2-5ubuntu5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>uno-libs3</key>
+    <version>4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>unzip</key>
+    <version>6.0-9ubuntu1.5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>update-inetd</key>
+    <version>4.43</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>update-manager-core</key>
+    <version>1:0.196.14</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>update-notifier-common</key>
+    <version>0.154.1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>upstart</key>
+    <version>1.12.1-0ubuntu4.2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ure</key>
+    <version>4.2.8-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>ureadahead</key>
+    <version>0.100.0-16</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>usbutils</key>
+    <version>1:007-2ubuntu1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>util-linux</key>
+    <version>2.20.1-5.1ubuntu20.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>uuid-dev</key>
+    <version>2.20.1-5.1ubuntu20.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>uuid-runtime</key>
+    <version>2.20.1-5.1ubuntu20.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>vim</key>
+    <version>2:7.4.052-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>vim-common</key>
+    <version>2:7.4.052-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>vim-runtime</key>
+    <version>2:7.4.052-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>vim-tiny</key>
+    <version>2:7.4.052-1ubuntu3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>vinagre</key>
+    <version>3.10.2-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>w3m</key>
+    <version>0.5.3-15</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>watershed</key>
+    <version>7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>wdiff</key>
+    <version>1.2.1-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>wget</key>
+    <version>1.15-1ubuntu1.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>whiptail</key>
+    <version>0.52.15-2ubuntu5</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>winbind</key>
+    <version>2:4.3.9+dfsg-0ubuntu0.14.04</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>wine</key>
+    <version>1:1.8.0-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>wine-gecko2.21:amd64</key>
+    <version>2.21-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>wine-gecko2.21:i386</key>
+    <version>2.21-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>wine-mono0.0.8</key>
+    <version>0.0.8-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>wine1.6</key>
+    <version>1:1.6.2-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>wine1.6-amd64</key>
+    <version>1:1.6.2-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>wine1.6-i386</key>
+    <version>1:1.6.2-0ubuntu4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>winetricks</key>
+    <version>0.0+20140302-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>wireless-regdb</key>
+    <version>2013.02.13-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>wireless-tools</key>
+    <version>30~pre9-8ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>wpasupplicant</key>
+    <version>2.1-0ubuntu1.4</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>x11-common</key>
+    <version>1:7.7+1ubuntu8.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>x11-utils</key>
+    <version>7.7+1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>x11-xkb-utils</key>
+    <version>7.7+1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>x11-xserver-utils</key>
+    <version>7.7+2ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>x11vnc</key>
+    <version>0.9.13-1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>x11vnc-data</key>
+    <version>0.9.13-1.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xauth</key>
+    <version>1:1.0.7-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xbitmaps</key>
+    <version>1.1.1-2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xdg-utils</key>
+    <version>1.1.0~rc1-2ubuntu7.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xfonts-base</key>
+    <version>1:1.0.3</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xfonts-encodings</key>
+    <version>1:1.0.4-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xfonts-mathml</key>
+    <version>6ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xfonts-terminus</key>
+    <version>4.38-1fakesync1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xfonts-utils</key>
+    <version>1:7.7+1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xinit</key>
+    <version>1.3.2-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xinput</key>
+    <version>1.6.1-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xkb-data</key>
+    <version>2.10.1-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xml-core</key>
+    <version>0.13+nmu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xorg-docs-core</key>
+    <version>1:1.7-1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xscreensaver</key>
+    <version>5.15-3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xscreensaver-data</key>
+    <version>5.15-3ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xserver-common</key>
+    <version>2:1.15.1-0ubuntu2.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xserver-xorg</key>
+    <version>1:7.7+1ubuntu8.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xserver-xorg-core</key>
+    <version>2:1.15.1-0ubuntu2.7</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xserver-xorg-input-all</key>
+    <version>1:7.7+1ubuntu8.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xserver-xorg-input-evdev</key>
+    <version>1:2.8.2-1ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xserver-xorg-input-mouse</key>
+    <version>1:1.9.0-1build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xserver-xorg-input-synaptics</key>
+    <version>1.7.4-0ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xserver-xorg-input-vmmouse</key>
+    <version>1:13.0.0-1build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xserver-xorg-input-wacom</key>
+    <version>1:0.23.0-0ubuntu2</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xserver-xorg-video-intel</key>
+    <version>2:2.99.910-0ubuntu1.6</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xsltproc</key>
+    <version>1.1.28-2build1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xterm</key>
+    <version>297-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xul-ext-ubufox</key>
+    <version>3.2-0ubuntu0.14.04.1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>xz-utils</key>
+    <version>5.1.1alpha+20120614-2ubuntu</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>zenity</key>
+    <version>3.8.0-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>zenity-common</key>
+    <version>3.8.0-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>zip</key>
+    <version>3.0-8</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>zlib1g:amd64</key>
+    <version>1:1.2.8.dfsg-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>zlib1g:i386</key>
+    <version>1:1.2.8.dfsg-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+
+  <entry>
+    <key>zlib1g-dev:amd64</key>
+    <version>1:1.2.8.dfsg-1ubuntu1</version>
+    <status>ii</status>
+    <update/>
+  </entry>
+  
+  <entry><key>zsh</key><version>ZSH</version><status>ii</status><update></update></entry>
+
+</audit>
