@@ -1,3 +1,9 @@
+gosa (2.8.253) trusty; urgency=medium
+
+  * go-susi: some work on audit functionality (not working yet)
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 10 Jun 2016 19:53:14 +0200
+
 gosa (2.8.252) trusty; urgency=medium
 
   * go-susi: audit test data template
