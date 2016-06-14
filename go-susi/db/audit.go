@@ -18,13 +18,9 @@ package db
 
 import (
          "os"
-         "fmt"
          "io/ioutil"
-         "strings"
-         "time"
          
          "github.com/mbenkmann/golib/util"
-         "../xml"
        )
 
 
@@ -173,7 +169,7 @@ func AuditScanSubdirs(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanF
   propTree := makePropTree(props)
   
   if mac != "" {
-    AuditScanDir(dir, ts1, ts2, xmlname, mac, contains, f, propTree, returnothers, &nonmatch, &noaudit)
+    AuditScanDir(dir, ts1, ts2, xmlname, mac, contains, f, propTree, len(props), returnothers, &nonmatch, &noaudit)
     return
   }
   
@@ -195,6 +191,8 @@ func AuditScanSubdirs(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanF
       AuditScanDir(dir, ts1, ts2, xmlname, fname, contains, f, propTree, len(props), returnothers, &nonmatch, &noaudit)
     }
   }
+  
+  return
 }
 
 /*
@@ -227,7 +225,7 @@ func AuditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc,
           if auditname > last_auditname {
             last_auditname = auditname
           }
-          if auditname > best_auditname && isInTimestampRange(s, ts1, ts2) {
+          if auditname > best_auditname && isInTimestampRange(auditname, ts1, ts2) {
             best_auditname = auditname
           }
         }
@@ -237,11 +235,6 @@ func AuditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc,
         if last_auditname == "" {
           *noaudit = append(*noaudit, AuditID{MAC:mac})
         } else {
-          // extract as much information as possible. At the very least
-          // the timestamp can be extracted from last_auditname (by removing
-          // the "audit-" prefix and any contained "_" characters). But
-          // if a file xmlname exists in the directory, it can be read partially
-          // and scanned for <ipaddress> and <hostname>.
           *noaudit = append(*noaudit, extractAuditID(mac, subdir, last_auditname, xmlname))
         }
       } else {
@@ -278,7 +271,7 @@ func AuditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc,
               return
             }
 do_audit:
-            auditScanFile(data,i,f,propTree, entrysize)
+            auditScanFile(ipaddress,hostname,data,i,f,propTree, entrysize)
           }
         }
       }
@@ -286,6 +279,23 @@ do_audit:
   }
 }
 
+// extract as much information as possible. At the very least
+// the timestamp can be extracted from last_auditname (by removing
+// the "audit-" prefix and any contained "_" characters). But
+// if a file xmlname exists in the directory, it can be read partially
+// and scanned for <ipaddress> and <hostname>.
+func extractAuditID(mac, subdir, last_auditname, xmlname string) AuditID {
+  return AuditID{MAC:mac,Timestamp:auditFilenameToTimestamp(last_auditname)}
+}
+
+// Removes all non-digit characters from auditname and returns the result.
+func auditFilenameToTimestamp(auditname string) string {
+  ts := make([]byte,0,len(auditname))
+  for i := range auditname {
+    if auditname[i] >= '0' && auditname[i] <= '9' { ts = append(ts, auditname[i]) }
+  }
+  return string(ts)
+}
 
 func findFirstEntry(data []byte) (i int,ipaddress,hostname string) {
   // If the input is malformed, we may read past end of data
@@ -297,7 +307,7 @@ func findFirstEntry(data []byte) (i int,ipaddress,hostname string) {
   
   i = 0
   for data[i] <= ' ' { i++ }
-  if data[i:i+7] != "<audit>" { return -1, "", "" }
+  if string(data[i:i+7]) != "<audit>" { return -1, "", "" }
   i+=7
   
   for {
@@ -305,9 +315,9 @@ func findFirstEntry(data []byte) (i int,ipaddress,hostname string) {
     switch data[i] {
       case 'h': // hostname
                 k := i+9
-                if data[i:k] == "hostname>" {
+                if string(data[i:k]) == "hostname>" {
                   i = nextTag(data,k)
-                  hostname = data[k:i]
+                  hostname = string(data[k:i])
                   i+=11
                 } else {
                   // unknown tag => skip
@@ -317,9 +327,9 @@ func findFirstEntry(data []byte) (i int,ipaddress,hostname string) {
                 }
       case 'i': // ipaddress
                 k := i+10
-                if data[i:k] == "ipaddress>" {
+                if string(data[i:k]) == "ipaddress>" {
                   i = nextTag(data,k)
-                  ipaddress = data[k:i]
+                  ipaddress = string(data[k:i])
                   i+=12
                 } else {
                    // unknown tag => skip
@@ -328,11 +338,14 @@ func findFirstEntry(data []byte) (i int,ipaddress,hostname string) {
                   i++
                 }
       case 'e': // entry
-                if data[i:i+6] == "entry>" {
+                if string(data[i:i+6]) == "entry>" {
                   i+=6
                   return
                 } else {
-                  fallthrough
+                  // unknown tag => skip
+                  for data[i] != '<' { i++ }
+                  for data[i] != '>' { i++ }
+                  i++
                 }
       default:  // unknown tag => skip
                 for data[i] != '<' { i++ }
@@ -343,11 +356,11 @@ func findFirstEntry(data []byte) (i int,ipaddress,hostname string) {
 }
   
 
-func auditScanFile(data []byte, i int, auditScanFunc AuditScanFunc, tree *elementTree, entrysize int) {
+func auditScanFile(ipaddress string, hostname string, data []byte, i int, auditScanFunc AuditScanFunc, tree *elementTree, entrysize int) {
   // If the input is malformed, we may read past end of data
   defer func() {
     if recover() != nil {
-      i = -1
+      // nothing
     }
   }()
 
@@ -356,7 +369,9 @@ func auditScanFile(data []byte, i int, auditScanFunc AuditScanFunc, tree *elemen
 
   for {
     for data[i] <= '<' { i++ }
-    if data[i:i+6] != "entry>" { goto err }
+    if string(data[i:i+6]) != "entry>" {
+      return // not <entry> ? => stop processing (in an ordinary file this would be </audit>
+    }
     i+=6
     
     entry := make([]string, entrysize)
@@ -379,21 +394,29 @@ func auditScanFile(data []byte, i int, auditScanFunc AuditScanFunc, tree *elemen
       etree := tree
       for {
         etree = etree.link[data[k]]
-        if etree == nil { goto err }
+        if etree == nil {
+          // tag that is not requested => skip
+          i = nextTag(data,i)+1 // this lands us past the "<" of the end tag
+          i = nextTag(data,i) // this lands us on the "<" of the next start tag
+          break
+        }
         if etree.name != "" {
           k = i+len(etree.name)
-          if etree.name != data[i:k] {
+          if etree.name != string(data[i:k]) {
             // special case for <empty/> tag
-            if etree.name[0:len(etree.name)-1] == data[i:k-1] && data[k-1] == '/' && data[k] == '>' {
+            if data[k] == '>' && data[k-1] == '/' && etree.name[0:len(etree.name)-1] == string(data[i:k-1])  {
               entry[etree.index] = ""
               i = k+1
               break
             } else {
-              goto err
+              // tag that is not requested => skip
+              i = nextTag(data,i)+1 // this lands us past the "<" of the end tag
+              i = nextTag(data,i) // this lands us on the "<" of the next start tag
+              break
             }
           } else {
             i = nextTag(data,k)
-            entry[etree.index] = data[k:i]
+            entry[etree.index] = string(data[k:i])
             i+=len(etree.name)+2 // 2 for <, /  (the > is include in etree.name)
             break
           }
@@ -409,8 +432,89 @@ func nextTag(data []byte, i int) int {
   return i
 }
 
+// A search tree for element names. Each elementTree node has a link
+// array with one entry per byte. To search for a name like "package"
+// you follow these links byte by byte (i.e. you start with 'p', then 'a',...)
+// until you arrive at an elementTree with non-empty name element or until
+// the link is nil. In the latter case there is no element with that name.
+// In the former case, the elementTree.name is the name of the only allowed
+// element with the prefix corresponding to the bytes that led to the node.
+// Each name field ends with ">" (but does NOT start with "<"), so it
+// is guaranteed that even if there exist elements like "<foo>" and "<foobar>"
+// where one name is a prefix of the other name, this does not create
+// ambiguities in the search tree, because if you continue searching
+// until and including the ">" you will always end up at exactly one node.
 type elementTree struct {
   name string // something like "version>", i.e. without '<' but with '>'
   index int
-  link [256]*elementTree // includes extra entry for '/' as in <foo/>
+  link [256]*elementTree
 }
+
+// returns -1 if not found
+func (t *elementTree) IndexOf(name string) int {
+  k := 0
+  etree := t
+  for {
+    etree = etree.link[name[k]]
+    if etree == nil {
+      return -1
+    }
+    if etree.name != "" {
+      if etree.name == name {
+        return etree.index
+      } else {
+        return -1
+      }
+    }
+    k++
+  }
+}
+
+// Takes a list of strings that correspond to names in <entry>
+// elements and creates an elementTree that is a search tree for
+// these element names. The elementTree.index in the node for
+// props[i] is i.
+// The idea behind this function is to map props[i] to i so that
+// you can have an array of len(props) elements that corresponding to the names
+// in props.
+// The assumption is that usually each element is uniquely identified by its
+// first letter, so that one lookup based on the first byte is enough.
+// In that case this search tree approach is faster than using a map[string]int.
+func makePropTree(props []string) *elementTree {
+  root := &elementTree{}
+  
+  for p, name := range props {
+    if name == "" { continue } // empty entry in props => WTF?
+    if name[len(name)-1] == '>' { continue } // this would screw us over
+    
+    name = props[p]+">"
+   
+    k := 0
+    etree := root
+    for {
+      oldetree := etree
+      etree = oldetree.link[name[k]]
+      if etree == nil {
+        // found insertion point into search tree
+        oldetree.link[name[k]] = &elementTree{name:name, index:p}
+        break
+      }
+      if etree.name != "" {
+        // conflict with another element that has the same prefix
+        
+        if etree.name == name {
+          break // duplicate entry in props => WTF
+        } else {
+          //insert an extra step
+          etree.link[etree.name[k+1]] = &elementTree{name:etree.name,index:etree.index}
+          etree.name = ""
+          etree.index = 0
+        }
+      }
+      k++
+    }
+  }
+  
+  return root
+}
+
