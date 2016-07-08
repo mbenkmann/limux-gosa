@@ -1,3 +1,9 @@
+gosa (2.8.255) trusty; urgency=medium
+
+  * go-susi: some testing of the audit code, reformatting and commenting
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 08 Jul 2016 17:29:08 +0200
+
 gosa (2.8.254) trusty; urgency=medium
 
   * go-susi: audit.go compiles without error, but no testing yet

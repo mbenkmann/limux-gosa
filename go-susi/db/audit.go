@@ -19,87 +19,14 @@ package db
 import (
          "os"
          "io/ioutil"
+         "strings"
+         "strconv"
+         "fmt"
          
          "github.com/mbenkmann/golib/util"
        )
 
 
-// returns true iff s is a lower-case MAC address with ":" separator.
-func isMAC(s string) bool {
-  if len(s) != 17 { return false }
-  i := 0
-  for {
-    if ('0' <= s[i] && s[i] <= '9') || ('a' <= s[i] && s[i] <= 'f') {
-      // hex digit
-    } else {
-      return false
-    }
-    i++
-    if ('0' <= s[i] && s[i] <= '9') || ('a' <= s[i] && s[i] <= 'f') {
-      // hex digit
-    } else {
-      return false
-    }
-    i++
-    if i == 17 { break }
-    if s[i] != ':' { return false }
-    i++
-  }
-  return true
-}
-
-// Returns true iff s is of the form "audit-..." where "..." is
-// 14 digits mixed with an arbitrary number of underscores.
-func isAudit(s string) bool {
-  if len(s) < 20 { return false }
-  if s[0:6] != "audit-" { return false }
-  
-  count := 0
-  for a := 6; a < len(s); a++ {
-    if s[a] != '_' {
-      if s[a] < '0' || s[a] > '9' { return false }
-      count++
-    }
-  }
-  return count == 14
-}
-
-// Assuming s is of the form "audit-..." where "..." is
-// 14 digits mixed with an arbitrary number of underscores,
-// this function returns true iff the timestamp contained in
-// s sorts lexicographically between timestamp1 and timestamp2 (both inclusive)
-// which have to be 14 digits plus underscores, too.
-// Underscores in all 3 strings are ignored.
-func isInTimestampRange(s, timestamp1, timestamp2 string) bool {
-  a := 6
-  b := 0
-  
-  for {
-    for a < len(s) && s[a] == '_' { a++ }
-    if a == len(s) { break }
-    for b < len(timestamp1) && timestamp1[b] == '_' { b++ }
-    if b == len(timestamp1) { break }
-    if s[a] < timestamp1[b] { return false }
-    if s[a] > timestamp1[b] { break }
-    a++
-    b++
-  }
-  
-  a = 6
-  b = 0
-  
-  for {
-    for a < len(s) && s[a] == '_' { a++ }
-    if a == len(s) { break }
-    for b < len(timestamp2) && timestamp2[b] == '_' { b++ }
-    if b == len(timestamp2) { break }
-    if s[a] > timestamp2[b] { return false }
-    if s[a] < timestamp2[b] { break }
-    a++
-    b++
-  }
-  return true
-}
 
 type AuditScanFunc func(entry []string)
 
@@ -279,6 +206,84 @@ do_audit:
   }
 }
 
+// returns true iff s is a lower-case MAC address with ":" separator.
+func isMAC(s string) bool {
+  if len(s) != 17 { return false }
+  i := 0
+  for {
+    if ('0' <= s[i] && s[i] <= '9') || ('a' <= s[i] && s[i] <= 'f') {
+      // hex digit
+    } else {
+      return false
+    }
+    i++
+    if ('0' <= s[i] && s[i] <= '9') || ('a' <= s[i] && s[i] <= 'f') {
+      // hex digit
+    } else {
+      return false
+    }
+    i++
+    if i == 17 { break }
+    if s[i] != ':' { return false }
+    i++
+  }
+  return true
+}
+
+// Returns true iff s is of the form "audit-..." where "..." is
+// 14 digits mixed with an arbitrary number of underscores.
+func isAudit(s string) bool {
+  if len(s) < 20 { return false }
+  if s[0:6] != "audit-" { return false }
+  
+  count := 0
+  for a := 6; a < len(s); a++ {
+    if s[a] != '_' {
+      if s[a] < '0' || s[a] > '9' { return false }
+      count++
+    }
+  }
+  return count == 14
+}
+
+// Assuming s is of the form "audit-..." where "..." is
+// 14 digits mixed with an arbitrary number of underscores,
+// this function returns true iff the timestamp contained in
+// s sorts lexicographically between timestamp1 and timestamp2 (both inclusive)
+// which have to be 14 digits plus underscores, too.
+// Underscores in all 3 strings are ignored.
+func isInTimestampRange(s, timestamp1, timestamp2 string) bool {
+  a := 6
+  b := 0
+  
+  for {
+    for a < len(s) && s[a] == '_' { a++ }
+    if a == len(s) { break }
+    for b < len(timestamp1) && timestamp1[b] == '_' { b++ }
+    if b == len(timestamp1) { break }
+    if s[a] < timestamp1[b] { return false }
+    if s[a] > timestamp1[b] { break }
+    a++
+    b++
+  }
+  
+  a = 6
+  b = 0
+  
+  for {
+    for a < len(s) && s[a] == '_' { a++ }
+    if a == len(s) { break }
+    for b < len(timestamp2) && timestamp2[b] == '_' { b++ }
+    if b == len(timestamp2) { break }
+    if s[a] > timestamp2[b] { return false }
+    if s[a] < timestamp2[b] { break }
+    a++
+    b++
+  }
+  return true
+}
+
+
 // extract as much information as possible. At the very least
 // the timestamp can be extracted from last_auditname (by removing
 // the "audit-" prefix and any contained "_" characters). But
@@ -297,6 +302,13 @@ func auditFilenameToTimestamp(auditname string) string {
   return string(ts)
 }
 
+// Scans data for the first occurrence of "<entry>" and returns the index
+// of the first byte after that. If "<hostname>" and/or "<ipaddress>" are
+// encountered before "<entry>" the contents of these elements will
+// be returned as well (otherwise the respective return string will be "").
+// If "<entry>" is not found, -1 is returned (ipaddress and hostname are
+// still returned if they are encountered).
+// If the first non-whitespace string in data is not "<audit>", returns -2.
 func findFirstEntry(data []byte) (i int,ipaddress,hostname string) {
   // If the input is malformed, we may read past end of data
   defer func() {
@@ -307,7 +319,7 @@ func findFirstEntry(data []byte) (i int,ipaddress,hostname string) {
   
   i = 0
   for data[i] <= ' ' { i++ }
-  if string(data[i:i+7]) != "<audit>" { return -1, "", "" }
+  if string(data[i:i+7]) != "<audit>" { return -2, "", "" }
   i+=7
   
   for {
@@ -432,7 +444,8 @@ func nextTag(data []byte, i int) int {
   return i
 }
 
-// A search tree for element names. Each elementTree node has a link
+// A search tree for element names and the corresponding index in a name
+// list. Each elementTree node has a link
 // array with one entry per byte. To search for a name like "package"
 // you follow these links byte by byte (i.e. you start with 'p', then 'a',...)
 // until you arrive at an elementTree with non-empty name element or until
@@ -450,8 +463,29 @@ type elementTree struct {
   link [256]*elementTree
 }
 
+func (t *elementTree) String() string {
+  s := []string{}
+  t.stringify("",&s)
+  return strings.Join(s,"")
+}
+
+func (t *elementTree) stringify(indent string, s *[]string) {
+  if t.name != "" {
+    *s = append(*s, " ", strconv.Itoa(t.index), " ", t.name)
+  } else {
+    for i,l := range t.link {
+      if l != nil {
+        if len(*s) != 0 { *s = append(*s, "\n") }
+        *s = append(*s, indent, string([]byte{byte(i)}))
+        l.stringify(indent+" ", s)
+      }
+    }
+  }
+}
+
 // returns -1 if not found
 func (t *elementTree) IndexOf(name string) int {
+  if name == "" || name[len(name)-1] != '>' { return -1 }
   k := 0
   etree := t
   for {
@@ -485,8 +519,13 @@ func makePropTree(props []string) *elementTree {
   
   for p, name := range props {
     if name == "" { continue } // empty entry in props => WTF?
-    if name[len(name)-1] == '>' { continue } // this would screw us over
-    
+    // The tree has inner nodes and leaf nodes but no dual nodes.
+    // This requires that an entry X can not be a prefix of an entry Y.
+    // E.g. "foo" and "foobar" cannot both be stored in the tree.
+    // In order to achieve this, we store all entries with a ">" as final
+    // character and disallow names that contain ">". This is not a
+    // limitation because XML element names must not contain ">".
+    if strings.Contains(name,">") { continue }
     name = props[p]+">"
    
     k := 0
@@ -518,3 +557,39 @@ func makePropTree(props []string) *elementTree {
   return root
 }
 
+func AuditTest() string {
+  props := []string{"foo", "foobar", "ill>egal1", "egal2>", ">illegal3", "", "entry", "entry", "bla", "dusel", "duschkopf"}
+  t := makePropTree(props)
+  res := t.String() +"\n\n"
+  for i, name := range props {
+    res += "\n"+strconv.Itoa(i)+" "+strconv.Itoa(t.IndexOf(name+">"))+" "+name
+  }
+  
+  for _, mac := range []string{"11:22:33:44:55:6","11:22:33:44:55:666", "", "00:00:00:00:00:00", "99:99:99:99:99:99", "aa:aa:aa:aa:aa:aa", "ff:ff:ff:ff:ff:ff", "A0:00:00:00:00:00", "0A:00:00:00:00:00", "00-00:00:00:00:00" } {
+    res += "\n" + mac + fmt.Sprintf(" %v", isMAC(mac))
+  }
+  
+  for _, fname := range []string{"audit20161231235959","audit-20161231235959","Audit-20161231235959","audit-20161231235959_","audit-2016123123595_","audit-2016_12312_3595_9","audit-20161231235959_11" } {
+    res += "\n" + fname + fmt.Sprintf(" %v", isAudit(fname))
+  }
+
+  stamps := []string{"0000_00_00_0000_00", "000_00_000_0000_00", "00_0_00_000_00_00_00___", "99990000_0000_00", "2015_31_12_1659_22", "2017_31_12_1659_22", "20183112165922_", "20183112165922" }
+  for i, ts := range stamps {
+    if i == 0 || i+1 == len(stamps) { continue }
+    res += "\n" + stamps[i-1] + " " + ts + " " + stamps[i+1] + fmt.Sprintf(" %v", isInTimestampRange("audit-"+ts, stamps[i-1],stamps[i+1]))
+  }
+  
+  res += "\n"+auditFilenameToTimestamp("dj1__2  3jDJ45xx")
+  
+  tests := []string{"",
+                    "  <audit>",
+                    "<foo><entry></entry></foo>",
+                    " \n\t<audit><hoax>yy</hoax><a></a><igitt>z</igitt><ekel>erregend</ekel><ipaddress>1.2.3.4</ipaddress><hostname>Grutsch</hostname><entry>",
+                    }
+  for i, ts := range tests {
+    idx, ipaddress, hostname := findFirstEntry([]byte(ts))
+    res += fmt.Sprintf("\n%v %v %v %v", i, idx, ipaddress, hostname)
+  }
+  
+  return res
+}
