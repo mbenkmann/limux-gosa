@@ -27,7 +27,15 @@ import (
        )
 
 
-
+/*
+  Signature of a function to be called for each <entry> element.
+  Each child element of <entry> has a fixed index i based on its
+  name (NOT based on the order of the elements in the file) and the value
+  of that child element is stored in entry[i].
+  E.g. If "<version>" is assigned index 4, then entry[4] will always
+  be the value of the <version> child element, regardless of the
+  order in which child elements appear in the file.
+*/
 type AuditScanFunc func(entry []string)
 
 /*
@@ -96,7 +104,7 @@ func AuditScanSubdirs(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanF
   propTree := makePropTree(props)
   
   if mac != "" {
-    AuditScanDir(dir, ts1, ts2, xmlname, mac, contains, f, propTree, len(props), returnothers, &nonmatch, &noaudit)
+    auditScanDir(dir, ts1, ts2, xmlname, mac, contains, f, propTree, len(props), returnothers, &nonmatch, &noaudit)
     return
   }
   
@@ -115,7 +123,7 @@ func AuditScanSubdirs(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanF
   for _, fi := range fis {
     fname := fi.Name()
     if fi.IsDir() && isMAC(fname) {
-      AuditScanDir(dir, ts1, ts2, xmlname, fname, contains, f, propTree, len(props), returnothers, &nonmatch, &noaudit)
+      auditScanDir(dir, ts1, ts2, xmlname, fname, contains, f, propTree, len(props), returnothers, &nonmatch, &noaudit)
     }
   }
   
@@ -126,7 +134,7 @@ func AuditScanSubdirs(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanF
   Scans a single directory dir+"/"+mac that is expected to contain
   subdirectories named audit-<timestamp>. See AuditScanSubdirs for details.
 */
-func AuditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc, propTree *elementTree, entrysize int, returnothers bool, nonmatch *[]AuditID, noaudit *[]AuditID) {
+func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc, propTree *elementTree, entrysize int, returnothers bool, nonmatch *[]AuditID, noaudit *[]AuditID) {
   subdir := dir + "/" + mac  // .../fai/MACADDRESS
   d, err := os.Open(subdir)
   if err != nil {
@@ -303,7 +311,8 @@ func auditFilenameToTimestamp(auditname string) string {
 }
 
 // Scans data for the first occurrence of "<entry>" and returns the index
-// of the first byte after that. If "<hostname>" and/or "<ipaddress>" are
+// of its location (i.e. of the "<" character).
+// If "<hostname>" and/or "<ipaddress>" are
 // encountered before "<entry>" the contents of these elements will
 // be returned as well (otherwise the respective return string will be "").
 // If "<entry>" is not found, -1 is returned (ipaddress and hostname are
@@ -351,7 +360,7 @@ func findFirstEntry(data []byte) (i int,ipaddress,hostname string) {
                 }
       case 'e': // entry
                 if string(data[i:i+6]) == "entry>" {
-                  i+=6
+                  i--
                   return
                 } else {
                   // unknown tag => skip
@@ -367,7 +376,23 @@ func findFirstEntry(data []byte) (i int,ipaddress,hostname string) {
   }
 }
   
-
+// Scans data[i:] for <entry>...</entry> and calls auditScanFunc for each entry.
+// The first tag encountered outside of an entry element that is not itself
+// "<entry>" will terminate the scan. Usually this would be the "</audit>" end tag.
+// The following describes how an <entry> element is converted into a []string
+// used as argument for auditScanFunc:
+//   * entrysize is the length of each []string slice passed to auditScanFunc.
+//   * tree maps a child element name to its index in the entry slice.
+//     It's important to note that the order of child elements within <entry>
+//     does not matter.
+//   * <entry> is not allowed to have more than one child element with the same
+//     name. It is unspecified which value will be passed to auditScanFunc in
+//     this case.
+//   * If ipaddress and/or hostname are non-empty AND tree contains a mapping
+//     for "ipaddress>" and/or "hostname>" respectively, the values will be
+//     added to every entry.
+//   * If <entry> has an <ipaddress> and/or <hostname> child that will override
+//     the global ipaddress/hostname.
 func auditScanFile(ipaddress string, hostname string, data []byte, i int, auditScanFunc AuditScanFunc, tree *elementTree, entrysize int) {
   // If the input is malformed, we may read past end of data
   defer func() {
@@ -396,8 +421,8 @@ func auditScanFile(ipaddress string, hostname string, data []byte, i int, auditS
     
     for{
       for data[i] <= '<' { i++ }
-      if data[i] == '/' { // </entry>
-        i+=7
+      if data[i-1] == '/' { // </entry>
+        i+=6
         auditScanFunc(entry)
         break
       }
@@ -408,7 +433,10 @@ func auditScanFile(ipaddress string, hostname string, data []byte, i int, auditS
         etree = etree.link[data[k]]
         if etree == nil {
           // tag that is not requested => skip
-          i = nextTag(data,i)+1 // this lands us past the "<" of the end tag
+          for data[i] != '>' { i++ }
+          if data[i-1] != '/' { // if this is not an <empty/> tag
+            i = nextTag(data,i)+1 // this lands us on the "/" of the end tag
+          }
           i = nextTag(data,i) // this lands us on the "<" of the next start tag
           break
         }
@@ -422,14 +450,17 @@ func auditScanFile(ipaddress string, hostname string, data []byte, i int, auditS
               break
             } else {
               // tag that is not requested => skip
-              i = nextTag(data,i)+1 // this lands us past the "<" of the end tag
+              for data[i] != '>' { i++ }
+              if data[i-1] != '/' { // if this is not an <empty/> tag
+                i = nextTag(data,i)+1 // this lands us on the "/" of the end tag
+              }
               i = nextTag(data,i) // this lands us on the "<" of the next start tag
               break
             }
           } else {
             i = nextTag(data,k)
             entry[etree.index] = string(data[k:i])
-            i+=len(etree.name)+2 // 2 for <, /  (the > is include in etree.name)
+            i+=len(etree.name)+2 // 2 for <, /  (the > is included in etree.name)
             break
           }
         }
@@ -590,6 +621,34 @@ func AuditTest() string {
     idx, ipaddress, hostname := findFirstEntry([]byte(ts))
     res += fmt.Sprintf("\n%v %v %v %v", i, idx, ipaddress, hostname)
   }
+
+  auditScanFunc := func(entry []string){
+    res += "\n"
+    for _, e := range entry {
+      res += e
+    }
+  }
+  
+  tree := makePropTree([]string{"aaa","aab","ipaddress","D", "hostname","F"})
+  
+  data:=`
+  <entry>
+  <aab>b</aab>
+  <D>d</D>
+  <foo>x</foo>
+  <aaa>a</aaa>
+  </entry>
+  <entry>
+  <F>f</F>
+  <aab>b</aab>
+  <D>d</D>
+  <foo>x</foo>
+  <aaa/>
+  </entry>
+  
+  </audit>
+  `
+  auditScanFile("c", "e", []byte(data), 0, auditScanFunc, tree, 8)
   
   return res
 }

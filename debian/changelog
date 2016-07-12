@@ -1,3 +1,9 @@
+gosa (2.8.256) trusty; urgency=medium
+
+  * go-susi: db/audit.go is now tested an bugs are fixed
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 12 Jul 2016 12:13:10 +0200
+
 gosa (2.8.255) trusty; urgency=medium
 
   * go-susi: some testing of the audit code, reformatting and commenting
