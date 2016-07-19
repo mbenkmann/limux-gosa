@@ -99,12 +99,15 @@ type AuditID struct {
                 timestamp of the most recent audit WITHIN THE requested
                 timeframe for systems that are included in nonmatch
                 because they do not have the contains string.
+  unknown: If returnothers==true this return value is len(noaudit).
+           If returnothers==false this is the length noaudit would have if
+           returnothers were true.
 */
-func AuditScanSubdirs(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc, props []string, returnothers bool) (nonmatch, noaudit []AuditID){
+func AuditScanSubdirs(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc, props []string, returnothers bool) (nonmatch, noaudit []AuditID, unknown int){
   propTree := makePropTree(props)
   
   if mac != "" {
-    auditScanDir(dir, ts1, ts2, xmlname, mac, contains, f, propTree, len(props), returnothers, &nonmatch, &noaudit)
+    auditScanDir(dir, ts1, ts2, xmlname, mac, contains, f, propTree, len(props), returnothers, &nonmatch, &noaudit, &unknown)
     return
   }
   
@@ -123,7 +126,7 @@ func AuditScanSubdirs(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanF
   for _, fi := range fis {
     fname := fi.Name()
     if fi.IsDir() && isMAC(fname) {
-      auditScanDir(dir, ts1, ts2, xmlname, fname, contains, f, propTree, len(props), returnothers, &nonmatch, &noaudit)
+      auditScanDir(dir, ts1, ts2, xmlname, fname, contains, f, propTree, len(props), returnothers, &nonmatch, &noaudit, &unknown)
     }
   }
   
@@ -134,7 +137,7 @@ func AuditScanSubdirs(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanF
   Scans a single directory dir+"/"+mac that is expected to contain
   subdirectories named audit-<timestamp>. See AuditScanSubdirs for details.
 */
-func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc, propTree *elementTree, entrysize int, returnothers bool, nonmatch *[]AuditID, noaudit *[]AuditID) {
+func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc, propTree *elementTree, entrysize int, returnothers bool, nonmatch *[]AuditID, noaudit *[]AuditID, unknown *int) {
   subdir := dir + "/" + mac  // .../fai/MACADDRESS
   d, err := os.Open(subdir)
   if err != nil {
@@ -142,6 +145,7 @@ func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc,
     if returnothers {
       *noaudit = append(*noaudit, AuditID{MAC:mac})
     }
+    *unknown = *unknown + 1
   } else {
     subfis, err := d.Readdir(-1)
     d.Close()
@@ -150,6 +154,7 @@ func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc,
       if returnothers {
         *noaudit = append(*noaudit, AuditID{MAC:mac})
       }
+      *unknown = *unknown + 1
     } else {
       // find most recent audit dir in [ts1,ts2] window.
       best_auditname := ""
@@ -167,11 +172,14 @@ func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc,
       }
       
       if best_auditname == "" {
-        if last_auditname == "" {
-          *noaudit = append(*noaudit, AuditID{MAC:mac})
-        } else {
-          *noaudit = append(*noaudit, extractAuditID(mac, subdir, last_auditname, xmlname))
+        if returnothers {
+          if last_auditname == "" {
+            *noaudit = append(*noaudit, AuditID{MAC:mac})
+          } else {
+            *noaudit = append(*noaudit, extractAuditID(mac, subdir, last_auditname, xmlname))
+          }
         }
+        *unknown = *unknown + 1
       } else {
         dataname := subdir + "/" + best_auditname + "/" + xmlname
         data, err := ioutil.ReadFile(dataname)
@@ -180,12 +188,14 @@ func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc,
           if returnothers {
             *noaudit = append(*noaudit, AuditID{MAC:mac})
           }
+          *unknown = *unknown + 1
         } else {
           i, ipaddress, hostname := findFirstEntry(data)
           if i < 0 { // no <entry> found => treated as not audited
             if returnothers {
               *noaudit = append(*noaudit, AuditID{MAC:mac, IP:ipaddress, Hostname:hostname})
             }
+            *unknown = *unknown + 1
           } else {
             if contains != "" {
               b := contains[0]

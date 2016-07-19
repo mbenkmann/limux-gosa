@@ -95,11 +95,16 @@ func gosa_query_audit(xmlmsg *xml.Hash, context *security.Context) *xml.Hash {
   
   filter = limitFilter(filter, int64(context.Limits.MaxAnswers), context.PeerID.IP.String())
 
-  nonmatch2 := []db.AuditID{}
+  known := map[string]bool{}
+  match2 := map[string]bool{}
+  nonmatch2 := map[string]db.AuditID{}
   var count uint64 = 1
 
   f := func(entry []string){
+    mac := entry[macindex]
+    known[mac] = true
     if filter.Accepts(entry) {
+      match2[mac] = true
       answer := audit.Add("answer"+strconv.FormatUint(count, 10))
       for i := 0; i < selected; i++ {
         answer.Add(props[i], entry[i])
@@ -107,13 +112,20 @@ func gosa_query_audit(xmlmsg *xml.Hash, context *security.Context) *xml.Hash {
       count++
     } else {
       if includeothers {
-        nonmatch2 = append(nonmatch2, db.AuditID{MAC:entry[macindex]})
+        if _, have_already := nonmatch2[mac]; !have_already {
+          nonmatch2[mac] = db.AuditID{MAC:mac}
+        }
       }
     }
   }
   
-  nonmatch, noaudit := db.AuditScanSubdirs(config.FAILogPath, timestamp1, timestamp2, fname, optimize_mac, optimize_contains,f, props, includeothers)
-  nonmatch = append(nonmatch, nonmatch2...)
+  nonmatch, noaudit, unknown := db.AuditScanSubdirs(config.FAILogPath, timestamp1, timestamp2, fname, optimize_mac, optimize_contains,f, props, includeothers)
+  
+  for _, nm2 := range nonmatch2 {
+    if !match2[nm2.MAC] {
+      nonmatch = append(nonmatch, nm2)
+    }
+  }
   
   for i := range nonmatch {
     nm := audit.Add("nonmatching")
@@ -123,6 +135,9 @@ func gosa_query_audit(xmlmsg *xml.Hash, context *security.Context) *xml.Hash {
     na := audit.Add("noaudit")
     addAuditID(na, &noaudit[i])
   }
+  
+  audit.Add("known", strconv.Itoa(len(known)))
+  audit.Add("unknown", strconv.Itoa(unknown))
 
   return audit
 }
