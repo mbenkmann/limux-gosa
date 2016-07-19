@@ -206,7 +206,7 @@ func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc,
               return
             }
 do_audit:
-            auditScanFile(ipaddress,hostname,data,i,f,propTree, entrysize)
+            auditScanFile(mac,ipaddress,hostname,data,i,f,propTree, entrysize)
           }
         }
       }
@@ -388,12 +388,12 @@ func findFirstEntry(data []byte) (i int,ipaddress,hostname string) {
 //   * <entry> is not allowed to have more than one child element with the same
 //     name. It is unspecified which value will be passed to auditScanFunc in
 //     this case.
-//   * If ipaddress and/or hostname are non-empty AND tree contains a mapping
-//     for "ipaddress>" and/or "hostname>" respectively, the values will be
-//     added to every entry.
-//   * If <entry> has an <ipaddress> and/or <hostname> child that will override
-//     the global ipaddress/hostname.
-func auditScanFile(ipaddress string, hostname string, data []byte, i int, auditScanFunc AuditScanFunc, tree *elementTree, entrysize int) {
+//   * If macaddress and/or ipaddress and/or hostname are non-empty AND tree
+//     contains a mapping for "macaddress>" and/or "ipaddress>" and/or "hostname>"
+//     respectively, the values will be added to every entry.
+//   * If <entry> has a <macaddress> and/or <ipaddress> and/or <hostname> child
+//     that will override the global macaddress,ipaddress/hostname.
+func auditScanFile(macaddress,ipaddress, hostname string, data []byte, i int, auditScanFunc AuditScanFunc, tree *elementTree, entrysize int) {
   // If the input is malformed, we may read past end of data
   defer func() {
     if recover() != nil {
@@ -401,6 +401,7 @@ func auditScanFile(ipaddress string, hostname string, data []byte, i int, auditS
     }
   }()
 
+  mac_index := tree.IndexOf("macaddress>")
   ip_index := tree.IndexOf("ipaddress>")
   host_index := tree.IndexOf("hostname>")
 
@@ -412,6 +413,9 @@ func auditScanFile(ipaddress string, hostname string, data []byte, i int, auditS
     i+=6
     
     entry := make([]string, entrysize)
+    if mac_index >= 0 {
+      entry[mac_index] = macaddress
+    }
     if ip_index >= 0 {
       entry[ip_index] = ipaddress
     }
@@ -648,7 +652,7 @@ func AuditTest() string {
   
   </audit>
   `
-  auditScanFile("c", "e", []byte(data), 0, auditScanFunc, tree, 8)
+  auditScanFile("m","c", "e", []byte(data), 0, auditScanFunc, tree, 8)
   
   return res
 }

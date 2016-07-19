@@ -288,9 +288,20 @@ func ProcessXMLMessage(xml *xml.Hash, context *security.Context, key string) (re
       case "gosa_query_fai_server":    if handleServerMessage(context.Access.Query.QueryAll,"queryAll") { gosa_query_fai_server(xml, context).WriteTo(reply) }
       case "gosa_query_fai_release":   if handleServerMessage(context.Access.Query.QueryAll,"queryAll") { gosa_query_fai_release(xml, context).WriteTo(reply) }
       case "gosa_query_packages_list": if handleServerMessage(context.Access.Query.QueryAll,"queryAll") { 
+                                         // result can be very large, so make sure
+                                         // memory is free'd immediately instead of
+                                         // waiting for GC
                                          pkg := gosa_query_packages_list(xml, context)
                                          pkg.WriteTo(reply)
                                          pkg.Destroy()
+                                       }
+      case "gosa_query_audit":         if handleServerMessage(context.Access.Query.QueryAll,"queryAll") { 
+                                         // result can be very large, so make sure
+                                         // memory is free'd immediately instead of
+                                         // waiting for GC
+                                         audit := gosa_query_audit(xml, context)
+                                         audit.WriteTo(reply)
+                                         audit.Destroy()
                                        }
       case "gosa_show_log_by_mac":     if handleServerMessage(context.Access.Query.QueryAll,"queryAll") { gosa_show_log_by_mac(xml).WriteTo(reply) }
       case "gosa_show_log_files_by_date_and_mac": 
