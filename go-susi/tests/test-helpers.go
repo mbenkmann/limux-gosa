@@ -405,8 +405,24 @@ exec tail -f `+tempdir+`/fai-monitor.log
 
   fai_audit := tempdir+"/fai_audit"
   ioutil.WriteFile(fai_audit, []byte(`#!/bin/bash
-echo log_file:foo.xml:Zm9vCg==
-echo log_file:bar.xml:YmFyCg==
+echo -n log_file:foo.xml:
+echo "<audit>
+</audit>
+" | base64 -w 0
+echo
+echo -n log_file:bar.xml:
+echo "<audit>
+<entry>
+<key>feuerwehr</key>
+<sirene>laut</sirene>
+</entry>
+<entry>
+<key>bullizei</key>
+<sirene>nervig</sirene>
+</entry>
+</audit>
+" | base64 -w 0
+echo
 echo audit
 read
 exit 0

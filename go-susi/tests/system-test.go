@@ -383,6 +383,80 @@ func SystemTest(daemon string, is_gosasi bool) {
 func run_audit_tests() {
   gosa("job_trigger_action_audit", hash("xml(macaddress(%v)target(%v))",config.MAC,config.ServerSourceAddress))
   time.Sleep(2*time.Second)
+  x := gosa("query_audit", hash("xml(audit(bar)select(sirene)select(sirene)where(clause(phrase(key(%v)))))", "feuerwehr"))
+  check(checkTags(x, "header,source,target,answer1,known,unknown,session_id?"),"")
+  check(x.Text("header"), "query_audit")
+  check(x.Text("known"), "1")
+  check(x.Text("unknown"), "1")
+  siFail(x.Text("source"), config.ServerSourceAddress)
+  check(x.Text("target"), "GOSA")
+  a := x.First("answer1")
+  if check(a != nil, true) {
+    check(checkTags(a,"sirene"), "")
+    check(a.Text("sirene"),"laut")
+  }
+  
+  x = gosa("query_audit", hash("xml(includeothers()audit(bar)select(macaddress)select(key)where(clause(phrase(sirene(%v)))))", "nervig"))
+  check(checkTags(x, "header,source,target,noaudit,answer1,known,unknown,session_id?"),"")
+  check(x.Text("header"), "query_audit")
+  check(x.Text("known"), "1")
+  check(x.Text("unknown"), "1")
+  siFail(x.Text("source"), config.ServerSourceAddress)
+  check(x.Text("target"), "GOSA")
+  a = x.First("answer1")
+  if check(a != nil, true) {
+    check(checkTags(a,"key,macaddress"), "")
+    check(a.Text("key"),"bullizei")
+    check(a.Text("macaddress"),config.MAC)
+  }
+  a = x.First("noaudit")
+  if check(a != nil, true) {
+    check(checkTags(a,"macaddress"), "")
+    check(a.Text("macaddress"),strings.ToLower(Jobs[1].MAC))
+  }
+  
+  x = gosa("query_audit", hash("xml(includeothers()audit(foo)select(macaddress)select(key)where(clause(phrase(sirene(%v)))))", "nervig"))
+  check(checkTags(x, "header,source,target,noaudit+,known,unknown,session_id?"),"")
+  check(x.Text("header"), "query_audit")
+  check(x.Text("known"), "0")
+  check(x.Text("unknown"), "2")
+  siFail(x.Text("source"), config.ServerSourceAddress)
+  check(x.Text("target"), "GOSA")
+  a = x.First("noaudit")
+  if check(a != nil, true) {
+    check(checkTags(a,"macaddress"), "")
+    check(a.Text("macaddress"),config.MAC)
+  }
+  a = a.Next()
+  if check(a != nil, true) {
+    check(checkTags(a,"macaddress"), "")
+    check(a.Text("macaddress"),strings.ToLower(Jobs[1].MAC))
+  }
+  
+  x = gosa("query_audit", hash("xml(includeothers()audit(bar)select(macaddress)select(key))"))
+  check(checkTags(x, "header,answer1,answer2,noaudit,source,target,known,unknown,session_id?"),"")
+  check(x.Text("header"), "query_audit")
+  check(x.Text("known"), "1")
+  check(x.Text("unknown"), "1")
+  siFail(x.Text("source"), config.ServerSourceAddress)
+  check(x.Text("target"), "GOSA")
+  a = x.First("answer1")
+  if check(a != nil, true) {
+    check(checkTags(a,"macaddress,key"), "")
+    check(a.Text("macaddress"),config.MAC)
+    check(a.Text("key"),"feuerwehr")
+  }
+  a = x.First("answer2")
+  if check(a != nil, true) {
+    check(checkTags(a,"macaddress,key"), "")
+    check(a.Text("macaddress"),config.MAC)
+    check(a.Text("key"),"bullizei")
+  }
+  a = x.First("noaudit")
+  if check(a != nil, true) {
+    check(checkTags(a,"macaddress"), "")
+    check(a.Text("macaddress"),strings.ToLower(Jobs[1].MAC))
+  }
 }
 
 func run_gosa_ping_tests() {

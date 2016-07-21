@@ -1,3 +1,9 @@
+gosa (2.8.259) trusty; urgency=medium
+
+  * go-susi: bugfixes and testcases for gosa_query_audit
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 21 Jul 2016 17:39:50 +0200
+
 gosa (2.8.258) trusty; urgency=medium
 
   * go-susi: fixes and updated docs for gosa_query_audit

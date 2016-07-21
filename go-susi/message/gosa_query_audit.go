@@ -59,7 +59,7 @@ func gosa_query_audit(xmlmsg *xml.Hash, context *security.Context) *xml.Hash {
   timestamp2 := xmlmsg.Text("tend")
   if timestamp2 == "" { timestamp2 = "9999_12_31_23_59_59" }
   includeothers := (xmlmsg.First("includeothers") != nil)
-  fname := xmlmsg.Text("fname")
+  fname := xmlmsg.Text("audit")
   if fname == "" {
     util.Log(0, "ERROR! gosa_query_audit: Need non-empty <audit> element")
     fname = "......"

@@ -135,7 +135,7 @@ func AuditScanSubdirs(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanF
 
 /*
   Scans a single directory dir+"/"+mac that is expected to contain
-  subdirectories named audit-<timestamp>. See AuditScanSubdirs for details.
+  subdirectories named audit_<timestamp>. See AuditScanSubdirs for details.
 */
 func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc, propTree *elementTree, entrysize int, returnothers bool, nonmatch *[]AuditID, noaudit *[]AuditID, unknown *int) {
   subdir := dir + "/" + mac  // .../fai/MACADDRESS
@@ -160,7 +160,7 @@ func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc,
       best_auditname := ""
       last_auditname := ""
       for _, subfi := range subfis {
-        auditname := subfi.Name()  // audit-timestamp
+        auditname := subfi.Name()  // audit_timestamp
         if isAudit(auditname) {
           if auditname > last_auditname {
             last_auditname = auditname
@@ -181,7 +181,7 @@ func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc,
         }
         *unknown = *unknown + 1
       } else {
-        dataname := subdir + "/" + best_auditname + "/" + xmlname
+        dataname := subdir + "/" + best_auditname + "/" + xmlname + ".xml"
         data, err := ioutil.ReadFile(dataname)
         if err != nil {
           util.Log(0, "ERROR! ReadFile(%v): %v", dataname, err)
@@ -248,11 +248,11 @@ func isMAC(s string) bool {
   return true
 }
 
-// Returns true iff s is of the form "audit-..." where "..." is
+// Returns true iff s is of the form "audit_..." where "..." is
 // 14 digits mixed with an arbitrary number of underscores.
 func isAudit(s string) bool {
   if len(s) < 20 { return false }
-  if s[0:6] != "audit-" { return false }
+  if s[0:6] != "audit_" { return false }
   
   count := 0
   for a := 6; a < len(s); a++ {
@@ -264,7 +264,7 @@ func isAudit(s string) bool {
   return count == 14
 }
 
-// Assuming s is of the form "audit-..." where "..." is
+// Assuming s is of the form "audit_..." where "..." is
 // 14 digits mixed with an arbitrary number of underscores,
 // this function returns true iff the timestamp contained in
 // s sorts lexicographically between timestamp1 and timestamp2 (both inclusive)
@@ -304,7 +304,7 @@ func isInTimestampRange(s, timestamp1, timestamp2 string) bool {
 
 // extract as much information as possible. At the very least
 // the timestamp can be extracted from last_auditname (by removing
-// the "audit-" prefix and any contained "_" characters). But
+// the "audit_" prefix and any contained "_" characters). But
 // if a file xmlname exists in the directory, it can be read partially
 // and scanned for <ipaddress> and <hostname>.
 func extractAuditID(mac, subdir, last_auditname, xmlname string) AuditID {
@@ -614,14 +614,14 @@ func AuditTest() string {
     res += "\n" + mac + fmt.Sprintf(" %v", isMAC(mac))
   }
   
-  for _, fname := range []string{"audit20161231235959","audit-20161231235959","Audit-20161231235959","audit-20161231235959_","audit-2016123123595_","audit-2016_12312_3595_9","audit-20161231235959_11" } {
+  for _, fname := range []string{"audit20161231235959","audit_20161231235959","Audit_20161231235959","audit_20161231235959_","audit_2016123123595_","audit_2016_12312_3595_9","audit_20161231235959_11" } {
     res += "\n" + fname + fmt.Sprintf(" %v", isAudit(fname))
   }
 
   stamps := []string{"0000_00_00_0000_00", "000_00_000_0000_00", "00_0_00_000_00_00_00___", "99990000_0000_00", "2015_31_12_1659_22", "2017_31_12_1659_22", "20183112165922_", "20183112165922" }
   for i, ts := range stamps {
     if i == 0 || i+1 == len(stamps) { continue }
-    res += "\n" + stamps[i-1] + " " + ts + " " + stamps[i+1] + fmt.Sprintf(" %v", isInTimestampRange("audit-"+ts, stamps[i-1],stamps[i+1]))
+    res += "\n" + stamps[i-1] + " " + ts + " " + stamps[i+1] + fmt.Sprintf(" %v", isInTimestampRange("audit_"+ts, stamps[i-1],stamps[i+1]))
   }
   
   res += "\n"+auditFilenameToTimestamp("dj1__2  3jDJ45xx")
