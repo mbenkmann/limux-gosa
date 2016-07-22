@@ -216,7 +216,7 @@ func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc,
               return
             }
 do_audit:
-            auditScanFile(mac,ipaddress,hostname,data,i,f,propTree, entrysize)
+            auditScanFile(mac,ipaddress,hostname,auditFilenameToTimestamp(last_auditname),data,i,f,propTree, entrysize)
           }
         }
       }
@@ -403,7 +403,8 @@ func findFirstEntry(data []byte) (i int,ipaddress,hostname string) {
 //     respectively, the values will be added to every entry.
 //   * If <entry> has a <macaddress> and/or <ipaddress> and/or <hostname> child
 //     that will override the global macaddress,ipaddress/hostname.
-func auditScanFile(macaddress,ipaddress, hostname string, data []byte, i int, auditScanFunc AuditScanFunc, tree *elementTree, entrysize int) {
+//   * If tree has a mapping for "lastaudit>", lastaudit will be added to every entry.
+func auditScanFile(macaddress,ipaddress, hostname,lastaudit string, data []byte, i int, auditScanFunc AuditScanFunc, tree *elementTree, entrysize int) {
   // If the input is malformed, we may read past end of data
   defer func() {
     if recover() != nil {
@@ -414,6 +415,7 @@ func auditScanFile(macaddress,ipaddress, hostname string, data []byte, i int, au
   mac_index := tree.IndexOf("macaddress>")
   ip_index := tree.IndexOf("ipaddress>")
   host_index := tree.IndexOf("hostname>")
+  lastaudit_index := tree.IndexOf("lastaudit>")
 
   for {
     for data[i] <= '<' { i++ }
@@ -431,6 +433,9 @@ func auditScanFile(macaddress,ipaddress, hostname string, data []byte, i int, au
     }
     if host_index >= 0 {
       entry[host_index] = hostname
+    }
+    if lastaudit_index >= 0 {
+      entry[lastaudit_index] = lastaudit
     }
     
     for{
@@ -662,7 +667,7 @@ func AuditTest() string {
   
   </audit>
   `
-  auditScanFile("m","c", "e", []byte(data), 0, auditScanFunc, tree, 8)
+  auditScanFile("m","c", "e", "l",[]byte(data), 0, auditScanFunc, tree, 8)
   
   return res
 }

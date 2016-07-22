@@ -303,6 +303,14 @@ func ProcessXMLMessage(xml *xml.Hash, context *security.Context, key string) (re
                                          audit.WriteTo(reply)
                                          audit.Destroy()
                                        }
+      case "gosa_query_audit_aggregate":if handleServerMessage(context.Access.Query.QueryAll,"queryAll") { 
+                                         // result can be very large, so make sure
+                                         // memory is free'd immediately instead of
+                                         // waiting for GC
+                                         audit := gosa_query_audit_aggregate(xml, context)
+                                         audit.WriteTo(reply)
+                                         audit.Destroy()
+                                       }
       case "gosa_show_log_by_mac":     if handleServerMessage(context.Access.Query.QueryAll,"queryAll") { gosa_show_log_by_mac(xml).WriteTo(reply) }
       case "gosa_show_log_files_by_date_and_mac": 
                                        if handleServerMessage(context.Access.Query.QueryAll,"queryAll") { 

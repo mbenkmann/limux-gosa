@@ -89,7 +89,7 @@ func gosa_query_audit(xmlmsg *xml.Hash, context *security.Context) *xml.Hash {
   if where == nil { where = xml.NewHash("where") }
   filter, err :=whereFilter(where, prop_index, &props)
   if err != nil {
-    util.Log(0, "ERROR! gosa_query_fai_release: Error parsing <where>: %v", err)
+    util.Log(0, "ERROR! gosa_query_audit: Error parsing <where>: %v", err)
     filter = filterNone
   }
   
