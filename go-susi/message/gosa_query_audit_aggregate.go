@@ -83,14 +83,15 @@ func gosa_query_audit_aggregate(xmlmsg *xml.Hash, context *security.Context) *xm
   
   aggregates := []*aggspec{}
   
-  have_aggregate_name := map[string]bool{}
+  have_aggregate_name := map[string]bool{} // collects all <as> names to check for dups
+  
   for count := xmlmsg.First("count"); count != nil; count = count.Next() {
     name := strings.TrimSpace(count.Text("as"))
     if name == "" {
       util.Log(0, "WARNING! gosa_query_audit_aggregate: Ignoring <count> with empty/missing <as>")
       continue
     }
-    if prop_index[name] < selected {
+    if idx, have_idx := prop_index[name]; have_idx && idx < selected {
       util.Log(0, "WARNING! gosa_query_audit_aggregate: Ignoring <count><as>%v because of conflict with <select>%v", name, name)
       continue
     }
@@ -99,9 +100,9 @@ func gosa_query_audit_aggregate(xmlmsg *xml.Hash, context *security.Context) *xm
       continue
     }
     
-    uindexes := []int{}
+    uindexes := []int{} //indexes in props of <unique> columns
     
-    for unique := count.First("unique"); unique != nil; unique = count.Next() {
+    for unique := count.First("unique"); unique != nil; unique = unique.Next() {
       uname := strings.TrimSpace(unique.Text())
       if uname == "" {
         util.Log(0, "WARNING! gosa_query_audit_aggregate: Ignoring empty <unique>")
@@ -128,9 +129,12 @@ func gosa_query_audit_aggregate(xmlmsg *xml.Hash, context *security.Context) *xm
   }
 
   known := map[string]bool{}
-  answers := map[string]*aggresult{}
-  masterAggregate := make([]int, len(aggregates))
+  answers := map[string]*aggresult{} // maps string of <select> column values separated by "<" to computed result
+  masterAggregate := make([]int, len(aggregates)) // result for <aggregate>
   masterAggregateUnique := make([]map[string]bool, len(aggregates))
+  for i := range aggregates {
+    masterAggregateUnique[i] = map[string]bool{}
+  }
 
   issue_warning := true // issue a warning if answer limit exceeded  
 
@@ -150,10 +154,13 @@ func gosa_query_audit_aggregate(xmlmsg *xml.Hash, context *security.Context) *xm
                                            make([]int,len(aggregates)),
                                            make([]map[string]bool, len(aggregates))}
           copy(answers[result_key].Selected, entry[0:selected])
+          for i := range aggregates {
+            answers[result_key].AggregateUniqueMap[i] = map[string]bool{}
+          }
         } else {
           result_key = ""
           if issue_warning {
-            util.Log(0, "WARNING! [SECURITY] Request from %v generated too many answers => Truncating answer list\n", context.PeerID.IP.String())
+            util.Log(0, "WARNING! [SECURITY] Request from %v generated too many answers => Truncating answer list", context.PeerID.IP.String())
             issue_warning = false
           }
         }

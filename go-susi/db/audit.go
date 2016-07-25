@@ -329,10 +329,11 @@ func auditFilenameToTimestamp(auditname string) string {
 // still returned if they are encountered).
 // If the first non-whitespace string in data is not "<audit>", returns -2.
 func findFirstEntry(data []byte) (i int,ipaddress,hostname string) {
-  // If the input is malformed, we may read past end of data
+  // If the input is malformed (or simply has no <entry>, we may read past end of data)
   defer func() {
     if recover() != nil {
       i = -1
+      util.Log(0, "ERROR! No <entry> found in audit data file => empty or corrupt")
     }
   }()
   
@@ -408,7 +409,7 @@ func auditScanFile(macaddress,ipaddress, hostname,lastaudit string, data []byte,
   // If the input is malformed, we may read past end of data
   defer func() {
     if recover() != nil {
-      // nothing
+      util.Log(0, "ERROR! Panic in auditScanFile()")
     }
   }()
 

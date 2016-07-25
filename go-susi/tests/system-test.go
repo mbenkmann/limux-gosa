@@ -457,6 +457,25 @@ func run_audit_tests() {
     check(checkTags(a,"macaddress"), "")
     check(a.Text("macaddress"),strings.ToLower(Jobs[1].MAC))
   }
+  
+  x = gosa("query_audit_aggregate", hash("xml(includeothers()audit(bar)select(macaddress)count(as(key)unique(key)))"))
+  check(checkTags(x, "header,answer1,noaudit,aggregate,source,target,known,unknown,session_id?"),"")
+  check(x.Text("header"), "query_audit_aggregate")
+  check(x.Text("known"), "1")
+  check(x.Text("unknown"), "1")
+  siFail(x.Text("source"), config.ServerSourceAddress)
+  check(x.Text("target"), "GOSA")
+  a = x.First("answer1")
+  if check(a != nil, true) {
+    check(checkTags(a,"macaddress,key"), "")
+    check(a.Text("macaddress"), config.MAC)
+    check(a.Text("key"),"2")
+  }
+  a = x.First("aggregate")
+  if check(a != nil, true) {
+    check(checkTags(a,"key"), "")
+    check(a.Text("key"),"2")
+  }
 }
 
 func run_gosa_ping_tests() {
