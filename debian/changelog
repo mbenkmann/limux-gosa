@@ -1,3 +1,9 @@
+gosa (2.8.263) trusty; urgency=medium
+
+  * sibridge: add ability to queue "audit" jobs
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Thu, 28 Jul 2016 11:52:44 +0200
+
 gosa (2.8.262) trusty; urgency=medium
 
   * go-susi: updated manual

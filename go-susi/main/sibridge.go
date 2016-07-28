@@ -96,7 +96,7 @@ Argument types:
   "*"       - (only for "query" and "delete") all machines with pending jobs
   Job type  - "update"/"softupdate", "reboot", "halt", "install"/"reinstall",
               "wakeup", "localboot", "lock", "unlock"/"activate",
-              "send_user_msg"/"message"/"msg"
+              "send_user_msg"/"message"/"msg", "audit"
               These may be abbreviated to prefixes (e.g. "wak" = "wakeup" )
   date      - YYYY-MM-DD
   abs. time - HH:MM, H:M, HH:M, H:MM
@@ -630,12 +630,12 @@ func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
   }
 }
 
-var jobs      = []string{"update","softupdate","reboot","halt","install",  "reinstall","wakeup","localboot","lock","unlock",  "activate", "send_user_msg","msg",         "message"}
+var jobs      = []string{"update","softupdate","reboot","halt","install",  "reinstall","wakeup","localboot","lock","unlock",  "activate", "send_user_msg","msg",         "message",      "audit"}
 // It's important that the jobs are at the beginning of the commands slice,
 // because we use that fact later to distinguish between commands that refer to
 // jobs and other commands.
-var commands  = append(jobs,                                                                                                                                                             "help","x",      "examine", "query_jobdb","query_jobs","jobs", "delete_jobs","delete_jobdb_entry","qq","xx","kill", ".release", ".classes", ".debianrepository", ".repository", "raw", "encrypt", "decrypt", ".gocomment", ".description")
-var canonical = []string{"update","update"    ,"reboot","halt","reinstall","reinstall",  "wake","localboot","lock","activate","activate","send_user_msg","send_user_msg","send_user_msg","help","examine","examine", "query",      "query",     "query","delete",     "delete"            ,"qq","xx","kill", ".release", ".classes", ".deb"             , ".deb"       , "raw", "encrypt", "decrypt", ".gocomment", ".description"}
+var commands  = append(jobs,                                                                                                                                                                     "help","x",      "examine", "query_jobdb","query_jobs","jobs", "delete_jobs","delete_jobdb_entry","qq","xx","kill", ".release", ".classes", ".debianrepository", ".repository", "raw", "encrypt", "decrypt", ".gocomment", ".description")
+var canonical = []string{"update","update"    ,"reboot","halt","reinstall","reinstall",  "wake","localboot","lock","activate","activate","send_user_msg","send_user_msg","send_user_msg","audit","help","examine","examine", "query",      "query",     "query","delete",     "delete"            ,"qq","xx","kill", ".release", ".classes", ".deb"             , ".deb"       , "raw", "encrypt", "decrypt", ".gocomment", ".description"}
 
 type jobDescriptor struct {
   MAC string
@@ -1149,6 +1149,7 @@ func commandJob(joblist *[]jobDescriptor, context *security.Context) (reply stri
     xmlmess := fmt.Sprintf("<xml><header>%v</header><source>GOSA</source><target>%v</target><macaddress>%v</macaddress><timestamp>%v</timestamp></xml>", header, j.MAC, j.MAC, j.Date+j.Time)
     permitted := false
     switch j.Job {
+      case "audit":    permitted = context.Access.Jobs.Audit || context.Access.Jobs.JobsAll
       case "lock":     permitted = context.Access.Jobs.Lock || context.Access.Jobs.JobsAll
       case "activate": permitted = context.Access.Jobs.Unlock || context.Access.Jobs.JobsAll
       case "reboot",
