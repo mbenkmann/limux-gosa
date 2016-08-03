@@ -1,3 +1,9 @@
+gosa (2.8.266) trusty; urgency=medium
+
+  * gosa-fai-helpers: add basic software audit script
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 03 Aug 2016 14:12:36 +0200
+
 gosa (2.8.265) trusty; urgency=medium
 
   * gosa-fai-helpers: fai_audit hook script
