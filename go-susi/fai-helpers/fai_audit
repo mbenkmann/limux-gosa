@@ -1,0 +1,27 @@
+#!/bin/bash
+
+logdir=/var/log/fai/localhost/$(date +audit_%Y%m%d_%H%M%S)
+
+# protect against multiple triggers within the same second
+test -d "$logdir" && exit 1
+
+mkdir -p "$logdir"
+test -d "$logdir" || exit 1
+
+for f in /usr/lib/go-susi/fai_audit.d/* ; do
+  test -x "$f" || continue
+  "$f" "$logdir" >/dev/null
+done
+
+for f in "$logdir"/* ; do
+  name="${f##*/}"
+  echo -n "log_file:$name:"
+  base64 -w 0 "$f"
+  echo
+done
+
+echo "audit"
+
+read
+
+touch /var/run/gosa-si-client.auditend

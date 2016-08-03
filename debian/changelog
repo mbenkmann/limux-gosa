@@ -1,3 +1,9 @@
+gosa (2.8.265) trusty; urgency=medium
+
+  * gosa-fai-helpers: fai_audit hook script
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 03 Aug 2016 12:55:46 +0200
+
 gosa (2.8.264) trusty; urgency=medium
 
   * sibridge: started implementing audit-related functions
