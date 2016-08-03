@@ -1,3 +1,9 @@
+gosa (2.8.264) trusty; urgency=medium
+
+  * sibridge: started implementing audit-related functions
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 03 Aug 2016 12:38:17 +0200
+
 gosa (2.8.263) trusty; urgency=medium
 
   * sibridge: add ability to queue "audit" jobs

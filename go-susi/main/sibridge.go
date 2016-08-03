@@ -34,6 +34,7 @@ import (
           "syscall"
           "regexp"
           "crypto/tls"
+          "path/filepath"
           
           "../db"
           "../xml"
@@ -228,6 +229,29 @@ Commands:
                         SSH:     yes     yes     yes     yes
                   si-client:         yes yes         yes yes
                   si-server:                 yes yes yes yes
+  
+  query_audit, qaudit: 
+              Query audit data. 
+              Argument types: Machine, "*", Date, Time, Strings
+              
+              Date and time specify the start of the audit period
+              (inclusive). Relative times go into the past (i.e. 10m
+              is 10 minutes before now). If no time is specified, it
+              will default to 180d.
+              "*" requests to aggregate data across all machines.
+              Strings are package names and limit the query to only
+              these packages. Package names may contain "*" to match
+              substrings. Otherwise the complete package name must match.
+              
+              The first word following "qaudit" has to identify a
+              subcommand. The subcommand may be abbreviated to a prefix.
+              The following subcommands are available:
+                packages
+                sources
+                updable
+                broken
+                has
+                missing
 
   query_jobdb, query_jobs, jobs: 
               Query jobs matching the arguments.
@@ -634,8 +658,8 @@ var jobs      = []string{"update","softupdate","reboot","halt","install",  "rein
 // It's important that the jobs are at the beginning of the commands slice,
 // because we use that fact later to distinguish between commands that refer to
 // jobs and other commands.
-var commands  = append(jobs,                                                                                                                                                                     "help","x",      "examine", "query_jobdb","query_jobs","jobs", "delete_jobs","delete_jobdb_entry","qq","xx","kill", ".release", ".classes", ".debianrepository", ".repository", "raw", "encrypt", "decrypt", ".gocomment", ".description")
-var canonical = []string{"update","update"    ,"reboot","halt","reinstall","reinstall",  "wake","localboot","lock","activate","activate","send_user_msg","send_user_msg","send_user_msg","audit","help","examine","examine", "query",      "query",     "query","delete",     "delete"            ,"qq","xx","kill", ".release", ".classes", ".deb"             , ".deb"       , "raw", "encrypt", "decrypt", ".gocomment", ".description"}
+var commands  = append(jobs,                                                                                                                                                                     "help","x",      "examine", "query_jobdb","query_jobs","jobs", "delete_jobs","delete_jobdb_entry","qq","xx","kill", ".release", ".classes", ".debianrepository", ".repository", "raw", "encrypt", "decrypt", ".gocomment", ".description", "qaudit", "query_audit")
+var canonical = []string{"update","update"    ,"reboot","halt","reinstall","reinstall",  "wake","localboot","lock","activate","activate","send_user_msg","send_user_msg","send_user_msg","audit","help","examine","examine", "query",      "query",     "query","delete",     "delete"            ,"qq","xx","kill", ".release", ".classes", ".deb"             , ".deb"       , "raw", "encrypt", "decrypt", ".gocomment", ".description", "qaudit", "qaudit"     }
 
 type jobDescriptor struct {
   MAC string
@@ -721,6 +745,31 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
     is_job_cmd = (i < len(jobs))
   }
   
+  subcmd := ""
+  
+  if cmd == "qaudit" { // parse subcommand
+    if len(fields) < 2 {
+      return "! Command query_audit requires a subcommand", 0
+    }
+    if      strings.HasPrefix("packages",fields[1])  { 
+      subcmd = "packages" 
+    } else if strings.HasPrefix("sources",fields[1]) {
+      subcmd = "sources"
+    } else if strings.HasPrefix("updable",fields[1]) {
+      subcmd = "updable"
+    } else if strings.HasPrefix("broken",fields[1])  {
+      subcmd = "broken"
+    } else if strings.HasPrefix("has",fields[1])     {
+      subcmd = "has"
+    } else if strings.HasPrefix("missing",fields[1]) {
+      subcmd = "missing"
+    } else {
+      return "! Unknown query_audit subcommand: " + fields[1], 0
+    }
+    copy(fields[1:], fields[2:])
+    fields = fields[0:len(fields)-1]
+  }
+  
   // Depending on the type of command, only certain kinds of arguments are permitted:
   //  all non-dot commands (except "raw"): machine references (MAC, IP, name)
   //  job commands: times (XXs, XXm, XXh, XXd, YYYY-MM-DD, HH:MM)
@@ -730,15 +779,16 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
   allowed := map[string]bool{"machine":true}
   if is_job_cmd { allowed["time"] = true }
   if cmd == "delete" { allowed["job"]=true }
-  if cmd == "delete" || cmd == "query" || cmd == "qq" { allowed["*"]=true }
+  if cmd == "delete" || cmd == "query" || cmd == "qaudit" || cmd == "qq" { allowed["*"]=true }
   if cmd[0] == '.' || cmd == "raw" || cmd == "encrypt" || cmd == "decrypt" { allowed["substring"]=true; allowed["machine"]=false }
+  if cmd == "qaudit" { allowed["substring"]=true }
   
   // parse all fields into partial job descriptors
   parsed := []jobDescriptor{}
   for i=1; i < len(fields); i++ {
     template := jobDescriptor{}
     
-    if (allowed["time"] && parseTime(fields[i], &template)) ||
+    if (allowed["time"] && parseTime(fields[i], &template, cmd=="qaudit")) ||
       // test machine names before jobs. Otherwise many valid machine names such as "rei" would
       // be interpreted as job types ("reinstall" in the example)
        (allowed["machine"] && parseMachine(strings.ToLower(fields[i]), &template)) ||
@@ -765,7 +815,7 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
     if parsed[last_machine_ref].HasMachine() { break }
   }
   for ; last_other >= 0; last_other-- {
-    if !parsed[last_other].HasMachine() { break }
+    if parsed[last_other].HasJob() || parsed[last_other].HasTime() || parsed[last_other].HasDate() { break }
   }
   if last_machine_ref >= 0 && last_other > last_machine_ref {
     for i:=0; i < len(parsed)>>1; i++ { 
@@ -789,7 +839,11 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
   }
   
   // Now merge the fields into a new job list
-  now := util.MakeTimestamp(time.Now())
+  default_time := time.Now()
+  if cmd == "qaudit" {
+    default_time = default_time.Add(-180*24*time.Hour)
+  }
+  now := util.MakeTimestamp(default_time)
   template := jobDescriptor{Date:now[0:8], Time:now[8:]}
   *joblist = []jobDescriptor{}
   for _, j := range parsed {
@@ -851,6 +905,12 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
   } else if cmd == "query" {
     if context.Access.Query.QueryJobs || context.Access.Query.QueryAll {
       reply = commandGosa("gosa_query_jobdb",false,joblist)
+    } else {
+      reply = PERMISSION_DENIED
+    }
+  } else if cmd == "qaudit" {
+    if context.Access.Query.QueryAll {
+      reply = commandQueryAudit(subcmd, joblist)
     } else {
       reply = PERMISSION_DENIED
     }
@@ -917,6 +977,71 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
   }
   
   return reply,repeat
+}
+
+func commandQueryAudit(subcmd string, joblist *[]jobDescriptor) (reply string) {
+  switch subcmd {
+    case "packages": return commandQueryAuditPackages(joblist)
+    case "sources":  return commandQueryAuditSources(joblist)
+    case "updable":  return commandQueryAuditUpdable(joblist)
+    case "broken":   return commandQueryAuditBroken(joblist)
+    case "has":      return commandQueryAuditHas(joblist)
+    case "missing":  return commandQueryAuditMissing(joblist)
+    default: return "! Cannot happen because tested elsewhere"
+  }
+}
+
+func commandQueryAuditPackages(joblist *[]jobDescriptor) (reply string) {
+  patterns := map[string]bool{}
+  for _, j := range *joblist {
+    if j.Sub  != "" {
+      patterns[j.Sub] = true
+    }
+  }
+
+  tend := util.MakeTimestamp(time.Now())
+  
+  for _, j := range *joblist {
+    tstart := j.Date + j.Time
+    
+    gosa_cmd := ""
+    
+    if j.Name == "*" {
+      gosa_cmd = "<xml><header>gosa_query_audit_aggregate</header><source>GOSA</source><target>GOSA</target><audit>packages</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>key</select><count><unique>version</unique><as>anzvers</as></count><count><unique>macaddress</unique><as>haspkg</as></count><count><unique>macaddress</unique><as>broken</as><where><clause><phrase><operator>ne</operator><status>ii</status></phrase></clause></where></count><count><unique>macaddress</unique><as>updable</as><where><clause><phrase><operator>ne</operator><update></update></phrase></clause></where></count></xml>"
+    } else if j.HasMachine() {
+      gosa_cmd = "<xml><header>gosa_query_audit</header><source>GOSA</source><target>GOSA</target><audit>packages</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>key</select><select>version</select><select>status</select><select>update</select><where><clause><phrase><macaddress>"+j.MAC+"</macaddress></phrase></clause></where></xml>"
+    }
+    
+    gosa_reply := <- message.Peer(TargetAddress).Ask(gosa_cmd, config.ModuleKey["[GOsaPackages]"])
+    reply += parseGosaReplyGlobbed(gosa_reply, "key", patterns)
+  }
+  
+  return reply
+}
+
+func commandQueryAuditSources(joblist *[]jobDescriptor) (reply string) {
+  return "! Unimplemented"
+}
+
+func commandQueryAuditUpdable(joblist *[]jobDescriptor) (reply string) {
+  return "! Unimplemented"
+}
+
+func commandQueryAuditBroken(joblist *[]jobDescriptor) (reply string) {
+  return "! Unimplemented"
+}
+
+func commandQueryAuditHas(joblist *[]jobDescriptor) (reply string) {
+  return "! Unimplemented"
+}
+
+func commandQueryAuditMissing(joblist *[]jobDescriptor) (reply string) {
+  return "! Unimplemented"
+}
+
+func globMatch(pattern, s string) bool {
+  m, _ := filepath.Match(pattern, s)
+  return m
 }
 
 func commandRelease(joblist *[]jobDescriptor) (reply string) {
@@ -1431,8 +1556,11 @@ func commandRaw(line string, mode int) (reply string) {
   return reply
 }
 
-
 func parseGosaReply(reply_from_gosa string) string {
+  return parseGosaReplyGlobbed(reply_from_gosa, "", nil)
+}
+
+func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[string]bool) string {
   x, err := xml.StringToHash(reply_from_gosa)
   if err != nil { return fmt.Sprintf("! %v",err) }
   if x.First("error_string") != nil { return fmt.Sprintf("! %v", x.Text("error_string")) }
@@ -1445,6 +1573,17 @@ func parseGosaReply(reply_from_gosa string) string {
   for child := x.FirstChild(); child != nil; child = child.Next() {
     if !strings.HasPrefix(child.Element().Name(), "answer") { continue }
     answer := child.Element()
+    
+    // filter out answers where column does not match any of the patterns
+    if len(patterns) > 0 {
+      key := answer.Text(column)
+      for pat := range patterns {
+        if globMatch(pat, key) { goto match }
+      }
+      continue
+    match:
+    }
+    
     if reply != "" {reply = reply + "\n" }
     job := answer.Text("headertag")
     if strings.Index(job, "trigger_action_") == 0 { job = job[15:] }
@@ -1540,7 +1679,7 @@ var dateRegexp = regexp.MustCompile("^20[0-9][0-9]-[0-1][0-9]-[0-3][0-9]$")
 var timeRegexp = regexp.MustCompile("^[0-2]?[0-9]:[0-5]?[0-9](:[0-5]?[0-9])?$")
 var duraRegexp = regexp.MustCompile("^[0-9]+[smhd]$")
 
-func parseTime(t string, template *jobDescriptor) bool {
+func parseTime(t string, template *jobDescriptor, negative_rel_time bool) bool {
   if dateRegexp.MatchString(t) {
     template.Date = strings.Replace(t,"-","",-1)
     return true
@@ -1572,6 +1711,9 @@ func parseTime(t string, template *jobDescriptor) bool {
       case 'd': dura = time.Duration(n)*24*time.Hour
     }
     
+    if negative_rel_time {
+      dura = -dura
+    }
     ts := util.MakeTimestamp(time.Now().Add(dura))
     template.Date = ts[0:8]
     template.Time = ts[8:]
