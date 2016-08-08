@@ -863,7 +863,7 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
     if j.HasTime() {
       template.Time = j.Time
     }
-    if j.HasMachine() {
+    if j.HasMachine() || (cmd == "qaudit" && j.HasSub()) {
       j.Date = template.Date
       j.Time = template.Time
       j.Job = template.Job
@@ -1002,6 +1002,7 @@ func commandQueryAuditPackages(joblist *[]jobDescriptor) (reply string) {
   tend := util.MakeTimestamp(time.Now())
   
   for _, j := range *joblist {
+    if !j.HasMachine() { continue }
     tstart := j.Date + j.Time
     
     gosa_cmd := ""
@@ -1569,6 +1570,8 @@ func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[s
       // workaround for gosa-si bug
      strings.HasPrefix(x.Text("answer1"),"ARRAY") { return "OK" }
   
+  header := x.Text("header")
+  
   reply := ""
   for child := x.FirstChild(); child != nil; child = child.Next() {
     if !strings.HasPrefix(child.Element().Name(), "answer") { continue }
@@ -1585,38 +1588,59 @@ func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[s
     }
     
     if reply != "" {reply = reply + "\n" }
-    job := answer.Text("headertag")
-    if strings.Index(job, "trigger_action_") == 0 { job = job[15:] }
-    if job == "send_user_msg" { job = "message" }
-    progress := answer.Text("progress")
-    status := (answer.Text("status")+"    ")[:4]
-    if status == "proc" {
-      if progress != "" && progress != "none" {
-        status = progress+"%"
-      }
-    } else {
-      if progress != "" && progress != "none" {
-        status += "("+progress+"%)"
-      }
+    
+    switch header {
+      case "query_jobdb": reply += formatQueryJobdbAnswer(answer, x.Text("source"))
+      default: reply += formatRawAnswer(answer)
     }
-    periodic := answer.Text("periodic")
-    if periodic == "none" { periodic = "" }
-    if periodic != "" {
-      periodic = " repeated every " + strings.Replace(periodic, "_", " ",-1)
-    }
-    handler := ""
-    siserver := answer.Text("siserver")
-    if siserver != "localhost" && siserver != x.Text("source") {
-      siserver = strings.Split(siserver,":")[0]
-      handler = db.SystemNameForIPAddress(siserver)
-      if handler == "none" { handler = siserver }
-      handler = strings.Split(handler, ".")[0]
-      handler = " [by "+handler+"]"
-    }
-    reply = reply + fmt.Sprintf("== %4v %-9v %v  %v (%v)%v%v", status, job, TimestampRE.ReplaceAllString(answer.Text("timestamp"),"$3.$2 $4:$5:$6"), answer.Text("macaddress"), answer.Text("plainname"),periodic,handler)
   }
   
+  if reply == "" { return "NO MATCH" }
+  
   return reply
+}
+
+func formatRawAnswer(answer *xml.Hash) string {
+  str := ""
+  for child := answer.FirstChild(); child != nil; child = child.Next() {
+    str += "  " + child.Element().Text()
+  }
+  if str != "" {
+    return str[2:]
+  }
+  return ""
+}
+
+func  formatQueryJobdbAnswer(answer *xml.Hash, source string) string {
+  job := answer.Text("headertag")
+  if strings.Index(job, "trigger_action_") == 0 { job = job[15:] }
+  if job == "send_user_msg" { job = "message" }
+  progress := answer.Text("progress")
+  status := (answer.Text("status")+"    ")[:4]
+  if status == "proc" {
+    if progress != "" && progress != "none" {
+      status = progress+"%"
+    }
+  } else {
+    if progress != "" && progress != "none" {
+      status += "("+progress+"%)"
+    }
+  }
+  periodic := answer.Text("periodic")
+  if periodic == "none" { periodic = "" }
+  if periodic != "" {
+    periodic = " repeated every " + strings.Replace(periodic, "_", " ",-1)
+  }
+  handler := ""
+  siserver := answer.Text("siserver")
+  if siserver != "localhost" && siserver != source {
+    siserver = strings.Split(siserver,":")[0]
+    handler = db.SystemNameForIPAddress(siserver)
+    if handler == "none" { handler = siserver }
+    handler = strings.Split(handler, ".")[0]
+    handler = " [by "+handler+"]"
+  }
+  return fmt.Sprintf("== %4v %-9v %v  %v (%v)%v%v", status, job, TimestampRE.ReplaceAllString(answer.Text("timestamp"),"$3.$2 $4:$5:$6"), answer.Text("macaddress"), answer.Text("plainname"),periodic,handler)
 }
 
 const re_1xx = "(1([0-9]?[0-9]?))"
