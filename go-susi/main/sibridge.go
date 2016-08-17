@@ -1572,7 +1572,9 @@ func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[s
   
   header := x.Text("header")
   
-  reply := ""
+  reply := [][]string{}
+  length := []int{}
+  
   for child := x.FirstChild(); child != nil; child = child.Next() {
     if !strings.HasPrefix(child.Element().Name(), "answer") { continue }
     answer := child.Element()
@@ -1587,31 +1589,45 @@ func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[s
     match:
     }
     
-    if reply != "" {reply = reply + "\n" }
+    var r []string
     
     switch header {
-      case "query_jobdb": reply += formatQueryJobdbAnswer(answer, x.Text("source"))
-      default: reply += formatRawAnswer(answer)
+      case "query_jobdb": r = formatQueryJobdbAnswer(answer, x.Text("source"))
+      default: r = formatRawAnswer(answer)
+    }
+    
+    for i,st := range r {
+      if i >= len(length) { length = append(length, 0) }
+      if len(st) > length[i] { length[i] = len(st) }
+    }
+    reply = append(reply, r)
+  }
+  
+  if len(reply) == 0 { return "NO MATCH" }
+  
+  reply_str := []string{}
+  for k, r := range reply {
+    if k > 0 { reply_str = append(reply_str, "\n") }
+    for i,st := range r {
+      if i > 0 { reply_str = append(reply_str,"  ") }
+      reply_str = append(reply_str,st)
+      if i == len(r)-1 { continue } // don't pad last field
+      for m := length[i]; m > len(st); m-- { reply_str = append(reply_str," ") }
     }
   }
   
-  if reply == "" { return "NO MATCH" }
-  
-  return reply
+  return strings.Join(reply_str,"")
 }
 
-func formatRawAnswer(answer *xml.Hash) string {
-  str := ""
+func formatRawAnswer(answer *xml.Hash) []string {
+  var answ []string
   for child := answer.FirstChild(); child != nil; child = child.Next() {
-    str += "  " + child.Element().Text()
+    answ = append(answ, child.Element().Text())
   }
-  if str != "" {
-    return str[2:]
-  }
-  return ""
+  return answ
 }
 
-func  formatQueryJobdbAnswer(answer *xml.Hash, source string) string {
+func  formatQueryJobdbAnswer(answer *xml.Hash, source string) []string {
   job := answer.Text("headertag")
   if strings.Index(job, "trigger_action_") == 0 { job = job[15:] }
   if job == "send_user_msg" { job = "message" }
@@ -1619,7 +1635,11 @@ func  formatQueryJobdbAnswer(answer *xml.Hash, source string) string {
   status := (answer.Text("status")+"    ")[:4]
   if status == "proc" {
     if progress != "" && progress != "none" {
-      status = progress+"%"
+      if progress == "hardware-detection" {
+        status = "hwdt"
+      } else {
+        status = progress+"%"
+      }
     }
   } else {
     if progress != "" && progress != "none" {
@@ -1640,7 +1660,7 @@ func  formatQueryJobdbAnswer(answer *xml.Hash, source string) string {
     handler = strings.Split(handler, ".")[0]
     handler = " [by "+handler+"]"
   }
-  return fmt.Sprintf("== %4v %-9v %v  %v (%v)%v%v", status, job, TimestampRE.ReplaceAllString(answer.Text("timestamp"),"$3.$2 $4:$5:$6"), answer.Text("macaddress"), answer.Text("plainname"),periodic,handler)
+  return []string{"==", fmt.Sprintf("%4v",status), fmt.Sprintf("%-9v",job), fmt.Sprintf("%v", TimestampRE.ReplaceAllString(answer.Text("timestamp"),"$3.$2 $4:$5:$6")), answer.Text("macaddress"), fmt.Sprintf("(%v)%v%v", answer.Text("plainname"),periodic,handler)}
 }
 
 const re_1xx = "(1([0-9]?[0-9]?))"

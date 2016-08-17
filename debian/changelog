@@ -1,3 +1,9 @@
+gosa (2.8.268) trusty; urgency=medium
+
+  * sibridge: improved answer list formatting
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 17 Aug 2016 13:53:52 +0200
+
 gosa (2.8.267) trusty; urgency=medium
 
   * sibridge: basic functionality of "qaudit packages" implemented
