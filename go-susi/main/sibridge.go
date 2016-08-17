@@ -294,6 +294,8 @@ var ServerStates = []string{"X_X", "O_O", "@_@", "O_@", "x_~", "^.^", "@_~", "^_
 
 var TimestampRE = regexp.MustCompile("^([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})$")
 
+var QueryAuditDefaultTime = -180*24*time.Hour
+
 func main() {
   config.ServerConfigPath = "/etc/gosa/gosa.conf"
   // This is NOT config.ReadArgs() !!
@@ -841,7 +843,7 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
   // Now merge the fields into a new job list
   default_time := time.Now()
   if cmd == "qaudit" {
-    default_time = default_time.Add(-180*24*time.Hour)
+    default_time = default_time.Add(QueryAuditDefaultTime)
   }
   now := util.MakeTimestamp(default_time)
   template := jobDescriptor{Date:now[0:8], Time:now[8:]}
@@ -914,6 +916,7 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
     } else {
       reply = PERMISSION_DENIED
     }
+    *joblist = []jobDescriptor{} // reset selected machines
   } else if cmd == "raw" {
     if context.Access.Misc.Debug {
       reply = commandRaw(template.Sub, 0)
@@ -992,11 +995,18 @@ func commandQueryAudit(subcmd string, joblist *[]jobDescriptor) (reply string) {
 }
 
 func commandQueryAuditPackages(joblist *[]jobDescriptor) (reply string) {
+  have_machine := false
   patterns := map[string]bool{}
   for _, j := range *joblist {
+    if j.HasMachine() { have_machine = true }
     if j.Sub  != "" {
       patterns[j.Sub] = true
     }
+  }
+
+  if !have_machine {
+    now := util.MakeTimestamp(time.Now().Add(QueryAuditDefaultTime))
+    *joblist = append(*joblist, jobDescriptor{Date:now[0:8], Time:now[8:], Name:"*", MAC:"*",IP:"0.0.0.0"})
   }
 
   tend := util.MakeTimestamp(time.Now())
@@ -1574,6 +1584,7 @@ func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[s
   
   reply := [][]string{}
   length := []int{}
+  raw_columns := []string{}
   
   for child := x.FirstChild(); child != nil; child = child.Next() {
     if !strings.HasPrefix(child.Element().Name(), "answer") { continue }
@@ -1584,6 +1595,12 @@ func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[s
       key := answer.Text(column)
       for pat := range patterns {
         if globMatch(pat, key) { goto match }
+/*
+        // the pattern is allowed to specify a non-key column that must
+        // contain a non-empty non-0 value
+        val := answer.Text(pat)
+        if val != "" && val != "0" { goto match }
+*/
       }
       continue
     match:
@@ -1593,17 +1610,32 @@ func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[s
     
     switch header {
       case "query_jobdb": r = formatQueryJobdbAnswer(answer, x.Text("source"))
-      default: r = formatRawAnswer(answer)
+      default: if len(raw_columns) == 0 { 
+                 raw_columns = rawColumns(answer)
+               }
+               r = formatRawAnswer(answer)
     }
     
     for i,st := range r {
       if i >= len(length) { length = append(length, 0) }
       if len(st) > length[i] { length[i] = len(st) }
+      if i < len(raw_columns) && len(raw_columns[i]) > length[i] {
+        length[i] = len(raw_columns[i])
+      }
     }
     reply = append(reply, r)
   }
   
   if len(reply) == 0 { return "NO MATCH" }
+  
+  if len(raw_columns) != 0 {
+    seps := make([]string, len(raw_columns))
+    for i := range raw_columns {
+      seps[i] = "----"
+    }
+    reply = append(reply, seps)
+    reply = append(reply, raw_columns)
+  }
   
   reply_str := []string{}
   for k, r := range reply {
@@ -1618,6 +1650,15 @@ func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[s
   
   return strings.Join(reply_str,"")
 }
+
+func rawColumns(answer *xml.Hash) []string {
+  var answ []string
+  for child := answer.FirstChild(); child != nil; child = child.Next() {
+    answ = append(answ, child.Element().Name())
+  }
+  return answ
+}
+
 
 func formatRawAnswer(answer *xml.Hash) []string {
   var answ []string
