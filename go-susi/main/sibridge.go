@@ -29,6 +29,7 @@ import (
           "net"
           "time"
           "bytes"
+          "sort"
           "strconv"
           "strings"
           "syscall"
@@ -238,20 +239,32 @@ Commands:
               (inclusive). Relative times go into the past (i.e. 10m
               is 10 minutes before now). If no time is specified, it
               will default to 180d.
-              "*" requests to aggregate data across all machines.
-              Strings are package names and limit the query to only
-              these packages. Package names may contain "*" to match
-              substrings. Otherwise the complete package name must match.
               
               The first word following "qaudit" has to identify a
               subcommand. The subcommand may be abbreviated to a prefix.
               The following subcommands are available:
+
                 packages
-                sources
+                    With "*" as first argument or no machine argument,
+                    this returns a list of packages with aggregated
+                    information over all machines (e.g. how many machines
+                    have the package installed).
+                    Further arguments may be used to limit the list to
+                    only a subset of packages. Each argument is a glob
+                    pattern that allows the standard wildcards "*" and "?".
+                    
+                    With a machine as first argument, this returns a list
+                    of packages installed on that machine with information
+                    on the package state (updatable, broken,...).
+                    Further arguments may be used to limit the list to
+                    only a subset of packages. Each argument is a glob
+                    pattern that allows the standard wildcards "*" and "?".
+                
                 updable
                 broken
                 has
                 missing
+                sources
 
   query_jobdb, query_jobs, jobs: 
               Query jobs matching the arguments.
@@ -778,12 +791,12 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
   //  delete: job type ("update","softupdate","reboot","halt","install", "reinstall","wakeup","localboot","lock","unlock", "activate")
   //  query,qq and delete: all machines wildcard "*"
   //  dot commands and "raw": substrings
-  allowed := map[string]bool{"machine":true}
+  allowed := map[string]bool{"machine":true, "multiple_machines":true}
   if is_job_cmd { allowed["time"] = true }
   if cmd == "delete" { allowed["job"]=true }
   if cmd == "delete" || cmd == "query" || cmd == "qaudit" || cmd == "qq" { allowed["*"]=true }
   if cmd[0] == '.' || cmd == "raw" || cmd == "encrypt" || cmd == "decrypt" { allowed["substring"]=true; allowed["machine"]=false }
-  if cmd == "qaudit" { allowed["substring"]=true }
+  if cmd == "qaudit" { allowed["substring"]=true; allowed["multiple_machines"] = false }
   
   // parse all fields into partial job descriptors
   parsed := []jobDescriptor{}
@@ -798,6 +811,10 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
        (allowed["*"] && parseWild(strings.ToLower(fields[i]), &template)) ||
        (allowed["substring"] && parseSubstring(fields[i], &template)) {
       parsed = append(parsed, template)
+      if !allowed["multiple_machines"] && template.HasMachine() {
+        allowed["machine"] = false
+        allowed["*"] = false
+      }
       continue 
     } else 
     {
@@ -1017,14 +1034,17 @@ func commandQueryAuditPackages(joblist *[]jobDescriptor) (reply string) {
     
     gosa_cmd := ""
     
+    var augmentor Augmentor
     if j.Name == "*" {
-      gosa_cmd = "<xml><header>gosa_query_audit_aggregate</header><source>GOSA</source><target>GOSA</target><audit>packages</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>key</select><count><unique>version</unique><as>anzvers</as></count><count><unique>macaddress</unique><as>haspkg</as></count><count><unique>macaddress</unique><as>broken</as><where><clause><phrase><operator>ne</operator><status>ii</status></phrase></clause></where></count><count><unique>macaddress</unique><as>updable</as><where><clause><phrase><operator>ne</operator><update></update></phrase></clause></where></count></xml>"
+      gosa_cmd = "<xml><header>gosa_query_audit_aggregate</header><source>GOSA</source><target>GOSA</target><audit>packages</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>key</select><count><unique>version</unique><as>versions</as></count><count><unique>macaddress</unique><as>haspkg</as></count><count><unique>macaddress</unique><as>broken</as><where><clause><phrase><operator>ne</operator><status>ii</status></phrase></clause></where></count><count><unique>macaddress</unique><as>updable</as><where><clause><phrase><operator>ne</operator><update></update></phrase></clause></where></count></xml>"
+      augmentor = PackagesAggregateAugmentor
     } else if j.HasMachine() {
       gosa_cmd = "<xml><header>gosa_query_audit</header><source>GOSA</source><target>GOSA</target><audit>packages</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>key</select><select>version</select><select>status</select><select>update</select><where><clause><phrase><macaddress>"+j.MAC+"</macaddress></phrase></clause></where></xml>"
+      augmentor = DummyAugmentor
     }
     
     gosa_reply := <- message.Peer(TargetAddress).Ask(gosa_cmd, config.ModuleKey["[GOsaPackages]"])
-    reply += parseGosaReplyGlobbed(gosa_reply, "key", patterns)
+    reply += parseGosaReplyGlobbed(gosa_reply, "key", patterns, augmentor)
   }
   
   return reply
@@ -1568,10 +1588,58 @@ func commandRaw(line string, mode int) (reply string) {
 }
 
 func parseGosaReply(reply_from_gosa string) string {
-  return parseGosaReplyGlobbed(reply_from_gosa, "", nil)
+  return parseGosaReplyGlobbed(reply_from_gosa, "", nil, DummyAugmentor)
 }
 
-func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[string]bool) string {
+type Augmentation interface {
+  Answer(*xml.Hash)
+  Footer(*[]string)
+}
+
+type Augmentor interface {
+  Augment(*xml.Hash) []Augmentation
+}
+
+type dummyAugmentorType int
+const DummyAugmentor dummyAugmentorType = 0
+
+func (dummyAugmentorType) Augment(*xml.Hash) []Augmentation {
+  return nil
+}
+
+type packagesAggregateAugmentorType int
+const PackagesAggregateAugmentor packagesAggregateAugmentorType = 0
+
+func (packagesAggregateAugmentorType) Augment(x *xml.Hash) []Augmentation {
+  known, err := strconv.ParseUint(x.Text("known"), 10, 31)
+  if err != nil {
+    util.Log(0, "ERROR! <known> element: %v", err)
+    return nil
+  }
+  
+  return []Augmentation{&PackagesAggregateAugmentation{int(known)}}
+  
+  return nil
+}
+
+type PackagesAggregateAugmentation struct {
+  known int
+}
+
+func (p *PackagesAggregateAugmentation) Answer(answer *xml.Hash) {
+  has, err := strconv.ParseUint(answer.Text("haspkg"), 10, 31)
+  if err != nil {
+    util.Log(0, "ERROR! <haspkg> element: %v", err)
+  } else {
+    answer.Add("missing", strconv.Itoa(p.known - int(has)))
+  }
+}
+
+func (PackagesAggregateAugmentation) Footer(*[]string) {
+}
+
+
+func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[string]bool, augmentor Augmentor) string {
   x, err := xml.StringToHash(reply_from_gosa)
   if err != nil { return fmt.Sprintf("! %v",err) }
   if x.First("error_string") != nil { return fmt.Sprintf("! %v", x.Text("error_string")) }
@@ -1581,6 +1649,8 @@ func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[s
      strings.HasPrefix(x.Text("answer1"),"ARRAY") { return "OK" }
   
   header := x.Text("header")
+  
+  augmentations := augmentor.Augment(x)
   
   reply := [][]string{}
   length := []int{}
@@ -1596,6 +1666,8 @@ func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[s
       for pat := range patterns {
         if globMatch(pat, key) { goto match }
 /*
+        Commented out because there are special subcommands to obtain
+        this information and this can produce unexpected results.
         // the pattern is allowed to specify a non-key column that must
         // contain a non-empty non-0 value
         val := answer.Text(pat)
@@ -1610,9 +1682,15 @@ func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[s
     
     switch header {
       case "query_jobdb": r = formatQueryJobdbAnswer(answer, x.Text("source"))
-      default: if len(raw_columns) == 0 { 
+      default: 
+               for _, augment := range augmentations {
+                 augment.Answer(answer)
+               }
+               
+               if len(raw_columns) == 0 { 
                  raw_columns = rawColumns(answer)
                }
+               
                r = formatRawAnswer(answer)
     }
     
@@ -1628,27 +1706,49 @@ func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[s
   
   if len(reply) == 0 { return "NO MATCH" }
   
-  if len(raw_columns) != 0 {
-    seps := make([]string, len(raw_columns))
-    for i := range raw_columns {
-      seps[i] = "----"
-    }
-    reply = append(reply, seps)
-    reply = append(reply, raw_columns)
-  }
-  
-  reply_str := []string{}
-  for k, r := range reply {
-    if k > 0 { reply_str = append(reply_str, "\n") }
+  reply_strings := []string{}
+  for _, r := range reply {
+    var reply_str []string
     for i,st := range r {
       if i > 0 { reply_str = append(reply_str,"  ") }
       reply_str = append(reply_str,st)
       if i == len(r)-1 { continue } // don't pad last field
       for m := length[i]; m > len(st); m-- { reply_str = append(reply_str," ") }
     }
+    reply_strings = append(reply_strings, strings.Join(reply_str,""))
   }
   
-  return strings.Join(reply_str,"")
+  sort.Strings(reply_strings)
+  
+  if len(raw_columns) != 0 {
+    var seppl []string
+    var foota []string
+  
+    for i := range raw_columns {
+      if i > 0 {
+        foota = append(foota, "  ")
+        seppl = append(seppl, "  ")
+      }
+      foota = append(foota, raw_columns[i])
+      for range raw_columns[i] {
+        seppl = append(seppl, "-")
+      }
+      
+      if i == len(raw_columns)-1 { continue } // don't pad last field
+      for m := length[i]; m > len(raw_columns[i]); m-- {
+        seppl = append(seppl," ")
+        foota = append(foota," ")
+      }
+    }
+    
+    reply_strings = append(reply_strings, strings.Join(seppl,""))
+    for _, augment := range augmentations {
+      augment.Footer(&reply_strings)
+    }
+    reply_strings = append(reply_strings, strings.Join(foota,""))
+  }
+  
+  return strings.Join(reply_strings,"\n")
 }
 
 func rawColumns(answer *xml.Hash) []string {
