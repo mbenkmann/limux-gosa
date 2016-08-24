@@ -1,3 +1,9 @@
+gosa (2.8.271) trusty; urgency=medium
+
+  * sibridge: more info in query_audit packages
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 24 Aug 2016 14:01:46 +0200
+
 gosa (2.8.270) trusty; urgency=medium
 
   * sibridge: improved query_audit packages

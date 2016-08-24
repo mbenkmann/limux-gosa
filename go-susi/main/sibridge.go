@@ -309,6 +309,8 @@ var TimestampRE = regexp.MustCompile("^([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})(
 
 var QueryAuditDefaultTime = -180*24*time.Hour
 
+const FIELD_SEP = "  "
+
 func main() {
   config.ServerConfigPath = "/etc/gosa/gosa.conf"
   // This is NOT config.ReadArgs() !!
@@ -1593,7 +1595,7 @@ func parseGosaReply(reply_from_gosa string) string {
 
 type Augmentation interface {
   Answer(*xml.Hash)
-  Footer(*[]string)
+  Footer(st *[]string, length []int, columns []string, sep string)
 }
 
 type Augmentor interface {
@@ -1613,17 +1615,43 @@ const PackagesAggregateAugmentor packagesAggregateAugmentorType = 0
 func (packagesAggregateAugmentorType) Augment(x *xml.Hash) []Augmentation {
   known, err := strconv.ParseUint(x.Text("known"), 10, 31)
   if err != nil {
-    util.Log(0, "ERROR! <known> element: %v", err)
+    util.Log(0, "ERROR! <known>: %v", err)
     return nil
   }
   
-  return []Augmentation{&PackagesAggregateAugmentation{int(known)}}
+  unknown, err := strconv.ParseUint(x.Text("unknown"), 10, 31)
+  if err != nil {
+    util.Log(0, "ERROR! <unknown>: %v", err)
+    return nil
+  }
   
-  return nil
+  aggr := x.First("aggregate")
+  if aggr == nil {
+    util.Log(0, "ERROR! <aggregate> element missing")
+    return nil
+  }
+  
+  broken, err := strconv.ParseUint(aggr.Text("broken"), 10, 31)
+  if err != nil {
+    util.Log(0, "ERROR! <aggregate><broken>: %v", err)
+    return nil
+  }
+  
+  updable, err := strconv.ParseUint(aggr.Text("updable"), 10, 31)
+  if err != nil {
+    util.Log(0, "ERROR! <aggregate><updable>: %v", err)
+    return nil
+  }
+  
+  return []Augmentation{&PackagesAggregateAugmentation{known:int(known), unknown:int(unknown), broken:int(broken), updable:int(updable)}}
 }
 
 type PackagesAggregateAugmentation struct {
   known int
+  unknown int
+  broken int
+  updable int
+  versions int
 }
 
 func (p *PackagesAggregateAugmentation) Answer(answer *xml.Hash) {
@@ -1633,9 +1661,41 @@ func (p *PackagesAggregateAugmentation) Answer(answer *xml.Hash) {
   } else {
     answer.Add("missing", strconv.Itoa(p.known - int(has)))
   }
+  
+  vers, err := strconv.ParseUint(answer.Text("versions"), 10, 31)
+  if err != nil {
+    util.Log(0, "ERROR! <versions> element: %v", err)
+  } else {
+    p.versions += int(vers)
+  }
 }
 
-func (PackagesAggregateAugmentation) Footer(*[]string) {
+func (p *PackagesAggregateAugmentation) Footer(foota *[]string, length []int, columns []string, sep string) {
+  st := []string{}
+  
+  for i := 0; i < len(columns); i++ {
+    field := ""
+    switch columns[i] {
+      case "versions": field = strconv.Itoa(p.versions)
+      case "haspkg": field = strconv.Itoa(p.known)
+      case "broken": field = strconv.Itoa(p.broken)
+      case "updable": field = strconv.Itoa(p.updable)
+      case "missing": field = strconv.Itoa(p.unknown)
+      case "key": field = "#machines(except versions)"
+    }
+    
+    st = append(st, field)
+    
+    if i == len(columns) - 1 { continue } // do not pad last field
+    
+    for pad := length[i]; pad > len(field); pad-- {
+      st = append(st, " ")
+    }
+    
+    st = append(st, sep)
+  }
+  
+  *foota = append(*foota, strings.Join(st, ""))
 }
 
 
@@ -1710,7 +1770,7 @@ func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[s
   for _, r := range reply {
     var reply_str []string
     for i,st := range r {
-      if i > 0 { reply_str = append(reply_str,"  ") }
+      if i > 0 { reply_str = append(reply_str,FIELD_SEP) }
       reply_str = append(reply_str,st)
       if i == len(r)-1 { continue } // don't pad last field
       for m := length[i]; m > len(st); m-- { reply_str = append(reply_str," ") }
@@ -1726,8 +1786,8 @@ func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[s
   
     for i := range raw_columns {
       if i > 0 {
-        foota = append(foota, "  ")
-        seppl = append(seppl, "  ")
+        foota = append(foota, FIELD_SEP)
+        seppl = append(seppl, FIELD_SEP)
       }
       foota = append(foota, raw_columns[i])
       for range raw_columns[i] {
@@ -1743,7 +1803,7 @@ func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[s
     
     reply_strings = append(reply_strings, strings.Join(seppl,""))
     for _, augment := range augmentations {
-      augment.Footer(&reply_strings)
+      augment.Footer(&reply_strings, length, raw_columns, FIELD_SEP)
     }
     reply_strings = append(reply_strings, strings.Join(foota,""))
   }
