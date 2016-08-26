@@ -1,0 +1,47 @@
+#!/bin/bash
+
+test -d "$1" && exec >"$1/hw.xml"
+
+timestamp="$(date +%Y%m%d_%H%M%S)"
+macaddress="$(ip link show | sed -r -n 's/^.*link\/[^l][^ ]* ([^ ]+).*/\1/p'|head -n 1)"
+hostname="$(hostname)"
+ipaddress="$(LC_ALL=C host $(hostname) | sed -r -n 's/^.*has address (.*)/\1/p' | head -n 1)"
+
+echo "<audit>
+  <timestamp>$timestamp</timestamp>"
+test -n "$macaddress" && echo "  <macaddress>$macaddress</macaddress>"
+echo "  <hostname>$hostname</hostname>"
+test -n "$ipaddress" && echo "  <ipaddress>$ipaddress</ipaddress>"
+
+key=0
+
+class=""
+vendor=""
+device=""
+
+lspci -vmm | sed 's/</&lt;/' |
+while read -r line ; do
+  case "$line" in
+    Class:*)  class="${line#*$'\t'}" ;;
+    Vendor:*) vendor="${line#*$'\t'}" ;;
+    Device:*) device="${line#*$'\t'}" ;;
+    "")
+        echo "
+  <entry>
+    <key>$key</key>
+    <class>$class</class>
+    <vendor>$vendor</vendor>
+    <device>$device</device>"
+    
+        echo "  </entry>"
+
+        key=$(($key + 1))
+        class=""
+        vendor=""
+        device=""
+        ;;
+  esac
+done
+
+echo "
+</audit>"

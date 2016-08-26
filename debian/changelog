@@ -1,3 +1,9 @@
+gosa (2.8.273) trusty; urgency=medium
+
+  * fai-helpers: new example script audit_hw for hardware auditing
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 26 Aug 2016 13:43:36 +0200
+
 gosa (2.8.272) trusty; urgency=medium
 
   * fai-helpers: new example script audit_sources
