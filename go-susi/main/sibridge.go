@@ -260,11 +260,25 @@ Commands:
                     only a subset of packages. Each argument is a glob
                     pattern that allows the standard wildcards "*" and "?".
                 
+                sources
+                    With "*" as first argument or no machine argument,
+                    this returns a list of installation sources with
+                    the number of machines that use a particular source.
+                    Further arguments may be used to filter the list.
+                    Each argument is a case-insensitive substring.
+                    Entries are removed from the list that do not contain
+                    ALL of the substrings somewhere.
+                    
+                    With a machine as first argument, this returns the
+                    installation sources used by that machine.
+                    Further arguments may be used to filter the list as
+                    described in the previous paragraph.
+                
                 updable
                 broken
                 has
                 missing
-                sources
+                
 
   query_jobdb, query_jobs, jobs: 
               Query jobs matching the arguments.
@@ -1022,6 +1036,11 @@ func commandQueryAuditPackages(joblist *[]jobDescriptor) (reply string) {
       patterns[j.Sub] = true
     }
   }
+  
+  var filter xml.HashFilter = xml.FilterAll
+  if len(patterns) > 0 {
+    filter = &globFilter{"key", patterns}
+  }
 
   if !have_machine {
     now := util.MakeTimestamp(time.Now().Add(QueryAuditDefaultTime))
@@ -1046,14 +1065,51 @@ func commandQueryAuditPackages(joblist *[]jobDescriptor) (reply string) {
     }
     
     gosa_reply := <- message.Peer(TargetAddress).Ask(gosa_cmd, config.ModuleKey["[GOsaPackages]"])
-    reply += parseGosaReplyGlobbed(gosa_reply, "key", patterns, augmentor)
+    
+    reply += parseGosaReplyGlobbed(gosa_reply, filter, augmentor)
   }
   
   return reply
 }
 
 func commandQueryAuditSources(joblist *[]jobDescriptor) (reply string) {
-  return "! Unimplemented"
+  have_machine := false
+  patterns := map[string]bool{}
+  for _, j := range *joblist {
+    if j.HasMachine() { have_machine = true }
+    if j.Sub  != "" {
+      patterns[j.Sub] = true
+    }
+  }
+
+  if !have_machine {
+    now := util.MakeTimestamp(time.Now().Add(QueryAuditDefaultTime))
+    *joblist = append(*joblist, jobDescriptor{Date:now[0:8], Time:now[8:], Name:"*", MAC:"*",IP:"0.0.0.0"})
+  }
+
+  tend := util.MakeTimestamp(time.Now())
+  
+  for _, j := range *joblist {
+    if !j.HasMachine() { continue }
+    tstart := j.Date + j.Time
+    
+    gosa_cmd := ""
+    
+    var augmentor Augmentor
+    if j.Name == "*" {
+      gosa_cmd = "<xml><header>gosa_query_audit_aggregate</header><source>GOSA</source><target>GOSA</target><audit>sources</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>distribution</select><select>repo</select><select>component</select><count><unique>macaddress</unique><as>uses</as></count></xml>"
+      augmentor = DummyAugmentor
+    } else if j.HasMachine() {
+      gosa_cmd = "<xml><header>gosa_query_audit</header><source>GOSA</source><target>GOSA</target><audit>packages</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>key</select><select>version</select><select>status</select><select>update</select><where><clause><phrase><macaddress>"+j.MAC+"</macaddress></phrase></clause></where></xml>"
+      augmentor = DummyAugmentor
+    }
+    
+    gosa_reply := <- message.Peer(TargetAddress).Ask(gosa_cmd, config.ModuleKey["[GOsaPackages]"])
+    reply += parseGosaReplyGlobbed(gosa_reply, xml.FilterAll, augmentor)
+  }
+  
+  return reply
+
 }
 
 func commandQueryAuditUpdable(joblist *[]jobDescriptor) (reply string) {
@@ -1590,7 +1646,7 @@ func commandRaw(line string, mode int) (reply string) {
 }
 
 func parseGosaReply(reply_from_gosa string) string {
-  return parseGosaReplyGlobbed(reply_from_gosa, "", nil, DummyAugmentor)
+  return parseGosaReplyGlobbed(reply_from_gosa, xml.FilterAll, DummyAugmentor)
 }
 
 type Augmentation interface {
@@ -1681,7 +1737,7 @@ func (p *PackagesAggregateAugmentation) Footer(foota *[]string, length []int, co
       case "broken": field = strconv.Itoa(p.broken)
       case "updable": field = strconv.Itoa(p.updable)
       case "missing": field = strconv.Itoa(p.unknown)
-      case "key": field = "#machines(except versions)"
+      case "key": field = "#MAC"
     }
     
     st = append(st, field)
@@ -1698,8 +1754,23 @@ func (p *PackagesAggregateAugmentation) Footer(foota *[]string, length []int, co
   *foota = append(*foota, strings.Join(st, ""))
 }
 
+type globFilter struct {
+  column string
+  patterns map[string]bool
+}
 
-func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[string]bool, augmentor Augmentor) string {
+func (f *globFilter) Accepts(answer *xml.Hash) bool {
+  if answer == nil { return false }
+  key := answer.Text(f.column)
+
+  for pat := range f.patterns {
+    if pat == "" { continue }
+    if globMatch(pat, key) { return true }
+  }
+  return false
+}
+
+func parseGosaReplyGlobbed(reply_from_gosa string, filter xml.HashFilter, augmentor Augmentor) string {
   x, err := xml.StringToHash(reply_from_gosa)
   if err != nil { return fmt.Sprintf("! %v",err) }
   if x.First("error_string") != nil { return fmt.Sprintf("! %v", x.Text("error_string")) }
@@ -1720,23 +1791,7 @@ func parseGosaReplyGlobbed(reply_from_gosa string, column string, patterns map[s
     if !strings.HasPrefix(child.Element().Name(), "answer") { continue }
     answer := child.Element()
     
-    // filter out answers where column does not match any of the patterns
-    if len(patterns) > 0 {
-      key := answer.Text(column)
-      for pat := range patterns {
-        if globMatch(pat, key) { goto match }
-/*
-        Commented out because there are special subcommands to obtain
-        this information and this can produce unexpected results.
-        // the pattern is allowed to specify a non-key column that must
-        // contain a non-empty non-0 value
-        val := answer.Text(pat)
-        if val != "" && val != "0" { goto match }
-*/
-      }
-      continue
-    match:
-    }
+    if !filter.Accepts(answer) { continue }
     
     var r []string
     
