@@ -1,0 +1,36 @@
+#!/bin/bash
+
+test -d "$1" && exec >"$1/sources.xml"
+
+timestamp="$(date +%Y%m%d_%H%M%S)"
+macaddress="$(ip link show | sed -r -n 's/^.*link\/[^l][^ ]* ([^ ]+).*/\1/p'|head -n 1)"
+hostname="$(hostname)"
+ipaddress="$(LC_ALL=C host $(hostname) | sed -r -n 's/^.*has address (.*)/\1/p' | head -n 1)"
+
+echo "<audit>
+  <timestamp>$timestamp</timestamp>"
+test -n "$macaddress" && echo "  <macaddress>$macaddress</macaddress>"
+echo "  <hostname>$hostname</hostname>"
+test -n "$ipaddress" && echo "  <ipaddress>$ipaddress</ipaddress>"
+
+key=0
+grep -rH '^deb ' /etc/apt/sources.list /etc/apt/sources.list.d | tr -s ' \t' ' ' | sed 's/ $//;s/^\([^:]*\):deb/\1/' |
+while read -r file repo distribution components ; do
+file="${file##*/}"
+repo="${repo%/}"
+echo "
+  <entry>
+    <key>$key</key>
+    <file>$file</file>
+    <repo>$repo</repo>
+    <distribution>$distribution</distribution>
+    <components>$components</components>"
+    
+echo "  </entry>"
+
+key=$(($key + 1))
+
+done
+
+echo "
+</audit>"

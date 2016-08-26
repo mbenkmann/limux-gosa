@@ -1,3 +1,9 @@
+gosa (2.8.272) trusty; urgency=medium
+
+  * fai-helpers: new example script audit_sources
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 26 Aug 2016 11:57:45 +0200
+
 gosa (2.8.271) trusty; urgency=medium
 
   * sibridge: more info in query_audit packages
