@@ -1,3 +1,9 @@
+gosa (2.8.274) trusty; urgency=medium
+
+  * fai-helpers: list each component in an extra entry in audit_sources
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 26 Aug 2016 14:57:30 +0200
+
 gosa (2.8.273) trusty; urgency=medium
 
   * fai-helpers: new example script audit_hw for hardware auditing

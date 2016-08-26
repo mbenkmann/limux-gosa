@@ -18,18 +18,20 @@ grep -rH '^deb ' /etc/apt/sources.list /etc/apt/sources.list.d | tr -s ' \t' ' '
 while read -r file repo distribution components ; do
 file="${file##*/}"
 repo="${repo%/}"
+for component in $components ; do
 echo "
   <entry>
     <key>$key</key>
     <file>$file</file>
     <repo>$repo</repo>
     <distribution>$distribution</distribution>
-    <components>$components</components>"
+    <component>$component</component>"
     
 echo "  </entry>"
 
 key=$(($key + 1))
 
+done
 done
 
 echo "
