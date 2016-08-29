@@ -1074,13 +1074,15 @@ func commandQueryAuditPackages(joblist *[]jobDescriptor) (reply string) {
 
 func commandQueryAuditSources(joblist *[]jobDescriptor) (reply string) {
   have_machine := false
-  patterns := map[string]bool{}
+  var substrings []string
   for _, j := range *joblist {
     if j.HasMachine() { have_machine = true }
     if j.Sub  != "" {
-      patterns[j.Sub] = true
+      substrings = append(substrings, j.Sub)
     }
   }
+  
+  substrFilter := substringFilter(substrings)
 
   if !have_machine {
     now := util.MakeTimestamp(time.Now().Add(QueryAuditDefaultTime))
@@ -1100,12 +1102,12 @@ func commandQueryAuditSources(joblist *[]jobDescriptor) (reply string) {
       gosa_cmd = "<xml><header>gosa_query_audit_aggregate</header><source>GOSA</source><target>GOSA</target><audit>sources</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>distribution</select><select>repo</select><select>component</select><count><unique>macaddress</unique><as>uses</as></count></xml>"
       augmentor = DummyAugmentor
     } else if j.HasMachine() {
-      gosa_cmd = "<xml><header>gosa_query_audit</header><source>GOSA</source><target>GOSA</target><audit>packages</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>key</select><select>version</select><select>status</select><select>update</select><where><clause><phrase><macaddress>"+j.MAC+"</macaddress></phrase></clause></where></xml>"
+      gosa_cmd = "<xml><header>gosa_query_audit</header><source>GOSA</source><target>GOSA</target><audit>sources</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>distribution</select><select>repo</select><select>component</select><where><clause><phrase><macaddress>"+j.MAC+"</macaddress></phrase></clause></where></xml>"
       augmentor = DummyAugmentor
     }
     
     gosa_reply := <- message.Peer(TargetAddress).Ask(gosa_cmd, config.ModuleKey["[GOsaPackages]"])
-    reply += parseGosaReplyGlobbed(gosa_reply, xml.FilterAll, augmentor)
+    reply += parseGosaReplyGlobbed(gosa_reply, &substrFilter, augmentor)
   }
   
   return reply
@@ -1766,6 +1768,20 @@ func (f *globFilter) Accepts(answer *xml.Hash) bool {
   for pat := range f.patterns {
     if pat == "" { continue }
     if globMatch(pat, key) { return true }
+  }
+  return false
+}
+
+type substringFilter []string
+
+func (f *substringFilter) Accepts(answer *xml.Hash) bool {
+  if answer == nil { return false }
+  if len(*f) == 0 { return true }
+  for _, sub := range *f {
+    for child := answer.FirstChild(); child != nil; child = child.Next() {
+      txt := child.Element().Text()
+      if strings.Contains(strings.ToLower(txt),sub) { return true }
+    }
   }
   return false
 }

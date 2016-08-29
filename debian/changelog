@@ -1,3 +1,9 @@
+gosa (2.8.276) trusty; urgency=medium
+
+  * sibridge: query_audit sources finished
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 29 Aug 2016 11:32:11 +0200
+
 gosa (2.8.275) trusty; urgency=medium
 
   * sibridge: started implementing quey_audit sources
