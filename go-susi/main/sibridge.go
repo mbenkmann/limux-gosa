@@ -1078,7 +1078,7 @@ func commandQueryAuditSources(joblist *[]jobDescriptor) (reply string) {
   for _, j := range *joblist {
     if j.HasMachine() { have_machine = true }
     if j.Sub  != "" {
-      substrings = append(substrings, j.Sub)
+      substrings = append(substrings, strings.ToLower(j.Sub))
     }
   }
   
