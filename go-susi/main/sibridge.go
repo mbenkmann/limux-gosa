@@ -274,6 +274,9 @@ Commands:
                     Further arguments may be used to filter the list as
                     described in the previous paragraph.
                 
+                hw
+                    Like "sources" but for hardware
+                
                 updable
                 broken
                 has
@@ -794,6 +797,8 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
       subcmd = "has"
     } else if strings.HasPrefix("missing",fields[1]) {
       subcmd = "missing"
+    } else if strings.HasPrefix("hw",fields[1]) {
+      subcmd = "hw"
     } else {
       return "! Unknown query_audit subcommand: " + fields[1], 0
     }
@@ -1019,6 +1024,7 @@ func commandQueryAudit(subcmd string, joblist *[]jobDescriptor) (reply string) {
   switch subcmd {
     case "packages": return commandQueryAuditPackages(joblist)
     case "sources":  return commandQueryAuditSources(joblist)
+    case "hw":       return commandQueryAuditHardware(joblist)
     case "updable":  return commandQueryAuditUpdable(joblist)
     case "broken":   return commandQueryAuditBroken(joblist)
     case "has":      return commandQueryAuditHas(joblist)
@@ -1113,6 +1119,49 @@ func commandQueryAuditSources(joblist *[]jobDescriptor) (reply string) {
   return reply
 
 }
+
+func commandQueryAuditHardware(joblist *[]jobDescriptor) (reply string) {
+  have_machine := false
+  var substrings []string
+  for _, j := range *joblist {
+    if j.HasMachine() { have_machine = true }
+    if j.Sub  != "" {
+      substrings = append(substrings, strings.ToLower(j.Sub))
+    }
+  }
+  
+  substrFilter := substringFilter(substrings)
+
+  if !have_machine {
+    now := util.MakeTimestamp(time.Now().Add(QueryAuditDefaultTime))
+    *joblist = append(*joblist, jobDescriptor{Date:now[0:8], Time:now[8:], Name:"*", MAC:"*",IP:"0.0.0.0"})
+  }
+
+  tend := util.MakeTimestamp(time.Now())
+  
+  for _, j := range *joblist {
+    if !j.HasMachine() { continue }
+    tstart := j.Date + j.Time
+    
+    gosa_cmd := ""
+    
+    var augmentor Augmentor
+    if j.Name == "*" {
+      gosa_cmd = "<xml><header>gosa_query_audit_aggregate</header><source>GOSA</source><target>GOSA</target><audit>hw</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>class</select><select>vendor</select><select>device</select><count><unique>macaddress</unique><as>count</as></count></xml>"
+      augmentor = DummyAugmentor
+    } else if j.HasMachine() {
+      gosa_cmd = "<xml><header>gosa_query_audit</header><source>GOSA</source><target>GOSA</target><audit>hw</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>class</select><select>vendor</select><select>device</select><where><clause><phrase><macaddress>"+j.MAC+"</macaddress></phrase></clause></where></xml>"
+      augmentor = DummyAugmentor
+    }
+    
+    gosa_reply := <- message.Peer(TargetAddress).Ask(gosa_cmd, config.ModuleKey["[GOsaPackages]"])
+    reply += parseGosaReplyGlobbed(gosa_reply, &substrFilter, augmentor)
+  }
+  
+  return reply
+
+}
+
 
 func commandQueryAuditUpdable(joblist *[]jobDescriptor) (reply string) {
   return "! Unimplemented"
