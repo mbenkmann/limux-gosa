@@ -1,3 +1,9 @@
+gosa (2.8.279) trusty; urgency=medium
+
+  * sibridge: implemented query_audit has; fixed genaudit script
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 31 Aug 2016 14:37:24 +0200
+
 gosa (2.8.278) trusty; urgency=medium
 
   * sibridge: implemented query_audit hw (hardware)

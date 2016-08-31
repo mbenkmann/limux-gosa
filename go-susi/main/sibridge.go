@@ -275,11 +275,20 @@ Commands:
                     described in the previous paragraph.
                 
                 hw
-                    Like "sources" but for hardware
+                    Like "sources" but for hardware components.
                 
+                has
+                    Get a list of machines that have certain values in
+                    their audit data.
+                    The first argument identifies the database to query
+                    ("packages", "sources" or "hw") and may be abbreviated.
+                    The following arguments are case-insensitive substrings
+                    all of which have to occur in at least one of the columns
+                    for an entry to be included in the list.
+                    Example: "qaudit has pack bash 4.3"
+                    
                 updable
                 broken
-                has
                 missing
                 
 
@@ -785,7 +794,7 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
     if len(fields) < 2 {
       return "! Command query_audit requires a subcommand", 0
     }
-    if      strings.HasPrefix("packages",fields[1])  { 
+    if strings.HasPrefix("packages",fields[1])  { 
       subcmd = "packages" 
     } else if strings.HasPrefix("sources",fields[1]) {
       subcmd = "sources"
@@ -817,7 +826,15 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
   if cmd == "delete" { allowed["job"]=true }
   if cmd == "delete" || cmd == "query" || cmd == "qaudit" || cmd == "qq" { allowed["*"]=true }
   if cmd[0] == '.' || cmd == "raw" || cmd == "encrypt" || cmd == "decrypt" { allowed["substring"]=true; allowed["machine"]=false }
-  if cmd == "qaudit" { allowed["substring"]=true; allowed["multiple_machines"] = false }
+  if cmd == "qaudit" {
+    allowed["time"] = true
+    allowed["substring"] = true
+    allowed["multiple_machines"] = false
+    if subcmd == "has" {
+      allowed["machine"] = false
+      allowed["*"] = false
+    }
+  }
   
   // parse all fields into partial job descriptors
   parsed := []jobDescriptor{}
@@ -849,17 +866,19 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
   //   "install dev3 10:30"   vs  "install 10:30 dev3"
   // We try to understand both by checking if a machine reference is listed before
   // a time or job type and in that case we simply reverse the list.
-  last_machine_ref := len(parsed)-1
-  last_other := len(parsed)-1
-  for ; last_machine_ref >= 0; last_machine_ref-- {
-    if parsed[last_machine_ref].HasMachine() { break }
-  }
-  for ; last_other >= 0; last_other-- {
-    if parsed[last_other].HasJob() || parsed[last_other].HasTime() || parsed[last_other].HasDate() { break }
-  }
-  if last_machine_ref >= 0 && last_other > last_machine_ref {
-    for i:=0; i < len(parsed)>>1; i++ { 
-      parsed[i],parsed[len(parsed)-1-i] = parsed[len(parsed)-1-i], parsed[i]
+  if cmd != "qaudit" {
+    last_machine_ref := len(parsed)-1
+    last_other := len(parsed)-1
+    for ; last_machine_ref >= 0; last_machine_ref-- {
+      if parsed[last_machine_ref].HasMachine() { break }
+    }
+    for ; last_other >= 0; last_other-- {
+      if parsed[last_other].HasJob() || parsed[last_other].HasTime() || parsed[last_other].HasDate() { break }
+    }
+    if last_machine_ref >= 0 && last_other > last_machine_ref {
+      for i:=0; i < len(parsed)>>1; i++ { 
+        parsed[i],parsed[len(parsed)-1-i] = parsed[len(parsed)-1-i], parsed[i]
+      }
     }
   }
   
@@ -903,12 +922,13 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
     if j.HasTime() {
       template.Time = j.Time
     }
-    if j.HasMachine() || (cmd == "qaudit" && j.HasSub()) {
+    if j.HasMachine() || cmd == "qaudit" {
       j.Date = template.Date
       j.Time = template.Time
       j.Job = template.Job
       j.Sub = template.Sub
       *joblist = append(*joblist, j)
+      if cmd == "qaudit" { template.Sub = "" }
     }
   }
   
@@ -1079,6 +1099,10 @@ func commandQueryAuditPackages(joblist *[]jobDescriptor) (reply string) {
 }
 
 func commandQueryAuditSources(joblist *[]jobDescriptor) (reply string) {
+  now := util.MakeTimestamp(time.Now().Add(QueryAuditDefaultTime))
+  dat := now[0:8]
+  tim := now[8:]
+
   have_machine := false
   var substrings []string
   for _, j := range *joblist {
@@ -1086,13 +1110,14 @@ func commandQueryAuditSources(joblist *[]jobDescriptor) (reply string) {
     if j.Sub  != "" {
       substrings = append(substrings, strings.ToLower(j.Sub))
     }
+    dat = j.Date
+    tim = j.Time
   }
   
   substrFilter := substringFilter(substrings)
 
   if !have_machine {
-    now := util.MakeTimestamp(time.Now().Add(QueryAuditDefaultTime))
-    *joblist = append(*joblist, jobDescriptor{Date:now[0:8], Time:now[8:], Name:"*", MAC:"*",IP:"0.0.0.0"})
+    *joblist = append(*joblist, jobDescriptor{Date:dat, Time:tim, Name:"*", MAC:"*",IP:"0.0.0.0"})
   }
 
   tend := util.MakeTimestamp(time.Now())
@@ -1162,6 +1187,69 @@ func commandQueryAuditHardware(joblist *[]jobDescriptor) (reply string) {
 
 }
 
+func commandQueryAuditHas(joblist *[]jobDescriptor) string {
+  db := ""
+  tstart := ""
+  tend := util.MakeTimestamp(time.Now())
+  var patterns []string
+  for _, j := range *joblist {
+    tstart = j.Date + j.Time
+    if j.Sub  != "" {
+      if db == "" {
+        db = j.Sub
+      } else {
+        patterns = append(patterns, strings.Replace(strings.Replace(j.Sub,"%","",-1),"<","",-1))
+      }
+    }
+  }
+  
+  if db == "" {
+    return "! Need database name"
+  }
+
+  var fields []string
+  var selected string
+  
+  if strings.HasPrefix("packages",db) {
+    db = "packages"
+    fields = []string{"key", "version", "status" }
+    selected = "<select>key</select><select>version</select><select>status</select><select>update</select>"
+  } else if strings.HasPrefix("sources",db) { 
+    db = "sources"
+    fields = []string{"file", "repo", "distribution", "component" }
+    selected = "<select>file</select><select>distribution</select><select>repo</select><select>component</select>"
+  } else if strings.HasPrefix("hw",db) { 
+    db = "hw"
+    fields = []string{"class", "vendor", "device" }
+    selected = "<select>class</select><select>vendor</select><select>device</select>"
+  } else {
+    return "! \""+db+"\" is not a prefix of a known database"
+  }
+    
+  if len(patterns) == 0 {
+    return "! "+db+" has what?"
+  }
+
+  // We only use the <where> filter as a first filtering step.
+  // The final filtering is done with allSubstringsFilter
+  longest := patterns[0]
+  for i := 1; i < len(patterns); i++ {
+    if len(patterns[i]) > len(longest) { longest = patterns[i] }
+  }
+  where := "<clause><connector>or</connector>"
+  for _, f := range fields {
+    where += "<phrase><operator>like</operator><"+f+">%"+longest+"%</"+f+"></phrase>"
+  }
+  where += "</clause>"
+
+  gosa_cmd := "<xml><header>gosa_query_audit</header><source>GOSA</source><target>GOSA</target><audit>"+db+"</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>macaddress</select>"+selected+"<where>"+where+"</where></xml>"
+  
+  filter := allSubstringsFilter(patterns)
+  
+  gosa_reply := <- message.Peer(TargetAddress).Ask(gosa_cmd, config.ModuleKey["[GOsaPackages]"])
+  return parseGosaReplyGlobbed(gosa_reply, &filter, DummyAugmentor)
+}
+
 
 func commandQueryAuditUpdable(joblist *[]jobDescriptor) (reply string) {
   return "! Unimplemented"
@@ -1171,9 +1259,6 @@ func commandQueryAuditBroken(joblist *[]jobDescriptor) (reply string) {
   return "! Unimplemented"
 }
 
-func commandQueryAuditHas(joblist *[]jobDescriptor) (reply string) {
-  return "! Unimplemented"
-}
 
 func commandQueryAuditMissing(joblist *[]jobDescriptor) (reply string) {
   return "! Unimplemented"
@@ -1834,6 +1919,27 @@ func (f *substringFilter) Accepts(answer *xml.Hash) bool {
   }
   return false
 }
+
+type allSubstringsFilter []string
+
+func (f *allSubstringsFilter) Accepts(answer *xml.Hash) bool {
+  if answer == nil { return false }
+  count := 0
+  for _, sub := range *f {
+    for child := answer.FirstChild(); child != nil; child = child.Next() {
+      txt := child.Element().Text()
+      if strings.Contains(strings.ToLower(txt),sub) {
+        count++
+        break
+      }
+    }
+  }
+  
+  return count == len(*f)
+}
+
+
+
 
 func parseGosaReplyGlobbed(reply_from_gosa string, filter xml.HashFilter, augmentor Augmentor) string {
   x, err := xml.StringToHash(reply_from_gosa)
