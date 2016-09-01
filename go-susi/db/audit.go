@@ -22,6 +22,7 @@ import (
          "strings"
          "strconv"
          "fmt"
+         "time"
          
          "github.com/mbenkmann/golib/util"
        )
@@ -104,10 +105,12 @@ type AuditID struct {
            returnothers were true.
 */
 func AuditScanSubdirs(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc, props []string, returnothers bool) (nonmatch, noaudit []AuditID, unknown int){
+  times := &as_timing{start:time.Now()}
   propTree := makePropTree(props)
   
   if mac != "" {
-    auditScanDir(dir, ts1, ts2, xmlname, mac, contains, f, propTree, len(props), returnothers, &nonmatch, &noaudit, &unknown)
+    auditScanDir(dir, ts1, ts2, xmlname, mac, contains, f, propTree, len(props), returnothers, &nonmatch, &noaudit, &unknown, times)
+    log_times(times)
     return
   }
   
@@ -126,10 +129,11 @@ func AuditScanSubdirs(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanF
   for _, fi := range fis {
     fname := fi.Name()
     if fi.IsDir() && isMAC(fname) {
-      auditScanDir(dir, ts1, ts2, xmlname, fname, contains, f, propTree, len(props), returnothers, &nonmatch, &noaudit, &unknown)
+      auditScanDir(dir, ts1, ts2, xmlname, fname, contains, f, propTree, len(props), returnothers, &nonmatch, &noaudit, &unknown, times)
     }
   }
   
+  log_times(times)
   return
 }
 
@@ -137,7 +141,8 @@ func AuditScanSubdirs(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanF
   Scans a single directory dir+"/"+mac that is expected to contain
   subdirectories named audit_<timestamp>. See AuditScanSubdirs for details.
 */
-func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc, propTree *elementTree, entrysize int, returnothers bool, nonmatch *[]AuditID, noaudit *[]AuditID, unknown *int) {
+func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc, propTree *elementTree, entrysize int, returnothers bool, nonmatch *[]AuditID, noaudit *[]AuditID, unknown *int, times *as_timing) {
+  start_time := time.Now()
   subdir := dir + "/" + mac  // .../fai/MACADDRESS
   d, err := os.Open(subdir)
   if err != nil {
@@ -213,7 +218,7 @@ func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc,
               if returnothers {
                 *nonmatch = append(*nonmatch, AuditID{MAC:mac, IP:ipaddress, Hostname:hostname, Timestamp:auditFilenameToTimestamp(best_auditname)})
               }
-              return
+              goto finish
             }
 do_audit:
             auditScanFile(mac,ipaddress,hostname,auditFilenameToTimestamp(last_auditname),data,i,f,propTree, entrysize)
@@ -222,6 +227,13 @@ do_audit:
       }
     }
   }
+finish:
+  duration := time.Now().Sub(start_time)
+  times.auditScanDirSum += duration
+  if duration > times.auditScanDirMax {
+    times.auditScanDirMax = duration
+  }
+  times.auditScanDirCount++
 }
 
 // returns true iff s is a lower-case MAC address with ":" separator.
@@ -606,6 +618,17 @@ func makePropTree(props []string) *elementTree {
   }
   
   return root
+}
+
+type as_timing struct {
+  start time.Time
+  auditScanDirCount int
+  auditScanDirMax time.Duration
+  auditScanDirSum time.Duration
+}
+
+func log_times(t *as_timing) {
+  util.Log(1, "INFO! AuditScanDirs() took %v. Scanned %v subdirs in %v (max. %v)", time.Now().Sub(t.start), t.auditScanDirCount, t.auditScanDirSum, t.auditScanDirMax)
 }
 
 func AuditTest() string {

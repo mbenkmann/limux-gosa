@@ -375,7 +375,7 @@ func main() {
   util.LogLevel = config.LogLevel
   
   config.ReadNetwork() // after config.ReadConfig()
-  config.Timeout = 20*time.Second
+  config.Timeout = 30*time.Second
   config.FAIBase = db.LDAPFAIBase()
   
   target_reachable := make(chan bool, 2)
