@@ -1011,7 +1011,7 @@ func run_save_fai_log_tests() {
     t := util.ParseTimestamp(strings.Replace(strings.Replace(dirname,"_","",-1), "install","",-1))
     dur := time.Since(t)
     if dur <= 3*time.Second { dur = 0 }
-    check(dur, 0)
+    check(dur, time.Duration(0))
     
     x = gosa("show_log_files_by_date_and_mac", hash("xml(mac(%v)date(%v))", mac, dirname))
     if check(checkTags(x,"header,source,target,show_log_files_by_date_and_mac+,session_id?"), "") {

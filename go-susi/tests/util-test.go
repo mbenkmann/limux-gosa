@@ -497,7 +497,7 @@ func Util_test() {
   util.WaitUntil(t0.Add(-100*time.Minute))
   dur := time.Now().Sub(t0)
   if dur < 1*time.Second { dur = 0 }
-  check(dur, 0)
+  check(dur, time.Duration(0))
   t0 = time.Now()
   util.WaitUntil(t0.Add(1200*time.Millisecond))
   dur = time.Now().Sub(t0)

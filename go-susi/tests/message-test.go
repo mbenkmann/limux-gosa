@@ -81,7 +81,7 @@ func Message_test() {
   message.Peer(listen_address).SetGoSusi(true)
   check(message.Peer(listen_address).IsGoSusi(), true)
   
-  check(message.Peer(listen_address).Downtime(), 0)
+  check(message.Peer(listen_address).Downtime(), time.Duration(0))
   t0 := time.Now()
   message.Peer(listen_address).Tell("<xml><header>Hallo</header></xml>", keys[0])
   check(wait(t0, "Hallo").XML.Text("header"), "Hallo")
@@ -95,10 +95,20 @@ func Message_test() {
   
   check(error_string(<-message.Peer(listen_address).Ask("<xml><header>gosa_query_jobdb</header></xml>", config.ModuleKey["[GOsaPackages]"])),"")
   check(error_string(<-message.Peer(listen_address).Ask("<xml><header>whatever</header></xml>", config.ModuleKey["[GOsaPackages]"])),"Communication error in Ask()")
-  
+
+  // Some voodoo to make sure the downtime counter is at 0
+  listen_stop()
+  message.Peer(listen_address).Tell("<xml><header>You come get the voodoo.</header></xml>", keys[0])
+  time.Sleep(3*time.Second)
+  listen()
+  message.Peer(listen_address).Tell("<xml><header>Stay away from the voodoo.</header></xml>", keys[0])
+  time.Sleep(3*time.Second)
+
   for repcount := 0; repcount < 2 ; repcount++ {
     // shut down listener
     listen_stop()
+    // make sure we notice downtime right away
+    message.Peer(listen_address).Tell("<xml><header>dummy</header></xml>", keys[0])
     // wait 3 seconds and check downtime
     time.Sleep(time.Duration(3+repcount)*time.Second)
     downtime := int64((message.Peer(listen_address).Downtime() + 500*time.Millisecond)/time.Second)
@@ -115,7 +125,7 @@ func Message_test() {
     message.Peer(listen_address).Tell("<xml><header>Wuseldusel</header></xml>", keys[0])
     check(wait(t0, "Wuseldusel").XML.Text("header"), "Wuseldusel")
     // check that downtime has stopped
-    check(message.Peer(listen_address).Downtime(), 0)
+    check(message.Peer(listen_address).Downtime(), time.Duration(0))
   }
   
   // set maximum downtime before removal
@@ -147,7 +157,8 @@ func Message_test() {
     nohost = "lookup broken: no such host"
   }
   check(hasWords(nohost,"lookup","no such host"),"")
-  check(error_string(<-message.Peer("doesnotexist.domain:10").Ask("", "")),"lookup doesnotexist.domain: no such host")
+  nohost = error_string(<-message.Peer("doesnotexist.domain:10").Ask("", ""))
+  check(hasWords(nohost,"lookup","no such host"),"")
   
   util.LoggersSuspend()
   oldloglevel := util.LogLevel

@@ -1,3 +1,9 @@
+gosa (2.8.281) trusty; urgency=medium
+
+  * go-susi: updated testsuite for go 1.7
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 07 Sep 2016 13:51:33 +0200
+
 gosa (2.8.280) trusty; urgency=medium
 
   * go-susi: add logging of basic timing data for gosa_query_audit_*
