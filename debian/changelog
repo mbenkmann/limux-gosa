@@ -1,3 +1,9 @@
+gosa (2.8.282) trusty; urgency=medium
+
+  * go-susi: more timing logging in gosa_query_audit_*
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 12 Sep 2016 14:22:58 +0200
+
 gosa (2.8.281) trusty; urgency=medium
 
   * go-susi: updated testsuite for go 1.7

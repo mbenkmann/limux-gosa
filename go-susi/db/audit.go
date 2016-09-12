@@ -187,7 +187,10 @@ func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc,
         *unknown = *unknown + 1
       } else {
         dataname := subdir + "/" + best_auditname + "/" + xmlname + ".xml"
+        read_start := time.Now()
         data, err := ioutil.ReadFile(dataname)
+        read_time := time.Now().Sub(read_start)
+        times.auditReadFileSum += read_time
         if err != nil {
           util.Log(0, "ERROR! ReadFile(%v): %v", dataname, err)
           if returnothers {
@@ -221,7 +224,7 @@ func auditScanDir(dir, ts1, ts2, xmlname, mac, contains string, f AuditScanFunc,
               goto finish
             }
 do_audit:
-            auditScanFile(mac,ipaddress,hostname,auditFilenameToTimestamp(last_auditname),data,i,f,propTree, entrysize)
+            auditScanFile(mac,ipaddress,hostname,auditFilenameToTimestamp(last_auditname),data,i,f,propTree, entrysize, times)
           }
         }
       }
@@ -417,7 +420,7 @@ func findFirstEntry(data []byte) (i int,ipaddress,hostname string) {
 //   * If <entry> has a <macaddress> and/or <ipaddress> and/or <hostname> child
 //     that will override the global macaddress,ipaddress/hostname.
 //   * If tree has a mapping for "lastaudit>", lastaudit will be added to every entry.
-func auditScanFile(macaddress,ipaddress, hostname,lastaudit string, data []byte, i int, auditScanFunc AuditScanFunc, tree *elementTree, entrysize int) {
+func auditScanFile(macaddress,ipaddress, hostname,lastaudit string, data []byte, i int, auditScanFunc AuditScanFunc, tree *elementTree, entrysize int, times *as_timing) {
   // If the input is malformed, we may read past end of data
   defer func() {
     if recover() != nil {
@@ -455,7 +458,10 @@ func auditScanFile(macaddress,ipaddress, hostname,lastaudit string, data []byte,
       for data[i] <= '<' { i++ }
       if data[i-1] == '/' { // </entry>
         i+=6
+        callback_start := time.Now()
         auditScanFunc(entry)
+        callback_time := time.Now().Sub(callback_start)
+        times.auditCallbackSum += callback_time
         break
       }
       
@@ -625,10 +631,12 @@ type as_timing struct {
   auditScanDirCount int
   auditScanDirMax time.Duration
   auditScanDirSum time.Duration
+  auditReadFileSum time.Duration
+  auditCallbackSum time.Duration
 }
 
 func log_times(t *as_timing) {
-  util.Log(1, "INFO! AuditScanDirs() took %v. Scanned %v subdirs in %v (max. %v)", time.Now().Sub(t.start), t.auditScanDirCount, t.auditScanDirSum, t.auditScanDirMax)
+  util.Log(1, "INFO! AuditScanDirs() took %v. Scanned %v subdirs in %v (max. %v). File read time: %v. Callback time: %v", time.Now().Sub(t.start), t.auditScanDirCount, t.auditScanDirSum, t.auditScanDirMax, t.auditReadFileSum, t.auditCallbackSum)
 }
 
 func AuditTest() string {
@@ -691,7 +699,7 @@ func AuditTest() string {
   
   </audit>
   `
-  auditScanFile("m","c", "e", "l",[]byte(data), 0, auditScanFunc, tree, 8)
+  auditScanFile("m","c", "e", "l",[]byte(data), 0, auditScanFunc, tree, 8, &as_timing{})
   
   return res
 }
