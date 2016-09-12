@@ -288,6 +288,14 @@ Commands:
                     Example: "qaudit has pack bash 4.3"
                     
                 updable
+                    With no argument this produces a list of machines that
+                    have at least one package than can be updated.
+                    Optional arguments are treated as glob patterns and
+                    cause only machines to be listed where at least one
+                    package can be updated whose name matches one of the
+                    glob patterns.
+                
+                
                 broken
                 missing
                 
@@ -830,7 +838,7 @@ func processMessage(msg string, joblist *[]jobDescriptor, context *security.Cont
     allowed["time"] = true
     allowed["substring"] = true
     allowed["multiple_machines"] = false
-    if subcmd == "has" {
+    if subcmd == "has" || subcmd == "updable" {
       allowed["machine"] = false
       allowed["*"] = false
     }
@@ -1252,7 +1260,28 @@ func commandQueryAuditHas(joblist *[]jobDescriptor) string {
 
 
 func commandQueryAuditUpdable(joblist *[]jobDescriptor) (reply string) {
-  return "! Unimplemented"
+  tstart := ""
+  tend := util.MakeTimestamp(time.Now())
+  patterns := map[string]bool{}
+  for _, j := range *joblist {
+    tstart = j.Date + j.Time
+    if j.Sub  != "" {
+      patterns[j.Sub] = true
+    }
+  }
+  
+  var filter xml.HashFilter = xml.FilterAll
+  if len(patterns) > 0 {
+    filter = &globFilter{"key", patterns}
+  }
+
+  var augmentor Augmentor
+  gosa_cmd := "<xml><header>gosa_query_audit</header><source>GOSA</source><target>GOSA</target><audit>packages</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>key</select><select>macaddress</select><select>update</select><where><clause><phrase><operator>ne</operator><update></update></phrase></clause></where></xml>"
+  augmentor = DummyAugmentor
+
+  gosa_reply := <- message.Peer(TargetAddress).Ask(gosa_cmd, config.ModuleKey["[GOsaPackages]"])
+    
+  return parseGosaReplyGlobbed(gosa_reply, filter, augmentor)
 }
 
 func commandQueryAuditBroken(joblist *[]jobDescriptor) (reply string) {
