@@ -1,3 +1,9 @@
+gosa (2.8.284) trusty; urgency=medium
+
+  * sibridge: implemented qaudit broken
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 13 Sep 2016 11:31:04 +0200
+
 gosa (2.8.283) trusty; urgency=medium
 
   * sibridge: qaudit updable implemented

@@ -260,6 +260,29 @@ Commands:
                     only a subset of packages. Each argument is a glob
                     pattern that allows the standard wildcards "*" and "?".
                 
+                
+                updable
+                    With no argument this produces a list of machines that
+                    have at least one package than can be updated.
+                    Optional arguments are treated as glob patterns and
+                    cause only machines to be listed where at least one
+                    package can be updated whose name matches one of the
+                    glob patterns.
+                
+                broken
+                    With no argument this produces a list of machines that
+                    have at least one broken package (status not "ii").
+                    Optional arguments are treated as glob patterns and
+                    cause only machines to be listed where at least one
+                    package is broken whose name matches one of the
+                    glob patterns.
+                
+                missing
+                    Requires at least 1 argument. All arguments are treated
+                    as glob patterns and the command lists all machines
+                    where at least 1 glob pattern does not match any of the
+                    installed packages.
+                    
                 sources
                     With "*" as first argument or no machine argument,
                     this returns a list of installation sources with
@@ -286,19 +309,6 @@ Commands:
                     all of which have to occur in at least one of the columns
                     for an entry to be included in the list.
                     Example: "qaudit has pack bash 4.3"
-                    
-                updable
-                    With no argument this produces a list of machines that
-                    have at least one package than can be updated.
-                    Optional arguments are treated as glob patterns and
-                    cause only machines to be listed where at least one
-                    package can be updated whose name matches one of the
-                    glob patterns.
-                
-                
-                broken
-                missing
-                
 
   query_jobdb, query_jobs, jobs: 
               Query jobs matching the arguments.
@@ -1285,7 +1295,28 @@ func commandQueryAuditUpdable(joblist *[]jobDescriptor) (reply string) {
 }
 
 func commandQueryAuditBroken(joblist *[]jobDescriptor) (reply string) {
-  return "! Unimplemented"
+  tstart := ""
+  tend := util.MakeTimestamp(time.Now())
+  patterns := map[string]bool{}
+  for _, j := range *joblist {
+    tstart = j.Date + j.Time
+    if j.Sub  != "" {
+      patterns[j.Sub] = true
+    }
+  }
+  
+  var filter xml.HashFilter = xml.FilterAll
+  if len(patterns) > 0 {
+    filter = &globFilter{"key", patterns}
+  }
+
+  var augmentor Augmentor
+  gosa_cmd := "<xml><header>gosa_query_audit</header><source>GOSA</source><target>GOSA</target><audit>packages</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>key</select><select>status</select><select>macaddress</select><select>update</select><where><clause><phrase><operator>ne</operator><status>ii</status></phrase></clause></where></xml>"
+  augmentor = DummyAugmentor
+
+  gosa_reply := <- message.Peer(TargetAddress).Ask(gosa_cmd, config.ModuleKey["[GOsaPackages]"])
+    
+  return parseGosaReplyGlobbed(gosa_reply, filter, augmentor)
 }
 
 
