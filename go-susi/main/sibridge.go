@@ -280,8 +280,11 @@ Commands:
                 missing
                     Requires at least 1 argument. All arguments are treated
                     as glob patterns and the command lists all machines
-                    where at least 1 glob pattern does not match any of the
-                    installed packages.
+                    where none of the glob patterns match any of the
+                    installed non-broken packages (status "ii").
+                    E.g. "qaudit missing ?ash ?sh" would list all machines
+                    that have none of the usual shells (ash, bash, csh, dash,
+                    zsh, ksh) installed.
                     
                 sources
                     With "*" as first argument or no machine argument,
@@ -1249,7 +1252,10 @@ func commandQueryAuditHas(joblist *[]jobDescriptor) string {
   }
 
   // We only use the <where> filter as a first filtering step.
-  // The final filtering is done with allSubstringsFilter
+  // The final filtering is done with allSubstringsFilter.
+  // The reason for this is that ALL of the patterns have to match
+  // in ANY of the fields and the <where> query to model that would
+  // be huge.
   longest := patterns[0]
   for i := 1; i < len(patterns); i++ {
     if len(patterns[i]) > len(longest) { longest = patterns[i] }
@@ -1321,7 +1327,25 @@ func commandQueryAuditBroken(joblist *[]jobDescriptor) (reply string) {
 
 
 func commandQueryAuditMissing(joblist *[]jobDescriptor) (reply string) {
-  return "! Unimplemented"
+  tstart := ""
+  tend := util.MakeTimestamp(time.Now())
+  where := "<where><clause><connector>or</connector>"
+  for _, j := range *joblist {
+    tstart = j.Date + j.Time
+    if j.Sub  != "" {
+      pattern := strings.Replace(strings.Replace(strings.Replace(j.Sub,"?","_",-1),"%","_",-1),"*","%",-1)
+      where += "<phrase><operator>like</operator><key>"+pattern+"</key></phrase>"
+    }
+  }
+  where += "</clause></where>"
+  
+  var augmentor Augmentor = QAMissingAugmentor
+  gosa_cmd := "<xml><header>gosa_query_audit</header><source>GOSA</source><target>GOSA</target><audit>packages</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><includeothers/><select>macaddress</select><select>status</select><select>lastaudit</select>"+where+"</xml>"
+
+  gosa_reply := <- message.Peer(TargetAddress).Ask(gosa_cmd, config.ModuleKey["[GOsaPackages]"])
+    
+  return parseGosaReplyGlobbed(gosa_reply, xml.FilterAll, augmentor)
+
 }
 
 func globMatch(pattern, s string) bool {
@@ -1950,6 +1974,37 @@ func (p *PackagesAggregateAugmentation) Footer(foota *[]string, length []int, co
   *foota = append(*foota, strings.Join(st, ""))
 }
 
+type qaMissingAugmentorType int
+const QAMissingAugmentor qaMissingAugmentorType = 0
+
+func (qaMissingAugmentorType) Augment(x *xml.Hash) []Augmentation {
+  for child := x.FirstChild(); child != nil; child = child.Next() {
+    ele := child.Element()
+    if ele.Name() == "nonmatching" {
+      ele.Rename("answer0")
+      ele.RemoveFirst("lastaudit")
+      ele.Add("status","missing")
+    } else if ele.Name() == "noaudit" {
+      ele.Rename("answer0")
+      last := ele.RemoveFirst("lastaudit")
+      if last == nil {
+        ele.Add("status","unknown")
+      } else {
+        ele.Add("status",last.Text())
+      }
+    } else if strings.HasPrefix(ele.Name(), "answer") {
+      if ele.Text("status") == "ii" {
+        child.Remove()
+      } else {
+        ele.RemoveFirst("lastaudit")
+      }
+    }
+  }
+  
+  return nil
+}
+
+
 type globFilter struct {
   column string
   patterns map[string]bool
@@ -2037,7 +2092,7 @@ func parseGosaReplyGlobbed(reply_from_gosa string, filter xml.HashFilter, augmen
                  raw_columns = rawColumns(answer)
                }
                
-               r = formatRawAnswer(answer)
+               r = formatRawAnswer(raw_columns, answer)
     }
     
     for i,st := range r {
@@ -2106,10 +2161,10 @@ func rawColumns(answer *xml.Hash) []string {
 }
 
 
-func formatRawAnswer(answer *xml.Hash) []string {
-  var answ []string
-  for child := answer.FirstChild(); child != nil; child = child.Next() {
-    answ = append(answ, child.Element().Text())
+func formatRawAnswer(columns []string, answer *xml.Hash) []string {
+  answ := make([]string, len(columns))
+  for i := range columns {
+    answ[i] = answer.Text(columns[i])
   }
   return answ
 }
