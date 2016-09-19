@@ -1,3 +1,9 @@
+gosa (2.8.287) trusty; urgency=medium
+
+  * fai-helpers: include audit_hw and audit_sources in package
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 19 Sep 2016 13:16:16 +0200
+
 gosa (2.8.286) trusty; urgency=medium
 
   * sibridge/fai-helpers: use <components> for sources audit files to match LHM design document
