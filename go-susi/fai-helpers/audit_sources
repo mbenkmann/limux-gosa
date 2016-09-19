@@ -18,6 +18,8 @@ grep -rH '^deb ' /etc/apt/sources.list /etc/apt/sources.list.d | tr -s ' \t' ' '
 while read -r file repo distribution components ; do
 file="${file##*/}"
 repo="${repo%/}"
+
+# alternative 1: split up components into multiple entries
 for component in $components ; do
 echo "
   <entry>
@@ -25,9 +27,22 @@ echo "
     <file>$file</file>
     <repo>$repo</repo>
     <distribution>$distribution</distribution>
-    <component>$component</component>"
+    <components>$component</components>"
     
 echo "  </entry>"
+
+# alternative 2: keep components as listed in sources.list
+#components=$(echo "$components"|tr -s [:space:] ' '|sed 's/^ //;s/ $//')
+#echo "
+#  <entry>
+#    <key>$key</key>
+#    <file>$file</file>
+#    <repo>$repo</repo>
+#    <distribution>$distribution</distribution>
+#    <components>$components</components>"
+#    
+#echo "  </entry>"
+
 
 key=$(($key + 1))
 

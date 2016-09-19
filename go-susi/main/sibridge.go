@@ -1151,10 +1151,10 @@ func commandQueryAuditSources(joblist *[]jobDescriptor) (reply string) {
     
     var augmentor Augmentor
     if j.Name == "*" {
-      gosa_cmd = "<xml><header>gosa_query_audit_aggregate</header><source>GOSA</source><target>GOSA</target><audit>sources</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>distribution</select><select>repo</select><select>component</select><count><unique>macaddress</unique><as>uses</as></count></xml>"
+      gosa_cmd = "<xml><header>gosa_query_audit_aggregate</header><source>GOSA</source><target>GOSA</target><audit>sources</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>distribution</select><select>repo</select><select>components</select><count><unique>macaddress</unique><as>uses</as></count></xml>"
       augmentor = DummyAugmentor
     } else if j.HasMachine() {
-      gosa_cmd = "<xml><header>gosa_query_audit</header><source>GOSA</source><target>GOSA</target><audit>sources</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>distribution</select><select>repo</select><select>component</select><where><clause><phrase><macaddress>"+j.MAC+"</macaddress></phrase></clause></where></xml>"
+      gosa_cmd = "<xml><header>gosa_query_audit</header><source>GOSA</source><target>GOSA</target><audit>sources</audit><tstart>"+tstart+"</tstart><tend>"+tend+"</tend><select>distribution</select><select>repo</select><select>components</select><where><clause><phrase><macaddress>"+j.MAC+"</macaddress></phrase></clause></where></xml>"
       augmentor = DummyAugmentor
     }
     
@@ -1237,8 +1237,8 @@ func commandQueryAuditHas(joblist *[]jobDescriptor) string {
     selected = "<select>key</select><select>version</select><select>status</select><select>update</select>"
   } else if strings.HasPrefix("sources",db) { 
     db = "sources"
-    fields = []string{"file", "repo", "distribution", "component" }
-    selected = "<select>file</select><select>distribution</select><select>repo</select><select>component</select>"
+    fields = []string{"file", "repo", "distribution", "components" }
+    selected = "<select>file</select><select>distribution</select><select>repo</select><select>components</select>"
   } else if strings.HasPrefix("hw",db) { 
     db = "hw"
     fields = []string{"class", "vendor", "device" }
