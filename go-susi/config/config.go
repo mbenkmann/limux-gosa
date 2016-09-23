@@ -216,6 +216,17 @@ var BestInterface = -1
 // This is just the value read from the config file.
 var LogLevel int
 
+// Maximum number of name+text bytes allowed in an individual here_i_am
+// child element.
+// Because hia info is stored in clientdb, we need to prevent badly behaved
+// clients from overflowing us (which even if it does not fill the drive,
+// may impact performance).
+var HIAMaxElementSize = 1024
+
+// Maximum number of all name+text bytes allowed in custom here_i_am elements.
+// See HIAMaxElementSize.
+var HIAMaxInfoSize = 4096
+
 // Maximum number of active connections allowed. If this limit is reached,
 // no further connections will be accepted on the socket.
 var MaxConnections int32 = 512

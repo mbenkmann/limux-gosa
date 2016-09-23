@@ -1,3 +1,9 @@
+gosa (2.8.288) trusty; urgency=medium
+
+  * go-susi: store additional here_i_am/nfc elements in clientdb for future gosa_query_clientdb
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Fri, 23 Sep 2016 11:43:26 +0200
+
 gosa (2.8.287) trusty; urgency=medium
 
   * fai-helpers: include audit_hw and audit_sources in package

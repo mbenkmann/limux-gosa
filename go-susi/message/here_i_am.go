@@ -42,8 +42,6 @@ func Send_here_i_am(target string) {
   here_i_am.Add("here_i_am")
   here_i_am.Add("source", config.ServerSourceAddress)
   here_i_am.Add("target", target)
-  here_i_am.Add("events","goSusi")
-  here_i_am.Add("gotoHardwareChecksum", "unknown")
   here_i_am.Add("client_status", config.Version)
   here_i_am.Add("client_revision", config.Revision)
   here_i_am.Add("mac_address", config.MAC) //Yes, that's mac_address with "_"
@@ -87,15 +85,42 @@ func here_i_am(xmlmsg *xml.Hash) {
       }  
     }
   }
+  
+  util.Log(1, "INFO! here_i_am from client %v (%v)", client_addr, macaddress)
+  
   client := xml.NewHash("xml","header","new_foreign_client")
   client.Add("new_foreign_client")
   client.Add("source",config.ServerSourceAddress)
   client.Add("target",config.ServerSourceAddress)
-
-  util.Log(1, "INFO! here_i_am from client %v (%v)", client_addr, macaddress)
   client.Add("client", client_addr)
   client.Add("macaddress",macaddress)
   client.Add("key",xmlmsg.Text("new_passwd"))
+  
+  /*
+    Copy additional info from hia into the clientdb entry (and nfc)
+  */
+  rest_size := config.HIAMaxInfoSize
+  for info := xmlmsg.FirstChild(); info != nil; info = info.Next() {
+    name := info.Element().Name()
+    switch name {
+      case "header", "source", "target", "here_i_am", "mac_address", "new_passwd",
+           "key_lifetime": // special elements we don't copy
+      default:
+           value := info.Element().Text()
+           if len(value)+len(name) > config.HIAMaxElementSize {
+             util.Log(0, "WARNING! here_i_am from client %v (%v) contains overlong info element => Some info not stored in clientdb", client_addr, macaddress)
+             goto copy_end
+           }
+           rest_size -= len(value)+len(name)
+           if rest_size < 0 {
+             util.Log(0, "WARNING! here_i_am from client %v (%v) contains too much info => Some info not stored in clientdb", client_addr, macaddress)
+             goto copy_end
+           }
+           client.Add(name, value)
+    }
+  }
+copy_end:
+  
   db.ClientUpdate(client)
   // A client that sends here_i_am to us is either our own internal client or
   // a client-only client. In either case make sure we don't have an entry in the
