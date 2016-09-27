@@ -1831,7 +1831,7 @@ func run_here_i_am_tests() {
   client_addr := []string{config.IP + ":" + port[0], config.IP + ":" + port[1], config.IP + ":" + port[2]}
   mac := []string{"1e:ff:c0:39:42:aa", "09:10:0d:33:ff:00", ""}
   mac[2] = mac[0] // 3rd entry is same MAC but different address
-  hia := hash("xml(header(here_i_am)target(%v)new_passwd(xxx))", config.ServerSourceAddress)
+  hia := hash("xml(header(here_i_am)target(%v)new_passwd(xxx)extra_info(blafasel))", config.ServerSourceAddress)
   
   for i := 0; i < 3; i++ {
     hia.FirstOrAdd("source").SetText(client_addr[i])
@@ -1844,6 +1844,7 @@ func run_here_i_am_tests() {
     check(nfc.XML.Text("client"), client_addr[i])
     check(nfc.XML.Text("macaddress"), mac[i])
     check(nfc.XML.Text("key"), "xxx")
+    check(nfc.XML.Text("extra_info"), "blafasel")
   }
   
   t0 := time.Now()

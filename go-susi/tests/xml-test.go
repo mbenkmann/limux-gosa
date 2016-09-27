@@ -633,7 +633,7 @@ func testHash() {
   
   xmlreader := bytes.NewBufferString("<xml>\n<foo>\nbar</foo>\n</xml>\x00Should be ignored\n")
   x, xmlerr = xml.ReaderToHash(xmlreader)
-  check(xmlerr, "StringToHash(): XML syntax error on line 5: illegal character code U+0000")
+  check(xmlerr, "StringToHash(): XML syntax error on line 4: illegal character code U+0000")
   
   xmlreader = bytes.NewBufferString("<xml>\n<foo>\nbar</foo>\n</xml>")
   x, xmlerr = xml.ReaderToHash(xmlreader)

@@ -1,3 +1,9 @@
+gosa (2.8.289) trusty; urgency=medium
+
+  * go-susi: implement [client]/extra-info-file for including additional data in here_i_am/clientdb
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 27 Sep 2016 10:14:48 +0200
+
 gosa (2.8.288) trusty; urgency=medium
 
   * go-susi: store additional here_i_am/nfc elements in clientdb for future gosa_query_clientdb

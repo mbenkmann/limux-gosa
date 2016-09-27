@@ -235,7 +235,9 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   
   // http server for profiling
   //go func(){http.ListenAndServe("localhost:6060", nil)}()
-  
+
+  readExtraInfo(config.ExtraInfoFilePath) // before message.RegistrationHandler()
+
   go message.RegistrationHandler()
 
   /********************  main event loop ***********************/  
@@ -514,6 +516,45 @@ func setConfigUnitTag() {
     config.UnitTagFilter = "(gosaUnitTag="+config.UnitTag+")"
     config.AdminBase, config.Department = db.LDAPAdminBase()
     util.Log(1, "INFO! gosaUnitTag: %v  Admin base: %v  Department: %v", config.UnitTag, config.AdminBase, config.Department)
+  }
+}
+
+func readExtraInfo(einfopath string) {
+  if einfopath == "" { return }
+  
+  einfo, err := xml.FileToHash(einfopath)
+  if err != nil {
+    util.Log(0, "ERROR! Error reading extra-info-file \"%v\": %v", einfopath, err)
+  } else {
+    
+    total := 0
+    for child := einfo.FirstChild(); child != nil; child = child.Next() {
+      ele := child.Element()
+      name := ele.Name()
+      if ele.FirstChild() != nil {
+        util.Log(0, "WARNING! extra-info-file \"%v\": Element <%v> contains sub-elements. This is not supported! => ignoring element", einfopath, name)
+        child.Remove()
+      } else {
+        switch name {
+          case "header", "source", "target", "here_i_am", "mac_address", "new_passwd",
+             "key_lifetime", "client_version", "client_revision": // reserved element names
+              util.Log(0, "WARNING! extra-info-file \"%v\": Ignoring reserved element <%v>", einfopath, name)
+              child.Remove()
+          default:
+              value := ele.Text()
+              if (len(name)+len(value) > config.HIAMaxElementSize) || (total + len(name) + len(value) > config.HIAMaxInfoSize) {
+                util.Log(0, "WARNING! extra-info-file \"%v\": Maximum info size exceeded => ignoring element", einfopath)
+                child.Remove()
+              } else {
+                total += len(name)+len(value)
+              }
+        }
+      }
+    }
+    
+    einfo.SetText() // remove stray text not in elements
+    message.Here_I_Am_Extra = einfo
+    util.Log(1, "INFO! extra-info-file => %v", einfo)
   }
 }
 

@@ -73,6 +73,10 @@ var ServerConfigPath = "/etc/gosa-si/server.conf"
 // Path of the client config file.
 var ClientConfigPath = "/etc/gosa-si/client.conf"
 
+// Path to a file containing XML data to be added to here_i_am messages.
+// If empty, no extra info will be added to here_i_am.
+var ExtraInfoFilePath = ""
+
 // Path(s) of the CA certificate(s) used to authenticate all other certificates.
 var CACertPath = []string{"/etc/gosa-si/ca.cert"}
 
@@ -629,6 +633,9 @@ func ReadConfig() {
   if client, ok:= conf["[client]"]; ok {
     if port,ok := client["port"]; ok {
       ClientPorts = strings.Fields(strings.Replace(port,","," ",-1))
+    }
+    if einfo,ok := client["extra-info-file"]; ok {
+      ExtraInfoFilePath = einfo
     }
   }
   

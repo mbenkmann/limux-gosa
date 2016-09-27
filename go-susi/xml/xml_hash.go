@@ -698,7 +698,11 @@ func ReaderToHash(r io.Reader) (xml *Hash, err error) {
     return NewHash("xml"), err
   } 
   
-  return StringToHash(string(xmldata))
+  // Ignore whitespace at end of input
+  i := len(xmldata)
+  for i > 0 && xmldata[i-1] <= ' ' { i-- }
+  
+  return StringToHash(string(xmldata[0:i]))
 }
 
 // returns true if string(b[ofs:ofs+len(pre)]) == pre.

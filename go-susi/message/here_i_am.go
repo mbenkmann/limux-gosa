@@ -32,6 +32,10 @@ import (
          "../security"
        )
 
+// If non-nil, these are additional fields sent in here_i_am message.
+// The root element name is irrelevant. Elements must not have children.
+var Here_I_Am_Extra *xml.Hash
+
 var TotalRegistrations int32
 var MissedRegistrations int32
 
@@ -42,9 +46,15 @@ func Send_here_i_am(target string) {
   here_i_am.Add("here_i_am")
   here_i_am.Add("source", config.ServerSourceAddress)
   here_i_am.Add("target", target)
-  here_i_am.Add("client_status", config.Version)
+  here_i_am.Add("client_version", config.Version)
   here_i_am.Add("client_revision", config.Revision)
   here_i_am.Add("mac_address", config.MAC) //Yes, that's mac_address with "_"
+  
+  if Here_I_Am_Extra != nil {
+    for info := Here_I_Am_Extra.FirstChild(); info != nil; info = info.Next() {
+      here_i_am.Add(info.Element().Name(), info.Element().Text())
+    }
+  }
   
   clientpackageskey := config.ModuleKey["[ClientPackages]"]
   // If [ClientPackages]/key missing, take the last key in the list
