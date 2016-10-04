@@ -915,6 +915,9 @@ func ReadNetwork() {
         } else 
         { 
           ifaceInfo.Peers = addrs
+          for _, srv := range addrs {
+            ServerNamesFromSRVRecords = append(ServerNamesFromSRVRecords, srv.Target)
+          }
         }
       }
       
@@ -964,9 +967,6 @@ func ReadNetwork() {
     }
   }
   
-  for _, srv := range Interfaces[BestInterface].Peers {
-    ServerNamesFromSRVRecords = append(ServerNamesFromSRVRecords, srv.Target)
-  }
 }
 
 // Returns the gosa-si servers listed in DNS.

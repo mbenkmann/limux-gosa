@@ -1,3 +1,9 @@
+gosa (2.8.290) trusty; urgency=medium
+
+  * go-susi: collect SRV records from all interfaces, not just the best one
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 04 Oct 2016 12:28:29 +0200
+
 gosa (2.8.289) trusty; urgency=medium
 
   * go-susi: implement [client]/extra-info-file for including additional data in here_i_am/clientdb
