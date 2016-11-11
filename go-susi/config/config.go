@@ -31,6 +31,7 @@ import (
          "bufio"
          "regexp"
          "strings"
+         "strconv"
          "crypto/aes"
          "crypto/tls"
          "crypto/x509"
@@ -52,9 +53,6 @@ var ModuleKey = map[string]string{}
 // The address to listen on. "127.0.0.1:<port>" listens only for connections from
 // the local machine. ":<port>" allows connections from anywhere.
 var ServerListenAddress = ":20081"
-
-// IP address part of <source> element.
-var IP = "127.0.0.1"
 
 // If this is true, go-susi will offer server functionality in addition
 // to client functionality. If false, only client functionality will
@@ -192,28 +190,43 @@ var ServerNamesFromSRVRecords = []string{}
 // The preferred server to register at when in client-only mode.
 var PreferredServer = ""
 
-// This machine's hostname.
-var Hostname = "localhost"
-
-// This machine's domain name.
-var Domain = "localdomain"
+// Default ruleset for detecting best network interface.
+var InterfaceDetect = parseNetworkDetectRuleset("up~yes loopback~no srv~yes domain!~ERROR! hostname!~ERROR! ip!~ERROR!")
 
 // The MAC address to send in the <macaddress> element.
-var MAC = "01:02:03:04:05:06"
+// If [network]/my-mac does not contain '~' it is used directly as MAC.
+// If it contains '~' it is a ruleset that is stored in MACDetect and
+// used to fill in MAC in ReadNetwork().
+// If the setting is not present or empty, the InterfaceDetect ruleset is used.
+var MAC = ""
+var MACDetect []NetDetRule
 
-type InterfaceInfo struct {
-  IP string   // IP address of this machine for this interface. If this string begins with "ERROR!", then it could not be determined
-  Hostname string // hostname (without domain) of the above IP. If it begins with "ERROR!" it could not be determined
-  Domain string   // domain of the above IP. If it begins with "ERROR!" it could not be determined
-  Interface net.Interface // low level interface data
-  Peers []*net.SRV // SRV records for tcp/gosa-si (if Domain could not be determined, this will always be nil)
-}
+// IP address part of <source> element.
+// If [network]/my-ip does not contain '~' it is used directly as IP.
+// If it contains '~' it is a ruleset that is stored in IPDetect and
+// used to fill in IP in ReadNetwork().
+// If the setting is not present or empty, the MACDetect ruleset is used
+// if it is not empty, or as last fallback the InterfaceDetect ruleset.
+var IP = ""
+var IPDetect []NetDetRule
 
-// Information about each non-loopback interface that is UP.
-var Interfaces = []InterfaceInfo{}
+// This machine's domain name.
+// If [network]/my-domain does not contain '~' it is used directly as Domain.
+// If it contains '~' it is a ruleset that is stored in DomainDetect and
+// used to fill in Domain in ReadNetwork().
+// If the setting is not present or empty, the first non-empty ruleset in
+// following list is used: HostnameDetect, IPDetect, MACDetect, InterfaceDetect.
+var Domain = ""
+var DomainDetect []NetDetRule
 
-// index in Interfaces of the most appropriate interface to use. -1 if none could be determined
-var BestInterface = -1
+// This machine's hostname.
+// If [network]/my-hostname does not contain '~' it is used directly as Hostname.
+// If it contains '~' it is a ruleset that is stored in HostnameDetect and
+// used to fill in Hostname in ReadNetwork().
+// If the setting is not present or empty, the first non-empty ruleset in
+// following list is used: DomainDetect, IPDetect, MACDetect, InterfaceDetect.
+var Hostname = ""
+var HostnameDetect []NetDetRule
 
 // Only log messages with level <= this number will be output.
 // Note: The actual variable controlling the loglevel is util.LogLevel.
@@ -400,6 +413,16 @@ var PrintHelp = false
 
 // true if "--stats" is passed on the command line
 var PrintStats = false
+
+const re_1xx = "(1([0-9]?[0-9]?))"
+const re_2xx = "(2([6-9]|([0-4][0-9]?)|(5[0-5]?))?)"
+const re_xx  = "([3-9][0-9]?)"
+const ip_part = "(0|"+re_1xx+"|"+re_2xx+"|"+re_xx+")"
+var ipRegexp = regexp.MustCompile("^"+ip_part+"([.]"+ip_part+"){3}$")
+var macAddressRegexp = regexp.MustCompile("^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$")
+// valid as per RFC 1123. Originally, RFC 952 specified that hostname segments could not start with a digit.
+var hostnameRegexp = regexp.MustCompile("^([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9])$")
+var domainRegexp = regexp.MustCompile("^((([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9]))$")
 
 // Set up TempDir, LDAPAdminPasswordFile and LDAPUserPasswordFile.
 // The TempDir is deleted when Shutdown() is called.
@@ -710,6 +733,79 @@ func ReadConfig() {
     }
   }
   
+  if network, ok:= conf["[network]"]; ok {
+    if mymac, ok := network["my-mac"]; ok {
+      mymac = strings.ToLower(mymac)
+      if !macAddressRegexp.MatchString(mymac) {
+        MAC = ""
+        MACDetect = parseNetworkDetectRuleset(mymac)
+      } else {
+        MAC = mymac
+        MACDetect = nil
+      }
+    }
+    if myip, ok := network["my-ip"]; ok {
+      myip = strings.ToLower(myip)
+      if !ipRegexp.MatchString(myip) {
+        IP = ""
+        IPDetect = parseNetworkDetectRuleset(myip)
+      } else {
+        IP = myip
+        IPDetect = nil
+      }
+    }
+    if myhostname, ok := network["my-hostname"]; ok {
+      myhostname = strings.ToLower(myhostname)
+      if !hostnameRegexp.MatchString(myhostname) {
+        Hostname = ""
+        HostnameDetect = parseNetworkDetectRuleset(myhostname)
+      } else {
+        Hostname = myhostname
+        HostnameDetect = nil
+      }
+    }
+    if mydomain, ok := network["my-domain"]; ok {
+      mydomain = strings.ToLower(mydomain)
+      if !domainRegexp.MatchString(mydomain) {
+        Domain = ""
+        DomainDetect = parseNetworkDetectRuleset(mydomain)
+      } else {
+        Domain = mydomain
+        DomainDetect = nil
+      }
+    }
+  }
+  
+  if MAC == "" && MACDetect == nil {
+    MACDetect = InterfaceDetect
+  }
+  
+  if IP == "" && IPDetect == nil {
+    if MACDetect != nil {
+      IPDetect = MACDetect
+    } else {
+      IPDetect = InterfaceDetect
+    }
+  }
+  
+  if Domain == "" && DomainDetect == nil {
+    for _, s := range [][]NetDetRule{HostnameDetect, IPDetect, MACDetect, InterfaceDetect} {
+      if s != nil {
+        DomainDetect = s
+        break
+      }
+    }
+  }
+  
+  if Hostname == "" && HostnameDetect == nil {
+    for _, s := range [][]NetDetRule{DomainDetect, IPDetect, MACDetect, InterfaceDetect} {
+      if s != nil {
+        HostnameDetect = s
+        break
+      }
+    }
+  }
+  
   if LDAPAdmin == "" {
     RunServer = false
   }
@@ -836,124 +932,220 @@ func ReadCertificates() {
   }
 }
 
+var ndrRegexp = regexp.MustCompile("(?:([-+]?[1-9][0-9]*):)?([a-z]+)(!?~)(.*)")
+
+type NetDetRule struct {
+  Weight int
+  Propname string
+  Regex *regexp.Regexp
+  InvertMatch bool
+}
+
+// Logs an error and returns nil if ruleset is invalid.
+func parseNetworkDetectRuleset(ruleset string) []NetDetRule {
+  var err error
+  
+  autoweight := []int{}
+  
+  f := strings.Fields(ruleset)
+  result := make([]NetDetRule, len(f))
+  for i := range f {
+    sm := ndrRegexp.FindStringSubmatch(f[i])
+    if sm == nil {
+      util.Log(0, "ERROR! \"%v\" is not a proper net device matching rule", f[i])
+      return nil
+    }
+    
+    if sm[1] == "" { // no weight provided => power of 2 depending on position
+      result[i].Weight = 1
+      for k := range autoweight {
+        result[autoweight[k]].Weight <<= 1
+      }
+      autoweight = append(autoweight, i)
+    } else {
+      result[i].Weight, err = strconv.Atoi(sm[1])
+      if err != nil {
+        util.Log(0, "ERROR! \"%v\" contains incorrect weight: %v", f[i], err)
+        return nil
+      }
+    }
+    
+    result[i].Propname = sm[2]
+    if result[i].Propname != "mac" &&
+       result[i].Propname != "ifname" &&
+       result[i].Propname != "ip" &&
+       result[i].Propname != "hostname" &&
+       result[i].Propname != "domain" &&
+       result[i].Propname != "srv" &&
+       result[i].Propname != "loopback" &&
+       result[i].Propname != "up" {
+    
+       util.Log(0, "ERROR! \"%v\" refers to unknown property \"%v\"", f[i], sm[2])
+        return nil
+    }
+    
+    result[i].InvertMatch = (sm[3] == "!~")
+    
+    result[i].Regex, err = regexp.Compile(sm[4])
+    if err != nil {
+      util.Log(0, "ERROR! \"%v\" contains an invalid regex: %v", f[i], err)
+      return nil
+    }
+  }
+  
+  return result
+}
+
+func bestInterface(logid string, ifaces []map[string]string, ruleset []NetDetRule) map[string]string {
+  if len(ifaces) == 0 {
+    return map[string]string{}
+  }
+
+  weights := []string{}
+  
+  bestweight := 0
+  bestiface := 0
+  
+  for i := range ifaces {
+    weight := 0
+    for r := range ruleset {
+      if ruleset[r].Regex.MatchString(ifaces[i][ruleset[r].Propname]) != ruleset[r].InvertMatch {
+        weight += ruleset[r].Weight
+      }
+    }
+    
+    weights = append(weights, fmt.Sprintf("%v=%v", ifaces[i]["ifname"], weight))
+    
+    if weight > bestweight {
+      bestweight = weight
+      bestiface = i
+    }
+  }
+  
+  util.Log(1, "INFO! Weights for \"%v\": %v", logid, strings.Join(weights," "))
+  
+  return ifaces[bestiface]
+}
+
+func determineNetworkID(ifaces []map[string]string, propname string, hardwired string, ruleset []NetDetRule) string {
+  if hardwired != "" { return hardwired }
+  return bestInterface(propname, ifaces, ruleset)[propname]
+}
+
 // Reads network parameters.
 func ReadNetwork() {
   var err error
   
-  var ifaces []net.Interface
-  ifaces, err = net.Interfaces()
+  var ifaces []map[string]string
+  // use os.Hostname as default in case we can't get a host name from an interface
+  var hostname string
+  hostname, err = os.Hostname()
   if err != nil {
-    util.Log(0, "ERROR! ReadNetwork: %v", err)
+    util.Log(0, "ERROR! os.Hostname(): %v", err)
+    hostname = "localhost"
+  }
+  
+  net_ifaces, err := net.Interfaces()
+  if err != nil {
+    util.Log(0, "ERROR! ReadNetwork => net.Interfaces(): %v", err)
   } else
   {
-    best_interface_weight := -1
-    
     // find non-loopback interfaces that are up
-    for _, iface := range ifaces {
-      if iface.Flags & net.FlagLoopback != 0 { continue }
-      if iface.Flags & net.FlagUp == 0 { continue }
-      
-      ifaceInfo := InterfaceInfo{}
-      ifaceInfo.Interface = iface
-      
-      var addrs []net.Addr
-      addrs, err = iface.Addrs()
-      if err == nil {
-        
-        // find the first IP address for that interface
-        for _, addr := range addrs {
-          ip, _, err2 := net.ParseCIDR(addr.String())
-          if err2 == nil && !ip.IsLoopback() {
-            ifaceInfo.IP = ip.String()
-            goto FoundIP
-          }
-        }
-        err = fmt.Errorf("Could not determine IP for interface %v", iface.HardwareAddr.String())
-      FoundIP:
+    for _, net_iface := range net_ifaces {
+      iface := map[string]string{
+        "mac":    net_iface.HardwareAddr.String(),
+        "ifname": net_iface.Name,
+        "ip": "0.0.0.0",
+        "hostname": hostname,
+        "domain": "",
+        "srv": "no",
+        "loopback": "no",
+        "up": "yes",
       }
       
-      if err != nil { 
-        ifaceInfo.IP = fmt.Sprintf("ERROR! %v", err)
-        ifaceInfo.Hostname = ifaceInfo.IP
-        ifaceInfo.Domain = ifaceInfo.IP
-      } else
-      {
+      if net_iface.Flags & net.FlagLoopback != 0 { iface["loopback"] = "yes" }
+      if net_iface.Flags & net.FlagUp == 0 { iface["up"] = "no" }
+      
+      var addrs []net.Addr
+      addrs, err = net_iface.Addrs()
+      if err == nil {
+
+        // find the best IP address for that interface
+        var ip net.IP
+        for _, addr := range addrs {
+          ip2, _, err2 := net.ParseCIDR(addr.String())
+          if err2 == nil {
+            if ip == nil || (ip.IsLoopback() && !ip2.IsLoopback()) ||
+             (ip.To4() == nil && ip2.To4() != nil) {
+              ip = ip2
+            }
+          }
+        }
+        if ip != nil {
+          iface["ip"] = ip.String()
+        } else {
+          err = fmt.Errorf("Could not determine IP for interface %v/%v", iface["ifname"], iface["mac"])
+        }
+      }
+      
+      if err == nil {
         var names []string
-        names, err = net.LookupAddr(ifaceInfo.IP)
-        //util.Log(2, "DEBUG! Names for %v: %v", ifaceInfo.IP, names)
+        names, err = net.LookupAddr(iface["ip"])
         if err == nil {
           for _, name := range names {
             name = strings.Trim(name, ".")
             if name == "" { continue }
             
-            // if we have no hostname yet, use the name from the address
-            // if this includes a "." we'll chop off the domain in the if below
-            if ifaceInfo.Hostname == "" { ifaceInfo.Hostname = name }
+            // override default os.Hostname() with resolved name for this iface
+            // if it contains a domain we chop it off later
+            iface["hostname"] = name
             
             i := strings.Index(name, ".")
             if i > 0 {
-              ifaceInfo.Hostname = name[0:i]
-              ifaceInfo.Domain = name[i+1:]
+              iface["hostname"] = name[0:i]
+              iface["domain"] = name[i+1:]
+              // we found a name that includes a domain => don't look further, this is as good as it gets
               goto DomainFound
             }
           }
-          err = fmt.Errorf("Could not determine domain. Lookup of IP %v returned %v", ifaceInfo.IP, names)
+          err = fmt.Errorf("Could not determine domain. Lookup of IP %v returned %v", iface["ip"], names)
         DomainFound:
         } 
-        
-        if err != nil {
-          if ifaceInfo.Hostname == "" { ifaceInfo.Hostname = fmt.Sprintf("ERROR! %v", err) }
-          ifaceInfo.Domain = fmt.Sprintf("ERROR! %v", err)
-        }
       }
       
-      if !strings.HasPrefix(ifaceInfo.Domain, "ERROR!") {
+      if err != nil {
+        util.Log(1, "INFO! %v: %v", iface["ifname"],err)
+      }
+      
+      if iface["domain"] != "" {
         var addrs []*net.SRV
-        _, addrs, err := net.LookupSRV("gosa-si", "tcp", ifaceInfo.Domain)
+        _, addrs, err := net.LookupSRV("gosa-si", "tcp", iface["domain"])
         if err != nil {
-          util.Log(1, "INFO! LookupSRV(\"gosa-si\",\"tcp\",\"%v\"): %v", ifaceInfo.Domain, err) 
+          util.Log(1, "INFO! LookupSRV(\"gosa-si\",\"tcp\",\"%v\"): %v", iface["domain"], err) 
         } else 
         { 
-          ifaceInfo.Peers = addrs
+          if len(addrs) > 0 {
+            iface["srv"] = "yes"
+          }
+
           for _, srv := range addrs {
             ServerNamesFromSRVRecords = append(ServerNamesFromSRVRecords, srv.Target)
           }
         }
       }
       
-      Interfaces = append(Interfaces, ifaceInfo)
-      
-      weight := 0
-      if !strings.HasPrefix(ifaceInfo.IP, "ERROR!") { weight += 1 }
-      if !strings.HasPrefix(ifaceInfo.Hostname, "ERROR!") { weight += 2 }
-      if !strings.HasPrefix(ifaceInfo.Domain, "ERROR!") { weight += 4 }
-      if len(ifaceInfo.Peers) > 0 { weight += 8 }
-      
-      if BestInterface < 0 || weight > best_interface_weight { 
-        BestInterface = len(Interfaces) - 1 
-        best_interface_weight = weight
-      }
+      ifaces = append(ifaces, iface)
     }
   }
   
-  // use os.Hostname as default in case we can't get a host name from an interface
-  var hostname string
-  hostname, err = os.Hostname()
-  if err == nil { Hostname = hostname }
+  util.Log(1, "INFO! Found network interfaces: %v", ifaces )
 
-  if BestInterface >= 0 {
-    MAC = Interfaces[BestInterface].Interface.HardwareAddr.String()
-    if !strings.HasPrefix(Interfaces[BestInterface].Hostname, "ERROR!") {
-      Hostname = Interfaces[BestInterface].Hostname
-    }
-    if !strings.HasPrefix(Interfaces[BestInterface].Domain, "ERROR!") {
-      Domain = Interfaces[BestInterface].Domain
-    }
-    if !strings.HasPrefix(Interfaces[BestInterface].IP, "ERROR!") {
-      IP = Interfaces[BestInterface].IP
-    }
-    ServerSourceAddress = IP + ServerListenAddress[strings.Index(ServerListenAddress,":"):]
-  }
+  MAC = determineNetworkID(ifaces, "mac", MAC, MACDetect)
+  Hostname = determineNetworkID(ifaces, "hostname", Hostname, HostnameDetect)
+  Domain = determineNetworkID(ifaces, "domain", Domain, DomainDetect)
+  IP = determineNetworkID(ifaces, "ip", IP, IPDetect)
+  
+  ServerSourceAddress = IP + ServerListenAddress[strings.Index(ServerListenAddress,":"):]
   
   util.Log(1, "INFO! Hostname: %v  Domain: %v  MAC: %v  Listener: %v", Hostname, Domain, MAC, ServerSourceAddress)
   
