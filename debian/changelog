@@ -1,3 +1,9 @@
+gosa (2.8.292) trusty; urgency=medium
+
+  * go-susi: better default interface detection rules; updated docs
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 14 Nov 2016 13:42:07 +0100
+
 gosa (2.8.291) trusty; urgency=medium
 
   * go-susi: implement configurable heuristics for determining network parameters (MAC, IP,...)

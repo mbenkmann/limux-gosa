@@ -191,7 +191,7 @@ var ServerNamesFromSRVRecords = []string{}
 var PreferredServer = ""
 
 // Default ruleset for detecting best network interface.
-var InterfaceDetect = parseNetworkDetectRuleset("up~yes loopback~no srv~yes domain!~ERROR! hostname!~ERROR! ip!~ERROR!")
+var InterfaceDetect = parseNetworkDetectRuleset("up~yes loopback~no srv~yes domain!~^$ ip!~^0.0.0.0$")
 
 // The MAC address to send in the <macaddress> element.
 // If [network]/my-mac does not contain '~' it is used directly as MAC.

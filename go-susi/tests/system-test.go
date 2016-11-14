@@ -422,15 +422,24 @@ func run_audit_tests() {
   check(x.Text("unknown"), "2")
   siFail(x.Text("source"), config.ServerSourceAddress)
   check(x.Text("target"), "GOSA")
+  macs := []string{}
   a = x.First("noaudit")
   if check(a != nil, true) {
     check(checkTags(a,"macaddress"), "")
-    check(a.Text("macaddress"),config.MAC)
+    macs = append(macs, a.Text("macaddress"))
   }
   a = a.Next()
   if check(a != nil, true) {
     check(checkTags(a,"macaddress"), "")
-    check(a.Text("macaddress"),strings.ToLower(Jobs[1].MAC))
+    macs = append(macs, a.Text("macaddress"))
+  }
+  
+  sort.Strings(macs)
+  if len(macs) > 0 {
+    check(macs[0],strings.ToLower(Jobs[1].MAC))
+  }
+  if len(macs) > 1 {
+    check(macs[1],config.MAC)
   }
   
   x = gosa("query_audit", hash("xml(includeothers()audit(bar)select(macaddress)select(key))"))
