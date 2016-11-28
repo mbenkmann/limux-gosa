@@ -2416,12 +2416,22 @@ func ReadConfig() {
   // Ignore parsing errors (such as "stray text outside tag").
   // The result is always valid even if it may be partial data.
   
+  newdev := conf.First("newdevicetabs")
+  if newdev != nil {
+    for tab := newdev.First("tab"); tab != nil; tab = tab.Next() {
+      incoming := tab.Text("systemIncomingRDN")
+      if incoming != "" {
+        config.IncomingOU = incoming
+      }
+    }
+  }
+  
   conf = conf.First("main")
   if conf == nil {
     util.Log(0, "ERROR! %v: No <main> section", config.ServerConfigPath)
     return
   }
-  
+
   target, err := util.Resolve(TargetAddress, config.IP)
   if err != nil { target = TargetAddress }
   
@@ -2479,7 +2489,11 @@ func ReadConfig() {
   if !found {
     util.Log(0, "ERROR! %v: No <location> section for %v (have: %v)", config.ServerConfigPath, TargetAddress, locs)
   }
-  
+
+  if config.IncomingOU[len(config.IncomingOU)-1] == ',' {
+    config.IncomingOU += config.LDAPBase
+  }
+
   config.TLSRequired = len(config.ModuleKey) == 0
 }
 
