@@ -49,6 +49,7 @@ func Send_here_i_am(target string) {
   here_i_am.Add("client_version", config.Version)
   here_i_am.Add("client_revision", config.Revision)
   here_i_am.Add("mac_address", config.MAC) //Yes, that's mac_address with "_"
+  here_i_am.Add("broadcast", config.Broadcast)
   
   if Here_I_Am_Extra != nil {
     for info := Here_I_Am_Extra.FirstChild(); info != nil; info = info.Next() {

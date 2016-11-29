@@ -209,6 +209,7 @@ var MACDetect []NetDetRule
 // if it is not empty, or as last fallback the InterfaceDetect ruleset.
 var IP = ""
 var IPDetect []NetDetRule
+var Broadcast = ""
 
 // This machine's domain name.
 // If [network]/my-domain does not contain '~' it is used directly as Domain.
@@ -1056,6 +1057,7 @@ func ReadNetwork() {
         "mac":    net_iface.HardwareAddr.String(),
         "ifname": net_iface.Name,
         "ip": "0.0.0.0",
+        "broadcast": "255.255.255.255",
         "hostname": hostname,
         "domain": "",
         "srv": "no",
@@ -1072,17 +1074,20 @@ func ReadNetwork() {
 
         // find the best IP address for that interface
         var ip net.IP
+        var broadcast net.IP
         for _, addr := range addrs {
-          ip2, _, err2 := net.ParseCIDR(addr.String())
+          ip2, ipnet, err2 := net.ParseCIDR(addr.String())
           if err2 == nil {
             if ip == nil || (ip.IsLoopback() && !ip2.IsLoopback()) ||
              (ip.To4() == nil && ip2.To4() != nil) {
               ip = ip2
+              broadcast = MakeBroadcast(ip2, ipnet.Mask)
             }
           }
         }
         if ip != nil {
           iface["ip"] = ip.String()
+          iface["broadcast"] = broadcast.String()
         } else {
           err = fmt.Errorf("Could not determine IP for interface %v/%v", iface["ifname"], iface["mac"])
         }
@@ -1144,10 +1149,11 @@ func ReadNetwork() {
   Hostname = determineNetworkID(ifaces, "hostname", Hostname, HostnameDetect)
   Domain = determineNetworkID(ifaces, "domain", Domain, DomainDetect)
   IP = determineNetworkID(ifaces, "ip", IP, IPDetect)
+  Broadcast = determineNetworkID(ifaces, "broadcast", "", IPDetect)
   
   ServerSourceAddress = IP + ServerListenAddress[strings.Index(ServerListenAddress,":"):]
   
-  util.Log(1, "INFO! Hostname: %v  Domain: %v  MAC: %v  Listener: %v", Hostname, Domain, MAC, ServerSourceAddress)
+  util.Log(1, "INFO! Hostname: %v  Domain: %v  MAC: %v  Listener: %v  Broadcast: %v", Hostname, Domain, MAC, ServerSourceAddress, Broadcast)
   
   if PreferredServer != "" {
     pref, err := util.Resolve(PreferredServer, IP)
@@ -1160,6 +1166,29 @@ func ReadNetwork() {
   }
   
 }
+
+// Returns the broadcast address of ip with network mask.
+func MakeBroadcast(ip net.IP, mask net.IPMask) net.IP {
+  if len(ip) == 0 || len(mask) == 0 { panic("Can't...make...broadcast...Must...panic...") }
+  if len(mask) == net.IPv6len && len(ip) == net.IPv4len {
+    mask = mask[12:]
+  }
+  if len(mask) == net.IPv4len && len(ip) == net.IPv6len {
+    ip = ip[12:]
+  }
+  n := len(ip)
+  out := make(net.IP, n)
+  if n != len(mask) {
+    copy(out, ip)
+    out[len(out)-1] = 255
+    return out
+  }
+  for i := 0; i < n; i++ {
+    out[i] = ip[i] | ^mask[i]
+  }
+  return out
+}
+
 
 // Returns the gosa-si servers listed in DNS.
 func ServersFromDNS() []string {
