@@ -363,6 +363,10 @@ func main() {
   // This is NOT config.ReadArgs() !!
   ReadArgs(os.Args[1:])
   
+  if TargetAddress == "" {
+    TargetAddress = "127.0.0.1:20081"
+  }
+
   if len(os.Args) < 2 {
     config.PrintVersion = true
     config.PrintHelp = true
@@ -387,11 +391,6 @@ func main() {
     util.LoggersFlush(5*time.Second)
     os.Exit(1)
   }
-  
-  if TargetAddress == "" {
-    TargetAddress = config.ServerSourceAddress
-  }
-  config.ServerSourceAddress = config.IP + config.ServerListenAddress[strings.Index(config.ServerListenAddress,":"):]
   
   util.LogLevel = config.LogLevel
   

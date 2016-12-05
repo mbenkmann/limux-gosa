@@ -1,3 +1,9 @@
+gosa (2.8.299) trusty; urgency=medium
+
+  * sibridge: if called with not target server, default to localhost (used to work like this but broke at some point)
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 05 Dec 2016 17:46:51 +0100
+
 gosa (2.8.298) trusty; urgency=medium
 
   * go-susi: fix bug in usr_msg: only the first <usr> element would be translated to <user>
