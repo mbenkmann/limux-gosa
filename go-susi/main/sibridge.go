@@ -47,7 +47,7 @@ import (
        )
 
 const VERSION_MESSAGE = `sibridge %v (revision %v)
-Copyright (c) 2012,2013 Landeshauptstadt München
+Copyright (c) 2012-2017 Landeshauptstadt München
 Author: Matthias S. Benkmann
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -362,6 +362,7 @@ func main() {
   config.ServerConfigPath = "/etc/gosa/gosa.conf"
   // This is NOT config.ReadArgs() !!
   ReadArgs(os.Args[1:])
+  util.LogLevel = config.LogLevel
   
   if TargetAddress == "" {
     TargetAddress = "127.0.0.1:20081"
@@ -388,12 +389,9 @@ func main() {
   
   if config.TLSRequired && config.TLSServerConfig == nil {
     util.Log(0, "ERROR! No cert, no keys => no service")
-    util.LoggersFlush(5*time.Second)
-    os.Exit(1)
+    cleanExit(1)
   }
-  
-  util.LogLevel = config.LogLevel
-  
+
   config.ReadNetwork() // after config.ReadConfig()
   config.Timeout = 30*time.Second
   config.FAIBase = db.LDAPFAIBase()
@@ -416,7 +414,7 @@ func main() {
   }()
   
   if r := <-target_reachable; !r {
-    os.Exit(1)
+    cleanExit(1)
   }
   
   // If we support TLS, check if the target does, too
@@ -453,7 +451,7 @@ func main() {
   // popping of the last item will terminate the program.
   connectionTracker := deque.New()
   
-  signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGHUP, syscall.SIGTTIN, syscall.SIGTTOU }
+  signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGTTIN, syscall.SIGTTOU }
   signal.Notify(signals, signals_to_watch...)
   util.Log(1, "INFO! Intercepting these signals: %v", signals_to_watch)
   
@@ -490,19 +488,18 @@ func main() {
   if ListenForConnections {
     if config.TLSServerConfig == nil {
       util.Log(0, "ERROR! -l option requires TLS certificates to be configured")
-      util.LoggersFlush(5*time.Second)
-      os.Exit(1)
+      cleanExit(1)
     }
     tcp_addr, err := net.ResolveTCPAddr("tcp4", config.ServerListenAddress)
     if err != nil {
       util.Log(0, "ERROR! ResolveTCPAddr: %v", err)
-      os.Exit(1)
+      cleanExit(1)
     }
 
     listener, err := net.ListenTCP("tcp4", tcp_addr)
     if err != nil {
       util.Log(0, "ERROR! ListenTCP: %v", err)
-      os.Exit(1)
+      cleanExit(1)
     }
     util.Log(1, "INFO! Accepting connections on %v", tcp_addr);
     go acceptConnections(listener, connections)
@@ -511,9 +508,7 @@ func main() {
     go func() {
       connectionTracker.WaitForEmpty(0)
       util.Log(1, "INFO! Last connection closed => Terminating")
-      config.Shutdown() // delete tempdir
-      util.LoggersFlush(5*time.Second)
-      os.Exit(0) 
+      cleanExit(0) 
     }()
   }
   
@@ -527,6 +522,9 @@ func main() {
                         interactive_conn.Close()
                         interactive_conn = nil
                       }
+                    } else if sig == syscall.SIGTERM {
+                      util.Log(0, "INFO! Received signal \"%v\" => Shutting down", sig)
+                      cleanExit(0)
                     } else {
                       util.Log(1, "INFO! Received signal \"%v\"", sig)
                     }
@@ -536,6 +534,12 @@ func main() {
                     go util.WithPanicHandler(func(){handle_request(conn, connectionTracker)})
     }
   }
+}
+
+func cleanExit(code int) {
+  config.Shutdown() // delete tempdir
+  util.LoggersFlush(5*time.Second)
+  os.Exit(code) 
 }
 
 // Accepts TCP connections on listener and sends them on the channel connections.
