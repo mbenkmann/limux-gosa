@@ -448,6 +448,11 @@ func main() {
   // and spawns new goroutines to handle the incoming events.
   connections := make(chan net.Conn,  32)
   signals     := make(chan os.Signal, 32)
+  // For each non-TCP connection, an item is pushed into this deque
+  // Whenever a connection is closed, an item is popped from the deque
+  // (unless it is already empty). If ListenForConnections is false, the
+  // popping of the last item will terminate the program.
+  connectionTracker := deque.New()
   
   signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGHUP, syscall.SIGTTIN, syscall.SIGTTOU }
   signal.Notify(signals, signals_to_watch...)
@@ -460,6 +465,7 @@ func main() {
   // Start a "connection" for the commands provided via -e and -f (ordinary files)
   if BatchCommands.Len() > 0 {
     connections <- NewReaderWriterConnection(&BatchCommands, Dup(syscall.Stdout,"BatchCommands:/dev/stdout"))
+    connectionTracker.Push(true)
   }
   
   // Start connections for reading from special files
@@ -469,6 +475,7 @@ func main() {
       util.Log(0, "ERROR! Error opening \"%v\": %v", special, err)
     } else {
       connections <- NewReaderWriterConnection(file, Dup(syscall.Stdout,special+":/dev/stdout"))
+      connectionTracker.Push(true)
     }
   }
   
@@ -477,6 +484,7 @@ func main() {
   if Interactive || (!ListenForConnections && BatchCommands.Len()==0) {
     interactive_conn = NewReaderWriterConnection(Dup(syscall.Stdin,"interactive:/dev/stdin"), Dup(syscall.Stdout,"interactive:/dev/stdout"))
     connections <- interactive_conn
+    connectionTracker.Push(true)
   }
   
   // If requested, accept TCP connections
@@ -499,21 +507,16 @@ func main() {
     }
     util.Log(1, "INFO! Accepting connections on %v", tcp_addr);
     go acceptConnections(listener, connections)
-  }
-  
-  connectionTracker := deque.New()
-  go func() {
-    for {
-      connectionTracker.WaitForItem(0)
+  } else { 
+    // if we don't accept new connections, terminate if last connection closed
+    go func() {
       connectionTracker.WaitForEmpty(0)
-      if !ListenForConnections { 
-        util.Log(1, "INFO! Last connection closed => Terminating")
-        config.Shutdown() // delete tempdir
-        util.LoggersFlush(5*time.Second)
-        os.Exit(0) 
-      }
-    }
-  }()
+      util.Log(1, "INFO! Last connection closed => Terminating")
+      config.Shutdown() // delete tempdir
+      util.LoggersFlush(5*time.Second)
+      os.Exit(0) 
+    }()
+  }
   
   /********************  main event loop ***********************/  
   for{ 
@@ -562,8 +565,7 @@ func acceptConnections(listener *net.TCPListener, connections chan<- net.Conn) {
 // Handles one or more messages received over conn. Each message is a single
 // line terminated by \n.
 func handle_request(conn net.Conn, connectionTracker *deque.Deque) {
-  connectionTracker.Push(true)
-  defer connectionTracker.Pop()
+  defer connectionTracker.PopAt(0)
     // only call deregister if the remote address is a valid IP address.
     // This avoids error log entries for console connections
   if net.ParseIP(strings.Split(conn.RemoteAddr().String(),":")[0]) != nil {
