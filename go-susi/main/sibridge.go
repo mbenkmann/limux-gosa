@@ -2497,6 +2497,8 @@ func ReadConfig() {
   }
 
   config.TLSRequired = len(config.ModuleKey) == 0
+  
+  config.FillInNetworkDetectionDefaults()
 }
 
 type TimeoutError struct{}

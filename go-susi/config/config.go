@@ -777,35 +777,7 @@ func ReadConfig() {
     }
   }
   
-  if MAC == "" && MACDetect == nil {
-    MACDetect = InterfaceDetect
-  }
-  
-  if IP == "" && IPDetect == nil {
-    if MACDetect != nil {
-      IPDetect = MACDetect
-    } else {
-      IPDetect = InterfaceDetect
-    }
-  }
-  
-  if Domain == "" && DomainDetect == nil {
-    for _, s := range [][]NetDetRule{HostnameDetect, IPDetect, MACDetect, InterfaceDetect} {
-      if s != nil {
-        DomainDetect = s
-        break
-      }
-    }
-  }
-  
-  if Hostname == "" && HostnameDetect == nil {
-    for _, s := range [][]NetDetRule{DomainDetect, IPDetect, MACDetect, InterfaceDetect} {
-      if s != nil {
-        HostnameDetect = s
-        break
-      }
-    }
-  }
+  FillInNetworkDetectionDefaults()
   
   if LDAPAdmin == "" {
     RunServer = false
@@ -852,6 +824,40 @@ func ReadConfig() {
       line = strings.TrimSpace(line)
       if line != "" {
         LDAPServerOUs = append(LDAPServerOUs, line)
+      }
+    }
+  }
+}
+
+// Completes MAC, MACDetect, IP, IPDetect, Domain, DomainDetect, Hostname, HostnameDetect
+// according to the rules described in the comments at the respective variables.
+func FillInNetworkDetectionDefaults() {
+  if MAC == "" && MACDetect == nil {
+    MACDetect = InterfaceDetect
+  }
+  
+  if IP == "" && IPDetect == nil {
+    if MACDetect != nil {
+      IPDetect = MACDetect
+    } else {
+      IPDetect = InterfaceDetect
+    }
+  }
+  
+  if Domain == "" && DomainDetect == nil {
+    for _, s := range [][]NetDetRule{HostnameDetect, IPDetect, MACDetect, InterfaceDetect} {
+      if s != nil {
+        DomainDetect = s
+        break
+      }
+    }
+  }
+  
+  if Hostname == "" && HostnameDetect == nil {
+    for _, s := range [][]NetDetRule{DomainDetect, IPDetect, MACDetect, InterfaceDetect} {
+      if s != nil {
+        HostnameDetect = s
+        break
       }
     }
   }
