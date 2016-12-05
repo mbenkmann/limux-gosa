@@ -62,6 +62,9 @@ var RunServer bool = true
 // The address sent in the <source> element.
 var ServerSourceAddress = "127.0.0.1:20081"
 
+// Prefix of name of temporary directory created by Init().
+var TempDirPrefix = "go-susi-"
+
 // Where to send log messages (in addition to stderr).
 var LogFilePath = "/var/log/go-susi.log"
 
@@ -428,7 +431,7 @@ var domainRegexp = regexp.MustCompile("^((([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[
 // Set up TempDir, LDAPAdminPasswordFile and LDAPUserPasswordFile.
 // The TempDir is deleted when Shutdown() is called.
 func Init() {
-  tempdir, err := ioutil.TempDir("", "go-susi-")
+  tempdir, err := ioutil.TempDir("", TempDirPrefix)
   TempDir = tempdir
   if err != nil { panic(err) }
   err = os.Chmod(tempdir, 0700)

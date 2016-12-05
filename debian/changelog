@@ -1,3 +1,9 @@
+gosa (2.8.301) trusty; urgency=medium
+
+  * sibridge: proper shutdown on SIGINT; change temp dir prefix to "sibridge-"
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 05 Dec 2016 18:12:35 +0100
+
 gosa (2.8.300) trusty; urgency=medium
 
   * sibridge: make sure we always flush the log and remove the temporary directory

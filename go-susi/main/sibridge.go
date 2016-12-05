@@ -383,6 +383,7 @@ func main() {
   
   if config.PrintVersion || config.PrintHelp { os.Exit(0) }
   
+  config.TempDirPrefix = "sibridge-"
   config.Init()
   ReadConfig() // This is NOT config.ReadConfig() !!
   config.ReadCertificates() // after ReadConfig()
@@ -451,7 +452,7 @@ func main() {
   // popping of the last item will terminate the program.
   connectionTracker := deque.New()
   
-  signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGTTIN, syscall.SIGTTOU }
+  signals_to_watch := []os.Signal{ syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGINT, syscall.SIGTTIN, syscall.SIGTTOU }
   signal.Notify(signals, signals_to_watch...)
   util.Log(1, "INFO! Intercepting these signals: %v", signals_to_watch)
   
@@ -522,7 +523,7 @@ func main() {
                         interactive_conn.Close()
                         interactive_conn = nil
                       }
-                    } else if sig == syscall.SIGTERM {
+                    } else if sig == syscall.SIGTERM || sig == syscall.SIGINT {
                       util.Log(0, "INFO! Received signal \"%v\" => Shutting down", sig)
                       cleanExit(0)
                     } else {
