@@ -144,13 +144,11 @@ Commands:
               
               If multiple words are passed as arguments and the first
               word following the raw command does not contain
-              the character "<", it specifies either the config file
-              section (e.g. "GOsaPackages") whose key is used to encrypt
-              the message or the key itself. The command first checks if
-              the word matches the name of an existing config file section
-              with a key and if it doesn't uses the word directly.
+              the character "<", it specifies the key to use for encrypting
+              the message. You can use the word "GOsaPackages" as key to
+              use the server key from the config file.
               
-              If no key/section is provided, the default is "GOsaPackages".
+              If no key is provided, the default is "GOsaPackages".
   
   encrypt:    Encrypt a message as appropriate for sending to an si-server.
               Argument types: strings
@@ -163,7 +161,7 @@ Commands:
               or decryption with the provide key fails, "decrypt" will try
               ALL keys found in the config file. If that fails, too, the
               encrypted message will be printed.
-              NOTE: Decryption is only considered successfull if the result
+              NOTE: Decryption is only considered successful if the result
               starts with "<xml>".
   
   kill:       Delete the LDAP object(s) of the selected machine(s).
@@ -364,8 +362,13 @@ func main() {
   ReadArgs(os.Args[1:])
   util.LogLevel = config.LogLevel
   
+  check_reachable := true
   if TargetAddress == "" {
     TargetAddress = "127.0.0.1:20081"
+    // do not check reachability if no target server specified because
+    // the user might want to use only commands like encrypt that don't
+    // need a server
+    check_reachable = false
   }
 
   if len(os.Args) < 2 {
@@ -388,36 +391,39 @@ func main() {
   ReadConfig() // This is NOT config.ReadConfig() !!
   config.ReadCertificates() // after ReadConfig()
   
-  if config.TLSRequired && config.TLSServerConfig == nil {
-    util.Log(0, "ERROR! No cert, no keys => no service")
-    cleanExit(1)
-  }
 
   config.ReadNetwork() // after config.ReadConfig()
   config.Timeout = 30*time.Second
   config.FAIBase = db.LDAPFAIBase()
   
-  target_reachable := make(chan bool, 2)
-  go func() {
-    conn, err := net.Dial("tcp", TargetAddress)
-    if err != nil {
-      util.Log(0, "ERROR! Dial(\"tcp\",%v): %v",TargetAddress,err)
-      target_reachable <- false
-    } else {
-      conn.Close()
-      target_reachable <- true
+  if check_reachable {
+    if config.TLSRequired && config.TLSServerConfig == nil {
+      util.Log(0, "ERROR! No cert, no keys => no service")
+      cleanExit(1)
     }
-  }()
     
-  go func() {
-    time.Sleep(250*time.Millisecond)
-    target_reachable <- false
-  }()
-  
-  if r := <-target_reachable; !r {
-    cleanExit(1)
+    target_reachable := make(chan bool, 2)
+    go func() {
+      conn, err := net.Dial("tcp", TargetAddress)
+      if err != nil {
+        util.Log(0, "ERROR! Dial(\"tcp\",%v): %v",TargetAddress,err)
+        target_reachable <- false
+      } else {
+        conn.Close()
+        target_reachable <- true
+      }
+    }()
+      
+    go func() {
+      time.Sleep(250*time.Millisecond)
+      target_reachable <- false
+    }()
+    
+    if r := <-target_reachable; !r {
+      cleanExit(1)
+    }
   }
-  
+
   // If we support TLS, check if the target does, too
   // and mark it in the serverdb if it does.
   if config.TLSClientConfig != nil {
