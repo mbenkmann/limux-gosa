@@ -28,7 +28,7 @@ import (
          "io/ioutil"
          
          "github.com/mbenkmann/golib/bytes"
-         "../message"
+         "../security"
        )
 
 const USAGE = 
