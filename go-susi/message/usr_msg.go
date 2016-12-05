@@ -22,8 +22,10 @@ import (
 // Handles the message "usr_msg".
 //  xmlmsg: the decrypted and parsed message
 func usr_msg(xmlmsg *xml.Hash) {
-  for child := xmlmsg.First("usr"); child != nil; child = child.Next() {
-    child.Rename("user")
+  for child := xmlmsg.FirstChild(); child != nil; child = child.Next() {
+    if child.Element().Name() == "usr" {
+      child.Element().Rename("user")
+    }
   }
   
   SendUserMsg(xmlmsg)

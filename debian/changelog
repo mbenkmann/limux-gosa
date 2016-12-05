@@ -1,3 +1,9 @@
+gosa (2.8.298) trusty; urgency=medium
+
+  * go-susi: fix bug in usr_msg: only the first <usr> element would be translated to <user>
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Mon, 05 Dec 2016 17:45:07 +0100
+
 gosa (2.8.297) trusty; urgency=medium
 
   * sibridge: fix broken network parameter detection
