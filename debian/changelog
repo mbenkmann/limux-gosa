@@ -1,3 +1,9 @@
+gosa (2.8.303) trusty; urgency=medium
+
+  * go-susi: reject here_i_am with incorrect MAC
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 08 Feb 2017 10:05:34 +0100
+
 gosa (2.8.302) trusty; urgency=medium
 
   * sibridge: do not abort if localhost not reachable or not key/cert for it if no target server is specified

@@ -436,10 +436,10 @@ func run_audit_tests() {
   
   sort.Strings(macs)
   if len(macs) > 0 {
-    check(macs[0],strings.ToLower(Jobs[1].MAC))
+    check(macs[1],strings.ToLower(Jobs[1].MAC))
   }
   if len(macs) > 1 {
-    check(macs[1],config.MAC)
+    check(macs[0],config.MAC)
   }
   
   x = gosa("query_audit", hash("xml(includeothers()audit(bar)select(macaddress)select(key))"))

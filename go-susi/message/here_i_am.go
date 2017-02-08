@@ -86,8 +86,13 @@ func Send_here_i_am(target string) {
 //  xmlmsg: the decrypted and parsed message
 func here_i_am(xmlmsg *xml.Hash) {
   start := time.Now()
-  macaddress  := xmlmsg.Text("mac_address") //Yes, that's "mac_address" with "_"
   client_addr := xmlmsg.Text("source")
+  macaddress  := xmlmsg.Text("mac_address") //Yes, that's "mac_address" with "_"
+  if !macAddressRegexp.MatchString(macaddress) {
+    util.Log(0, "WARNING! here_i_am from client with illegal MAC \"%v\" (IP: %v)", macaddress, client_addr)
+    return
+  }
+  
   if client_addr != config.ServerSourceAddress { // do not throttle our internal client
     if strikes := db.ClientThrottle(macaddress); strikes > 10 { 
       util.Log(0, "WARNING! Throttling client %v (%v strikes)", client_addr, strikes)
