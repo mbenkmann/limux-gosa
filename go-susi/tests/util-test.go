@@ -575,6 +575,84 @@ func Util_test() {
   check(mess,"")
   
   testBase64()
+  testVersionCompare()
+}
+
+func versionComp(v1,v2 string, rel int) string {
+  if util.DebVersionCompare(v1,v2) != rel {
+    return fmt.Sprintf("util.DebVersionCompare(\"%v\",\"%v\") returns %v",v1,v2,util.DebVersionCompare(v1,v2))
+  }
+  if util.DebVersionCompare(v2,v1) != -rel {
+    return fmt.Sprintf("util.DebVersionCompare(\"%v\",\"%v\") returns %v",v2,v1,util.DebVersionCompare(v2,v1))
+  }
+  switch rel {
+    case 0:  if util.DebVersionLess(v1,v2) != false {
+          return fmt.Sprintf("util.DebVersionLess(\"%v\",\"%v\") returns true",v1,v2)
+        }
+        if util.DebVersionLess(v2,v1) != false {
+          return fmt.Sprintf("util.DebVersionLess(\"%v\",\"%v\") returns true",v2,v1)
+        }
+    case 1:  if util.DebVersionLess(v1,v2) != false {
+          return fmt.Sprintf("util.DebVersionLess(\"%v\",\"%v\") returns true",v1,v2)
+        }
+        if util.DebVersionLess(v2,v1) != true {
+          return fmt.Sprintf("util.DebVersionLess(\"%v\",\"%v\") returns false",v2,v1)
+        }
+    case -1: if util.DebVersionLess(v1,v2) != true {
+          return fmt.Sprintf("util.DebVersionLess(\"%v\",\"%v\") returns false",v1,v2)
+        }
+        if util.DebVersionLess(v2,v1) != false {
+          return fmt.Sprintf("util.DebVersionLess(\"%v\",\"%v\") returns true",v2,v1)
+        }
+  }
+  return ""
+}
+
+func testVersionCompare() {
+  check(versionComp("1.0-1","2.0-2",-1),"")
+  check(versionComp("2.2~rc-4","2.2-1",-1),"")
+  check(versionComp("2.2-1","2.2~rc-4",1),"")
+  check(versionComp("1.0000-1","1.0-1",0),"")
+  check(versionComp("1","0:1",0),"")
+  check(versionComp("0","0:0-0",0),"")
+  check(versionComp("2:2.5","1:7.5",1),"")
+  check(versionComp("1:0foo","0foo",1),"")
+  check(versionComp("0:0foo","0foo",0),"")
+  check(versionComp("0foo","0foo",0),"")
+  check(versionComp("0foo-","0foo",0),"")
+  check(versionComp("0foo-","0foo-0",0),"")
+  check(versionComp("0foo","0fo",1),"")
+  check(versionComp("0foo-","0foo+",-1),"")
+  check(versionComp("0foo~1","0foo",-1),"")
+  check(versionComp("0foo~foo+Bar","0foo~foo+bar",-1),"")
+  check(versionComp("0foo~~","0foo~",-1),"")
+  check(versionComp("1~","1",-1),"")
+  check(versionComp("12345+that-really-is-some-ver-0","12345+that-really-is-some-ver-10",-1),"")
+  check(versionComp("0foo-0","0foo-01",-1),"")
+  check(versionComp("0foo.bar","0foobar",1),"")
+  check(versionComp("0foo.bar","0foo1bar",1),"")
+  check(versionComp("0foo.bar","0foo0bar",1),"")
+  check(versionComp("0foo1bar-1","0foobar-1",-1),"")
+  check(versionComp("0foo2.0","0foo2",1),"")
+  check(versionComp("0foo2.0.0","0foo2.10.0",-1),"")
+  check(versionComp("0foo2.0","0foo2.0.0",-1),"")
+  check(versionComp("0foo2.0","0foo2.10",-1),"")
+  check(versionComp("0foo2.1","0foo2.10",-1),"")
+  check(versionComp("1.09","1.9",0),"")
+  check(versionComp("1.0.8+nmu1","1.0.8",1),"")
+  check(versionComp("3.11","3.10+nmu1",1),"")
+  check(versionComp("0.9j-20080306-4","0.9i-20070324-2",1),"")
+  check(versionComp("1.2.0~b7-1","1.2.0~b6-1",1),"")
+  check(versionComp("1.011-1","1.06-2",1),"")
+  check(versionComp("0.0.9+dfsg1-1","0.0.8+dfsg1-3",1),"")
+  check(versionComp("4.6.99+svn6582-1","4.6.99+svn6496-1",1),"")
+  check(versionComp("53","52",1),"")
+  check(versionComp("0.9.9~pre122-1","0.9.9~pre111-1",1),"")
+  check(versionComp("2:2.3.2-2+lenny2","2:2.3.2-2",1),"")
+  check(versionComp("1:3.8.1-1","3.8.GA-1",1),"")
+  check(versionComp("1.0.1+gpl-1","1.0.1-2",1),"")
+  check(versionComp("1a","1000a",-1),"")
+  check(versionComp("-0.6.5","0.9.1",-1),"")
 }
 
 func testBase64() {

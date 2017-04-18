@@ -1,3 +1,9 @@
+gosa (2.8.306) trusty; urgency=medium
+
+  * go-susi: new util tests
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Tue, 18 Apr 2017 11:42:27 +0200
+
 gosa (2.8.305) trusty; urgency=medium
 
   * updated README.md
