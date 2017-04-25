@@ -1616,33 +1616,116 @@ func writecache() {
   }
 }
 
-type LDIFObject []string
+// version info
+type VersInfo struct {
+  Version, Section, Description64, Templates64 string
+}
 
-func (l *LDIFObject) Append(key string, value []byte) {
-  val := string(value)
-  for i := len(*l)-2; i >= 0; i-=2 {
-    if (*l)[i] == key {
-      if (*l)[i+1] == val {
-        copy((*l)[i:], (*l)[i+2:])
-        *l = (*l)[0:len(*l)-2]
-      }
-      break
-    }
+func (v *VersInfo) String() string {
+  return v.Version+" "+v.Section+" "+v.Description64+" "+v.Templates64
+}
+
+type LDIFObject struct {
+  Package string
+  // maps release name to one or more VersInfo
+  R2VersInfo map[string][]*VersInfo
+}
+
+func newLDIFObject(pkg string) *LDIFObject {
+  return &LDIFObject{Package:pkg}
+}
+
+func (l *LDIFObject) Add(releases []string, version, section, description64, templates64 string) {
+  if l.R2VersInfo == nil {
+    l.R2VersInfo = map[string][]*VersInfo{}
   }
-  *l = append(*l, key, val)
+  for _, r := range releases {
+    l.R2VersInfo[r] = append(l.R2VersInfo[r],&VersInfo{Version:version, Section:section, Description64:description64, Templates64:templates64})
+  }
+}
+
+
+// Sorts the slice so that the lowest (i.e. oldest) version is first.
+func DebianVersionSort(v []*VersInfo) {
+  sort.Slice(v, func(i, j int) bool {
+    v1 := v[i].Version
+    v2 := v[j].Version
+    return util.DebVersionLess(v1,v2)
+  }  )
 }
 
 func (l *LDIFObject) ToString() string {
-  sl := make([]string,0,len(*l)*2)
-  for i := range (*l) {
-    sl = append(sl, (*l)[i])
-    if i & 1 == 0 {
-      sl = append(sl, ": ")
-    } else {
-      sl = append(sl, "\n")
+  if l == nil { return "" }
+  
+  out := []string{"Package: "+l.Package}
+  
+  // Maps a sorted list of VersInfo strings separated by '|' to a list of releases that have exactly these versions
+  versinfolist2releases := map[string][]string{}
+  
+  for r := range l.R2VersInfo {
+    vil := l.R2VersInfo[r]
+    DebianVersionSort(vil)
+    visl := make([]string,len(vil))
+    for i, vi := range vil {
+      visl[i] = vi.String()
+    }
+    id := strings.Join(visl,"|")
+    versinfolist2releases[id] = append(versinfolist2releases[id], r)
+  }
+  
+  sec := "\000"
+  des := "\000"
+  tem := "\000"
+  
+  for _,rs := range versinfolist2releases {
+    for _, r := range rs {
+      out = append(out, "Release: "+r)
+    }
+    
+    for _, vi := range l.R2VersInfo[rs[0]] {
+      if sec != vi.Section {
+        if sec != "\000" {
+          out = append(out, "Section: "+sec)
+          // We don't want Section to directly follow "Release"
+          for i := len(out)-2; strings.HasPrefix(out[i],"Release:"); i-- {
+            out[i],out[i+1] = out[i+1],out[i]
+          }
+        }
+        sec = vi.Section
+      }
+      if des != vi.Description64 {
+        if des != "\000" {
+          out = append(out, "Description:: "+des)
+          // see Section
+          for i := len(out)-2; strings.HasPrefix(out[i],"Release:"); i-- {
+            out[i],out[i+1] = out[i+1],out[i]
+          }
+        }
+        des = vi.Description64
+      }
+      
+      if tem != vi.Templates64 {
+        if tem != "\000" {
+          out = append(out, "Templates:: "+tem)
+          // see Section
+          for i := len(out)-2; strings.HasPrefix(out[i],"Release:"); i-- {
+            out[i],out[i+1] = out[i+1],out[i]
+          }
+        }
+        if vi.Templates64 != "" || tem != "\000" {
+          tem = vi.Templates64
+        }
+      }
+      
+      out = append(out, "Version: "+vi.Version)
     }
   }
-  return strings.Join(sl,"")
+  
+  if sec != "\000" { out = append(out, "Section: "+sec) }
+  if des != "\000" { out = append(out, "Description:: "+des) }
+  if tem != "\000" { out = append(out, "Templates:: "+tem) }
+  
+  return strings.Join(out,"\n")
 }
 
 func printldif() {
@@ -1659,9 +1742,8 @@ Repository: %v
   for r, i := range Repopath2Index { index2repopath[i] = r }
   
   prevpkg := ""
-  release_printed := map[string]bool{}
   
-  outobj := make(LDIFObject,0)
+  var outobj *LDIFObject
   
   for i := 0; i < MasterPackageList.Count(); i++ {
     rpbitmap, path, section, description64, templates64 := MasterPackageList.Get(i)
@@ -1697,31 +1779,24 @@ Repository: %v
     // object in the LDIF, append additional attributes to the previous object
     pkgstr := fmt.Sprintf("%s",pkg)
     if pkgstr != prevpkg { // start a new object
-      fmt.Printf("\n%s", outobj.ToString()) // flush current object
-      outobj = make(LDIFObject,0)
-      outobj.Append("Package", pkg)
-      release_printed = map[string]bool{}
+      fmt.Printf("\n%s\n", outobj.ToString()) // flush current object
+      outobj = newLDIFObject(string(pkg))
     }
     prevpkg = pkgstr
     
+    releases := make([]string,0,4)
     for i := 0; i < RPBytes*8; i++ {
       if (rpbitmap & (1<<uint(i))) != 0 {
         release := Repopath2Release[index2repopath[i]]
-        if release_printed[release] { continue }
-        outobj.Append("Release", []byte(release))
-        release_printed[release] = true
+        releases = append(releases, release)
       }
     }
     
-    outobj.Append("Version", version)
-    outobj.Append("Section", section)
-    outobj.Append("Description:"/*yes, the ':' is correct*/, description64)
-    if len(templates64) > 1 {
-      outobj.Append("Templates:"/*':' here, too*/,  templates64)
-    }
+    if len(templates64) <= 1 { templates64 = []byte{} }
+    outobj.Add(releases, string(version), string(section), string(description64), string(templates64))
   }
   
-  fmt.Printf("\n%s", outobj.ToString()) // flush current object
+  fmt.Printf("\n%s\n", outobj.ToString()) // flush current object
 }
 
 // Reads a text file from uri, splits it into lines, trims them and
