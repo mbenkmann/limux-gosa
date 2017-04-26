@@ -1694,13 +1694,18 @@ func (l *LDIFObject) ToString() string {
   sec := "\000"
   des := "\000"
   tem := "\000"
-  
+
   for _,rs := range versinfolist2releases {
     for _, r := range rs {
       out = append(out, "Release: "+r)
     }
-    
+
+    prevversion := ""
     for _, vi := range l.R2VersInfo[rs[0]] {
+      // eliminate duplicate version entries (see MergeI386andAMD64 docs)
+      if vi.Version == prevversion { continue }
+      prevversion = vi.Version
+      
       if sec != vi.Section {
         if sec != "\000" {
           out = append(out, "Section: "+sec)

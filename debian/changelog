@@ -1,3 +1,9 @@
+gosa (2.8.309) trusty; urgency=medium
+
+  * debdb: suppress duplicate Version entries (was possible for kernels)
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 26 Apr 2017 12:22:34 +0200
+
 gosa (2.8.308) trusty; urgency=medium
 
   * debdb: clean up bits in cache file no longer referenced in meta file
