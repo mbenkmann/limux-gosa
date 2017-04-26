@@ -1,3 +1,9 @@
+gosa (2.8.308) trusty; urgency=medium
+
+  * debdb: clean up bits in cache file no longer referenced in meta file
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 26 Apr 2017 10:40:11 +0200
+
 gosa (2.8.307) trusty; urgency=medium
 
   * debdb: if multiple versions for a package are available for the same release all of them will be reported properly

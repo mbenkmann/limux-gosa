@@ -49,6 +49,8 @@ debdb [-v|-vv|-vvv|-vvvv] download <cachefile> <poolpath>...
 
 `
 
+const ALL_64_BITS uint64 = 0xFFFFFFFFFFFFFFFF
+
 // set by readargs()
 type ModeT int
 var Mode ModeT
@@ -167,6 +169,13 @@ var Repopath2Index = map[string]int{}
 // Repopath2Index plus any additional mappings for repopaths from the cache
 // that are not part of the current program run.
 var Repopath2IndexWithCache = map[string]int{}
+
+// Each repopath entry in the CacheMetaPath file sets the corresponding bit
+// in this bit mask. When the cache is merged with the data, rpbitmaps are
+// ANDed with this mask and lines with 0 as result are ignored. This makes sure
+// that repopaths that have manually been removed from CacheMetaPath file will
+// not result in erroneous entries (possibly attributed to releases without name).
+var CacheRPMask uint64 = 0
 
 // Maps repo+","+repopath to true for every repo/repopath combination whose packages
 // are contained in the cache file to be read by readcache().
@@ -540,6 +549,7 @@ func (pkg *PackageList) AppendPackages(rpbitmap uint64, r io.Reader) error {
 /**
   Merges p1 and p2 and appends the result to this PackageList.
   p1 and p2 will be sorted first.
+  p2's rpbitmaps will be ANDed with p2rpmask and ignored if the result is 0.
   Lines that are identical except for the rpbitmap and templates are combined
   according to the following rules:
     * rpbitmaps are ORed
@@ -550,7 +560,7 @@ func (pkg *PackageList) AppendPackages(rpbitmap uint64, r io.Reader) error {
   If p2templatesonly is true, then p2 can not contribute new lines, only
   amend existing lines from p1 with templates data.
 */
-func (pkg *PackageList) AppendMerge(p1, p2 MergeSource, p2templatesonly bool) {
+func (pkg *PackageList) AppendMerge(p1, p2 MergeSource, p2templatesonly bool, p2rpmask uint64) {
   if p1 == pkg || p2 == pkg || p1 == p2 { panic("all 3 lists involved in AppendMerge must be distinct") }
   p1.Sort()
   p2.Sort()
@@ -570,12 +580,16 @@ func (pkg *PackageList) AppendMerge(p1, p2 MergeSource, p2templatesonly bool) {
       if !p2templatesonly {
         if Verbose > 3 { fmt.Fprintf(os.Stderr, "> ") }
         rpbitmap, path, section, description64, templates64 := p2.Get(b)
-        pkg.Append(rpbitmap, path, section, description64, templates64)
+        rpbitmap &= p2rpmask
+        if rpbitmap != 0 {
+          pkg.Append(rpbitmap, path, section, description64, templates64)
+        }
       }
       b++
     } else {
       rpbitmap, path, section, description64, templates64 := p1.Get(a)
       rpbitmap_2, path_2, _, _, templates64_2 := p2.Get(b)
+      rpbitmap_2 &= p2rpmask
       // if path ends in "i386.deb" we use path_2. This means we prefer
       // "amd64.deb" when both are present.
       if MergeI386andAMD64 && len(path) > 8 && has(path[len(path)-8:],"i386") {
@@ -612,7 +626,10 @@ func (pkg *PackageList) AppendMerge(p1, p2 MergeSource, p2templatesonly bool) {
     for ; b < p2.Count(); b++ {
       if Verbose > 3 { fmt.Fprintf(os.Stderr, ">>") }
       rpbitmap, path, section, description64, templates64 := p2.Get(b)
-      pkg.Append(rpbitmap, path, section, description64, templates64)
+      rpbitmap &= p2rpmask
+      if rpbitmap != 0 {
+        pkg.Append(rpbitmap, path, section, description64, templates64)
+      }
     }
   }
 }
@@ -1289,7 +1306,7 @@ func process_packages_files() (ok bool) {
     if Verbose > 1 {
       fmt.Fprintf(os.Stderr, "Merging %v lines (%v bytes) and %v lines (%v bytes) from %v \n", pkgList.Count(), pkgList.Data.Len(), tempPkgList.Count(), tempPkgList.Data.Len(), taggedblob.Repopath)
     }
-    pkgListNew.AppendMerge(pkgList, tempPkgList, false)
+    pkgListNew.AppendMerge(pkgList, tempPkgList, false, ALL_64_BITS)
     pkgList.Clear()
     tempPkgList.Clear()
     pkgList = pkgListNew
@@ -1333,6 +1350,7 @@ func readmeta() {
         os.Exit(1) // this is fatal because we can't continue with crap data
       }
       Repopath2IndexWithCache[f[1]] = i
+      CacheRPMask |= uint64(1) << uint(i)
     }
   }
   
@@ -1403,7 +1421,7 @@ func readcache(templatesonly bool) {
       fmt.Fprintf(os.Stderr, "Merging %v lines (%v bytes) with ALL DATA from cache %v lines (%v bytes)\n", MasterPackageList.Count(), MasterPackageList.Data.Len(), pkg.Count(), len(pkg.Bytes(0)))
     }
   }
-  newPkgList.AppendMerge(MasterPackageList, pkg, templatesonly)
+  newPkgList.AppendMerge(MasterPackageList, pkg, templatesonly, CacheRPMask)
   MasterPackageList.Clear()
   pkg.Clear()
   MasterPackageList = newPkgList
