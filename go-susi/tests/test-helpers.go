@@ -411,7 +411,8 @@ echo "<audit>
 " | base64 -w 0
 echo
 echo -n log_file:bar.xml:
-echo "<audit>
+echo "<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<audit>
 <entry>
 <key>feuerwehr</key>
 <sirene>laut</sirene>

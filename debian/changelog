@@ -1,3 +1,9 @@
+gosa (2.8.310) trusty; urgency=medium
+
+  * go-susi: allow <?xml...> at start of audit file in gosa_query_audit
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 17 May 2017 12:44:39 +0200
+
 gosa (2.8.309) trusty; urgency=medium
 
   * debdb: suppress duplicate Version entries (was possible for kernels)

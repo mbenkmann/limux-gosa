@@ -342,7 +342,7 @@ func auditFilenameToTimestamp(auditname string) string {
 // be returned as well (otherwise the respective return string will be "").
 // If "<entry>" is not found, -1 is returned (ipaddress and hostname are
 // still returned if they are encountered).
-// If the first non-whitespace string in data is not "<audit>", returns -2.
+// If the first non-whitespace string (after an optional <?...?>) in data is not "<audit>", returns -2.
 func findFirstEntry(data []byte) (i int,ipaddress,hostname string) {
   // If the input is malformed (or simply has no <entry>, we may read past end of data)
   defer func() {
@@ -353,6 +353,11 @@ func findFirstEntry(data []byte) (i int,ipaddress,hostname string) {
   }()
   
   i = 0
+  if data[i] == '<' && data[i+1] == '?' {
+    i += 2
+    for data[i] != '>' { i++ }
+    i++
+  }
   for data[i] <= ' ' { i++ }
   if string(data[i:i+7]) != "<audit>" { return -2, "", "" }
   i+=7
