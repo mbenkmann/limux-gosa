@@ -96,7 +96,7 @@ var ForeignJobUpdates = make(chan *xml.Hash, 16384)
 var MostRecentForwardModifyRequestTime = deque.New([]interface{}{time.Now().Add(-1*time.Hour)}, deque.DropFarEndIfOverflow)
 
 // Fields that can be updated via Jobs*Modify*()
-var updatableFields = []string{"progress", "status", "periodic", "timestamp", "result"}
+var updatableFields = []string{"progress", "status", "periodic", "timestamp", "tminus", "result"}
 
 // A packaged request to perform some action on the jobDB.
 // Most db.Job...() functions attach their core code to a jobDBRequest,
@@ -168,7 +168,7 @@ func JobsInit() {
     if err != nil { panic(err) }
     if id > count { count = id }
     
-    scheduleProcessPendingActions(job.Text("timestamp"))
+    scheduleProcessPendingActions(job.Text("timestamp"), job.Text("tminus"))
   }
   nextID = util.Counter(count+1)
   
@@ -299,19 +299,52 @@ func handleJobDBRequests() {
                Other functions like JobsModifyLocal() are okay, but remember
                that they will not be executed until this case ends.
                *************************/
-               localwait := xml.FilterSimple("siserver", config.ServerSourceAddress, 
-                                             "status", "waiting")
-               beforenow := xml.FilterRel("timestamp", util.MakeTimestamp(time.Now()), -1, 0)
-               filter := xml.FilterAnd([]xml.HashFilter{localwait,beforenow})
+               now_ts := util.MakeTimestamp(time.Now())
+               localjob := xml.FilterSimple("siserver", config.ServerSourceAddress)
+               waiting := xml.FilterSimple("status", "waiting")
+               wakeup  := xml.FilterSimple("status", "wakeup")
+               waiting_or_wakeup := xml.FilterOr([]xml.HashFilter{waiting,wakeup})
+               beforenow := xml.FilterRel("timestamp", now_ts, -1, 0)
+               filter := xml.FilterAnd([]xml.HashFilter{localjob,waiting_or_wakeup,beforenow})
+               util.Log(0, "TEST beforenow filter returns: %v", jobDB.Query(filter))
                JobsModifyLocal(filter, xml.NewHash("job","status","launch"))
+
+               have_filter := map[string]bool{}
+               time_filters := []xml.HashFilter{}
+               for _, tminus := range jobDB.ColumnValues("tminus") {
+                 if !have_filter[tminus] {
+                   relts, err := util.AddTimestamp(now_ts, tminus)
+                   if err == nil {
+                     tmfilt := xml.FilterAnd([]xml.HashFilter{xml.FilterSimple("tminus",tminus),xml.FilterRel("timestamp", relts, -1, 0)})
+                     time_filters = append(time_filters, tmfilt)
+                   }
+                   have_filter[tminus] = true
+                 }
+               }
+               util.Log(0, "TEST Have %v time filters", len(time_filters))
+               tminus_filter := xml.FilterOr(time_filters)
+               filter = xml.FilterAnd([]xml.HashFilter{localjob,waiting,tminus_filter})
+               util.Log(0, "TEST tminus_filter returns: %v", jobDB.Query(filter))
+               JobsModifyLocal(filter, xml.NewHash("job","status","wakeup"))
     }
   }
 }
 
 // Schedules handleJobDBRequests() to scan jobDB for jobs whose time has come.
 // at the time specified by the timestamp argument.
-func scheduleProcessPendingActions(timestamp string) {
+// If tminus is non-empty and a valid <tminus> value it will be subtracted
+// from timestamp and a 2nd handleJobDBRequests() will be scheduled for that time.
+func scheduleProcessPendingActions(timestamp string, tminus string) {
   go func() {
+    if tminus != "" {
+      ts, err := util.AddTimestamp(timestamp, "-"+tminus)
+      if err != nil {
+        util.Log(0, "ERROR! scheduleProcessPendingActions: %v", err)
+      } else {
+        util.WaitUntil(util.ParseTimestamp(ts))
+        processPendingActions <- true
+      }
+    }
     util.WaitUntil(util.ParseTimestamp(timestamp))
     processPendingActions <- true
   }()
@@ -467,7 +500,7 @@ func JobAddLocal(job *xml.Hash) {
     ClientUnthrottle(macaddress)
     JobUpdateXMLMessage(request.Job)
     jobDB.AddClone(request.Job)
-    scheduleProcessPendingActions(request.Job.Text("timestamp"))
+    scheduleProcessPendingActions(request.Job.Text("timestamp"), request.Job.Text("tminus"))
     request.Job.Rename("answer1")
     fju := xml.NewHash("xml","header","foreign_job_updates")
     fju.Add("source", config.ServerSourceAddress)
@@ -595,8 +628,8 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
               }
             }
             
-            if field == "timestamp" {
-              scheduleProcessPendingActions(job.Text("timestamp"))
+            if field == "timestamp" || field == "tminus" {
+              scheduleProcessPendingActions(job.Text("timestamp"), job.Text("tminus"))
             }
           }
         }
@@ -810,6 +843,10 @@ func JobGUID(addr string, num uint64) string {
 
 // Takes a job and adds or replaces the <xmlmessage> element with one that
 // matches the job.
+// OBSOLETE: This was only necessary while gosa-si-server peers were still
+// supported. This function is no longer updated (e.g. <tminus> is not handled)
+// and at some point in the future it will be changed to a dummy that creates
+// an empty <xmlmessage>.
 func JobUpdateXMLMessage(job *xml.Hash) {
   peri := job.Text("periodic")
   if peri == "" { peri = "none" }
