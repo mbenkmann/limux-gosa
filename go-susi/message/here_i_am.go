@@ -289,6 +289,30 @@ copy_end:
       }
     }
   }
+  
+  // Launch all jobs for the new client that have a <tminus> with current time
+  // after <timestamp>-<tminus>. This includes both local and foreign jobs.
+  now_ts := util.MakeTimestamp(time.Now())
+  affects_new_client := xml.FilterSimple("macaddress", macaddress)
+  has_tminus := xml.FilterRegexp("tminus",".")
+  var to_launch []xml.HashFilter
+  jobs := db.JobsQuery(xml.FilterAnd([]xml.HashFilter{affects_new_client,has_tminus}))
+  for child := jobs.FirstChild(); child != nil; child = child.Next() {
+    job := child.Element()
+    timestamp := job.Text("timestamp")
+    tminus := job.Text("tminus")
+    timestamp, err = util.AddTimestamp(timestamp, "-"+tminus)
+    if err == nil {
+      if now_ts >= timestamp {
+        to_launch = append(to_launch, xml.FilterSimple("id",job.Text("id")))
+      }
+    }
+  }
+  
+  if len(to_launch) > 0 {
+    util.Log(1, "INFO! Launching jobs according to <tminus>")
+    db.JobsModify(xml.FilterOr(to_launch), xml.NewHash("job","status","launch"))
+  }
 }
 
 // Returns true if the CN of system must not be changed.

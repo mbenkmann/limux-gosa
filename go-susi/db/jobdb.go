@@ -126,7 +126,9 @@ var processPendingActions = make(chan bool)
 // put into this queue after its status has been changed to "processing".
 // Whenever a local job is removed, it is put into this queue after
 // its status has been changed to "done". 
-// The consumer of this queue is action/process_act.go:init()
+// Whenever the <timestamp>-<tminus> time has come, a process with <tminus>
+// will go into status "wakeup" and will be put into this queue.
+// The consumer of this queue is action/process_act.go:Init()
 var PendingActions = deque.New()
 
 // The next number to use for <id> when storing a new local job.
@@ -306,7 +308,6 @@ func handleJobDBRequests() {
                waiting_or_wakeup := xml.FilterOr([]xml.HashFilter{waiting,wakeup})
                beforenow := xml.FilterRel("timestamp", now_ts, -1, 0)
                filter := xml.FilterAnd([]xml.HashFilter{localjob,waiting_or_wakeup,beforenow})
-               util.Log(0, "TEST beforenow filter returns: %v", jobDB.Query(filter))
                JobsModifyLocal(filter, xml.NewHash("job","status","launch"))
 
                have_filter := map[string]bool{}
@@ -321,10 +322,17 @@ func handleJobDBRequests() {
                    have_filter[tminus] = true
                  }
                }
-               util.Log(0, "TEST Have %v time filters", len(time_filters))
                tminus_filter := xml.FilterOr(time_filters)
                filter = xml.FilterAnd([]xml.HashFilter{localjob,waiting,tminus_filter})
-               util.Log(0, "TEST tminus_filter returns: %v", jobDB.Query(filter))
+               /*
+               Because jobDBRequests are processed sequentially in a single
+               goroutine it is guaranteed that if the previous JobsModifyLocal()
+               has set status="launch" we do not overwrite it with "wakeup" here.
+               Besides, even if the order were reversed, because the above
+               JobsModifyLocal() has a filter that includes "wakeup", "launch" would
+               win even if the order were reversed, because the database operation
+               is atomic.
+               */
                JobsModifyLocal(filter, xml.NewHash("job","status","wakeup"))
     }
   }
@@ -574,6 +582,11 @@ func JobsRemoveLocal(filter xml.HashFilter, stop_periodic bool) {
 //       set to status "processing" and
 //       will be pushed into the PendingActions queue. 
 //       This will cause the job's action to be performed asap.
+//
+//       If update has status=="wakeup", the matching jobs will be
+//       pushed into the PendingActions queue. This will cause the
+//       targetted machines to be woken up or re-registered.
+//       The status will remain as "wakeup".
 func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
   if update.Text("status") == "done" {
     stop_periodic := 
@@ -592,11 +605,16 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
     for child := jobdb_xml.FirstChild(); child != nil; child = child.Next() {
         job := child.Remove()
         send_fju_for_this_job := true
+        status_changed := false
         for _, field := range updatableFields {
           x := request.Job.First(field)
           if x != nil {
+
+            status_changed = status_changed || (field == "status" && x.Text() != "")
+
+            job.FirstOrAdd(field).SetText(x.Text())
+
             if field == "status" && x.Text() == "launch" {
-              job.FirstOrAdd(field).SetText("processing")
               if job.Text("headertag") == "trigger_action_reinstall" || job.Text("headertag") == "trigger_action_update" {
                 // Only one install or update job can be in status "processing" for the same machine at the same time,
                 // so remove all other local install and update jobs in status "processing".
@@ -617,11 +635,8 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
                 JobsModifyLocal(to_remove, xml.NewHash("job","progress","groom")) // to prevent faistate => localboot
                 JobsRemoveLocal(to_remove, false)
               }
-              util.Log(1, "INFO! Launching job: %v",job)
-              PendingActions.Push(job.Clone()) 
-            } else {
-              job.FirstOrAdd(field).SetText(x.Text())
               
+            } else {
               // suppress fju sending for internal changes
               if field == "progress" && (x.Text() == "forward" || x.Text() == "groom") { 
                 send_fju_for_this_job = false
@@ -633,6 +648,20 @@ func JobsModifyLocal(filter xml.HashFilter, update *xml.Hash) {
             }
           }
         }
+        
+        if status_changed {
+          if job.Text("status") == "launch" {
+            job.FirstOrAdd("status").SetText("processing")
+            util.Log(1, "INFO! Launching job: %v",job)
+            PendingActions.Push(job.Clone()) 
+          }
+          
+          if job.Text("status") == "wakeup" {
+            util.Log(1, "INFO! Waking/Re-registering target machine of job: %v",job)
+            PendingActions.Push(job.Clone()) 
+          }
+        }
+        
         JobUpdateXMLMessage(job)
         jobDB.Replace(xml.FilterSimple("id", job.Text("id")), true, job)
         if send_fju_for_this_job {

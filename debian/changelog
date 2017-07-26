@@ -1,3 +1,9 @@
+gosa (2.8.312) trusty; urgency=medium
+
+  * go-susi: <tminus> fully implemented
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Wed, 26 Jul 2017 15:55:42 +0200
+
 gosa (2.8.311) trusty; urgency=medium
 
   * go-susi: partial support for <tminus>

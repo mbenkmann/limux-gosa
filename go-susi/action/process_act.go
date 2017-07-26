@@ -36,7 +36,7 @@ import (
 
 // Infinite loop that consumes *xml.Hash job descriptors from
 // db.PendingActions and launches goroutines to perform the appropriate
-// action depending on the job's status ("done" or "processing").
+// action depending on the job's status ("done", "wakeup" or "processing").
 // This function is also responsible for adding a new job when a periodic
 // job is done.
 func Init() { // not init() because we need to call it from go-susi.go
@@ -56,6 +56,17 @@ func Init() { // not init() because we need to call it from go-susi.go
             
             macaddress := job.Text("macaddress")
             headertag  := job.Text("headertag")
+
+            // If we need to wake up client because of <tminus>, set headertag to
+            // "deregistered". If the client is off, we wake it up (see switch headertag
+            // further below).
+            // If the client is already awake, the "deregistered" message sent to it
+            //  will cause it to re-register. In either case there should be a here_i_am
+            // coming from the client  which triggers the <tminus> job.
+            if job.Text("status") == "wakeup" {
+              headertag = "deregistered"
+            }
+
             if headertag != "send_user_msg" && // send_user_msg does not target a machine
                headertag != "set_activated_for_installation" { // set_activated_for_installation is sent when the action is taken
               client := db.ClientWithMAC(macaddress)
@@ -75,7 +86,9 @@ func Init() { // not init() because we need to call it from go-susi.go
             done := true
             switch headertag {
               case "send_user_msg":            SendUserMsg(job)
-              case "trigger_action_wake":      Wake(job)      // "Aufwecken"
+              case "trigger_action_wake",
+                   "deregistered":             Wake(job)      // "Aufwecken"
+                                               done = (headertag != "deregistered")
               case "trigger_action_lock":      Lock(job)      // "Sperre"
               case "trigger_action_localboot": Localboot(job) // "Erzwinge lokalen Start"
               case "trigger_action_halt":      Halt(job)      // "Anhalten"
@@ -149,7 +162,7 @@ func Init() { // not init() because we need to call it from go-susi.go
               return
             }
             
-            for ; t.Before(time.Now()) ; {
+            for {
               switch p[1] {
                 case "seconds": t = t.Add(time.Duration(period) * time.Second)
                 case "minutes": t = t.Add(time.Duration(period) * time.Minute)
@@ -162,6 +175,11 @@ func Init() { // not init() because we need to call it from go-susi.go
                      util.Log(0, "ERROR! Unknown periodic unit: %v", p[1])
                      return
               }
+              // Check condition AFTER the switch to make sure we add
+              // at least 1 periodic unit, even if we are still before the
+              // original timestamp. This can happen if a job launches
+              // early because of <tminus>.
+              if !t.Before(time.Now()) { break }
             }
             job.FirstOrAdd("timestamp").SetText(util.MakeTimestamp(t))
             job.FirstOrAdd("result").SetText("none")
@@ -243,6 +261,7 @@ func Forward(job *xml.Hash) bool {
   gosa_trigger_action.Add("macaddress",macaddress)
   gosa_trigger_action.Add("target",macaddress)
   if job.First("timestamp") != nil { gosa_trigger_action.Add("timestamp", job.Text("timestamp")) }
+  if job.First("tminus") != nil { gosa_trigger_action.Add("tminus", job.Text("tminus")) }
   if job.First("periodic") != nil  { gosa_trigger_action.Add("periodic",  job.Text("periodic")) }
   
   request := gosa_trigger_action.String()
