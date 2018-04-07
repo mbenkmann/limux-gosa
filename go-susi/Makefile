@@ -1,14 +1,10 @@
 BINARIES=run-tests go-susi sibridge fai-helpers/debdb
-
-susi:
-	go build main/go-susi.go
+GOLIB=vendor/github.com/mbenkmann/golib
 
 all: build man
 
 build:
-	go get -u github.com/mbenkmann/golib/bytes
-	go get -u github.com/mbenkmann/golib/deque
-	go get -u github.com/mbenkmann/golib/util
+	test -d $(GOLIB)/util || ( cd $(GOLIB) && git submodule init && git submodule update )
 	go build main/go-susi.go
 	go build main/sibridge.go
 	go build -o fai-helpers/debdb fai-helpers/debdb.go
