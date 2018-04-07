@@ -1,5 +1,6 @@
 BINARIES=run-tests go-susi sibridge fai-helpers/debdb
-GOLIB=vendor/github.com/mbenkmann/golib
+GOLIB=src/github.com/mbenkmann/golib
+GOPATH:=$(GOPATH):$(PWD)
 
 all: build man
 
