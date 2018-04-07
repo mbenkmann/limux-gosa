@@ -1,0 +1,3 @@
+[submodule "go-susi/vendor/github.com/mbenkmann/golib"]
+	path = go-susi/vendor/github.com/mbenkmann/golib
+	url = https://github.com/mbenkmann/golib

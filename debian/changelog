@@ -1,3 +1,9 @@
+gosa (2.8.313) trusty; urgency=medium
+
+  * use vendoring to include golib in go-susi
+
+ -- Matthias S. Benkmann <mux2005@gmail.com>  Sat, 07 Apr 2018 17:30:46 +0200
+
 gosa (2.8.312) trusty; urgency=medium
 
   * go-susi: <tminus> fully implemented
