@@ -1,6 +1,7 @@
 BINARIES=run-tests go-susi sibridge fai-helpers/debdb
 GOLIB=src/github.com/mbenkmann/golib
 GOPATH:=$(GOPATH):$(PWD)
+export GOPATH
 
 all: build man
 
